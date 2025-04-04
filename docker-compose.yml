@@ -1,0 +1,99 @@
+services:
+  db:
+    container_name: db
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: sa
+      POSTGRES_PASSWORD: sa
+    networks:
+      - app_network
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  zipkin:
+    container_name: zipkin11
+    image: openzipkin/zipkin
+    networks:
+      - app_network
+    ports:
+      - "9411:9411"
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6379:6379"  # 레디스 기본 포트
+    networks:
+      - app_network
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"  # Prometheus 기본 포트
+    networks:
+      - app_network
+    volumes:
+      - ./server/src/main/resources/prometheus.yml:/etc/prometheus/prometheus.yml  # prometheus.yml 파일 경로 수정
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:11.5.2
+    ports:
+      - "3000:3000"  # Grafana 기본 포트
+    networks:
+      - app_network
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: 'admin'  # Grafana 관리자 비밀번호
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana-storage:/var/lib/grafana  # Grafana 데이터 저장소
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    platform: linux/amd64
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+
+
+  kafka:
+    image: bitnami/kafka:latest
+    platform: linux/amd64
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:29092,OUTSIDE://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    platform: linux/amd64
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+      KAFKA_CLUSTERS_0_READONLY: "false"
+
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  grafana-storage:
