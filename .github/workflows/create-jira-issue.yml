@@ -12,15 +12,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set JIRA_USER_EMAIL
+      - name: Set Jira credentials from actor
+        id: set-jira-env
         run: |
           case "${{ github.actor }}" in
-            hanjihoon03) echo "JIRA_USER_EMAIL=gkswlgns7653@gmail.com" >> $GITHUB_ENV ;;
-            hyezuu) echo "JIRA_USER_EMAIL=duudu0704@gmail.com" >> $GITHUB_ENV ;;
-            je-pa) echo "JIRA_USER_EMAIL=jieun0502@gmail.com" >> $GITHUB_ENV ;;
-            HanaHww2) echo "JIRA_USER_EMAIL=hanahww2@gmail.com" >> $GITHUB_ENV ;;
+            hanjihoon03)
+              echo "JIRA_USER_EMAIL=gkswlgns7653@gmail.com" >> $GITHUB_ENV
+              echo "JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN_hanjihoon03 }}" >> $GITHUB_ENV
+              ;;
+            hyezuu)
+              echo "JIRA_USER_EMAIL=duudu0704@gmail.com" >> $GITHUB_ENV
+              echo "JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN_hyezuu }}" >> $GITHUB_ENV
+              ;;
+            je-pa)
+              echo "JIRA_USER_EMAIL=jieun0502@gmail.com" >> $GITHUB_ENV
+              echo "JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN_je_pa }}" >> $GITHUB_ENV
+              ;;
+            HanaHww2)
+              echo "JIRA_USER_EMAIL=hanahww2@gmail.com" >> $GITHUB_ENV
+              echo "JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN_HanaHww2 }}" >> $GITHUB_ENV
+              ;;
             *)
-              echo "이슈 작성자(${GITHUB_ACTOR})에 대한 Jira 이메일이 정의되어 있지 않습니다."
+              echo "❌ 이슈 작성자(${GITHUB_ACTOR})에 대한 Jira 정보가 없습니다."
               exit 1
               ;;
           esac
@@ -30,7 +43,7 @@ jobs:
         env:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
           JIRA_USER_EMAIL: ${{ env.JIRA_USER_EMAIL }}
-          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_API_TOKEN: ${{ env.JIRA_API_TOKEN }}
 
       - name: Create Jira Issue
         uses: atlassian/gajira-create@v3
