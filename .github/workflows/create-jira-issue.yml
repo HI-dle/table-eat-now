@@ -4,12 +4,6 @@ on:
   issues:
     types: [opened]
 
-env:
-  JIRA_EMAIL_hanjihoon03: "gkswlgns7653@gmail.com"
-  JIRA_EMAIL_hyezuu: "duudu0704@gmail.com"
-  JIRA_EMAIL_je_pa: "jieun0502@gmail.com"
-  JIRA_EMAIL_HanaHww2: "hanahww2@gmail.com"
-
 jobs:
   create-issue:
     name: Create Jira issue
@@ -20,11 +14,9 @@ jobs:
 
       - name: Set JIRA_USER_EMAIL
         run: |
-          ACTOR=${{ github.actor }}
-          EMAIL_VAR="JIRA_EMAIL_${ACTOR}"
-          JIRA_EMAIL=${!EMAIL_VAR}
-          if [ -z "$JIRA_EMAIL" ]; then
-            echo "No Jira email found for user $ACTOR"
+          JIRA_EMAIL=$(jq -r --arg user "${{ github.actor }}" '.[$user]' .github/jira_emails.json)
+          if [ "$JIRA_EMAIL" == "null" ]; then
+            echo "No Jira email found for user ${{ github.actor }}"
             exit 1
           fi
           echo "JIRA_USER_EMAIL=$JIRA_EMAIL" >> $GITHUB_ENV
