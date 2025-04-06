@@ -7,7 +7,7 @@ on:
 env:
   JIRA_EMAIL_hanjihoon03: "gkswlgns7653@gmail.com"
   JIRA_EMAIL_hyezuu: "duudu0704@gmail.com"
-  JIRA_EMAIL_je-pa: "jieun0502@gmail.com"
+  JIRA_EMAIL_je_pa: "jieun0502@gmail.com"
   JIRA_EMAIL_HanaHww2: "hanahww2@gmail.com"
 
 jobs:
