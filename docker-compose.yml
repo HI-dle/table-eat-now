@@ -1,9 +1,9 @@
 services:
   db:
-    container_name: db
+    container_name: ten-db
     image: postgres:latest
     ports:
-      - "5433:5433"
+      - "5433:5432"
     environment:
       POSTGRES_USER: sa
       POSTGRES_PASSWORD: sa
@@ -13,7 +13,7 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   zipkin:
-    container_name: zipkin11
+    container_name: ten-zipkin
     image: openzipkin/zipkin
     networks:
       - app_network
@@ -21,15 +21,15 @@ services:
       - "9411:9411"
 
   redis:
-    container_name: redis
+    container_name: ten-redis
     image: redis:latest
     ports:
-      - "6380:6380"  # 레디스 기본 포트
+      - "6380:6379"  # 레디스 기본 포트
     networks:
       - app_network
 
   prometheus:
-    container_name: prometheus
+    container_name: ten-prometheus
     image: prom/prometheus:latest
     ports:
       - "9090:9090"  # Prometheus 기본 포트
@@ -41,7 +41,7 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
 
   grafana:
-    container_name: grafana
+    container_name: ten-grafana
     image: grafana/grafana:11.5.2
     ports:
       - "3000:3000"  # Grafana 기본 포트

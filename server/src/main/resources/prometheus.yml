@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s  # 메트릭을 수집할 주기
+  scrape_timeout: 10s # request가 timeout 되는 시간
+  evaluation_interval: 2m # 2분마다 규칙 평가
+
+scrape_configs:
+#  - job_name: 'eureka-server'
+#    metrics_path: '/actuator/prometheus'
+#    static_configs:
+#      - targets: ['host.docker.internal:8761']  # Eureka 서버의 Prometheus 메트릭 엔드포인트
+#
+#  - job_name: 'grafana'
+#    scrape_interval: 5s
+#    static_configs:
+#      - targets: [ 'grafana:3000' ]  # Eureka 서버의 Prometheus 메트릭 엔드포인트
+
+#  - job_name: 'eureka-client'
+#    metrics_path: '/actuator/prometheus'  # Spring Boot Actuator Prometheus 엔드포인트
+#    static_configs:
+#      - targets: ['host.docker.internal:19041', 'host.docker.internal:19042']  # Eureka 클라이언트들의 Prometheus 메트릭 엔드포인트
