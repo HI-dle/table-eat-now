@@ -18,7 +18,7 @@ jobs: # 3
     - name: Create Issue 
       uses: atlassian/gajira-create@v3
       with:
-        project: HIWJ  # 10 - 프로젝트 key
+        project: HD  # 10 - 프로젝트 key
         issuetype: Task # 11 - 이슈 타입
         summary: '${{ github.event.issue.title }}'
         description: '${{ github.event.issue.html_url }}'
