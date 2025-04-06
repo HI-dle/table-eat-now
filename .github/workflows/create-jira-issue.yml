@@ -12,9 +12,11 @@ jobs:
       matrix:
         actor: [hanjihoon03, hyezuu, je-pa, HanaHww2]
 
-    if: github.actor == matrix.actor
-
     steps:
+      - name: Skip if not matching actor
+        if: github.actor != matrix.actor
+        run: echo "Not the actor. Skipping..." && exit 0
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
