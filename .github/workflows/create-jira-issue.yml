@@ -8,26 +8,21 @@ jobs:
   create-issue:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        actor: [hanjihoon03, hyezuu, je-pa, HanaHww2]
-
     steps:
-      - name: Skip if not matching actor
-        if: github.actor != matrix.actor
-        run: echo "Not the actor. Skipping..." && exit 0
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set JIRA_USER_EMAIL
         run: |
-          case "${{ matrix.actor }}" in
+          case "${{ github.actor }}" in
             hanjihoon03) echo "JIRA_USER_EMAIL=gkswlgns7653@gmail.com" >> $GITHUB_ENV ;;
             hyezuu) echo "JIRA_USER_EMAIL=duudu0704@gmail.com" >> $GITHUB_ENV ;;
             je-pa) echo "JIRA_USER_EMAIL=jieun0502@gmail.com" >> $GITHUB_ENV ;;
             HanaHww2) echo "JIRA_USER_EMAIL=hanahww2@gmail.com" >> $GITHUB_ENV ;;
-            *) echo "Unknown actor"; exit 1 ;;
+            *)
+              echo "이슈 작성자(${GITHUB_ACTOR})에 대한 Jira 이메일이 정의되어 있지 않습니다."
+              exit 1
+              ;;
           esac
 
       - name: Login to Jira
