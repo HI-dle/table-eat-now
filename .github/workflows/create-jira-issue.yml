@@ -18,19 +18,19 @@ jobs:
           case "${{ github.actor }}" in
             hanjihoon03)
               echo "JIRA_USER_EMAIL=gkswlgns7653@gmail.com" >> $GITHUB_ENV
-              echo "JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN_hanjihoon03 }}" >> $GITHUB_ENV
+              echo "JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN_HANJIHOON03 }}" >> $GITHUB_ENV
               ;;
             hyezuu)
               echo "JIRA_USER_EMAIL=duudu0704@gmail.com" >> $GITHUB_ENV
-              echo "JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN_hyezuu }}" >> $GITHUB_ENV
+              echo "JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN_HYEZUU }}" >> $GITHUB_ENV
               ;;
             je-pa)
               echo "JIRA_USER_EMAIL=jieun0502@gmail.com" >> $GITHUB_ENV
-              echo "JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN_je_pa }}" >> $GITHUB_ENV
+              echo "JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN_JE_PA }}" >> $GITHUB_ENV
               ;;
             HanaHww2)
               echo "JIRA_USER_EMAIL=hanahww2@gmail.com" >> $GITHUB_ENV
-              echo "JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN_HanaHww2 }}" >> $GITHUB_ENV
+              echo "JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN_HANAHWW2 }}" >> $GITHUB_ENV
               ;;
             *)
               echo "❌ 이슈 작성자(${GITHUB_ACTOR})에 대한 Jira 정보가 없습니다."
