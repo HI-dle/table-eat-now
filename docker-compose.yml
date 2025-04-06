@@ -3,7 +3,7 @@ services:
     container_name: db
     image: postgres:latest
     ports:
-      - "5432:5432"
+      - "5433:5433"
     environment:
       POSTGRES_USER: sa
       POSTGRES_PASSWORD: sa
@@ -24,7 +24,7 @@ services:
     container_name: redis
     image: redis:latest
     ports:
-      - "6379:6379"  # 레디스 기본 포트
+      - "6380:6380"  # 레디스 기본 포트
     networks:
       - app_network
 
@@ -83,7 +83,7 @@ services:
     image: provectuslabs/kafka-ui:latest
     platform: linux/amd64
     ports:
-      - "8080:8080"
+      - "8079:8079"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
