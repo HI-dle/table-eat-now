@@ -4,31 +4,29 @@ on:
   issues:
     types: [opened]
 
-env:
-  JIRA_EMAIL_hanjihoon03: "gkswlgns7653@gmail.com"
-  JIRA_EMAIL_hyezuu: "duudu0704@gmail.com"
-  JIRA_EMAIL_je_pa: "jieun0502@gmail.com"
-  JIRA_EMAIL_HanaHww2: "hanahww2@gmail.com"
-
 jobs:
   create-issue:
-    name: Create Jira issue
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        actor: [hanjihoon03, hyezuu, je-pa, HanaHww2]
+
+    if: github.actor == matrix.actor
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set JIRA_USER_EMAIL
         run: |
-          ACTOR=${{ github.actor }}
-          ACTOR_UNDERSCORE=${ACTOR//-/_}
-          EMAIL_VAR="JIRA_EMAIL_${ACTOR_UNDERSCORE}"
-          JIRA_EMAIL=${!EMAIL_VAR}
-          if [ -z "$JIRA_EMAIL" ]; then
-            echo "No Jira email found for user $ACTOR"
-            exit 1
-          fi
-          echo "JIRA_USER_EMAIL=$JIRA_EMAIL" >> $GITHUB_ENV
+          case "${{ matrix.actor }}" in
+            hanjihoon03) echo "JIRA_USER_EMAIL=gkswlgns7653@gmail.com" >> $GITHUB_ENV ;;
+            hyezuu) echo "JIRA_USER_EMAIL=duudu0704@gmail.com" >> $GITHUB_ENV ;;
+            je-pa) echo "JIRA_USER_EMAIL=jieun0502@gmail.com" >> $GITHUB_ENV ;;
+            HanaHww2) echo "JIRA_USER_EMAIL=hanahww2@gmail.com" >> $GITHUB_ENV ;;
+            *) echo "Unknown actor"; exit 1 ;;
+          esac
 
       - name: Login to Jira
         uses: atlassian/gajira-login@v3
