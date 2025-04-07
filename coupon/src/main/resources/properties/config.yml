@@ -1,0 +1,14 @@
+# local 환경
+spring:
+  config.activate.on-profile: local
+  cloud:
+    config:
+      enabled: false
+
+---
+# test 환경
+spring:
+  config.activate.on-profile: local
+  cloud:
+    config:
+      enabled: false
