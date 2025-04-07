@@ -17,61 +17,63 @@ import table.eat.now.gateway.util.JwtResolver;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
-		private final JwtResolver resolver;
-		private static final List<String> EXCLUDED_PATHS = List.of(
-				"/api/v1/users/signup",
-				"/api/v1/users/login",
-				"/springdoc/"
-		);
+	private final JwtResolver resolver;
+	private static final List<String> EXCLUDED_PATHS = List.of(
+			"/api/v1/users/signup",
+			"/api/v1/users/login",
+			"/springdoc/"
+	);
 
-		@Override
-		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				ServerHttpRequest request = exchange.getRequest();
-				String path = request.getURI().getPath();
+	@Override
+	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+		ServerHttpRequest request = exchange.getRequest();
+		String path = request.getURI().getPath();
 
-				if (isExcludedPath(path)) {
-						return chain.filter(exchange);
-				}
-
-				return validateToken(request)
-						.map(tokenInfo -> addUserContext(exchange, tokenInfo))
-						.map(chain::filter)
-						.orElseGet(() -> rejectRequest(exchange));
+		if (isExcludedPath(path)) {
+			return chain.filter(exchange);
 		}
 
-		private boolean isExcludedPath(String path) {
-				return EXCLUDED_PATHS.stream()
-						.anyMatch(path::startsWith);
-		}
+		return validateToken(request)
+				.map(tokenInfo -> addUserContext(exchange, tokenInfo))
+				.map(chain::filter)
+				.orElseGet(() -> rejectRequest(exchange));
+	}
 
-		private Optional<TokenInfo> validateToken(ServerHttpRequest request) {
-				return Optional.ofNullable(request.getHeaders().getFirst("Authorization"))
-						.filter(resolver::isValidHeader).map(resolver::removePrefix)
-						.filter(resolver::isValidToken).map(this::createTokenInfo);
-		}
+	private boolean isExcludedPath(String path) {
+		return EXCLUDED_PATHS.stream()
+				.anyMatch(path::startsWith);
+	}
 
-		private Mono<Void> rejectRequest(ServerWebExchange exchange) {
-				exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-				return exchange.getResponse().setComplete();
-		}
+	private Optional<TokenInfo> validateToken(ServerHttpRequest request) {
+		return Optional.ofNullable(request.getHeaders().getFirst("Authorization"))
+				.filter(resolver::isValidHeader).map(resolver::removePrefix)
+				.filter(resolver::isValidToken).map(this::createTokenInfo);
+	}
 
-		private record TokenInfo(String userId, String role) {}
+	private Mono<Void> rejectRequest(ServerWebExchange exchange) {
+		exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+		return exchange.getResponse().setComplete();
+	}
 
-		private TokenInfo createTokenInfo(String token) {
-				return new TokenInfo(resolver.getUserId(token), resolver.getUserRole(token));
-		}
+	private record TokenInfo(String userId, String role) {
 
-		private ServerWebExchange addUserContext(ServerWebExchange exchange, TokenInfo tokenInfo) {
-				ServerHttpRequest request = exchange.getRequest().mutate()
-						.header("X-User-Id", tokenInfo.userId())
-						.header("X-User-Role", tokenInfo.role())
-						.build();
+	}
 
-				return exchange.mutate().request(request).build();
-		}
+	private TokenInfo createTokenInfo(String token) {
+		return new TokenInfo(resolver.getUserId(token), resolver.getUserRole(token));
+	}
 
-		@Override
-		public int getOrder() {
-				return Ordered.HIGHEST_PRECEDENCE + 10;
-		}
+	private ServerWebExchange addUserContext(ServerWebExchange exchange, TokenInfo tokenInfo) {
+		ServerHttpRequest request = exchange.getRequest().mutate()
+				.header("X-User-Id", tokenInfo.userId())
+				.header("X-User-Role", tokenInfo.role())
+				.build();
+
+		return exchange.mutate().request(request).build();
+	}
+
+	@Override
+	public int getOrder() {
+		return Ordered.HIGHEST_PRECEDENCE + 10;
+	}
 }
