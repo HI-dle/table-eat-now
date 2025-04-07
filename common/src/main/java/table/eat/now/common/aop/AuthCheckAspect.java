@@ -1,6 +1,8 @@
 package table.eat.now.common.aop;
 
 
+import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
+
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +42,7 @@ public class AuthCheckAspect {
     }
 
     HttpServletRequest request = attributes.getRequest();
-    String userRoleStr = request.getHeader("X-User-Role");
+    String userRoleStr = request.getHeader(USER_ROLE_HEADER);
     if (userRoleStr == null) {
       throw CustomException.from(ApiErrorCode.UNAUTHORIZED);
     }

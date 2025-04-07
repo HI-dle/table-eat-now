@@ -1,5 +1,8 @@
 package table.eat.now.common.resolver;
 
+import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
+import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -23,8 +26,8 @@ public class CurrentUserInfoResolver implements HandlerMethodArgumentResolver {
   public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
       NativeWebRequest request, WebDataBinderFactory binderFactory) throws Exception {
 
-    String userId = request.getHeader("X-User-Id");
-    String role = request.getHeader("X-User-Role");
+    String userId = request.getHeader(USER_ID_HEADER);
+    String role = request.getHeader(USER_ROLE_HEADER);
 
     if (userId != null && role != null) {
       return CurrentUserInfoDto.of(Long.valueOf(userId), UserRole.valueOf(role));

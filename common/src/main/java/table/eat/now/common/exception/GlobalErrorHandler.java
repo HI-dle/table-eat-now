@@ -76,7 +76,7 @@ public class GlobalErrorHandler {
 
     log(e, request, e.getStatus());
     return ResponseEntity.status(e.getStatus())
-        .body(ErrorResponse.of(e));
+        .body(ErrorResponse.from(e));
   }
 
   @ExceptionHandler(Exception.class)
@@ -85,7 +85,7 @@ public class GlobalErrorHandler {
 
     HttpStatus status = INTERNAL_SERVER_ERROR;
     log(e, request, status);
-    return ResponseEntity.status(status).body(ErrorResponse.of(e));
+    return ResponseEntity.status(status).body(ErrorResponse.from(e));
   }
 
   @ExceptionHandler(Throwable.class)
@@ -94,7 +94,7 @@ public class GlobalErrorHandler {
 
     HttpStatus status = INTERNAL_SERVER_ERROR;
     log(e, request, status);
-    return ResponseEntity.status(status).body(ErrorResponse.of(e));
+    return ResponseEntity.status(status).body(ErrorResponse.from(e));
   }
 
   private static void log(Throwable e, HttpServletRequest request, HttpStatus status) {
