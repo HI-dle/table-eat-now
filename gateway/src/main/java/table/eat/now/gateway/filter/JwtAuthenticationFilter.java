@@ -1,5 +1,7 @@
 package table.eat.now.gateway.filter;
 
+import static table.eat.now.common.constant.UserInfoConstant.*;
+
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,8 @@ import table.eat.now.gateway.util.JwtResolver;
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
 	private final JwtResolver resolver;
+
+	private static final String AUTH_HEADER = "Authorization";
 	private static final List<String> EXCLUDED_PATHS = List.of(
 			"/api/v1/users/signup",
 			"/api/v1/users/login",
@@ -45,7 +49,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 	}
 
 	private Optional<TokenInfo> validateToken(ServerHttpRequest request) {
-		return Optional.ofNullable(request.getHeaders().getFirst("Authorization"))
+		return Optional.ofNullable(request.getHeaders().getFirst(AUTH_HEADER))
 				.filter(resolver::isValidHeader).map(resolver::removePrefix)
 				.filter(resolver::isValidToken).map(this::createTokenInfo);
 	}
@@ -55,9 +59,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 		return exchange.getResponse().setComplete();
 	}
 
-	private record TokenInfo(String userId, String role) {
-
-	}
+	private record TokenInfo(String userId, String role) {}
 
 	private TokenInfo createTokenInfo(String token) {
 		return new TokenInfo(resolver.getUserId(token), resolver.getUserRole(token));
@@ -65,8 +67,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
 	private ServerWebExchange addUserContext(ServerWebExchange exchange, TokenInfo tokenInfo) {
 		ServerHttpRequest request = exchange.getRequest().mutate()
-				.header("X-User-Id", tokenInfo.userId())
-				.header("X-User-Role", tokenInfo.role())
+				.header(USER_ID_HEADER, tokenInfo.userId())
+				.header(USER_ROLE_HEADER, tokenInfo.role())
 				.build();
 
 		return exchange.mutate().request(request).build();

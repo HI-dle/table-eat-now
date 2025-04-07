@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 public class JwtResolver {
 
 	private static final String BEARER_PREFIX = "Bearer ";
+	private static final String CLAIM_ROLE_KEY = "role";
 	private final SecretKey key;
 
 	public JwtResolver(@Value("${jwt.secret}") String secretKey) {
@@ -24,7 +25,7 @@ public class JwtResolver {
 
 	public String getUserRole(String token) {
 		return getClaims(token, claims ->
-				claims.get("role", String.class));
+				claims.get(CLAIM_ROLE_KEY, String.class));
 	}
 
 	private <T> T getClaims(String token, Function<Claims, T> claimsResolver) {

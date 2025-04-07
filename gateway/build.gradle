@@ -38,6 +38,9 @@ dependencies {
     testImplementation 'io.projectreactor:reactor-test'
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    //COMMON
+    implementation project(':common')
 }
 
 dependencyManagement {
