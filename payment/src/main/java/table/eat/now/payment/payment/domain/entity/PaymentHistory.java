@@ -1,7 +1,6 @@
 package table.eat.now.payment.payment.domain.entity;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,45 +9,30 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.Getter;
-import table.eat.now.common.domain.BaseEntity;
 
 @Getter
 @Entity
-@Table(name = "p_payment")
-public class Payment extends BaseEntity {
+@Table(name = "p_payment_history")
+public class PaymentHistory {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Embedded
-	private PaymentReference reference;
-
-	@Embedded
-	private PaymentIdentifier identifier;
+	@Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
+	private UUID paymentUuid;
 
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private PaymentStatus paymentStatus;
 
-	@Column(unique = true)
-	private String paymentKey;
-
 	@Column(nullable = false, precision = 8)
-	private BigDecimal originalAmount;
+	private BigDecimal amount;
 
-	@Column(precision = 8)
-	private BigDecimal discountAmount;
+	private String reason;
 
-	@Column(precision = 8)
-	private BigDecimal totalAmount;
-
-	private LocalDateTime requestedAt;
-
-	private LocalDateTime approvedAt;
-
-	protected Payment() {
+	protected PaymentHistory() {
 	}
 }

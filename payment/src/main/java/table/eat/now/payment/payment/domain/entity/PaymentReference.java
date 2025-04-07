@@ -9,14 +9,15 @@ import lombok.Getter;
 @Embeddable
 public class PaymentReference {
 
-		@Column(name = "restaurant_uuid", nullable = false)
-		private UUID restaurantId;
+	@Column(name = "restaurant_uuid", nullable = false, columnDefinition = "VARCHAR(100)")
+	private UUID restaurantId;
 
-		@Column(name = "reservation_uuid", nullable = false)
-		private UUID reservationId;
+	@Column(name = "reservation_uuid", nullable = false, columnDefinition = "VARCHAR(100)")
+	private UUID reservationId;
 
-		@Column(name = "customer_id", nullable = false)
-		private Long customerId;
+	@Column(name = "customer_id", nullable = false, columnDefinition = "VARCHAR(100)")
+	private Long customerId;
 
-		protected PaymentReference() {}
+	protected PaymentReference() {
+	}
 }
