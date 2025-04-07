@@ -21,6 +21,9 @@ import org.springframework.stereotype.Component;
 public class TokenProvider {
 
   public static final String BEARER_PREFIX = "Bearer ";
+  private static final String CLAIM_ROLE_KEY = "role";
+  private static final String CLAIM_USERNAME_KEY = "username";
+
   private final SecretKey key;
   private final long token_time;
 
@@ -39,8 +42,8 @@ public class TokenProvider {
   private String createToken(String userId, String role, String username, long expiration) {
     return Jwts.builder()
         .subject(userId)
-        .claim("role", role)
-        .claim("username", username)
+        .claim(CLAIM_ROLE_KEY, role)
+        .claim(CLAIM_USERNAME_KEY, username)
         .issuedAt(new Date())
         .expiration(new Date(System.currentTimeMillis() + expiration))
         .signWith(key)
@@ -69,11 +72,11 @@ public class TokenProvider {
 
   public String getUserRoleFromToken(String token) {
     return getClaimFromToken(removeBearerPrefix(token),
-        claims -> claims.get("role", String.class));
+        claims -> claims.get(CLAIM_ROLE_KEY, String.class));
   }
   public String getUserNameFromToken(String token) {
     return getClaimFromToken(removeBearerPrefix(token),
-        claims -> claims.get("username", String.class));
+        claims -> claims.get(CLAIM_USERNAME_KEY, String.class));
   }
 
   private <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {

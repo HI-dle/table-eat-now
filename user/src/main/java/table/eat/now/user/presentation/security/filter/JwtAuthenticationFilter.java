@@ -61,11 +61,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
           userDetails.getUsername());
 
       response.setHeader("Authorization", token);
-      log.info("성공?");
+
       SecurityContextHolder.getContext().setAuthentication(authentication);
 
     } catch (AuthenticationException e) {
-      log.error("로그인 실패: {}", e.getMessage());
+      log.info("로그인 실패: {}", e.getMessage());
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증 실패");
       return;
     } catch (Exception e) {
