@@ -40,7 +40,8 @@ ext {
         "**/infrastructure/**",
         "**/projection/**",
         "**/command/**",
-        "**/common/**"
+        "**/common/**",
+        "**/domain/**"
     ]
 
     def Qdomains = []
