@@ -15,11 +15,11 @@ spring:
         - id: user
           uri: lb://user
           predicates:
-            - Path=/api/v1/users/**,/admin/v1/users/**,/internal/v1/users/**
+            - Path=/api/v1/users/**,/admin/v1/users/**
         - id: restaurant
           uri: lb://restaurant
           predicates:
-            - Path=/api/v1/restaurants/**,/admin/v1/restaurants/**,/internal/v1/restaurants/**
+            - Path=/api/v1/restaurants/**,/admin/v1/restaurants/**
         - id: reservation
           uri: lb://reservation
           predicates:
@@ -39,7 +39,7 @@ spring:
         - id: coupon
           uri: lb://coupon
           predicates:
-            - Path=/api/v1/coupons/**,/admin/v1/coupons/**,/internal/v1/coupons/**,/internal/v1/issued-coupons/**,/api/v1/issued-coupons
+            - Path=/api/v1/coupons/**,/admin/v1/coupons/**,/api/v1/issued-coupons
         - id: promotion
           uri: lb://promotion
           predicates:
