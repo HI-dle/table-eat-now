@@ -17,6 +17,7 @@ import table.eat.now.user.domain.repository.UserRepository;
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
+
   private final UserRepository userRepository;
 
   @Override

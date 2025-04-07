@@ -23,7 +23,7 @@ public class UserServiceImpl implements UserService{
 
   @Override
   public CreateUserInfo createUser(CreateUserCommand createUserCommand) {
-    User user = createUserCommand.toEntity(createUserCommand);
+    User user = createUserCommand.toEntity();
     user.encryptPassword(passwordEncoder.encode(user.getPassword()));
     log.info("패스워드 {}", user.getPassword());
 

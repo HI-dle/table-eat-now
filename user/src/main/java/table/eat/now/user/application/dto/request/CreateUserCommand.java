@@ -13,7 +13,7 @@ public record CreateUserCommand(String username,
                                 String password,
                                 UserRole role) {
 
-  public User toEntity(CreateUserCommand createUserCommand) {
+  public User toEntity() {
     return new User(
         username, email,
         phone, password, role
