@@ -19,7 +19,6 @@ spring:
       username: ${DEV_REDIS_USERNAME}
       password: ${DEV_REDIS_PASSWORD}
 
-
 ---
 # test 환경
 spring:

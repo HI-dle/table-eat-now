@@ -8,7 +8,7 @@ spring:
 ---
 # test 환경
 spring:
-  config.activate.on-profile: local
+  config.activate.on-profile: test
   cloud:
     config:
       enabled: false
