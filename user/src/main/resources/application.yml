@@ -1,0 +1,31 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: user
+  datasource:
+    url: jdbc:postgresql://localhost:5433/users
+    username: sa
+    password: sa
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+eureka:
+  client:
+    register-with-eureka: true  # Eureka Server에 등록
+    fetch-registry: true  # Eureka Server에서 서비스 목록 가져오기
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true  # 서비스 등록 시 IP 주소 사용
+
+jwt:
+  secret: "7Jqw66as7YyA66qF7J2YIOu5hOuwgOydhCDslYTsi5zrgpjsmpQg6re46rKMIOutkOuDkOuptCDrsJTroZwg7Jqw66as7YyA66qF7J2YIOucu+ydgCDsp4Dtm4jri5jqs7wg7Jes7J6Q7JWE7J2065Ok7J20652864qUIOucu+yeheuLiOuLpCDsp4Dtm4jqs7wg7JWE7J2065Ok7J2065287IScIO2biOqzvCDslYTsnbTrk6TsnbTrnbzshJwg7ZWY7J2065Ok7J20IOuQmOyXiOyKteuLiOuLpCDqsJDsgqztlanri4jri6Q="
+  access-expiration: 3600000
