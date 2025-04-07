@@ -22,6 +22,9 @@ public class PaymentHistory {
 	private Long id;
 
 	@Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
+	private UUID paymentHistoryUuid;
+
+	@Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
 	private UUID paymentUuid;
 
 	@Column(nullable = false)
