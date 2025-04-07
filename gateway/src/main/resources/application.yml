@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: gateway
+  config:
+    import:
+      - file:.env.gateway[.properties]
+  main:
+    web-application-type: reactive
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: user
+          uri: lb://user
+          predicates:
+            - Path=/api/v1/users/**,/admin/v1/users/**
+        - id: restaurant
+          uri: lb://restaurant
+          predicates:
+            - Path=/api/v1/restaurants/**,/admin/v1/restaurants/**
+        - id: reservation
+          uri: lb://reservation
+          predicates:
+            - Path=/api/v1/reservations/**
+        - id: review
+          uri: lb://review
+          predicates:
+            - Path=/api/v1/reviews/**,/admin/v1/reviews/**
+        - id: payment
+          uri: lb://payment
+          predicates:
+            - Path=/api/v1/payments/**,/admin/v1/payments/**
+        - id: waiting
+          uri: lb://waiting
+          predicates:
+            - Path=/api/v1/waitings/**,/admin/v1/waitings/**,/api/v1/waiting-requests/**,/admin/v1/waiting-requests
+        - id: coupon
+          uri: lb://coupon
+          predicates:
+            - Path=/api/v1/coupons/**,/admin/v1/coupons/**,/api/v1/issued-coupons
+        - id: promotion
+          uri: lb://promotion
+          predicates:
+            - Path=/api/v1/promotions/**,/admin/v1/promotions/**
+        - id: notification
+          uri: lb://notification
+          predicates:
+            - Path=/api/v1/notifications/**,/admin/v1/notifications/**
+server:
+  port: 8080
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}

@@ -13,6 +13,7 @@ import table.eat.now.user.domain.entity.UserRole;
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
+
   private final UserDetailsDto userDetailsDto;
 
   public UserRole getRole() {
