@@ -1,7 +1,7 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.4.4'
-	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
+    id "org.sonarqube" version "6.0.1.5171"
 }
 
 group = 'idle.table.eat.now'
@@ -19,4 +19,116 @@ repositories {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy 'jacocoTestReport'
+}
+
+
+ext {
+    excludePatterns = [
+        "**/*Application*",
+        "**/Q*",
+        "**/global/**",
+        "**/config/**",
+        "**/exception/**",
+        "**/dto/**",
+        "**/*Filter*",
+        "**/*Handler*",
+        "**/security/**",
+        "**/*Entity*",
+        "**/type/*",
+        "**/resources/**",
+        "**/infrastructure/**",
+        "**/projection/**",
+        "**/command/**",
+        "**/common/**",
+        "**/domain/**"
+    ]
+
+    def Qdomains = []
+    for (qPattern in '**/QA'..'**/QZ') {
+        Qdomains.add(qPattern + '*')
+    }
+
+    excludePatterns += Qdomains
+}
+
+
+def jacocoDir = layout.buildDirectory.dir("reports/")
+
+jacocoTestReport {
+    dependsOn test
+
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+        csv.required.set(true)
+        html.destination jacocoDir.get().file("jacoco/index.html").asFile
+        xml.destination jacocoDir.get().file("jacoco/index.xml").asFile
+        csv.destination jacocoDir.get().file("jacoco/index.csv").asFile
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(
+                files(classDirectories.files.collect {
+                    fileTree(dir: it, excludes: rootProject.ext.excludePatterns)
+                })
+        )
+    }
+}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "HI-dle_table-eat-now"
+        property "sonar.organization", "hi-dle"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property 'sonar.sources', 'src'
+        property 'sonar.language', 'java'
+        property 'sonar.sourceEncoding', 'UTF-8'
+        property 'sonar.exclusions', rootProject.ext.excludePatterns.join(',')
+        property 'sonar.test.inclusions', '**/*Test*.java'
+        property 'sonar.java.coveragePlugin', 'jacoco'
+        property 'sonar.coverage.jacoco.xmlReportPaths', "build/reports/jacoco/jacocoTestReport.xml"
+    }
+}
+
+
+subprojects {
+    apply plugin: 'org.sonarqube' // 플러그인
+
+    sonar {
+        properties {
+            property 'sonar.coverage.jacoco.xmlReportPaths', "build/reports/jacoco/jacocoTestReport.xml"
+        }
+    }
+}
+
+subprojects {
+    group = 'com.sixheroes'
+    version = '0.0.1-SNAPSHOT'
+
+    java {
+        sourceCompatibility = '17'
+    }
+
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+    apply plugin: 'jacoco' // 플러그인
+
+    test {
+        finalizedBy jacocoTestReport // test 후 jacoco 실행
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.required = true
+        }
+
+        afterEvaluate {
+            classDirectories.setFrom(
+                files(classDirectories.files.collect {
+                    fileTree(dir: it, excludes: rootProject.ext.excludePatterns)
+                })
+            )
+        }
+    }
 }

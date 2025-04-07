@@ -3,7 +3,7 @@ spring:
     name: coupon-service
   config:
     import:
-      - file:.env.coupon[.properties]
+      - optional:file:.env.coupon[.properties]
       - classpath:properties/base.yml
       - classpath:properties/config.yml
       - classpath:properties/datasource.yml
