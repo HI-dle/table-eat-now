@@ -11,6 +11,8 @@ services:
       - app_network
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./postgres-data:/var/lib/postgresql/data
+    command: [ "postgres", "-c", "log_statement=all", "-c", "log_destination=stderr" ]
 
   zipkin:
     container_name: ten-zipkin
@@ -63,7 +65,6 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
       ALLOW_ANONYMOUS_LOGIN: "yes"
-
 
   kafka:
     image: bitnami/kafka:latest
