@@ -53,3 +53,8 @@ server:
 
 jwt:
   secret: ${JWT_SECRET_KEY}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
