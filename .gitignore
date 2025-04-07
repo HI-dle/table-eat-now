@@ -262,3 +262,9 @@ gradle-app.setting
 gradlew.bat
 
 # End of https://www.toptal.com/developers/gitignore/api/java,kotlin,groovy,gradle,maven,intellij+all,macos,windows
+
+### grafana-storage
+grafana-storage/
+
+### postgres-data
+postgres-data/
