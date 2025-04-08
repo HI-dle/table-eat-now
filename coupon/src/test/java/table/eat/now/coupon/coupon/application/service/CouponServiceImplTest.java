@@ -1,6 +1,7 @@
 package table.eat.now.coupon.coupon.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -14,8 +15,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
 import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
+import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
 import table.eat.now.coupon.coupon.domain.repository.CouponRepository;
@@ -104,5 +108,35 @@ class CouponServiceImplTest {
     Coupon updated = couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(coupon.getCouponUuid())
         .orElseThrow(() -> CustomException.from(CouponErrorCode.INVALID_COUPON_UUID));
     assertThat(updated.getCount()).isEqualTo(command.count());
+  }
+
+  @DisplayName("쿠폰 조회 검증 - 조회 성공")
+  @Test
+  void getCoupon() {
+    // given
+    // when
+    GetCouponInfo couponInfo = couponService.getCoupon(UUID.fromString(coupon.getCouponUuid()));
+
+    // then
+    assertThat(couponInfo.name()).isEqualTo(coupon.getName());
+    assertThat(couponInfo.count()).isEqualTo(coupon.getCount());
+    assertThat(couponInfo.startAt()).isEqualTo(coupon.getPeriod().getStartAt());
+    assertThat(couponInfo.endAt()).isEqualTo(coupon.getPeriod().getEndAt());
+  }
+
+  @DisplayName("쿠폰 삭제 검증 - 삭제 성공")
+  @Test
+  void deleteCoupon() {
+    // given
+    CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(1L, UserRole.MASTER);
+
+    // when
+    couponService.deleteCoupon(userInfo, UUID.fromString(coupon.getCouponUuid()));
+
+    // then
+    assertThatThrownBy(() ->
+      couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(coupon.getCouponUuid())
+        .orElseThrow(() -> CustomException.from(CouponErrorCode.INVALID_COUPON_UUID))
+    ).isInstanceOf(CustomException.class);
   }
 }
