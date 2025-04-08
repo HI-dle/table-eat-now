@@ -1,6 +1,7 @@
 ###
-POST http://localhost:8084/admin/v1/promotions
+POST http://localhost:8080/admin/v1/promotions
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwicm9sZSI6Ik1BU1RFUiIsInVzZXJuYW1lIjoidGVzdCIsImlhdCI6MTc0NDEwNTUxNCwiZXhwIjoxNzQ0MTA5MTE0fQ.ybwqrR92d3Cv_b4SRYdzpbquFNSrAwPQWJC9MV6UWPSTJsTbr1uPvbUtR88IvsCY3VQT1UBWBMOoQa6NqcT_Nw
 
 {
   "promotionName": "봄맞이 할인 프로모션",

@@ -18,3 +18,15 @@ Content-Type: application/json
   "username": "test",
   "password": "1234"
 }
+
+###
+POST http://localhost:8081/api/v1/users/signup
+Content-Type: application/json
+
+{
+  "username": "test",
+  "email": "test@test",
+  "phone": "123",
+  "password": "1234",
+  "role": "MASTER"
+}
