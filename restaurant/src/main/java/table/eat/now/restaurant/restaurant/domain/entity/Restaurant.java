@@ -90,7 +90,6 @@ public class Restaurant extends BaseEntity {
       UUID restaurantUuid,
       Long ownerId,
       String name,
-      BigDecimal reviewRatingAvg,
       String info,
       Integer maxReservationGuestCountPerTeamOnline,
       ContactInfo contactInfo,
@@ -99,7 +98,6 @@ public class Restaurant extends BaseEntity {
     this.restaurantUuid = restaurantUuid;
     this.ownerId = ownerId;
     this.name = name;
-    this.reviewRatingAvg = reviewRatingAvg;
     this.info = info;
     this.maxReservationGuestCountPerTeamOnline = maxReservationGuestCountPerTeamOnline;
     this.contactInfo = contactInfo;
