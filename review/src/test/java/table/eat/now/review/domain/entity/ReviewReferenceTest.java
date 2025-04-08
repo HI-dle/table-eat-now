@@ -13,6 +13,7 @@ class ReviewReferenceTest {
 
 	@Nested
 	class create_는 {
+
 		@Test
 		void 유효한_입력값으로_ReviewReference_를_생성_할_수_있다() {
 			//given
@@ -22,9 +23,8 @@ class ReviewReferenceTest {
 			ServiceType validServiceType = ServiceType.RESERVATION;
 
 			//when & then
-			ReviewReference reviewReference = assertDoesNotThrow(
-					() -> ReviewReference.create(validRestaurantId, validServiceId, validCustomerId,
-							validServiceType));
+			ReviewReference reviewReference = assertDoesNotThrow(() -> ReviewReference.create(
+					validRestaurantId, validServiceId, validCustomerId, validServiceType));
 
 			assertThat(reviewReference).isNotNull();
 			assertThat(reviewReference.getRestaurantId()).isEqualTo(validRestaurantId);
@@ -42,8 +42,8 @@ class ReviewReferenceTest {
 
 			//when & then
 			IllegalArgumentException exception = assertThrows(
-					IllegalArgumentException.class,
-					() -> ReviewReference.create(null, validServiceId, validCustomerId, validServiceType));
+					IllegalArgumentException.class, () -> ReviewReference.create(
+							null, validServiceId, validCustomerId, validServiceType));
 
 			assertThat(exception.getMessage()).contains("null이 될 수 없습니다");
 		}
@@ -58,7 +58,8 @@ class ReviewReferenceTest {
 			//when & then
 			IllegalArgumentException exception = assertThrows(
 					IllegalArgumentException.class,
-					() -> ReviewReference.create(validRestaurantId, null, validCustomerId, validServiceType));
+					() -> ReviewReference.create(
+							validRestaurantId, null, validCustomerId, validServiceType));
 
 			assertThat(exception.getMessage()).contains("null이 될 수 없습니다");
 		}
@@ -72,8 +73,8 @@ class ReviewReferenceTest {
 
 			//when & then
 			IllegalArgumentException exception = assertThrows(
-					IllegalArgumentException.class,
-					() -> ReviewReference.create(validRestaurantId, validServiceId, null, validServiceType));
+					IllegalArgumentException.class, () -> ReviewReference.create(
+							validRestaurantId, validServiceId, null, validServiceType));
 
 			assertThat(exception.getMessage()).contains("null이 될 수 없습니다");
 		}
@@ -87,8 +88,8 @@ class ReviewReferenceTest {
 
 			//when & then
 			IllegalArgumentException exception = assertThrows(
-					IllegalArgumentException.class,
-					() -> ReviewReference.create(validRestaurantId, validServiceId, validCustomerId, null));
+					IllegalArgumentException.class, () -> ReviewReference.create(
+							validRestaurantId, validServiceId, validCustomerId, null));
 
 			assertThat(exception.getMessage()).contains("null이 될 수 없습니다");
 		}

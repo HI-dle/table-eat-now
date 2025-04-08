@@ -74,7 +74,8 @@ class ReviewVisibilityTest {
 		@Test
 		void 공개된_리뷰를_숨길_수_있다() {
 			// given
-			ReviewVisibility visibility = ReviewVisibility.create(true, null, null);
+			ReviewVisibility visibility = ReviewVisibility.create(
+					true, null, null);
 			Long userId = 2L;
 			String role = "STAFF";
 
@@ -91,7 +92,8 @@ class ReviewVisibilityTest {
 		@Test
 		void 이미_숨겨진_리뷰는_변경되지_않는다() {
 			// given
-			ReviewVisibility hidden = ReviewVisibility.create(false, 2L, "OWNER");
+			ReviewVisibility hidden = ReviewVisibility.create(
+					false, 2L, "OWNER");
 
 			// when
 			ReviewVisibility result = hidden.hide(3L, "CUSTOMER");
@@ -107,7 +109,8 @@ class ReviewVisibilityTest {
 		@Test
 		void 일반_유저가_일반_유저가_숨긴_리뷰를_공개할_수_있다() {
 			// given
-			ReviewVisibility hidden = ReviewVisibility.create(false, 3L, "CUSTOMER");
+			ReviewVisibility hidden = ReviewVisibility.create(
+					false, 3L, "CUSTOMER");
 
 			// when
 			ReviewVisibility result = hidden.show("CUSTOMER");
@@ -120,7 +123,8 @@ class ReviewVisibilityTest {
 		@Test
 		void 관리자가_숨긴_리뷰를_일반_유저가_공개하면_예외가_발생한다() {
 			// given
-			ReviewVisibility hidden = ReviewVisibility.create(false, 1L, "STAFF");
+			ReviewVisibility hidden = ReviewVisibility.create(
+					false, 1L, "STAFF");
 
 			// expect
 			assertThrows(IllegalArgumentException.class, () -> hidden.show("CUSTOMER"));
@@ -129,7 +133,8 @@ class ReviewVisibilityTest {
 		@Test
 		void 관리자가_숨긴_리뷰는_관리자가_공개할_수_있다() {
 			// given
-			ReviewVisibility hidden = ReviewVisibility.create(false, 1L, "MASTER");
+			ReviewVisibility hidden = ReviewVisibility.create(
+					false, 1L, "MASTER");
 
 			// when
 			ReviewVisibility result = hidden.show("STAFF");
@@ -142,10 +147,12 @@ class ReviewVisibilityTest {
 		@Test
 		void 이미_공개된_리뷰는_변경되지_않는다() {
 			// given
-			ReviewVisibility visible = ReviewVisibility.create(true, null, null);
+			ReviewVisibility visible = ReviewVisibility.create(
+					true, null, null);
 
 			// when
 			ReviewVisibility result = visible.show("CUSTOMER");
+
 			// then
 			assertThat(result).isEqualTo(visible);
 		}
