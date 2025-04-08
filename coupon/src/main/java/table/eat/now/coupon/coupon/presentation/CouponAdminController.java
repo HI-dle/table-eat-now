@@ -17,9 +17,9 @@ import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
 
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/coupons")
+@RequestMapping("/admin/v1/coupons")
 @RestController
-public class CouponController {
+public class CouponAdminController {
 
   private final CouponService couponService;
 
@@ -30,7 +30,7 @@ public class CouponController {
 
     UUID couponUuid = couponService.createCoupon(request.toCommand());
     return ResponseEntity.created(
-        UriComponentsBuilder.fromUriString("/api/v1/coupons/{couponUuid}")
+        UriComponentsBuilder.fromUriString("/admin/v1/coupons/{couponUuid}")
         .buildAndExpand(couponUuid)
         .toUri())
         .build();

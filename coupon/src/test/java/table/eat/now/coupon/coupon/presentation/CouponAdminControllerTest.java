@@ -27,9 +27,9 @@ import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest.CouponType;
 
 @AutoConfigureMockMvc
-@WebMvcTest(CouponController.class)
+@WebMvcTest(CouponAdminController.class)
 @ActiveProfiles("test")
-class CouponControllerTest {
+class CouponAdminControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -51,8 +51,8 @@ class CouponControllerTest {
     CreateCouponRequest request = CreateCouponRequest.builder()
         .name("test")
         .type(CouponType.FIXED_DISCOUNT)
-        .startAt(LocalDateTime.now().minusDays(2))
-        .endAt(LocalDateTime.now().plusDays(2))
+        .startAt(LocalDateTime.now().plusDays(1))
+        .endAt(LocalDateTime.now().plusDays(5))
         .count(10000)
         .allowDuplicate(false)
         .minPurchaseAmount(50000)
@@ -65,7 +65,7 @@ class CouponControllerTest {
     given(couponService.createCoupon(request.toCommand())).willReturn(couponUuid);
 
     // when
-    ResultActions resultActions = mockMvc.perform(post("/api/v1/coupons")
+    ResultActions resultActions = mockMvc.perform(post("/admin/v1/coupons")
         .header("Authorization", "Bearer {ACCESS_TOKEN}")
         .header(USER_ID_HEADER, "1")
         .header(USER_ROLE_HEADER, "MASTER")
@@ -75,7 +75,7 @@ class CouponControllerTest {
     // then
     resultActions.andExpect(status().isCreated())
         .andExpect(header().string(
-            "Location", String.format("/api/v1/coupons/%s", couponUuid)))
+            "Location", String.format("/admin/v1/coupons/%s", couponUuid)))
         .andDo(print());
   }
 }
