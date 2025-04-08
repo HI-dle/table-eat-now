@@ -39,3 +39,9 @@ X-User-Role: MASTER
   "percent":null,
   "maxDiscountAmount":null
 }
+
+### 쿠폰 조회
+GET {{couponUrl}}
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: MASTER
