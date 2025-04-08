@@ -1,4 +1,4 @@
-package table.eat.now.promotion.presentation;
+package table.eat.now.promotionRestaurant.presentation.dto;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -10,8 +10,7 @@ import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +20,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import table.eat.now.promotion.application.dto.response.CreatePromotionInfo;
-import table.eat.now.promotion.application.service.PromotionService;
-import table.eat.now.promotion.domain.entity.Promotion;
-import table.eat.now.promotion.presentation.dto.request.CreatePromotionRequest;
+import table.eat.now.promotion.presentation.PromotionAdminController;
+import table.eat.now.promotionRestaurant.application.dto.response.CreatePromotionRestaurantInfo;
+import table.eat.now.promotionRestaurant.application.service.PromotionRestaurantService;
+import table.eat.now.promotionRestaurant.domain.entity.PromotionRestaurant;
+import table.eat.now.promotionRestaurant.presentation.dto.request.CreatePromotionRestaurantRequest;
 
 /**
  * @author : hanjihoon
@@ -33,7 +33,7 @@ import table.eat.now.promotion.presentation.dto.request.CreatePromotionRequest;
 @AutoConfigureMockMvc
 @WebMvcTest(PromotionAdminController.class)
 @ActiveProfiles("test")
-class PromotionAdminControllerTest {
+class PromotionRestaurantAdminControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -42,38 +42,34 @@ class PromotionAdminControllerTest {
   private ObjectMapper objectMapper;
 
   @MockitoBean
-  private PromotionService promotionService;
+  private PromotionRestaurantService promotionRestaurantService;
 
-  @DisplayName("프로모션 생성 테스트")
+  @DisplayName("프로모션 식당 생성 테스트")
   @Test
-  void promotion_create_test () throws Exception {
-    // given
-    CreatePromotionRequest request = new CreatePromotionRequest(
-        "봄맞이 할인 프로모션",
-        "전 메뉴 3000원 할인",
-        LocalDateTime.now().plusDays(1),
-        LocalDateTime.now().plusDays(10),
-        BigDecimal.valueOf(3000),
-        "READY",
-        "COUPON"
+  void promotion_restaurant_create_test() throws Exception {
+      // given
+    CreatePromotionRestaurantRequest request = new CreatePromotionRestaurantRequest(
+        UUID.randomUUID(),
+        UUID.randomUUID()
     );
-    Promotion entity = request.toApplication().toEntity();
 
-    given(promotionService.createPromotion(request.toApplication()))
-        .willReturn(CreatePromotionInfo.from(entity));
+    PromotionRestaurant entity = request.toApplication().toEntity();
+
+    given(promotionRestaurantService.createPromotionRestaurant(request.toApplication()))
+        .willReturn(CreatePromotionRestaurantInfo.from(entity));
+
     // when
-    ResultActions resultActions = mockMvc.perform(post("/admin/v1/promotions")
+    ResultActions resultActions = mockMvc.perform(post("/admin/v1/promotion-restaurants")
         .header("Authorization", "Bearer {ACCESS_TOKEN}")
         .header(USER_ID_HEADER, "1")
         .header(USER_ROLE_HEADER, "MASTER")
         .content(objectMapper.writeValueAsString(request))
         .contentType(MediaType.APPLICATION_JSON));
 
-    // then
+      // then
     resultActions.andExpect(status().isCreated())
-        .andExpect(header().string("Location", "/admin/v1/promotions"))
+        .andExpect(header().string("Location", "/admin/v1/promotion-restaurants"))
         .andDo(print());
   }
-
 
 }
