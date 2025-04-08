@@ -45,3 +45,9 @@ GET {{couponUrl}}
 Content-Type: application/json
 X-User-Id: 1
 X-User-Role: MASTER
+
+### 쿠폰 삭제
+DELETE {{couponUrl}}
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: MASTER

@@ -26,6 +26,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
 import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
@@ -156,6 +158,27 @@ class CouponAdminControllerTest {
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.couponUuid").value(couponUuid.toString()))
         .andExpect(jsonPath("$.type").value("FIXED_DISCOUNT"))
+        .andDo(print());
+  }
+
+  @DisplayName("쿠폰 삭제 요청 검증 - 204 응답")
+  @Test
+  void deleteCoupon() throws Exception {
+    // given
+    UUID couponUuid = UUID.randomUUID();
+    CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(1L, UserRole.MASTER);
+
+    doNothing().when(couponService).deleteCoupon(userInfo, couponUuid);
+
+    // when
+    ResultActions resultActions = mockMvc.perform(
+        delete("/admin/v1/coupons/{couponUuid}", couponUuid.toString())
+            .header("Authorization", "Bearer {ACCESS_TOKEN}")
+            .header(USER_ID_HEADER, userInfo.userId())
+            .header(USER_ROLE_HEADER, userInfo.role()));
+
+    // then
+    resultActions.andExpect(status().isNoContent())
         .andDo(print());
   }
 }
