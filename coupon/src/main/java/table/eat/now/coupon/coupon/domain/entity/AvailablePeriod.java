@@ -25,11 +25,12 @@ public class AvailablePeriod {
   }
 
   private void validatePeriod(LocalDateTime startAt, LocalDateTime endAt) {
+
     if (startAt == null || endAt == null) {
       throw new IllegalArgumentException("기간 정보는 필수입니다.");
     }
-    if (!LocalDateTime.now().isBefore(startAt)) {
-      throw new IllegalArgumentException("시작일이 현재보다 이전일 수 없습니다.");
+    if (!LocalDateTime.now().plusHours(1).isBefore(startAt)) {
+      throw new IllegalArgumentException("시작일은 현재로부터 1시간 이후부터 가능합니다.");
     }
     if (!startAt.isBefore(endAt)) {
       throw new IllegalArgumentException("시작일이 종료일보다 나중일 수 없습니다.");

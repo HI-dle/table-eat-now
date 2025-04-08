@@ -19,6 +19,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import table.eat.now.common.domain.BaseEntity;
+import table.eat.now.coupon.coupon.domain.command.UpdateCoupon;
 
 @Table(name="p_coupon")
 @Getter
@@ -30,8 +31,8 @@ public class Coupon extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name="coupon_uuid", unique = true, nullable = false, columnDefinition = "VARCHAR(100)")
-  private UUID couponUuid;
+  @Column(name="coupon_uuid", unique = true, nullable = false, length = 100)
+  private String couponUuid;
 
   @Column(nullable = false)
   private String name;
@@ -58,7 +59,7 @@ public class Coupon extends BaseEntity {
   private Coupon(
       String name, CouponType type, LocalDateTime startAt, LocalDateTime endAt,
       Integer count, Boolean allowDuplicate) {
-    this.couponUuid = UUID.randomUUID();
+    this.couponUuid = UUID.randomUUID().toString();
     this.name = name;
     this.type = type;
     this.period = new AvailablePeriod(startAt, endAt);
@@ -75,8 +76,27 @@ public class Coupon extends BaseEntity {
     return new Coupon(name, type, startAt, endAt, count, allowDuplicate);
   }
 
+  public DiscountPolicy getDiscountPolicy() {
+    return policy.get(0);
+  }
+
   public void registerPolicy(DiscountPolicy policy) {
     policy.registerCoupon(this);
     this.policy.add(policy);
+  }
+
+  public void modify(UpdateCoupon command) {
+
+    LocalDateTime now = LocalDateTime.now();
+    if (!now.isBefore(command.startAt().minusHours(1))) {
+      throw new IllegalArgumentException("쿠폰 가용 시각으로부터 한 시간 이전까지만 수정이 가능합니다.");
+    }
+    this.name = command.name();
+    this.type = command.type();
+    this.period = new AvailablePeriod(command.startAt(), command.endAt());
+    this.count = command.count();
+    this.allowDuplicate = command.allowDuplicate();
+
+    this.getDiscountPolicy().modify(command);
   }
 }

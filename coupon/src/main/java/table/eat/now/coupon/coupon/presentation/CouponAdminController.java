@@ -4,17 +4,21 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
+import table.eat.now.coupon.coupon.presentation.dto.request.UpdateCouponRequest;
+import table.eat.now.coupon.coupon.presentation.dto.response.UpdateCouponResponse;
 
 @RequiredArgsConstructor
 @RequestMapping("/admin/v1/coupons")
@@ -28,12 +32,28 @@ public class CouponAdminController {
   public ResponseEntity<Void> createCoupon(@RequestBody @Valid CreateCouponRequest request,
       @CurrentUserInfo CurrentUserInfoDto userInfo) {
 
-    UUID couponUuid = couponService.createCoupon(request.toCommand());
+    String couponUuid = couponService.createCoupon(request.toCommand());
     return ResponseEntity.created(
-        UriComponentsBuilder.fromUriString("/admin/v1/coupons/{couponUuid}")
-        .buildAndExpand(couponUuid)
-        .toUri())
-        .build();
+        ServletUriComponentsBuilder
+            .fromCurrentRequestUri()
+            .path("/{couponUuid}")
+            .buildAndExpand(couponUuid)
+            .toUri())
+            .build();
+  }
+
+  @AuthCheck(roles = {UserRole.MASTER})
+  @PatchMapping("/{couponUuid}")
+  public ResponseEntity<UpdateCouponResponse> updateCoupon(
+      @CurrentUserInfo CurrentUserInfoDto userInfo,
+      @PathVariable UUID couponUuid,
+      @RequestBody @Valid UpdateCouponRequest request
+  ) {
+
+
+    couponService.updateCoupon(couponUuid, request.toCommand());
+    return ResponseEntity.ok()
+        .body(UpdateCouponResponse.of(couponUuid));
   }
 
 }

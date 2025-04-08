@@ -5,12 +5,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 import lombok.Builder;
-import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
+import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
 
 @Builder
-public record CreateCouponRequest(
+public record UpdateCouponRequest(
     @NotBlank String name,
-    @NotNull CouponType type,
+    @NotNull CreateCouponRequest.CouponType type,
     @NotNull LocalDateTime startAt,
     @NotNull LocalDateTime endAt,
     @PositiveOrZero Integer count,
@@ -21,8 +21,8 @@ public record CreateCouponRequest(
     Integer maxDiscountAmount
 ) {
 
-  public CreateCouponCommand toCommand() {
-    return CreateCouponCommand.builder()
+  public UpdateCouponCommand toCommand() {
+    return UpdateCouponCommand.builder()
         .name(name)
         .type(type.toString())
         .startAt(startAt)
