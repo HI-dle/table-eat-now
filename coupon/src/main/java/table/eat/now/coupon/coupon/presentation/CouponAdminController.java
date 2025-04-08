@@ -3,6 +3,10 @@ package table.eat.now.coupon.coupon.presentation;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,10 +22,14 @@ import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
+import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
+import table.eat.now.coupon.coupon.presentation.dto.request.SearchCouponsRequest;
 import table.eat.now.coupon.coupon.presentation.dto.request.UpdateCouponRequest;
 import table.eat.now.coupon.coupon.presentation.dto.response.GetCouponResponse;
+import table.eat.now.coupon.coupon.presentation.dto.response.SearchCouponsResponse;
 import table.eat.now.coupon.coupon.presentation.dto.response.UpdateCouponResponse;
 
 @RequiredArgsConstructor
@@ -80,5 +88,22 @@ public class CouponAdminController {
 
     couponService.deleteCoupon(userInfo, couponUuid);
     return ResponseEntity.noContent().build();
+  }
+
+  @AuthCheck(roles = {UserRole.MASTER})
+  @GetMapping
+  public ResponseEntity<SearchCouponsResponse> getCoupons(
+      @CurrentUserInfo CurrentUserInfoDto userInfo,
+      @PageableDefault
+      @SortDefault.SortDefaults({
+          @SortDefault(sort = "endAt", direction = Sort.Direction.ASC),
+          @SortDefault(sort = "startAt", direction = Sort.Direction.ASC)
+      }) Pageable pageable,
+      SearchCouponsRequest request
+  ) {
+
+    PageResponse<SearchCouponInfo> coupons = couponService.getCoupons(pageable, request.toQuery());
+    return ResponseEntity.ok()
+        .body(SearchCouponsResponse.from(coupons));
   }
 }

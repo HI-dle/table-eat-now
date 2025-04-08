@@ -2,13 +2,18 @@ package table.eat.now.coupon.coupon.application.service;
 
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
+import table.eat.now.coupon.coupon.application.dto.request.SearchCouponsQuery;
 import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
+import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
 import table.eat.now.coupon.coupon.domain.repository.CouponRepository;
@@ -51,5 +56,15 @@ public class CouponServiceImpl implements CouponService {
     Coupon coupon = couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(couponUuid.toString())
         .orElseThrow(() -> CustomException.from(CouponErrorCode.INVALID_COUPON_UUID));
     coupon.delete(userInfo.userId());
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public PageResponse<SearchCouponInfo> getCoupons(Pageable pageable, SearchCouponsQuery query) {
+
+    Page<SearchCouponInfo> couponInfoPage =
+        couponRepository.searchCouponByPageableAndCondition(pageable, query.toCriteria())
+        .map(SearchCouponInfo::from);
+    return PageResponse.from(couponInfoPage);
   }
 }
