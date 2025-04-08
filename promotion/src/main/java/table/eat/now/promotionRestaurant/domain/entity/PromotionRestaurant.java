@@ -35,5 +35,16 @@ public class PromotionRestaurant extends BaseEntity {
   @Column(nullable = false, columnDefinition = "VARCHAR(100)")
   private UUID restaurantUuid;
 
+  private PromotionRestaurant(UUID promotionUuid,
+      UUID restaurantUuid) {
+    this.promotionRestaurantUuid = UUID.randomUUID();
+    this.promotionUuid = promotionUuid;
+    this.restaurantUuid = restaurantUuid;
+  }
 
+  public static PromotionRestaurant of(UUID promotionUuid, UUID restaurantUuid) {
+    return new PromotionRestaurant(
+        promotionUuid,
+        restaurantUuid);
+  }
 }

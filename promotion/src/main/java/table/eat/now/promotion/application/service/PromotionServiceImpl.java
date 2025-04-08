@@ -2,6 +2,7 @@ package table.eat.now.promotion.application.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.promotion.application.dto.request.CreatePromotionCommand;
 import table.eat.now.promotion.application.dto.response.CreatePromotionInfo;
 import table.eat.now.promotion.domain.entity.repository.PromotionRepository;
@@ -17,6 +18,7 @@ public class PromotionServiceImpl implements PromotionService{
   private final PromotionRepository promotionRepository;
 
   @Override
+  @Transactional
   public CreatePromotionInfo createPromotion(CreatePromotionCommand application) {
     return CreatePromotionInfo.from(promotionRepository.save(application.toEntity()));
   }
