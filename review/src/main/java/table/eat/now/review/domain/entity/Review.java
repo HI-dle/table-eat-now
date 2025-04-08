@@ -31,4 +31,46 @@ public class Review extends BaseEntity {
 
 	@Embedded
 	private ReviewVisibility visibility;
+
+	public static Review create(
+			ReviewReference reference, ReviewContent content, ReviewVisibility visibility) {
+		validateNull(reference, content, visibility);
+		return new Review(reference, content, visibility);
+	}
+
+	private static void validateNull(
+			ReviewReference reference, ReviewContent content, ReviewVisibility visibility) {
+		validateReference(reference);
+		validateContent(content);
+		validateVisibility(visibility);
+	}
+
+	private static void validateReference(ReviewReference reference) {
+		if (reference == null) {
+			throw new IllegalArgumentException("ReviewReference는 null일 수 없습니다.");
+		}
+	}
+
+	private static void validateContent(ReviewContent content) {
+		if (content == null) {
+			throw new IllegalArgumentException("ReviewContent는 null일 수 없습니다.");
+		}
+	}
+
+	private static void validateVisibility(ReviewVisibility visibility) {
+		if (visibility == null) {
+			throw new IllegalArgumentException("ReviewVisibility는 null일 수 없습니다.");
+		}
+	}
+
+
+	private Review(ReviewReference reference, ReviewContent content, ReviewVisibility visibility) {
+		this.reviewId = UUID.randomUUID();
+		this.reference = reference;
+		this.content = content;
+		this.visibility = visibility;
+	}
+
+	protected Review() {
+	}
 }

@@ -56,26 +56,28 @@ public class ReviewVisibility {
 
 	//Todo : 해당 메서드 외부에서 권한 검사 (일반 유저인 경우 본인의 리뷰인지 확인필요)
 	public ReviewVisibility show(String hiddenByRole) {
-		if(this.isVisible) return this;
+		if (this.isVisible) {
+			return this;
+		}
 		validateShowAuthority(HiddenByRole.from(hiddenByRole));
 		return createVisible();
 	}
 
 	private void validateShowAuthority(HiddenByRole requesterRole) {
-		if(this.hiddenByRole.isAdmin() && !requesterRole.isAdmin()){
+		if (this.hiddenByRole.isAdmin() && !requesterRole.isAdmin()) {
 			throw new IllegalArgumentException("관리자가 숨긴 리뷰는 일반 사용자가 공개할 수 없습니다.");
 		}
 	}
 
-	private ReviewVisibility(Boolean isVisible, Long hiddenBy, LocalDateTime hiddenAt,
-			String hiddenByRole) {
+	private ReviewVisibility(
+			Boolean isVisible, Long hiddenBy, LocalDateTime hiddenAt, String hiddenByRole) {
 		this.isVisible = isVisible;
 		this.hiddenBy = hiddenBy;
 		this.hiddenAt = hiddenAt;
 		this.hiddenByRole = HiddenByRole.from(hiddenByRole);
 	}
 
-	public boolean isVisible(){
+	public boolean isVisible() {
 		return this.isVisible;
 	}
 
