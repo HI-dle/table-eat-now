@@ -25,6 +25,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import table.eat.now.common.domain.BaseEntity;
+import table.eat.now.restaurant.restaurant.domain.entity.vo.ContactInfo;
+import table.eat.now.restaurant.restaurant.domain.entity.vo.OperatingTime;
 
 @Entity
 @Table(name = "p_restaurant")

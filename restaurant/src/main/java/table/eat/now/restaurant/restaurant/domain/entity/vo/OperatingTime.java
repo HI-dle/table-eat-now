@@ -2,7 +2,7 @@
  * @author : jieun(je-pa)
  * @Date : 2025. 04. 08.
  */
-package table.eat.now.restaurant.restaurant.domain.entity;
+package table.eat.now.restaurant.restaurant.domain.entity.vo;
 
 import jakarta.persistence.Embeddable;
 import java.time.LocalDateTime;

@@ -16,6 +16,7 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,20 @@ public class RestaurantMenu extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(name = "status")
   private MenuStatus status;
+
+  @Builder(builderMethodName = "inactiveMenuBuilder")
+  private RestaurantMenu(
+      String name,
+      BigDecimal price,
+      Restaurant restaurant,
+      UUID restaurantMenuUuid
+  ) {
+    this.name = name;
+    this.price = price;
+    this.restaurant = restaurant;
+    this.restaurantMenuUuid = restaurantMenuUuid;
+    this.status = MenuStatus.INACTIVE;
+  }
 
   public void modifyRestaurant(Restaurant restaurant) {
     this.restaurant = restaurant;

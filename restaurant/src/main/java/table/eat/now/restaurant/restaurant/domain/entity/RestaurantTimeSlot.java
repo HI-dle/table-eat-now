@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import table.eat.now.common.domain.BaseEntity;
@@ -46,6 +47,22 @@ public class RestaurantTimeSlot extends BaseEntity {
 
   @Column(name = "cur_total_guest_count", nullable = false)
   private Integer curTotalGuestCount;
+
+  @Builder(builderMethodName = "baseBuilder")
+  private RestaurantTimeSlot(
+      LocalDate availableDate,
+      Integer maxCapacity,
+      Restaurant restaurant,
+      UUID restaurantTimeslotUuid,
+      LocalTime timeslot
+  ) {
+    this.availableDate = availableDate;
+    this.maxCapacity = maxCapacity;
+    this.restaurant = restaurant;
+    this.restaurantTimeslotUuid = restaurantTimeslotUuid;
+    this.timeslot = timeslot;
+    this.curTotalGuestCount = 0;
+  }
 
   public void modifyRestaurant(Restaurant restaurant) {
     this.restaurant = restaurant;
