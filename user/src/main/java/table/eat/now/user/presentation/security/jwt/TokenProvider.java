@@ -23,6 +23,7 @@ public class TokenProvider {
   public static final String BEARER_PREFIX = "Bearer ";
   private static final String CLAIM_ROLE_KEY = "role";
   private static final String CLAIM_USERNAME_KEY = "username";
+
   private final SecretKey key;
   private final long tokenTime;
 
