@@ -1,5 +1,7 @@
 package table.eat.now.notification.domain.repository;
 
+import java.util.Optional;
+import java.util.UUID;
 import table.eat.now.notification.domain.entity.Notification;
 
 /**
@@ -9,4 +11,5 @@ import table.eat.now.notification.domain.entity.Notification;
 public interface NotificationRepository {
 
   Notification save(Notification notification);
+  Optional<Notification> findByNotificationUuid(UUID notificationUuid);
 }
