@@ -1,8 +1,12 @@
 package table.eat.now.coupon.coupon.presentation;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -13,7 +17,10 @@ import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.IntStream;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,9 +33,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
+import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
 import table.eat.now.coupon.coupon.presentation.dto.request.UpdateCouponRequest;
@@ -180,5 +191,61 @@ class CouponAdminControllerTest {
     // then
     resultActions.andExpect(status().isNoContent())
         .andDo(print());
+  }
+
+  @DisplayName("쿠폰 목록 조회 요청 검증 - 200 응답")
+  @Test
+  void getCoupons() throws Exception {
+    // given
+    List<SearchCouponInfo> couponInfos = getCouponInfos();
+    PageResponse<SearchCouponInfo> couponInfoPage = PageResponse.of(
+        couponInfos, 20, 2, 1, 10);
+
+    given(couponService.getCoupons(any(), any())).willReturn(couponInfoPage);
+
+    // when
+    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+    params.add("fromAt", LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.DAYS).toString());
+    params.add("toAt", LocalDateTime.now().plusDays(10).truncatedTo(ChronoUnit.DAYS).toString());
+    params.add("type", "FIXED_DISCOUNT");
+
+    ResultActions resultActions = mockMvc.perform(
+        get("/admin/v1/coupons")
+            .params(params)
+            .header("Authorization", "Bearer {ACCESS_TOKEN}")
+            .header(USER_ID_HEADER, "1")
+            .header(USER_ROLE_HEADER, "MASTER"));
+
+    // then
+    resultActions.andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.coupons").isArray())
+        .andExpect(jsonPath("$.coupons.length()").value(couponInfos.size()))
+        .andExpect(jsonPath("$.totalElements").value(20))
+        .andExpect(jsonPath("$.coupons[0].couponUuid").value(couponInfos.get(0).couponUuid()))
+        .andDo(print());
+  }
+
+  private List<SearchCouponInfo> getCouponInfos() {
+    List<SearchCouponInfo> couponInfos = IntStream.range(0, 20)
+        .mapToObj(i -> SearchCouponInfo.builder()
+            .couponId((long) i)
+            .couponUuid(UUID.randomUUID().toString())
+            .name("test coupon " + i)
+            .type("FIXED_DISCOUNT")
+            .startAt(LocalDateTime.now().minusDays(i).truncatedTo(ChronoUnit.DAYS))
+            .endAt(LocalDateTime.now().plusDays(19-i).truncatedTo(ChronoUnit.DAYS))
+            .count(10000 * i)
+            .allowDuplicate(false)
+            .minPurchaseAmount(50000)
+            .amount(3000)
+            .percent(null)
+            .maxDiscountAmount(null)
+            .createdAt(LocalDateTime.now().minusHours(i))
+            .createdBy(1L)
+            .build()
+        )
+        .toList();
+    return couponInfos;
   }
 }
