@@ -3,7 +3,6 @@ package table.eat.now.notification.presentation.dto.response;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Builder;
-import table.eat.now.notification.application.dto.response.CreateNotificationInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
 
 /**

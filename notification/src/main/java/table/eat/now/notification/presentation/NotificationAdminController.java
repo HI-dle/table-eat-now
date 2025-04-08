@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 import table.eat.now.common.aop.annotation.AuthCheck;
-import table.eat.now.common.resolver.annotation.CurrentUserInfo;
-import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.notification.application.service.NotificationService;
 import table.eat.now.notification.presentation.dto.request.CreateNotificationRequest;

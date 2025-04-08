@@ -24,8 +24,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
-import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.notification.application.dto.request.UpdateNotificationCommand;
 import table.eat.now.notification.application.dto.response.CreateNotificationInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
