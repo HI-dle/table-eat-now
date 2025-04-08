@@ -1,21 +1,24 @@
 package table.eat.now.coupon.coupon.presentation.dto.request;
 
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
 
 @Builder
 public record UpdateCouponRequest(
-    @NotBlank String name,
-    @NotNull CreateCouponRequest.CouponType type,
-    @NotNull LocalDateTime startAt,
-    @NotNull LocalDateTime endAt,
-    @PositiveOrZero Integer count,
+    @NotBlank @Size(max = 200) String name,
+    @NotNull CouponType type,
+    @NotNull @Future LocalDateTime startAt,
+    @NotNull @Future LocalDateTime endAt,
+    @NotNull @PositiveOrZero Integer count,
     @NotNull Boolean allowDuplicate,
-    @NotNull Integer minPurchaseAmount,
+    @NotNull @Positive Integer minPurchaseAmount,
     Integer amount,
     Integer percent,
     Integer maxDiscountAmount
