@@ -34,9 +34,7 @@ public class NotificationServiceImpl implements NotificationService{
   @Transactional
   public UpdateNotificationInfo updateNotification(UpdateNotificationCommand command,
       UUID notificationUuid) {
-    Notification notification = notificationRepository.findByNotificationUuid(notificationUuid)
-        .orElseThrow(() ->
-            CustomException.from(NotificationErrorCode.INVALID_NOTIFICATION_UUID));
+    Notification notification = findNotification(notificationUuid);
 
     notification.modifyNotification(
         command.userId(),
@@ -48,5 +46,11 @@ public class NotificationServiceImpl implements NotificationService{
     );
 
     return UpdateNotificationInfo.from(notification);
+  }
+
+  private Notification findNotification(UUID notificationUuid) {
+    return notificationRepository.findByNotificationUuid(notificationUuid)
+        .orElseThrow(() ->
+            CustomException.from(NotificationErrorCode.INVALID_NOTIFICATION_UUID));
   }
 }
