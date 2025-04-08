@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
 import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
@@ -41,5 +42,14 @@ public class CouponServiceImpl implements CouponService {
     Coupon coupon = couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(couponUuid.toString())
         .orElseThrow(() -> CustomException.from(CouponErrorCode.INVALID_COUPON_UUID));
     return GetCouponInfo.from(coupon);
+  }
+
+  @Transactional
+  @Override
+  public void deleteCoupon(CurrentUserInfoDto userInfo, UUID couponUuid) {
+
+    Coupon coupon = couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(couponUuid.toString())
+        .orElseThrow(() -> CustomException.from(CouponErrorCode.INVALID_COUPON_UUID));
+    coupon.delete(userInfo.userId());
   }
 }

@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -68,5 +69,16 @@ public class CouponAdminController {
     GetCouponInfo coupon = couponService.getCoupon(couponUuid);
     return ResponseEntity.ok()
         .body(GetCouponResponse.from(coupon));
+  }
+
+  @AuthCheck(roles = {UserRole.MASTER})
+  @DeleteMapping("/{couponUuid}")
+  public ResponseEntity<GetCouponResponse> deleteCoupon(
+      @CurrentUserInfo CurrentUserInfoDto userInfo,
+      @PathVariable UUID couponUuid
+  ) {
+
+    couponService.deleteCoupon(userInfo, couponUuid);
+    return ResponseEntity.noContent().build();
   }
 }

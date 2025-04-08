@@ -99,6 +99,12 @@ public class Coupon extends BaseEntity {
     this.getDiscountPolicy().modify(command);
   }
 
+  @Override
+  public void delete(Long deletedBy) {
+    super.delete(deletedBy);
+    getDiscountPolicy().delete(deletedBy);
+  }
+
   private boolean is1HourBeforeStartAt(LocalDateTime startAt) {
     LocalDateTime now = LocalDateTime.now();
     return now.isBefore(startAt.minusHours(1));
