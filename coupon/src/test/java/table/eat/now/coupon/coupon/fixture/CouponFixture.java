@@ -4,7 +4,9 @@ package table.eat.now.coupon.coupon.fixture;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
+import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
 import table.eat.now.coupon.coupon.domain.entity.CouponType;
 import table.eat.now.coupon.coupon.domain.entity.DiscountPolicy;
@@ -35,5 +37,28 @@ public class CouponFixture {
         10000, amount, percent, maxDiscountAmount);
     coupon.registerPolicy(policy);
     return coupon;
+  }
+
+  public static List<SearchCouponInfo> createCouponInfos() {
+    List<SearchCouponInfo> couponInfos = IntStream.range(0, 20)
+        .mapToObj(i -> SearchCouponInfo.builder()
+            .couponId((long) i)
+            .couponUuid(UUID.randomUUID().toString())
+            .name("test coupon " + i)
+            .type("FIXED_DISCOUNT")
+            .startAt(LocalDateTime.now().minusDays(i).truncatedTo(ChronoUnit.DAYS))
+            .endAt(LocalDateTime.now().plusDays(19-i).truncatedTo(ChronoUnit.DAYS))
+            .count(10000 * i)
+            .allowDuplicate(false)
+            .minPurchaseAmount(50000)
+            .amount(3000)
+            .percent(null)
+            .maxDiscountAmount(null)
+            .createdAt(LocalDateTime.now().minusHours(i))
+            .createdBy(1L)
+            .build()
+        )
+        .toList();
+    return couponInfos;
   }
 }

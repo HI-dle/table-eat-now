@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.IntStream;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,6 +40,7 @@ import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
 import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
 import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.application.service.CouponService;
+import table.eat.now.coupon.coupon.fixture.CouponFixture;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
 import table.eat.now.coupon.coupon.presentation.dto.request.UpdateCouponRequest;
 
@@ -197,7 +197,7 @@ class CouponAdminControllerTest {
   @Test
   void getCoupons() throws Exception {
     // given
-    List<SearchCouponInfo> couponInfos = getCouponInfos();
+    List<SearchCouponInfo> couponInfos = CouponFixture.createCouponInfos();
     PageResponse<SearchCouponInfo> couponInfoPage = PageResponse.of(
         couponInfos, 20, 2, 1, 10);
 
@@ -224,28 +224,5 @@ class CouponAdminControllerTest {
         .andExpect(jsonPath("$.totalElements").value(20))
         .andExpect(jsonPath("$.coupons[0].couponUuid").value(couponInfos.get(0).couponUuid()))
         .andDo(print());
-  }
-
-  private List<SearchCouponInfo> getCouponInfos() {
-    List<SearchCouponInfo> couponInfos = IntStream.range(0, 20)
-        .mapToObj(i -> SearchCouponInfo.builder()
-            .couponId((long) i)
-            .couponUuid(UUID.randomUUID().toString())
-            .name("test coupon " + i)
-            .type("FIXED_DISCOUNT")
-            .startAt(LocalDateTime.now().minusDays(i).truncatedTo(ChronoUnit.DAYS))
-            .endAt(LocalDateTime.now().plusDays(19-i).truncatedTo(ChronoUnit.DAYS))
-            .count(10000 * i)
-            .allowDuplicate(false)
-            .minPurchaseAmount(50000)
-            .amount(3000)
-            .percent(null)
-            .maxDiscountAmount(null)
-            .createdAt(LocalDateTime.now().minusHours(i))
-            .createdBy(1L)
-            .build()
-        )
-        .toList();
-    return couponInfos;
   }
 }
