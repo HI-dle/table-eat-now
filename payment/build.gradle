@@ -58,6 +58,7 @@ dependencies {
 	//CONFIG
 //	implementation 'org.springframework.cloud:spring-cloud-starter-config'
 //	implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 }
 
 def querydslSrcDir = 'src/main/generated'
