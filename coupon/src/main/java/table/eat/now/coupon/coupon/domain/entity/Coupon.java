@@ -34,7 +34,7 @@ public class Coupon extends BaseEntity {
   @Column(name="coupon_uuid", unique = true, nullable = false, length = 100)
   private String couponUuid;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 200)
   private String name;
 
   @Enumerated(EnumType.STRING)
@@ -44,10 +44,10 @@ public class Coupon extends BaseEntity {
   @Embedded
   private AvailablePeriod period;
 
-  @Column
+  @Column(nullable = false)
   private Integer count;
 
-  @Column
+  @Column(nullable = false)
   private Integer issuedCount;
 
   @Column(nullable = false)
@@ -87,8 +87,7 @@ public class Coupon extends BaseEntity {
 
   public void modify(UpdateCoupon command) {
 
-    LocalDateTime now = LocalDateTime.now();
-    if (!now.isBefore(command.startAt().minusHours(1))) {
+    if (!is1HourBeforeStartAt(command.startAt())) {
       throw new IllegalArgumentException("쿠폰 가용 시각으로부터 한 시간 이전까지만 수정이 가능합니다.");
     }
     this.name = command.name();
@@ -98,5 +97,16 @@ public class Coupon extends BaseEntity {
     this.allowDuplicate = command.allowDuplicate();
 
     this.getDiscountPolicy().modify(command);
+  }
+
+  @Override
+  public void delete(Long deletedBy) {
+    super.delete(deletedBy);
+    getDiscountPolicy().delete(deletedBy);
+  }
+
+  private boolean is1HourBeforeStartAt(LocalDateTime startAt) {
+    LocalDateTime now = LocalDateTime.now();
+    return now.isBefore(startAt.minusHours(1));
   }
 }

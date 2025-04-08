@@ -2,8 +2,7 @@ package table.eat.now.coupon.coupon.presentation;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -27,9 +26,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
+import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
 import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
-import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest.CouponType;
 import table.eat.now.coupon.coupon.presentation.dto.request.UpdateCouponRequest;
 
 @AutoConfigureMockMvc
@@ -56,7 +57,7 @@ class CouponAdminControllerTest {
     // given
     CreateCouponRequest request = CreateCouponRequest.builder()
         .name("test")
-        .type(CouponType.FIXED_DISCOUNT)
+        .type(CreateCouponRequest.CouponType.FIXED_DISCOUNT)
         .startAt(LocalDateTime.now().plusDays(1))
         .endAt(LocalDateTime.now().plusDays(5))
         .count(10000)
@@ -91,7 +92,7 @@ class CouponAdminControllerTest {
     // given
     UpdateCouponRequest request = UpdateCouponRequest.builder()
         .name("test")
-        .type(CouponType.FIXED_DISCOUNT)
+        .type(UpdateCouponRequest.CouponType.FIXED_DISCOUNT)
         .startAt(LocalDateTime.now().plusDays(1))
         .endAt(LocalDateTime.now().plusDays(5))
         .count(10000)
@@ -118,6 +119,66 @@ class CouponAdminControllerTest {
     resultActions.andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.couponUuid").value(couponUuid.toString()))
+        .andDo(print());
+  }
+
+  @DisplayName("쿠폰 조회 요청 검증 - 200 응답")
+  @Test
+  void getCoupon() throws Exception {
+    // given
+    UUID couponUuid = UUID.randomUUID();
+    GetCouponInfo couponInfo = GetCouponInfo.builder()
+        .couponId(1L)
+        .couponUuid(couponUuid.toString())
+        .name("test")
+        .type("FIXED_DISCOUNT")
+        .startAt(LocalDateTime.now().plusDays(1))
+        .endAt(LocalDateTime.now().plusDays(5))
+        .count(10000)
+        .allowDuplicate(false)
+        .minPurchaseAmount(50000)
+        .amount(3000)
+        .percent(null)
+        .maxDiscountAmount(null)
+        .createdAt(LocalDateTime.now().minusHours(1))
+        .createdBy(1L)
+        .build();
+
+    given(couponService.getCoupon(couponUuid)).willReturn(couponInfo);
+
+    // when
+    ResultActions resultActions = mockMvc.perform(
+        get("/admin/v1/coupons/{couponUuid}", couponUuid.toString())
+            .header("Authorization", "Bearer {ACCESS_TOKEN}")
+            .header(USER_ID_HEADER, "1")
+            .header(USER_ROLE_HEADER, "MASTER"));
+
+    // then
+    resultActions.andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.couponUuid").value(couponUuid.toString()))
+        .andExpect(jsonPath("$.type").value("FIXED_DISCOUNT"))
+        .andDo(print());
+  }
+
+  @DisplayName("쿠폰 삭제 요청 검증 - 204 응답")
+  @Test
+  void deleteCoupon() throws Exception {
+    // given
+    UUID couponUuid = UUID.randomUUID();
+    CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(1L, UserRole.MASTER);
+
+    doNothing().when(couponService).deleteCoupon(userInfo, couponUuid);
+
+    // when
+    ResultActions resultActions = mockMvc.perform(
+        delete("/admin/v1/coupons/{couponUuid}", couponUuid.toString())
+            .header("Authorization", "Bearer {ACCESS_TOKEN}")
+            .header(USER_ID_HEADER, userInfo.userId())
+            .header(USER_ROLE_HEADER, userInfo.role()));
+
+    // then
+    resultActions.andExpect(status().isNoContent())
         .andDo(print());
   }
 }

@@ -39,10 +39,11 @@ public class GlobalErrorHandler {
       MethodArgumentNotValidException e,
       HttpServletRequest request) {
 
-    List<ErrorResponse.ErrorField> errorFields = e.getBindingResult().getFieldErrors()
+    List<ErrorResponse.ErrorField> errorFields = e.getBindingResult()
+        .getFieldErrors()
         .stream()
         .map(fieldError -> new ErrorResponse.ErrorField(
-            fieldError.getRejectedValue(),
+            fieldError.getField(),
             fieldError.getDefaultMessage()))
         .toList();
 
