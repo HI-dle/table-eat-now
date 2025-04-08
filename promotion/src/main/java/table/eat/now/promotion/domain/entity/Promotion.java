@@ -9,6 +9,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -53,14 +55,23 @@ public class Promotion extends BaseEntity {
   @Column(nullable = false)
   private PromotionType promotionType;
 
-  @Builder
-  public Promotion(PromotionDetails details, PromotionPeriod period,
-      DiscountPrice discountPrice, PromotionStatus promotionStatus, PromotionType promotionType) {
+
+  private Promotion(
+      String promotionName, String description, LocalDateTime startTime, LocalDateTime endTime,
+      BigDecimal amount, PromotionStatus promotionStatus, PromotionType promotionType) {
     this.promotionUuid = UUID.randomUUID();
-    this.details = details;
-    this.period = period;
-    this.discountPrice = discountPrice;
+    this.details = PromotionDetails.of(promotionName, description);
+    this.period = PromotionPeriod.of(startTime,endTime);
+    this.discountPrice = DiscountPrice.of(amount);
     this.promotionStatus = promotionStatus;
     this.promotionType = promotionType;
+  }
+
+  public static Promotion of(
+      String promotionName, String description, LocalDateTime startTime, LocalDateTime endTime,
+      BigDecimal amount, PromotionStatus promotionStatus, PromotionType promotionType) {
+    return new Promotion(
+        promotionName, description, startTime, endTime,
+        amount,promotionStatus,promotionType);
   }
 }

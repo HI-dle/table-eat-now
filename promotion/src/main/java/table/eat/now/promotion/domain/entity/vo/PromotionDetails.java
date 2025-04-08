@@ -3,6 +3,7 @@ package table.eat.now.promotion.domain.entity.vo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @Getter
 @EqualsAndHashCode
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PromotionDetails {
 
@@ -22,4 +24,8 @@ public class PromotionDetails {
 
   @Column(columnDefinition = "TEXT", nullable = false)
   private String description;
+
+  public static PromotionDetails of(String promotionName, String description) {
+    return new PromotionDetails(promotionName, description);
+  }
 }
