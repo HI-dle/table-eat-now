@@ -12,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import table.eat.now.common.domain.BaseEntity;
 
 /**
  * @author : hanjihoon
@@ -22,11 +23,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "p_user")
-public class User {
+public class User extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "user_id", nullable = false)
+  @Column(name = "id", nullable = false)
   private Long id;
 
   @Column(nullable = false)

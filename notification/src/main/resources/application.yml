@@ -2,12 +2,14 @@ server:
   port: 8089
 
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
-    name: promotion
+    name: notification
   datasource:
-    url: jdbc:postgresql://localhost:5433/users
-    username: sa
-    password: sa
+    url: ${NOTIFICATION_DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
