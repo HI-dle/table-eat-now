@@ -12,6 +12,7 @@ import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import table.eat.now.common.domain.BaseEntity;
 
 @Table(name="p_coupon_policy")
@@ -44,11 +45,15 @@ public class CouponPolicy extends BaseEntity {
   private Integer maxDiscountAmount;
 
   private CouponPolicy(
-      Integer minPurchaseAmount,
+      @NonNull Integer minPurchaseAmount,
       Integer amount, Integer percent, Integer maxDiscountAmount) {
 
     this.couponPolicyUuid = UUID.randomUUID();
     this.minPurchaseAmount = minPurchaseAmount;
+
+    if (amount == null && percent == null) {
+      throw new IllegalArgumentException("할인 금액과 할인율이 둘 다 빈 값일 수 없습니다.");
+    }
     this.amount = amount;
     this.percent = percent;
     this.maxDiscountAmount = maxDiscountAmount;

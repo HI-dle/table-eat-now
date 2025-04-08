@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
-public class CouponAvailablePeriod {
+public class AvailablePeriod {
 
   @Column(nullable = false)
   private LocalDateTime startAt;
@@ -16,7 +16,8 @@ public class CouponAvailablePeriod {
   @Column(nullable = false)
   private LocalDateTime endAt;
 
-  public CouponAvailablePeriod(LocalDateTime startAt, LocalDateTime endAt) {
+  public AvailablePeriod(LocalDateTime startAt, LocalDateTime endAt) {
+
     if (startAt == null || endAt == null) {
       throw new IllegalArgumentException("기간 정보는 필수입니다.");
     }

@@ -1,5 +1,6 @@
 package table.eat.now.coupon.coupon.domain.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -40,7 +41,7 @@ public class Coupon extends BaseEntity {
   private CouponType type;
 
   @Embedded
-  private CouponAvailablePeriod period;
+  private AvailablePeriod period;
 
   @Column
   private Integer count;
@@ -51,7 +52,7 @@ public class Coupon extends BaseEntity {
   @Column(nullable = false)
   private Boolean allowDuplicate;
 
-  @OneToMany(mappedBy = "coupon")
+  @OneToMany(mappedBy = "coupon", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<CouponPolicy> policy;
 
   private Coupon(
@@ -60,7 +61,7 @@ public class Coupon extends BaseEntity {
     this.couponUuid = UUID.randomUUID();
     this.name = name;
     this.type = type;
-    this.period = new CouponAvailablePeriod(startAt, endAt);
+    this.period = new AvailablePeriod(startAt, endAt);
     this.count = count;
     this.issuedCount = 0;
     this.allowDuplicate = allowDuplicate;
