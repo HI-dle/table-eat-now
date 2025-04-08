@@ -1,4 +1,3 @@
-
 package table.eat.now.restaurant.domain.entity;
 
 import jakarta.persistence.AttributeOverride;
@@ -17,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +44,23 @@ public class Restaurant extends BaseEntity {
   @Column(name = "name", nullable = false, length = 100)
   private String name;
 
+  @Column(name = "review_rating_avg")
+  private BigDecimal reviewRatingAvg;
+
+  @Column(name = "info", columnDefinition = "TEXT")
+  private String info;
+
+  @Column(name = "max_reservation_guest_count_per_team_online", nullable = false)
+  private Integer maxReservationGuestCountPerTeamOnline;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "waiting_status", nullable = false)
+  private WaitingStatus waitingStatus;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false)
+  private RestaurantStatus status;
+
   @Embedded
   @AttributeOverrides({
       @AttributeOverride(name = "contactNumber", column = @Column(name = "contact_number", length = 100)),
@@ -58,28 +75,34 @@ public class Restaurant extends BaseEntity {
   })
   private OperatingTime operatingTime;
 
-  @Column(name = "review_rating_avg")
-  private BigDecimal reviewRatingAvg;
-
-  @Column(name = "info", columnDefinition = "TEXT")
-  private String info;
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false)
-  private RestaurantStatus status;
-
-  @Column(name = "max_reservation_guest_count_per_team_online", nullable = false)
-  private Integer maxReservationGuestCountPerTeamOnline;
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "waiting_status", nullable = false)
-  private WaitingStatus waitingStatus;
-
   @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<RestaurantMenu> menus = new ArrayList<>();
 
   @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<RestaurantTimeSlot> timeSlots = new ArrayList<>();
+
+  @Builder(builderMethodName = "inactiveRestaurantBuilder")
+  private Restaurant(
+      UUID restaurantUuid,
+      Long ownerId,
+      String name,
+      BigDecimal reviewRatingAvg,
+      String info,
+      Integer maxReservationGuestCountPerTeamOnline,
+      ContactInfo contactInfo,
+      OperatingTime operatingTime
+  ) {
+    this.restaurantUuid = restaurantUuid;
+    this.ownerId = ownerId;
+    this.name = name;
+    this.reviewRatingAvg = reviewRatingAvg;
+    this.info = info;
+    this.maxReservationGuestCountPerTeamOnline = maxReservationGuestCountPerTeamOnline;
+    this.contactInfo = contactInfo;
+    this.operatingTime = operatingTime;
+    this.status = RestaurantStatus.INACTIVE;
+    this.waitingStatus = WaitingStatus.INACTIVE;
+  }
 
   @Getter
   @RequiredArgsConstructor
