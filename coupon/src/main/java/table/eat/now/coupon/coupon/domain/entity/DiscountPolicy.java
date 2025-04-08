@@ -19,7 +19,7 @@ import table.eat.now.common.domain.BaseEntity;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CouponPolicy extends BaseEntity {
+public class DiscountPolicy extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +30,7 @@ public class CouponPolicy extends BaseEntity {
   private Coupon coupon;
 
   @Column(unique = true, nullable = false, columnDefinition = "VARCHAR(100)")
-  private UUID couponPolicyUuid;
+  private UUID discountPolicyUuid;
 
   @Column(nullable = false)
   private Integer minPurchaseAmount;
@@ -44,29 +44,40 @@ public class CouponPolicy extends BaseEntity {
   @Column
   private Integer maxDiscountAmount;
 
-  private CouponPolicy(
+  private DiscountPolicy(
       @NonNull Integer minPurchaseAmount,
       Integer amount, Integer percent, Integer maxDiscountAmount) {
 
-    this.couponPolicyUuid = UUID.randomUUID();
+    this.discountPolicyUuid = UUID.randomUUID();
     this.minPurchaseAmount = minPurchaseAmount;
 
-    if (amount == null && percent == null) {
-      throw new IllegalArgumentException("할인 금액과 할인율이 둘 다 빈 값일 수 없습니다.");
-    }
+    validateDiscountInfo(amount, percent);
     this.amount = amount;
     this.percent = percent;
+
+    if (percent != null && maxDiscountAmount == null) {
+      throw new IllegalArgumentException("정률 쿠폰에는 최대 할인금액이 설정되어야 합니다.");
+    }
     this.maxDiscountAmount = maxDiscountAmount;
   }
 
-  public static CouponPolicy of(
+  public static DiscountPolicy of(
       Integer minPurchaseAmount,
       Integer amount, Integer percent, Integer maxDiscountAmount) {
 
-    return new CouponPolicy(minPurchaseAmount, amount, percent, maxDiscountAmount);
+    return new DiscountPolicy(minPurchaseAmount, amount, percent, maxDiscountAmount);
   }
 
   public void registerCoupon(Coupon coupon) {
     this.coupon = coupon;
+  }
+
+  private void validateDiscountInfo(Integer amount, Integer percent) {
+    if (amount == null && percent == null) {
+      throw new IllegalArgumentException("할인 금액과 할인율이 둘 다 빈 값일 수 없습니다.");
+    }
+    if (amount != null && percent != null) {
+      throw new IllegalArgumentException("할인 금액과 할인률 중 한 가지만 입력할 수 있습니다.");
+    }
   }
 }

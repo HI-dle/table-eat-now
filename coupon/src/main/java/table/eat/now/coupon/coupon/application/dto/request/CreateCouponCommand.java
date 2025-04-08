@@ -3,7 +3,7 @@ package table.eat.now.coupon.coupon.application.dto.request;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
-import table.eat.now.coupon.coupon.domain.entity.CouponPolicy;
+import table.eat.now.coupon.coupon.domain.entity.DiscountPolicy;
 import table.eat.now.coupon.coupon.domain.entity.CouponType;
 
 @Builder
@@ -23,7 +23,7 @@ public record CreateCouponCommand(
   public Coupon toEntity() {
 
     Coupon coupon = Coupon.of(name, CouponType.valueOf(type), startAt, endAt, count, allowDuplicate);
-    CouponPolicy policy = CouponPolicy.of(minPurchaseAmount, amount, percent, maxDiscountAmount);
+    DiscountPolicy policy = DiscountPolicy.of(minPurchaseAmount, amount, percent, maxDiscountAmount);
     coupon.registerPolicy(policy);
     return coupon;
   }

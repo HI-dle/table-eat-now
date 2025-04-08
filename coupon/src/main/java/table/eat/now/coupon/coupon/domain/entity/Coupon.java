@@ -53,7 +53,7 @@ public class Coupon extends BaseEntity {
   private Boolean allowDuplicate;
 
   @OneToMany(mappedBy = "coupon", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<CouponPolicy> policy;
+  private List<DiscountPolicy> policy;
 
   private Coupon(
       String name, CouponType type, LocalDateTime startAt, LocalDateTime endAt,
@@ -75,7 +75,7 @@ public class Coupon extends BaseEntity {
     return new Coupon(name, type, startAt, endAt, count, allowDuplicate);
   }
 
-  public void registerPolicy(CouponPolicy policy) {
+  public void registerPolicy(DiscountPolicy policy) {
     policy.registerCoupon(this);
     this.policy.add(policy);
   }
