@@ -2,7 +2,7 @@
  * @author : jieun(je-pa)
  * @Date : 2025. 04. 08.
  */
-package table.eat.now.restaurant.domain.entity;
+package table.eat.now.restaurant.restaurant.domain.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
