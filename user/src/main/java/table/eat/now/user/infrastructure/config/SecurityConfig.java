@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import table.eat.now.user.presentation.security.filter.JwtAuthenticationFilter;
+import table.eat.now.user.presentation.security.jwt.TokenProvider;
 
 /**
  * @author : hanjihoon
@@ -24,7 +25,7 @@ import table.eat.now.user.presentation.security.filter.JwtAuthenticationFilter;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final TokenProvider tokenProvider;
 
   @Bean
   public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -35,7 +36,10 @@ public class SecurityConfig {
     return new BCryptPasswordEncoder();
   }
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain securityFilterChain(HttpSecurity http,
+      AuthenticationManager authenticationManager) throws Exception {
+    JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager, tokenProvider);
+
     http
         .csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션을 STATELESS 모드로 설정

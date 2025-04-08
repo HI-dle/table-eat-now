@@ -24,17 +24,17 @@ public class TokenProvider {
   private static final String CLAIM_ROLE_KEY = "role";
   private static final String CLAIM_USERNAME_KEY = "username";
   private final SecretKey key;
-  private final long token_time;
+  private final long tokenTime;
 
   public TokenProvider(
       @Value("${jwt.secret}") String secretKey,
-      @Value("${jwt.access-expiration}") long token_time) {
-    this.token_time = token_time;
+      @Value("${jwt.access.expiration}") long tokenTime) {
+    this.tokenTime = tokenTime;
     this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
   }
 
   public String createAccessToken(String userId, String role, String username) {
-    String token = createToken(userId, role, username, token_time);
+    String token = createToken(userId, role, username, tokenTime);
     return addBearerPrefix(token);
   }
 
