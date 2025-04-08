@@ -1,3 +1,7 @@
+/**
+ * @author : jieun(je-pa)
+ * @Date : 2025. 04. 09.
+ */
 package table.eat.now.reservation;
 
 import org.springframework.boot.SpringApplication;
