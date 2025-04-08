@@ -41,7 +41,8 @@ ext {
         "**/projection/**",
         "**/command/**",
         "**/common/**",
-        "**/domain/**"
+        "**/domain/**",
+        "**/gateway/**"
     ]
 
     def Qdomains = []
@@ -103,7 +104,7 @@ subprojects {
 }
 
 subprojects {
-    group = 'com.sixheroes'
+    group = 'table.eat.now'
     version = '0.0.1-SNAPSHOT'
 
     java {

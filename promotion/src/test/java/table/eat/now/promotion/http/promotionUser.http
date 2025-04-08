@@ -1,0 +1,8 @@
+###
+POST http://localhost:8084/api/v1/promotion-users
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwicm9sZSI6Ik1BU1RFUiIsInVzZXJuYW1lIjoidGVzdCIsImlhdCI6MTc0NDEwNTUxNCwiZXhwIjoxNzQ0MTA5MTE0fQ.ybwqrR92d3Cv_b4SRYdzpbquFNSrAwPQWJC9MV6UWPSTJsTbr1uPvbUtR88IvsCY3VQT1UBWBMOoQa6NqcT_Nw
+
+{
+  "userId": 1
+}
