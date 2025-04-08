@@ -2,6 +2,8 @@ package table.eat.now.review.domain.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -20,6 +22,7 @@ public class ReviewVisibility {
 	@Column(name = "hidden_at")
 	private LocalDateTime hiddenAt;
 
+	@Enumerated(EnumType.STRING)
 	@Column(name = "hidden_by_role")
 	private HiddenByRole hiddenByRole;
 
