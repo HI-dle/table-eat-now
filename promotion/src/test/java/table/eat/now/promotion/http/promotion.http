@@ -1,0 +1,13 @@
+###
+POST http://localhost:8084/admin/v1/promotions
+Content-Type: application/json
+
+{
+  "promotionName": "봄맞이 할인 프로모션",
+  "description": "전 메뉴 3000원 할인",
+  "startTime": "2025-04-09T00:00:00",
+  "endTime": "2025-04-18T00:00:00",
+  "discountAmount": 3000,
+  "promotionStatus": "READY",
+  "promotionType": "COUPON"
+}

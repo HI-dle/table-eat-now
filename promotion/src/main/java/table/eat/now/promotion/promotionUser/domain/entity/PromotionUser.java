@@ -33,4 +33,10 @@ public class PromotionUser extends BaseEntity {
   private Long userId;
 
 
+  private PromotionUser(Long userId) {
+    this.userId = userId;
+  }
+  public static PromotionUser of(Long userId) {
+    return new PromotionUser(userId);
+  }
 }

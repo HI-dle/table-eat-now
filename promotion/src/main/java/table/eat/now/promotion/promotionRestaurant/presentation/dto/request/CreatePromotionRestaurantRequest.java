@@ -1,5 +1,6 @@
 package table.eat.now.promotion.promotionRestaurant.presentation.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 import table.eat.now.promotion.promotionRestaurant.application.dto.request.CreatePromotionRestaurantCommand;
 
@@ -7,7 +8,9 @@ import table.eat.now.promotion.promotionRestaurant.application.dto.request.Creat
  * @author : hanjihoon
  * @Date : 2025. 04. 08.
  */
-public record CreatePromotionRestaurantRequest(UUID promotionUuid,
+public record CreatePromotionRestaurantRequest(@NotNull
+                                               UUID promotionUuid,
+                                               @NotNull
                                                UUID restaurantUuid) {
 
   public CreatePromotionRestaurantCommand toApplication() {

@@ -14,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import table.eat.now.promotion.promotionRestaurant.application.dto.request.CreatePromotionRestaurantCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.response.CreatePromotionRestaurantInfo;
-import table.eat.now.promotion.promotionRestaurant.application.service.PromotionRestaurantServiceImpl;
 import table.eat.now.promotion.promotionRestaurant.domain.entity.PromotionRestaurant;
 import table.eat.now.promotion.promotionRestaurant.domain.repository.PromotionRestaurantRepository;
 

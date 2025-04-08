@@ -24,7 +24,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
 import table.eat.now.promotion.promotion.application.service.PromotionService;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
-import table.eat.now.promotion.promotion.presentation.PromotionAdminController;
 import table.eat.now.promotion.promotion.presentation.dto.request.CreatePromotionRequest;
 
 /**

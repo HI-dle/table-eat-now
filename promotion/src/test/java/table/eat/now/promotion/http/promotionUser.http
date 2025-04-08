@@ -1,0 +1,7 @@
+###
+POST http://localhost:8084/api/v1/promotion-users
+Content-Type: application/json
+
+{
+  "userId": 1
+}
