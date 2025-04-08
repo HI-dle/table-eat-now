@@ -1,9 +1,13 @@
 package table.eat.now.coupon.coupon.presentation;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
@@ -11,6 +15,7 @@ import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +30,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest.CouponType;
+import table.eat.now.coupon.coupon.presentation.dto.request.UpdateCouponRequest;
 
 @AutoConfigureMockMvc
 @WebMvcTest(CouponAdminController.class)
@@ -61,7 +67,7 @@ class CouponAdminControllerTest {
         .maxDiscountAmount(null)
         .build();
 
-    UUID couponUuid = UUID.randomUUID();
+    String couponUuid = UUID.randomUUID().toString();
     given(couponService.createCoupon(request.toCommand())).willReturn(couponUuid);
 
     // when
@@ -75,7 +81,43 @@ class CouponAdminControllerTest {
     // then
     resultActions.andExpect(status().isCreated())
         .andExpect(header().string(
-            "Location", String.format("/admin/v1/coupons/%s", couponUuid)))
+            "Location", Matchers.endsWith(String.format("/admin/v1/coupons/%s", couponUuid))))
+        .andDo(print());
+  }
+
+  @DisplayName("쿠폰 수정 요청 검증 - 200 응답")
+  @Test
+  void updateCoupon() throws Exception {
+    // given
+    UpdateCouponRequest request = UpdateCouponRequest.builder()
+        .name("test")
+        .type(CouponType.FIXED_DISCOUNT)
+        .startAt(LocalDateTime.now().plusDays(1))
+        .endAt(LocalDateTime.now().plusDays(5))
+        .count(10000)
+        .allowDuplicate(false)
+        .minPurchaseAmount(50000)
+        .amount(3000)
+        .percent(null)
+        .maxDiscountAmount(null)
+        .build();
+
+    UUID couponUuid = UUID.randomUUID();
+    doNothing().when(couponService).updateCoupon(couponUuid, request.toCommand());
+
+    // when
+    ResultActions resultActions = mockMvc.perform(
+        patch("/admin/v1/coupons/{couponUuid}", couponUuid.toString())
+            .header("Authorization", "Bearer {ACCESS_TOKEN}")
+            .header(USER_ID_HEADER, "1")
+            .header(USER_ROLE_HEADER, "MASTER")
+            .content(objectMapper.writeValueAsString(request))
+            .contentType(MediaType.APPLICATION_JSON));
+
+    // then
+    resultActions.andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.couponUuid").value(couponUuid.toString()))
         .andDo(print());
   }
 }
