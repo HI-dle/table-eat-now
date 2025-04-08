@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,9 +16,11 @@ import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
+import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
 import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
 import table.eat.now.coupon.coupon.presentation.dto.request.UpdateCouponRequest;
+import table.eat.now.coupon.coupon.presentation.dto.response.GetCouponResponse;
 import table.eat.now.coupon.coupon.presentation.dto.response.UpdateCouponResponse;
 
 @RequiredArgsConstructor
@@ -50,10 +53,20 @@ public class CouponAdminController {
       @RequestBody @Valid UpdateCouponRequest request
   ) {
 
-
     couponService.updateCoupon(couponUuid, request.toCommand());
     return ResponseEntity.ok()
         .body(UpdateCouponResponse.of(couponUuid));
   }
 
+  @AuthCheck(roles = {UserRole.MASTER})
+  @GetMapping("/{couponUuid}")
+  public ResponseEntity<GetCouponResponse> getCoupon(
+      @CurrentUserInfo CurrentUserInfoDto userInfo,
+      @PathVariable UUID couponUuid
+  ) {
+
+    GetCouponInfo coupon = couponService.getCoupon(couponUuid);
+    return ResponseEntity.ok()
+        .body(GetCouponResponse.from(coupon));
+  }
 }
