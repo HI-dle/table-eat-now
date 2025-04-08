@@ -1,0 +1,2 @@
+### 브라우저에서 해보시면 됩니다!
+GET http://localhost:8088/checkout?idempotencyKey=123e4567-e89b-12d3-a456-426614174003

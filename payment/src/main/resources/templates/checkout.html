@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <script src="https://js.tosspayments.com/v2/standard"></script>
+</head>
+<body>
+<!-- 결제 UI -->
+<div id="payment-method"></div>
+<!-- 이용약관 UI -->
+<div id="agreement"></div>
+<!-- 결제하기 버튼 -->
+<button class="button" id="payment-button" style="margin-top: 30px">결제하기</button>
+
+<script>
+  main();
+
+  async function main() {
+    // URL에서 트랜잭션 ID 파라미터 가져오기
+    const urlParams = new URLSearchParams(window.location.search);
+    const idempotencyKey = urlParams.get('idempotencyKey');
+    console.log(idempotencyKey);
+
+    // API에서 결제 데이터 가져오기
+    let paymentData;
+    try {
+      const response = await fetch(`/api/v1/payments/${idempotencyKey}/checkout-info`);
+      if (!response.ok) {
+        throw new Error('결제 정보를 가져오는 데 실패했습니다.');
+      }
+      paymentData = await response.json();
+    } catch (error) {
+      console.error('API 요청 오류:', error);
+      alert('결제 정보를 가져오는 데 문제가 발생했습니다.');
+      return;
+    }
+
+    // 결제위젯 초기화
+    const clientKey = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
+    const tossPayments = TossPayments(clientKey);
+
+    // 회원 결제 - API에서 받은 customerId 사용
+    const customerKey = paymentData.customerId;
+    const widgets = tossPayments.widgets({
+      customerKey,
+    });
+
+    // 주문의 결제 금액 설정 - API에서 받은 amount 사용
+    await widgets.setAmount({
+      currency: "KRW",
+      value: parseInt(paymentData.amount)
+    });
+
+    await Promise.all([
+      // 결제 UI 렌더링
+      widgets.renderPaymentMethods({
+        selector: "#payment-method",
+        variantKey: "DEFAULT",
+      }),
+      // 이용약관 UI 렌더링
+      widgets.renderAgreement({
+        selector: "#agreement",
+        variantKey: "AGREEMENT"
+      }),
+    ]);
+
+    // '결제하기' 버튼 누르면 결제창 띄우기
+    const button = document.getElementById("payment-button");
+    button.addEventListener("click", async function () {
+      await widgets.requestPayment({
+        orderId: paymentData.idempotencyKey,
+        orderName: paymentData.orderName,
+        successUrl: window.location.origin + "/success",
+        failUrl: window.location.origin + "/fail"
+      });
+    });
+  }
+</script>
+</body>
+</html>
