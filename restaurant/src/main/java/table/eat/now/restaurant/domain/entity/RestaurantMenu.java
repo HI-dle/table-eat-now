@@ -26,6 +26,10 @@ public class RestaurantMenu extends BaseEntity {
   @Id
   private Long id;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "restaurant_id", nullable = false)
+  private Restaurant restaurant;
+
   @Column(name = "restaurant_menu_uuid", nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
   private UUID restaurantMenuUuid;
 
@@ -39,9 +43,9 @@ public class RestaurantMenu extends BaseEntity {
   @Column(name = "status")
   private MenuStatus status;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "restaurant_id", nullable = false)
-  private Restaurant restaurant;
+  public void modifyRestaurant(Restaurant restaurant) {
+    this.restaurant = restaurant;
+  }
 
   @Getter
   @RequiredArgsConstructor

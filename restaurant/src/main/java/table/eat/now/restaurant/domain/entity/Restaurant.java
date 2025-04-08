@@ -104,6 +104,28 @@ public class Restaurant extends BaseEntity {
     this.waitingStatus = WaitingStatus.INACTIVE;
   }
 
+  public void addMenus(List<RestaurantMenu> menus) {
+    for (RestaurantMenu menu : menus) {
+      addMenu(menu);
+    }
+  }
+
+  public void addTimeSlots(List<RestaurantTimeSlot> timeSlots) {
+    for (RestaurantTimeSlot timeSlot : timeSlots) {
+      addTimeSlot(timeSlot);
+    }
+  }
+
+  public void addMenu(RestaurantMenu menu) {
+    this.menus.add(menu);
+    menu.modifyRestaurant(this);
+  }
+
+  public void addTimeSlot(RestaurantTimeSlot timeSlot) {
+    this.timeSlots.add(timeSlot);
+    timeSlot.modifyRestaurant(this);
+  }
+
   @Getter
   @RequiredArgsConstructor
   public enum RestaurantStatus {

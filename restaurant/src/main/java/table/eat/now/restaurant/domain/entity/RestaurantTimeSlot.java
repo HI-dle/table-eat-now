@@ -10,6 +10,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import table.eat.now.common.domain.BaseEntity;
@@ -17,7 +18,7 @@ import table.eat.now.common.domain.BaseEntity;
 @Entity
 @Table(name = "p_restaurant_timeslot")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RestaurantTimeSlot extends BaseEntity {
 
   @Id
@@ -27,17 +28,22 @@ public class RestaurantTimeSlot extends BaseEntity {
   @JoinColumn(name = "restaurant_id", nullable = false)
   private Restaurant restaurant;
 
-  @Column(name = "restaurant_timeslot_uuid", nullable = false, unique = true, columnDefinition = "BINARY(16)")
+  @Column(name = "restaurant_timeslot_uuid", nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
   private UUID restaurantTimeslotUuid;
 
-  @Column(nullable = false)
+  @Column(name = "available_date", nullable = false)
   private LocalDate availableDate;
 
-  @Column(nullable = false)
+  @Column(name = "timeslot", nullable = false)
   private LocalTime timeslot;
 
-  @Column(nullable = false)
+  @Column(name = "max_capacity", nullable = false)
   private Integer maxCapacity;
 
+  @Column(name = "cur_total_guest_count", nullable = false)
   private Integer curTotalGuestCount;
+
+  public void modifyRestaurant(Restaurant restaurant) {
+    this.restaurant = restaurant;
+  }
 }
