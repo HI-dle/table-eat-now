@@ -36,8 +36,8 @@ public class ReservationPaymentDetail extends BaseEntity {
   @JoinColumn(name = "reservation_id", nullable = false)
   private Reservation reservation;
 
-  @Column(name = "reservation_payment_detail_uuid", nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-  private UUID reservationPaymentDetailUuid;
+  @Column(name = "reservation_payment_detail_uuid", nullable = false, unique = true, length = 100)
+  private String reservationPaymentDetailUuid;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "type", nullable = false)
@@ -46,8 +46,8 @@ public class ReservationPaymentDetail extends BaseEntity {
   @Column(name = "amount", nullable = false)
   private BigDecimal amount;
 
-  @Column(name = "detail_reference_id", columnDefinition = "VARCHAR(100)", nullable = false)
-  private UUID detailReferenceId;
+  @Column(name = "detail_reference_id", length = 100, nullable = false)
+  private String detailReferenceId;
 
   @Builder
   private ReservationPaymentDetail(
@@ -57,9 +57,9 @@ public class ReservationPaymentDetail extends BaseEntity {
       UUID reservationPaymentDetailUuid,
       PaymentType type) {
     this.amount = amount;
-    this.detailReferenceId = detailReferenceId;
+    this.detailReferenceId = detailReferenceId.toString();
     this.reservation = reservation;
-    this.reservationPaymentDetailUuid = reservationPaymentDetailUuid;
+    this.reservationPaymentDetailUuid = reservationPaymentDetailUuid.toString();
     this.type = type;
   }
 

@@ -40,17 +40,17 @@ public class Reservation extends BaseEntity {
   @Column(name = "id", nullable = false)
   private Long id;
 
-  @Column(name = "reservation_uuid", nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-  private UUID reservationUuid;
+  @Column(name = "reservation_uuid", nullable = false, unique = true, length = 100)
+  private String reservationUuid;
 
   @Column(name = "reserver_id", nullable = false)
   private Long reserverId;
 
-  @Column(name = "restaurant_timeslot_id", nullable = false, columnDefinition = "VARCHAR(100)")
-  private UUID restaurantTimeSlotId;
+  @Column(name = "restaurant_timeslot_uuid", nullable = false, length = 100)
+  private String restaurantTimeSlotUuid;
 
-  @Column(name = "restaurant_id", nullable = false, columnDefinition = "VARCHAR(100)")
-  private UUID restaurantId;
+  @Column(name = "restaurant_uuid", nullable = false, length = 100)
+  private String restaurantId;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "restaurant_timeslot_details", columnDefinition = "jsonb", nullable = false)
@@ -89,7 +89,7 @@ public class Reservation extends BaseEntity {
   private Reservation(
       UUID reservationUuid,
       Long reserverId,
-      UUID restaurantTimeSlotId,
+      UUID restaurantTimeSlotUuid,
       RestaurantTimeSlotDetails restaurantTimeSlotDetails,
       UUID restaurantId,
       RestaurantDetails restaurantDetails,
@@ -101,11 +101,11 @@ public class Reservation extends BaseEntity {
       String specialRequest,
       List<ReservationPaymentDetail> details
   ) {
-    this.reservationUuid = reservationUuid;
+    this.reservationUuid = reservationUuid.toString();
     this.reserverId = reserverId;
-    this.restaurantTimeSlotId = restaurantTimeSlotId;
+    this.restaurantTimeSlotUuid = restaurantTimeSlotUuid.toString();
     this.restaurantTimeSlotDetails = restaurantTimeSlotDetails;
-    this.restaurantId = restaurantId;
+    this.restaurantId = restaurantId.toString();
     this.restaurantDetails = restaurantDetails;
     this.restaurantMenuDetails = restaurantMenuDetails;
     this.guestInfo = ReservationGuestInfo.of(reserverName, reserverContact, guestCount);
