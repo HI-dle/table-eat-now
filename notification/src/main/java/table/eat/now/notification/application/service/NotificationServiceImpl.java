@@ -77,7 +77,7 @@ public class NotificationServiceImpl implements NotificationService{
   }
 
   private Notification findByNotification(String notificationUuid) {
-    return notificationRepository.findByNotificationUuid(notificationUuid)
+    return notificationRepository.findByNotificationUuidAndDeletedByIsNull(notificationUuid)
         .orElseThrow(() ->
             CustomException.from(NotificationErrorCode.INVALID_NOTIFICATION_UUID));
   }
