@@ -35,8 +35,8 @@ public class RestaurantMenu extends BaseEntity {
   @JoinColumn(name = "restaurant_id", nullable = false)
   private Restaurant restaurant;
 
-  @Column(name = "restaurant_menu_uuid", nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-  private UUID restaurantMenuUuid;
+  @Column(name = "restaurant_menu_uuid", nullable = false, unique = true, length = 100)
+  private String restaurantMenuUuid;
 
   @Column(name = "name", nullable = false, length = 100)
   private String name;
@@ -58,7 +58,7 @@ public class RestaurantMenu extends BaseEntity {
     this.name = name;
     this.price = price;
     this.restaurant = restaurant;
-    this.restaurantMenuUuid = restaurantMenuUuid;
+    this.restaurantMenuUuid = restaurantMenuUuid.toString();
     this.status = MenuStatus.INACTIVE;
   }
 

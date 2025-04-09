@@ -39,8 +39,8 @@ public class Restaurant extends BaseEntity {
   @Column(name = "id", nullable = false)
   private Long id;
 
-  @Column(name = "restaurant_uuid", nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-  private UUID restaurantUuid;
+  @Column(name = "restaurant_uuid", nullable = false, unique = true, length = 100)
+  private String restaurantUuid;
 
   @Column(name = "owner_id", nullable = false)
   private Long ownerId;
@@ -100,7 +100,7 @@ public class Restaurant extends BaseEntity {
       LocalDateTime openingAt,
       LocalDateTime closingAt
   ) {
-    this.restaurantUuid = restaurantUuid;
+    this.restaurantUuid = restaurantUuid.toString();
     this.ownerId = ownerId;
     this.name = name;
     this.info = info;
