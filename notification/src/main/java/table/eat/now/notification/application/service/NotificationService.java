@@ -2,9 +2,13 @@ package table.eat.now.notification.application.service;
 
 
 import java.util.UUID;
+import table.eat.now.notification.application.dto.PaginatedResultCommand;
 import table.eat.now.notification.application.dto.request.CreateNotificationCommand;
+import table.eat.now.notification.application.dto.request.NotificationSearchCommand;
 import table.eat.now.notification.application.dto.request.UpdateNotificationCommand;
 import table.eat.now.notification.application.dto.response.CreateNotificationInfo;
+import table.eat.now.notification.application.dto.response.GetNotificationInfo;
+import table.eat.now.notification.application.dto.response.NotificationSearchInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
 
 
@@ -19,4 +23,7 @@ public interface NotificationService {
 
   UpdateNotificationInfo updateNotification(UpdateNotificationCommand application, UUID notificationUuid);
 
+  GetNotificationInfo findNotification(UUID notificationsUuid);
+
+  PaginatedResultCommand<NotificationSearchInfo> searchNotification(NotificationSearchCommand command);
 }

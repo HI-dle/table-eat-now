@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -14,9 +15,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.notification.application.service.NotificationService;
+import table.eat.now.notification.presentation.dto.PaginatedResultResponse;
 import table.eat.now.notification.presentation.dto.request.CreateNotificationRequest;
+import table.eat.now.notification.presentation.dto.request.NotificationSearchCondition;
 import table.eat.now.notification.presentation.dto.request.UpdateNotificationRequest;
 import table.eat.now.notification.presentation.dto.response.CreateNotificationResponse;
+import table.eat.now.notification.presentation.dto.response.GetNotificationResponse;
+import table.eat.now.notification.presentation.dto.response.NotificationSearchResponse;
 import table.eat.now.notification.presentation.dto.response.UpdateNotificationResponse;
 
 /**
@@ -57,4 +62,22 @@ public class NotificationAdminController {
                 request.toApplication(), notificationUuid)));
   }
 
+  @GetMapping("/{notificationsUuid}")
+  @AuthCheck(roles = UserRole.MASTER)
+  public ResponseEntity<GetNotificationResponse> findOneNotification(
+      @PathVariable("notificationsUuid") UUID notificationsUuid) {
+
+    return ResponseEntity.ok(GetNotificationResponse.from(
+        notificationService.findNotification(notificationsUuid)
+    ));
+  }
+
+  @GetMapping
+  @AuthCheck(roles = UserRole.MASTER)
+  public ResponseEntity<PaginatedResultResponse<NotificationSearchResponse>> searchNotification(
+      @Valid NotificationSearchCondition notificationSearchCondition
+  ) {
+    notificationService.searchNotification(notificationSearchCondition.toApplication());
+    return null;
+  }
 }
