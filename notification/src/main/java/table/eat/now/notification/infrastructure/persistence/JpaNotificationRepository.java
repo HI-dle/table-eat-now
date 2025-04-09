@@ -10,4 +10,5 @@ import table.eat.now.notification.domain.repository.NotificationRepository;
  */
 public interface JpaNotificationRepository extends
     JpaRepository<Notification, Long>, NotificationRepository {
+
 }
