@@ -1,12 +1,15 @@
 package table.eat.now.coupon.coupon.infrastructure.persistence.jpa;
 
 import static table.eat.now.coupon.coupon.domain.entity.QCoupon.coupon;
+import static table.eat.now.coupon.coupon.infrastructure.persistence.jpa.utils.QuerydslUtil.nullSafeBuilder;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -20,6 +23,7 @@ import table.eat.now.common.exception.CustomException;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
 import table.eat.now.coupon.coupon.domain.criteria.CouponCriteria;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
+import table.eat.now.coupon.coupon.domain.entity.CouponType;
 
 @RequiredArgsConstructor
 public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
@@ -53,8 +57,27 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
   }
 
   private BooleanBuilder searchCondition(CouponCriteria criteria) {
-    return criteria.betweenPeriod()
-        .and(criteria.eqType());
+    return betweenPeriod(criteria.fromAt(), criteria.toAt())
+        .and(eqType(criteria.type()));
+  }
+
+  public BooleanBuilder betweenPeriod(LocalDateTime fromAt, LocalDateTime toAt) {
+    if (fromAt == null && toAt == null) {
+      return new BooleanBuilder();
+    }
+    if (fromAt == null) {
+      return new BooleanBuilder(coupon.period.startAt.before(toAt));
+    }
+    if (toAt == null) {
+      return new BooleanBuilder(coupon.period.endAt.after(fromAt));
+    }
+    BooleanExpression isWithinRange =
+        coupon.period.startAt.before(toAt).and(coupon.period.endAt.after(fromAt));
+    return new BooleanBuilder(isWithinRange);
+  }
+
+  public BooleanBuilder eqType(String type)  {
+    return nullSafeBuilder(() -> coupon.type.eq(CouponType.valueOf(type)));
   }
 
   private OrderSpecifier[] createOrderSpecifiers(Sort sort) {

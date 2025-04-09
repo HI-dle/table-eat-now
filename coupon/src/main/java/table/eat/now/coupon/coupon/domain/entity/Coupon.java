@@ -87,8 +87,8 @@ public class Coupon extends BaseEntity {
 
   public void modify(UpdateCoupon command) {
 
-    if (!is1HourBeforeStartAt(command.startAt())) {
-      throw new IllegalArgumentException("쿠폰 가용 시각으로부터 한 시간 이전까지만 수정이 가능합니다.");
+    if (!is2HourBeforeStartAt(period.getStartAt())) {
+      throw new IllegalArgumentException("쿠폰 가용 시각으로부터 2 시간 이전까지만 수정이 가능합니다.");
     }
     this.name = command.name();
     this.type = command.type();
@@ -101,12 +101,20 @@ public class Coupon extends BaseEntity {
 
   @Override
   public void delete(Long deletedBy) {
+    if (!(is2HourBeforeStartAt(period.getStartAt())||isAfterEndAt(period.getEndAt()))) {
+      throw new IllegalArgumentException("쿠폰 가용 시각으로부터 두 시간 이전이거나 이미 종료된 쿠폰만 삭제가 가능합니다.");
+    }
     super.delete(deletedBy);
     getDiscountPolicy().delete(deletedBy);
   }
 
-  private boolean is1HourBeforeStartAt(LocalDateTime startAt) {
+  private boolean is2HourBeforeStartAt(LocalDateTime startAt) {
     LocalDateTime now = LocalDateTime.now();
-    return now.isBefore(startAt.minusHours(1));
+    return now.isBefore(startAt.minusHours(2));
+  }
+
+  private boolean isAfterEndAt(LocalDateTime endAt) {
+    LocalDateTime now = LocalDateTime.now();
+    return now.isAfter(endAt);
   }
 }
