@@ -3,7 +3,9 @@ package table.eat.now.notification.presentation;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -27,6 +29,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.notification.application.dto.PaginatedResultCommand;
 import table.eat.now.notification.application.dto.request.NotificationSearchCommand;
 import table.eat.now.notification.application.dto.request.UpdateNotificationCommand;
@@ -235,6 +238,28 @@ class NotificationAdminControllerTest {
         .andExpect(jsonPath("$.totalPages").value(1))
         .andExpect(jsonPath("$.content[0].message").value(condition.message()))
         .andExpect(jsonPath("$.content[1].message").value(condition.message()))
+        .andDo(print());
+  }
+
+  @DisplayName("알림 삭제 테스트")
+  @Test
+  void delete_notification_test() throws Exception {
+    // given
+    String notificationUuid = UUID.randomUUID().toString();
+
+    willDoNothing().given(notificationService)
+        .deleteNotification(eq(notificationUuid), any(CurrentUserInfoDto.class));
+
+    // when
+    ResultActions resultActions = mockMvc.perform(delete(
+        "/admin/v1/notifications/{notificationsUuid}", notificationUuid)
+        .header("Authorization", "Bearer {ACCESS_TOKEN}")
+        .header(USER_ID_HEADER, "1")
+        .header(USER_ROLE_HEADER, "MASTER")
+        .contentType(MediaType.APPLICATION_JSON));
+
+    // then
+    resultActions.andExpect(status().isNoContent())
         .andDo(print());
   }
 

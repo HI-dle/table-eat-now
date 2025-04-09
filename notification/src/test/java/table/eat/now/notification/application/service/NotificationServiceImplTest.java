@@ -18,6 +18,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.notification.application.dto.PaginatedResultCommand;
 import table.eat.now.notification.application.dto.request.CreateNotificationCommand;
 import table.eat.now.notification.application.dto.request.NotificationSearchCommand;
@@ -255,6 +257,38 @@ class NotificationServiceImplTest {
     verify(notificationRepository).searchNotification(criteria);
   }
 
+  @DisplayName("알림 삭제 서비스 테스트")
+  @Test
+  void notification_delete_service_test() {
+    // given
+    String notificationUuid = UUID.randomUUID().toString();
+    Long userId = 1L;
+
+    Notification notification = Notification.of(
+        userId,
+        NotificationType.CONFIRM_OWNER,
+        "삭제 테스트 메시지",
+        NotificationStatus.PENDING,
+        NotificationMethod.EMAIL,
+        LocalDateTime.now().plusHours(1)
+    );
+
+
+    ReflectionTestUtils.setField(notification, "notificationUuid", notificationUuid);
+
+    when(notificationRepository.findByNotificationUuid(notificationUuid))
+        .thenReturn(Optional.of(notification));
+
+    CurrentUserInfoDto userInfo = new CurrentUserInfoDto(userId, UserRole.MASTER);
+
+    // when
+    notificationService.deleteNotification(notificationUuid, userInfo);
+
+    // then
+    assertThat(notification.getDeletedBy()).isEqualTo(userId);
+
+    verify(notificationRepository).findByNotificationUuid(notificationUuid);
+  }
 
 
 
