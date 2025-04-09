@@ -5,12 +5,14 @@ import lombok.Builder;
 import table.eat.now.review.domain.entity.Review;
 
 @Builder
-public record CreateReviewInfo(
-		String reviewUuid, Long customerId, String restaurantId, String serviceId, String serviceType,
-		Integer rating, String content, boolean isVisible, LocalDateTime createdAt) {
-
-	public static CreateReviewInfo from(Review review) {
-		return CreateReviewInfo.builder()
+public record GetReviewInfo(
+		String reviewUuid, Long customerId, String restaurantId,
+		String serviceId, String serviceType,
+		Integer rating, String content, boolean isVisible,
+		LocalDateTime createdAt, LocalDateTime updatedAt
+) {
+	public static GetReviewInfo from(Review review){
+		return GetReviewInfo.builder()
 				.reviewUuid(review.getReviewId())
 				.customerId(review.getReference().getCustomerId())
 				.restaurantId(review.getReference().getRestaurantId())
@@ -20,6 +22,7 @@ public record CreateReviewInfo(
 				.content(review.getContent().getContent())
 				.isVisible(review.getVisibility().isVisible())
 				.createdAt(review.getCreatedAt())
+				.updatedAt(review.getUpdatedAt())
 				.build();
 	}
 }

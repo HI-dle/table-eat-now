@@ -12,8 +12,8 @@ import table.eat.now.review.application.service.dto.request.CreateReviewCommand;
 
 public record CreateReviewRequest(
 		@NotNull @Pattern(regexp = "^(WAITING|RESERVATION)$") String serviceType,
-		@NotNull UUID restaurantId,
-		@NotNull UUID serviceId,
+		@NotNull String restaurantId,
+		@NotNull String serviceId,
 		@NotNull @Min(0) @Max(5) Integer rating,
 		@NotBlank String content,
 		@NotNull Boolean isVisible) {

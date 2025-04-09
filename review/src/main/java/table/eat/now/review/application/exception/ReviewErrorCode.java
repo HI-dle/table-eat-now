@@ -1,4 +1,4 @@
-package table.eat.now.review.application.service.dto.exception;
+package table.eat.now.review.application.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

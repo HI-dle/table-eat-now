@@ -20,8 +20,8 @@ public class Review extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "review_uuid", nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-	private UUID reviewId;
+	@Column(name = "review_uuid", nullable = false, unique = true)
+	private String reviewId;
 
 	@Embedded
 	private ReviewReference reference;
@@ -63,9 +63,16 @@ public class Review extends BaseEntity {
 		}
 	}
 
+	public boolean isAccessible(Long userId, String role) {
+		return this.visibility.isVisible() || isOwner(userId) || role.equals("MASTER");
+	}
+
+	private boolean isOwner(Long userId) {
+		return this.reference.getCustomerId().equals(userId);
+	}
 
 	private Review(ReviewReference reference, ReviewContent content, ReviewVisibility visibility) {
-		this.reviewId = UUID.randomUUID();
+		this.reviewId = UUID.randomUUID().toString();
 		this.reference = reference;
 		this.content = content;
 		this.visibility = visibility;
@@ -73,4 +80,6 @@ public class Review extends BaseEntity {
 
 	protected Review() {
 	}
+
+
 }
