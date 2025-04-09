@@ -9,6 +9,7 @@ public enum ReviewErrorCode implements ErrorCode {
 
 	REVIEW_NOT_FOUND("해당 리뷰를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 	SERVICE_USER_MISMATCH("서비스 정보와 사용자 정보가 일치하지 않습니다.", HttpStatus.FORBIDDEN),
+	REVIEW_IS_INVISIBLE("비공개 처리된 리뷰입니다", HttpStatus.FORBIDDEN),
 	;
 
 	private final String message;
