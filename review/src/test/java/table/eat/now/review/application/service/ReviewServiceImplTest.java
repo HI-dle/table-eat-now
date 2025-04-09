@@ -49,7 +49,7 @@ class ReviewServiceImplTest {
 	private RestaurantClient restaurantClient;
 
 	@Nested
-	public class createReview_는 {
+	class createReview_는 {
 
 		private String restaurantId;
 		private String serviceId;
@@ -116,7 +116,7 @@ class ReviewServiceImplTest {
 	}
 
 	@Nested
-	public class getReview_는 {
+	class getReview_는 {
 
 		private String reviewId;
 		private String restaurantId;
