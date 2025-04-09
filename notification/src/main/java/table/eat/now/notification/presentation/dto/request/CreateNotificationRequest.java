@@ -16,7 +16,7 @@ public record CreateNotificationRequest(@NotNull
                                         @NotBlank(message = "알림 유형은 필수입니다.")
                                         @Pattern(regexp = "CONFIRM_OWNER|CONFIRM_CUSTOMER|"
                                             + "REMINDER_9AM|REMINDER_1HR|COMPLETION|NO_SHOW",
-                                            message = "유효하지 않은 프로모션 상태입니다.")
+                                            message = "유효하지 않은 알림 유형입니다.")
                                         String notificationType,
                                         @NotBlank(message = "메시지는 필수입니다.")
                                         String message,
