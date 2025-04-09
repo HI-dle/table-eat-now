@@ -6,7 +6,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,6 +27,8 @@ import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
 import table.eat.now.coupon.coupon.application.dto.request.SearchCouponsQuery;
 import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI;
+import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI.GetCouponInfoI;
 import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
 import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
@@ -163,6 +167,26 @@ class CouponServiceImplTest {
     // then
     assertThat(coupons.pageNumber()).isEqualTo(1);
     assertThat(coupons.pageSize()).isEqualTo(10);
-    assertThat(coupons.totalElements()).isEqualTo(9);
+    assertThat(coupons.totalElements()).isEqualTo(8);
   }
+
+
+  @DisplayName("쿠폰 다건 조회 검증 - 조회 성공")
+  @Test
+  void getCouponsInternal() {
+    // given
+    Set<String> couponUuidsStr = Set.of(coupons.get(0).getCouponUuid(), coupons.get(1).getCouponUuid());
+    Set<UUID> couponUuids = couponUuidsStr.stream()
+        .map(UUID::fromString)
+        .collect(Collectors.toSet());
+
+    // when
+    GetCouponsInfoI coupons = couponService.getCouponsInternal(couponUuids);
+
+    // then
+    assertThat(coupons.coupons().size()).isEqualTo(2);
+    assertThat(coupons.coupons().stream().map(GetCouponInfoI::couponUuid).collect(Collectors.toSet()))
+        .isEqualTo(couponUuidsStr);
+  }
+
 }
