@@ -16,6 +16,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -94,16 +95,18 @@ public class Restaurant extends BaseEntity {
       String name,
       String info,
       Integer maxReservationGuestCountPerTeamOnline,
-      ContactInfo contactInfo,
-      OperatingTime operatingTime
+      String contactNumber,
+      String address,
+      LocalDateTime openingAt,
+      LocalDateTime closingAt
   ) {
     this.restaurantUuid = restaurantUuid;
     this.ownerId = ownerId;
     this.name = name;
     this.info = info;
     this.maxReservationGuestCountPerTeamOnline = maxReservationGuestCountPerTeamOnline;
-    this.contactInfo = contactInfo;
-    this.operatingTime = operatingTime;
+    this.contactInfo = ContactInfo.of(contactNumber, address);
+    this.operatingTime = OperatingTime.of(openingAt, closingAt);
     this.status = RestaurantStatus.INACTIVE;
     this.waitingStatus = WaitingStatus.INACTIVE;
   }
