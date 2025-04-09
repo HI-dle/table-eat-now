@@ -12,7 +12,7 @@ import table.eat.now.promotion.promotion.application.dto.response.CreatePromotio
  */
 @Builder
 public record CreatePromotionResponse(Long promotionId,
-                                      UUID promotionUuid,
+                                      String promotionUuid,
                                       String promotionName,
                                       String description,
                                       LocalDateTime startTime,
