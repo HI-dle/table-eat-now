@@ -5,7 +5,7 @@
 package table.eat.now.restaurant.restaurant.domain.entity.vo;
 
 import jakarta.persistence.Embeddable;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -18,10 +18,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OperatingTime {
-  private LocalDateTime openingAt;
-  private LocalDateTime closingAt;
+  private LocalTime openingAt;
+  private LocalTime closingAt;
 
-  public static OperatingTime of(LocalDateTime openingAt, LocalDateTime closingAt) {
+  public static OperatingTime of(LocalTime openingAt, LocalTime closingAt) {
     return new OperatingTime(openingAt, closingAt);
   }
 }
