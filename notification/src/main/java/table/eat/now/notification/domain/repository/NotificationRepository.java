@@ -18,4 +18,5 @@ public interface NotificationRepository {
   Optional<Notification> findByNotificationUuid(String notificationUuid);
 
   PaginatedResult<NotificationSearchCriteriaQuery> searchNotification(NotificationSearchCriteria searchCriteria);
+
 }

@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.notification.application.dto.PaginatedResultCommand;
 import table.eat.now.notification.application.dto.request.CreateNotificationCommand;
 import table.eat.now.notification.application.dto.request.NotificationSearchCommand;
@@ -54,16 +55,25 @@ public class NotificationServiceImpl implements NotificationService{
   }
 
   @Override
+  @Transactional(readOnly = true)
   public GetNotificationInfo findNotification(String notificationsUuid) {
     return GetNotificationInfo.from(findByNotification(notificationsUuid));
   }
 
   @Override
+  @Transactional(readOnly = true)
   public PaginatedResultCommand<NotificationSearchInfo> searchNotification(
       NotificationSearchCommand command) {
 
     return PaginatedResultCommand.from(
         notificationRepository.searchNotification(command.toEntity()));
+  }
+
+  @Override
+  @Transactional
+  public void deleteNotification(String notificationsUuid, CurrentUserInfoDto userInfo) {
+    Notification notification = findByNotification(notificationsUuid);
+    notification.delete(userInfo.userId());
   }
 
   private Notification findByNotification(String notificationUuid) {
