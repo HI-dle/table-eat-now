@@ -18,6 +18,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.notification.application.dto.PaginatedResultCommand;
 import table.eat.now.notification.application.dto.request.CreateNotificationCommand;
 import table.eat.now.notification.application.dto.request.NotificationSearchCommand;
@@ -105,7 +107,7 @@ class NotificationServiceImplTest {
         LocalDateTime.now().plusHours(2)
     );
 
-    when(notificationRepository.findByNotificationUuid(notificationUuid))
+    when(notificationRepository.findByNotificationUuidAndDeletedByIsNull(notificationUuid))
         .thenReturn(Optional.of(existingNotification));
 
     // when
@@ -117,7 +119,7 @@ class NotificationServiceImplTest {
     assertThat(result.status()).isEqualTo("SENT");
     assertThat(result.notificationMethod()).isEqualTo("EMAIL");
 
-    verify(notificationRepository).findByNotificationUuid(notificationUuid);
+    verify(notificationRepository).findByNotificationUuidAndDeletedByIsNull(notificationUuid);
   }
   @DisplayName("알림 수정 서비스 실패 테스트")
   @Test
@@ -134,7 +136,7 @@ class NotificationServiceImplTest {
         LocalDateTime.now().plusHours(2)
     );
 
-    when(notificationRepository.findByNotificationUuid(invalidUuid))
+    when(notificationRepository.findByNotificationUuidAndDeletedByIsNull(invalidUuid))
         .thenReturn(Optional.empty());
 
     // when
@@ -144,7 +146,7 @@ class NotificationServiceImplTest {
         .isInstanceOf(CustomException.class)
         .hasMessageContaining(NotificationErrorCode.INVALID_NOTIFICATION_UUID.getMessage());
 
-    verify(notificationRepository).findByNotificationUuid(invalidUuid);
+    verify(notificationRepository).findByNotificationUuidAndDeletedByIsNull(invalidUuid);
   }
 
   @DisplayName("알림 단건 조회 서비스 테스트")
@@ -162,10 +164,10 @@ class NotificationServiceImplTest {
         LocalDateTime.now().plusHours(1)
     );
 
-    // UUID 강제 주입
+
     ReflectionTestUtils.setField(existingNotification, "notificationUuid", notificationUuid);
 
-    when(notificationRepository.findByNotificationUuid(notificationUuid))
+    when(notificationRepository.findByNotificationUuidAndDeletedByIsNull(notificationUuid))
         .thenReturn(Optional.of(existingNotification));
 
     // when
@@ -180,7 +182,7 @@ class NotificationServiceImplTest {
     assertThat(result.notificationMethod()).isEqualTo("EMAIL");
     assertThat(result.scheduledTime()).isEqualTo(existingNotification.getScheduledTime());
 
-    verify(notificationRepository).findByNotificationUuid(notificationUuid);
+    verify(notificationRepository).findByNotificationUuidAndDeletedByIsNull(notificationUuid);
   }
 
   @DisplayName("알림 페이징 검색 서비스 테스트")
@@ -255,6 +257,38 @@ class NotificationServiceImplTest {
     verify(notificationRepository).searchNotification(criteria);
   }
 
+  @DisplayName("알림 삭제 서비스 테스트")
+  @Test
+  void notification_delete_service_test() {
+    // given
+    String notificationUuid = UUID.randomUUID().toString();
+    Long userId = 1L;
+
+    Notification notification = Notification.of(
+        userId,
+        NotificationType.CONFIRM_OWNER,
+        "삭제 테스트 메시지",
+        NotificationStatus.PENDING,
+        NotificationMethod.EMAIL,
+        LocalDateTime.now().plusHours(1)
+    );
+
+
+    ReflectionTestUtils.setField(notification, "notificationUuid", notificationUuid);
+
+    when(notificationRepository.findByNotificationUuidAndDeletedByIsNull(notificationUuid))
+        .thenReturn(Optional.of(notification));
+
+    CurrentUserInfoDto userInfo = new CurrentUserInfoDto(userId, UserRole.MASTER);
+
+    // when
+    notificationService.deleteNotification(notificationUuid, userInfo);
+
+    // then
+    assertThat(notification.getDeletedBy()).isEqualTo(userId);
+
+    verify(notificationRepository).findByNotificationUuidAndDeletedByIsNull(notificationUuid);
+  }
 
 
 

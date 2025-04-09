@@ -15,7 +15,8 @@ public interface NotificationRepository {
 
   Notification save(Notification notification);
 
-  Optional<Notification> findByNotificationUuid(String notificationUuid);
+  Optional<Notification> findByNotificationUuidAndDeletedByIsNull(String notificationUuid);
 
   PaginatedResult<NotificationSearchCriteriaQuery> searchNotification(NotificationSearchCriteria searchCriteria);
+
 }

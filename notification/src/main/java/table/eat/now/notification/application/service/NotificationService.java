@@ -1,6 +1,7 @@
 package table.eat.now.notification.application.service;
 
 
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.notification.application.dto.PaginatedResultCommand;
 import table.eat.now.notification.application.dto.request.CreateNotificationCommand;
 import table.eat.now.notification.application.dto.request.NotificationSearchCommand;
@@ -25,4 +26,6 @@ public interface NotificationService {
   GetNotificationInfo findNotification(String notificationsUuid);
 
   PaginatedResultCommand<NotificationSearchInfo> searchNotification(NotificationSearchCommand command);
+
+  void deleteNotification(String notificationsUuid, CurrentUserInfoDto userInfo);
 }
