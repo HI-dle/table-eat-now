@@ -1,0 +1,31 @@
+# local 환경
+spring:
+  config.activate.on-profile: local
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+---
+# test 환경
+spring:
+  config.activate.on-profile: test
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+---
+# dev 환경
+spring:
+  config.activate.on-profile: develop
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka-service:8761/eureka
