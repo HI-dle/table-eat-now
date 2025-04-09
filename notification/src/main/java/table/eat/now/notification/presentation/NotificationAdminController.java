@@ -90,5 +90,6 @@ public class NotificationAdminController {
       @PathVariable("notificationsUuid") String notificationsUuid,
       @CurrentUserInfo CurrentUserInfoDto userInfo) {
     notificationService.deleteNotification(notificationsUuid, userInfo);
+    return ResponseEntity.noContent().build();
   }
 }
