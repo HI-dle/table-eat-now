@@ -94,7 +94,9 @@ public class Reservation extends BaseEntity {
       UUID restaurantId,
       RestaurantDetails restaurantDetails,
       RestaurantMenuDetails restaurantMenuDetails,
-      ReservationGuestInfo guestInfo,
+      String reserverName,
+      String reserverContact,
+      Integer guestCount,
       ReservationStatus status,
       String specialRequest,
       List<ReservationPaymentDetail> details
@@ -106,10 +108,10 @@ public class Reservation extends BaseEntity {
     this.restaurantId = restaurantId;
     this.restaurantDetails = restaurantDetails;
     this.restaurantMenuDetails = restaurantMenuDetails;
-    this.guestInfo = guestInfo;
+    this.guestInfo = ReservationGuestInfo.of(reserverName, reserverContact, guestCount);
     this.status = status;
     this.specialRequest = specialRequest;
-    this.paymentDetails = new ReservationPaymentDetails(details, this);
+    this.paymentDetails = ReservationPaymentDetails.of(details, this);
     this.totalAmount = paymentDetails.getTotalAmount();
   }
 

@@ -14,11 +14,15 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode
 public class ReservationGuestInfo {
 
   private String reserverName;
   private String reserverContact;
   private Integer guestCount;
+
+  public static ReservationGuestInfo of(String reserverName, String reserverContact, Integer guestCount) {
+    return new ReservationGuestInfo(reserverName, reserverContact, guestCount);
+  }
 }

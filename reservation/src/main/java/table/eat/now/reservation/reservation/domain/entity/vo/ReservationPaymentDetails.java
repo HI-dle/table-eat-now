@@ -24,9 +24,14 @@ public class ReservationPaymentDetails {
   @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ReservationPaymentDetail> values = new ArrayList<>();
 
-  public ReservationPaymentDetails(List<ReservationPaymentDetail> details, Reservation reservation) {
+  private ReservationPaymentDetails(List<ReservationPaymentDetail> details, Reservation reservation) {
     details.forEach(detail -> detail.modifyReservation(reservation));
     this.values.addAll(details);
+  }
+
+  public static ReservationPaymentDetails of(List<ReservationPaymentDetail> details,
+      Reservation reservation) {
+    return new ReservationPaymentDetails(details, reservation);
   }
 
   public void add(ReservationPaymentDetail detail, Reservation reservation) {
