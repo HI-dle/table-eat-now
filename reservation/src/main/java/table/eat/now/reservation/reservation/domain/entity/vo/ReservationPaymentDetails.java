@@ -11,11 +11,13 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
 import table.eat.now.reservation.reservation.domain.entity.ReservationPaymentDetail;
 
 @Embeddable
+@EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ReservationPaymentDetails {
 
