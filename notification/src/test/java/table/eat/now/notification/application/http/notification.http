@@ -1,11 +1,27 @@
 ###
 POST http://localhost:8089/admin/v1/notifications
 Content-Type: application/json
+Authorization:
 
 {
+  "userId": 1,
   "notificationType": "CONFIRM_OWNER",
   "message": "예약이 확정되었습니다.",
   "status": "PENDING",
   "notificationMethod": "SLACK",
   "scheduledTime": "2025-04-08T17:00:00"
+}
+
+### 수정
+PUT http://localhost:8089/admin/v1/notifications
+Content-Type: application/json
+Authorization:
+
+{
+  "userId": 2,
+  "notificationType": "CONFIRM_OWNER",
+  "message": "예약이 수정 되었습니다.",
+  "status": "PENDING",
+  "notificationMethod": "SLACK",
+  "scheduledTime": "2025-04-08T20:00:00"
 }

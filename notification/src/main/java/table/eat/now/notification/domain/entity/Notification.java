@@ -70,4 +70,16 @@ public class Notification {
         userId, notificationType, message, status,
         notificationMethod, scheduledTime);
   }
+
+  public void modifyNotification(Long userId, String notificationType,
+      String message, String status, String notificationMethod,
+      LocalDateTime scheduledTime) {
+    this.userId = userId;
+    this.notificationType = NotificationType.valueOf(notificationType);
+    this.message = message;
+    this.status = NotificationStatus.valueOf(status);
+    this.notificationMethod = NotificationMethod.valueOf(notificationMethod);
+    this.scheduledTime = scheduledTime;
+  }
+
 }
