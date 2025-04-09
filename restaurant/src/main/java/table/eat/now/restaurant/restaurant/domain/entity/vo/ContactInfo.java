@@ -6,10 +6,12 @@ package table.eat.now.restaurant.restaurant.domain.entity.vo;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Embeddable
+@EqualsAndHashCode
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
