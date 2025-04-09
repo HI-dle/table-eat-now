@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,13 +15,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
+import table.eat.now.coupon.coupon.application.dto.request.SearchCouponsQuery;
 import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
+import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
 import table.eat.now.coupon.coupon.domain.repository.CouponRepository;
@@ -42,14 +49,12 @@ class CouponServiceImplTest {
   @Autowired
   DatabaseCleanUp databaseCleanUp;
 
-  private Coupon coupon;
+  private List<Coupon> coupons;
 
   @BeforeEach
   void setUp() {
-    coupon = CouponFixture.createCoupon(
-        1, "FIXED_DISCOUNT", false,
-        1000, null, null);
-    couponRepository.save(coupon);
+    coupons = CouponFixture.createCoupons(20);
+    couponRepository.saveAll(coupons);
   }
 
   @AfterEach
@@ -102,10 +107,10 @@ class CouponServiceImplTest {
         .build();
 
     // when
-    couponService.updateCoupon(UUID.fromString(coupon.getCouponUuid()), command);
+    couponService.updateCoupon(UUID.fromString(coupons.get(0).getCouponUuid()), command);
 
     // then
-    Coupon updated = couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(coupon.getCouponUuid())
+    Coupon updated = couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(coupons.get(0).getCouponUuid())
         .orElseThrow(() -> CustomException.from(CouponErrorCode.INVALID_COUPON_UUID));
     assertThat(updated.getCount()).isEqualTo(command.count());
   }
@@ -115,11 +120,11 @@ class CouponServiceImplTest {
   void getCoupon() {
     // given
     // when
-    GetCouponInfo couponInfo = couponService.getCoupon(UUID.fromString(coupon.getCouponUuid()));
+    GetCouponInfo couponInfo = couponService.getCoupon(UUID.fromString(coupons.get(0).getCouponUuid()));
 
     // then
-    assertThat(couponInfo.name()).isEqualTo(coupon.getName());
-    assertThat(couponInfo.count()).isEqualTo(coupon.getCount());
+    assertThat(couponInfo.name()).isEqualTo(coupons.get(0).getName());
+    assertThat(couponInfo.count()).isEqualTo(coupons.get(0).getCount());
     // 아래 주석 로컬에선 성공하는데 깃헙 액션에서 실패함
     //assertThat(couponInfo.startAt()).isEqualTo(coupon.getPeriod().getStartAt());
     //assertThat(couponInfo.endAt()).isEqualTo(coupon.getPeriod().getEndAt());
@@ -132,12 +137,32 @@ class CouponServiceImplTest {
     CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(1L, UserRole.MASTER);
 
     // when
-    couponService.deleteCoupon(userInfo, UUID.fromString(coupon.getCouponUuid()));
+    couponService.deleteCoupon(userInfo, UUID.fromString(coupons.get(0).getCouponUuid()));
 
     // then
     assertThatThrownBy(() ->
-      couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(coupon.getCouponUuid())
+      couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(coupons.get(0).getCouponUuid())
         .orElseThrow(() -> CustomException.from(CouponErrorCode.INVALID_COUPON_UUID))
     ).isInstanceOf(CustomException.class);
+  }
+
+  @DisplayName("쿠폰 목록 조회 검증 - 조회 성공")
+  @Test
+  void searchCoupons() {
+    // given
+    Pageable pageable = PageRequest.of(0, 10);
+    SearchCouponsQuery query = SearchCouponsQuery.builder()
+        .fromAt(LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.DAYS))
+        .toAt(LocalDateTime.now().plusDays(10).truncatedTo(ChronoUnit.DAYS))
+        .type("FIXED_DISCOUNT")
+        .build();
+
+    // when
+    PageResponse<SearchCouponInfo> coupons = couponService.getCoupons(pageable, query);
+
+    // then
+    assertThat(coupons.pageNumber()).isEqualTo(1);
+    assertThat(coupons.pageSize()).isEqualTo(10);
+    assertThat(coupons.totalElements()).isEqualTo(9);
   }
 }
