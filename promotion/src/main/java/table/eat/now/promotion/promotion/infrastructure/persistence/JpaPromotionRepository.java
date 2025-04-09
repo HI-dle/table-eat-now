@@ -1,4 +1,4 @@
-package table.eat.now.promotion.promotion.infrastructrue.persistence;
+package table.eat.now.promotion.promotion.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;

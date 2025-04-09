@@ -1,7 +1,6 @@
 package table.eat.now.notification.presentation;
 
 import jakarta.validation.Valid;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,7 +52,7 @@ public class NotificationAdminController {
   @PutMapping("/{notificationsUuid}")
   @AuthCheck(roles = UserRole.MASTER)
   public ResponseEntity<UpdateNotificationResponse> updateNotification(
-      @PathVariable("notificationsUuid") UUID notificationUuid,
+      @PathVariable("notificationsUuid") String notificationUuid,
       @Valid @RequestBody UpdateNotificationRequest request) {
 
     return ResponseEntity.ok(
@@ -65,7 +64,7 @@ public class NotificationAdminController {
   @GetMapping("/{notificationsUuid}")
   @AuthCheck(roles = UserRole.MASTER)
   public ResponseEntity<GetNotificationResponse> findOneNotification(
-      @PathVariable("notificationsUuid") UUID notificationsUuid) {
+      @PathVariable("notificationsUuid") String notificationsUuid) {
 
     return ResponseEntity.ok(GetNotificationResponse.from(
         notificationService.findNotification(notificationsUuid)
@@ -77,7 +76,9 @@ public class NotificationAdminController {
   public ResponseEntity<PaginatedResultResponse<NotificationSearchResponse>> searchNotification(
       @Valid NotificationSearchCondition notificationSearchCondition
   ) {
-    notificationService.searchNotification(notificationSearchCondition.toApplication());
-    return null;
+    return ResponseEntity.ok(
+        PaginatedResultResponse.from(
+            notificationService.searchNotification(
+                notificationSearchCondition.toApplication())));
   }
 }

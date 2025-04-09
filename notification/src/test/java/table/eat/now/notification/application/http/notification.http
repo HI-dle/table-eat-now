@@ -1,7 +1,31 @@
 ###
-POST http://localhost:8089/admin/v1/notifications
+POST http://localhost:8081/api/v1/users/signup
 Content-Type: application/json
-Authorization:
+
+{
+  "username": "test",
+  "email": "test@test",
+  "phone": "123",
+  "password": "1234",
+  "role": "MASTER"
+}
+
+###
+POST http://localhost:8080/api/v1/users/login
+Content-Type: application/json
+
+{
+"username": "test",
+"password": "1234"
+}
+> {%
+  client.global.set("access_token", response.headers.valueOf("Authorization"))
+%}
+
+###
+POST http://localhost:8080/admin/v1/notifications
+Content-Type: application/json
+Authorization: {{access_token}}
 
 {
   "userId": 1,
@@ -9,13 +33,13 @@ Authorization:
   "message": "예약이 확정되었습니다.",
   "status": "PENDING",
   "notificationMethod": "SLACK",
-  "scheduledTime": "2025-04-08T17:00:00"
+  "scheduledTime": "2025-04-10T17:00:00"
 }
 
 ### 수정
 PUT http://localhost:8089/admin/v1/notifications
 Content-Type: application/json
-Authorization:
+Authorization: {{access_token}}
 
 {
   "userId": 2,
@@ -25,3 +49,7 @@ Authorization:
   "notificationMethod": "SLACK",
   "scheduledTime": "2025-04-08T20:00:00"
 }
+
+###
+GET http://localhost:8080/admin/v1/notifications?userId=1&status=PENDING&notificationMethod=SLACK&isAsc=true&sortBy=scheduledTime&page=0&size=2
+Authorization: {{access_token}}

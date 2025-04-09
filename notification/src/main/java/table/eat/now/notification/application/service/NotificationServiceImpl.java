@@ -1,7 +1,6 @@
 package table.eat.now.notification.application.service;
 
 
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +38,7 @@ public class NotificationServiceImpl implements NotificationService{
   @Override
   @Transactional
   public UpdateNotificationInfo updateNotification(UpdateNotificationCommand command,
-      UUID notificationUuid) {
+      String notificationUuid) {
     Notification notification = findByNotification(notificationUuid);
 
     notification.modifyNotification(
@@ -55,18 +54,19 @@ public class NotificationServiceImpl implements NotificationService{
   }
 
   @Override
-  public GetNotificationInfo findNotification(UUID notificationsUuid) {
+  public GetNotificationInfo findNotification(String notificationsUuid) {
     return GetNotificationInfo.from(findByNotification(notificationsUuid));
   }
 
   @Override
   public PaginatedResultCommand<NotificationSearchInfo> searchNotification(
       NotificationSearchCommand command) {
-    notificationRepository.searchNotification(command.toEntity());
-    return null;
+
+    return PaginatedResultCommand.from(
+        notificationRepository.searchNotification(command.toEntity()));
   }
 
-  private Notification findByNotification(UUID notificationUuid) {
+  private Notification findByNotification(String notificationUuid) {
     return notificationRepository.findByNotificationUuid(notificationUuid)
         .orElseThrow(() ->
             CustomException.from(NotificationErrorCode.INVALID_NOTIFICATION_UUID));

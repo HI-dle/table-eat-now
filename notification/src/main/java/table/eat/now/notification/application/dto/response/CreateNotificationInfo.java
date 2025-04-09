@@ -1,7 +1,6 @@
 package table.eat.now.notification.application.dto.response;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 import lombok.Builder;
 import table.eat.now.notification.domain.entity.Notification;
 
@@ -10,7 +9,7 @@ import table.eat.now.notification.domain.entity.Notification;
  * @Date : 2025. 04. 08.
  */
 @Builder
-public record CreateNotificationInfo(UUID notificationUuid,
+public record CreateNotificationInfo(String notificationUuid,
                                      Long userId,
                                      String notificationType,
                                      String message,
