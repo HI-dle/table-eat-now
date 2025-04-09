@@ -30,8 +30,8 @@ public class CouponFixture {
   ) {
 
     Coupon coupon = Coupon.of("test 쿠폰 " + i, CouponType.valueOf(type),
-        LocalDateTime.now().plusDays(1+i).truncatedTo(ChronoUnit.DAYS),
-        LocalDateTime.now().plusDays(11+i).truncatedTo(ChronoUnit.DAYS),
+        LocalDateTime.now().plusDays(2+i).truncatedTo(ChronoUnit.DAYS),
+        LocalDateTime.now().plusDays(12+i).truncatedTo(ChronoUnit.DAYS),
         10000 * i, allowDuplicate);
     DiscountPolicy policy = DiscountPolicy.of(
         10000, amount, percent, maxDiscountAmount);
@@ -39,8 +39,8 @@ public class CouponFixture {
     return coupon;
   }
 
-  public static List<SearchCouponInfo> createCouponInfos() {
-    List<SearchCouponInfo> couponInfos = IntStream.range(0, 20)
+  public static List<SearchCouponInfo> createCouponInfos(int length) {
+    List<SearchCouponInfo> couponInfos = IntStream.range(0, length)
         .mapToObj(i -> SearchCouponInfo.builder()
             .couponId((long) i)
             .couponUuid(UUID.randomUUID().toString())

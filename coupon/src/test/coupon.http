@@ -57,3 +57,20 @@ GET localhost:8085/admin/v1/coupons?type=FIXED_DISCOUNT
 Content-Type: application/json
 X-User-Id: 1
 X-User-Role: MASTER
+
+> {%
+  client.global.set("coupon1", response.body.coupons[0].couponUuid)
+  client.global.set("coupon2", response.body.coupons[1].couponUuid)
+%}
+
+### 쿠폰 단건 내부 조회
+GET localhost:8085/internal/v1/coupons/{{coupon1}}
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: MASTER
+
+### 쿠폰 다건 내부 조회
+GET localhost:8085/internal/v1/coupons?couponUuids={{coupon1}},{{coupon2}}
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: MASTER

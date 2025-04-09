@@ -197,7 +197,7 @@ class CouponAdminControllerTest {
   @Test
   void getCoupons() throws Exception {
     // given
-    List<SearchCouponInfo> couponInfos = CouponFixture.createCouponInfos();
+    List<SearchCouponInfo> couponInfos = CouponFixture.createCouponInfos(20);
     PageResponse<SearchCouponInfo> couponInfoPage = PageResponse.of(
         couponInfos, 20, 2, 1, 10);
 

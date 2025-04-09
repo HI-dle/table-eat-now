@@ -36,7 +36,6 @@ import table.eat.now.coupon.coupon.presentation.dto.response.UpdateCouponRespons
 @RequestMapping("/admin/v1/coupons")
 @RestController
 public class CouponAdminController {
-
   private final CouponService couponService;
 
   @AuthCheck(roles = {UserRole.MASTER})
@@ -67,7 +66,7 @@ public class CouponAdminController {
         .body(UpdateCouponResponse.of(couponUuid));
   }
 
-  @AuthCheck(roles = {UserRole.MASTER})
+  @AuthCheck(roles = {UserRole.MASTER, UserRole.OWNER, UserRole.STAFF})
   @GetMapping("/{couponUuid}")
   public ResponseEntity<GetCouponResponse> getCoupon(
       @CurrentUserInfo CurrentUserInfoDto userInfo,
