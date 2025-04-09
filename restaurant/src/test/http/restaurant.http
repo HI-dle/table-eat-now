@@ -1,0 +1,16 @@
+### 식당 생성
+POST http://localhost:8082/admin/v1/restaurants
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: MASTER
+
+{
+  "ownerId": 101,
+  "name": "청춘고기",
+  "address": "서울특별시 강남구 테헤란로 123",
+  "contactNumber": "02-1234-5678",
+  "openingAt": "09:00:00",
+  "closingAt": "22:00:00",
+  "info": "고기 맛집입니다.",
+  "maxReservationGuestCountPerTeamOnline": 6
+}
