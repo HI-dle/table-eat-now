@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: restaurant
+  config:
+    import:
+      - optional:file:.env.restaurant[.properties]
+      - classpath:properties/base.yml
+      - classpath:properties/config.yml
+      - classpath:properties/datasource.yml
+      - classpath:properties/jpa.yml
+      - classpath:properties/redis.yml
+      - classpath:properties/cloud.yml
+      - classpath:properties/zipkin.yml
+  profiles:
+    group:
+      local: local
+      test: test
+      develop: develop
+      prod: prod
+    active: local

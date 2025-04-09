@@ -1,0 +1,134 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' version '1.1.7'
+    //DOCS
+    id("com.epages.restdocs-api-spec") version "0.19.4"
+}
+
+group = 'table.eat.now'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    set('springCloudVersion', "2024.0.1")
+    set('querydslVersion', "5.0.0")
+}
+
+ext {
+    set('snippetsDir', file("build/generated-snippets"))
+    set('springCloudVersion', "2024.0.1")
+}
+
+dependencies {
+    //COMMON
+	implementation project(':common')
+
+    // spring-boot
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // spring-cloud
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // postgresql
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // docs
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+	testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.19.4'
+
+	// querydsl
+	implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
+	annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+}
+
+def querydslSrcDir = 'src/main/generated'
+clean {
+	delete file(querydslSrcDir)
+}
+
+
+//compileJava {
+//	dependsOn 'clean'
+//}
+//
+//openapi3 {
+//	server = 'http://localhost:19000'
+//	title = 'RESTAURANT API'
+//	description = '상점에 관련된 api 문서 입니다'
+//	version = '1.0.0'
+//	format = 'json'
+//	tagDescriptionsPropertiesFile = 'src/docs/tag-descriptions.yaml'
+//
+//	separatePublicApi = true
+//}
+//
+//tasks.register('setDocs') {
+//	dependsOn 'openapi3'
+//	doLast {
+//		copy {
+//			from "build/api-spec"
+//			include "*.json"
+//			include "*.yaml"
+//			into "build/resources/main/static/springdoc"
+//			rename { String fileName ->
+//				if (fileName.endsWith('.json')) {
+//					return fileName.replace('.json', '-restaurant-service.json')
+//				} else if (fileName.endsWith('.yaml')) {
+//					return fileName.replace('.yaml', '-restaurant-service.yml')
+//				}
+//				return fileName
+//			}
+//		}
+//	}
+//}
+//
+//bootRun {
+//	dependsOn 'setDocs'
+//	workingDir = rootProject.projectDir
+//}
+//
+//bootJar {
+//	dependsOn 'setDocs'
+//}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+tasks.named('test') {
+    outputs.dir snippetsDir
+    useJUnitPlatform()
+}
+
