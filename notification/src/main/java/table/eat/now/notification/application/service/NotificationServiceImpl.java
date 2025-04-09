@@ -1,5 +1,6 @@
 package table.eat.now.notification.application.service;
 
+
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class NotificationServiceImpl implements NotificationService{
         .from(notificationRepository.save(command.toEntity()));
   }
 
+
   @Override
   @Transactional
   public UpdateNotificationInfo updateNotification(UpdateNotificationCommand command,
@@ -53,4 +55,5 @@ public class NotificationServiceImpl implements NotificationService{
         .orElseThrow(() ->
             CustomException.from(NotificationErrorCode.INVALID_NOTIFICATION_UUID));
   }
+
 }

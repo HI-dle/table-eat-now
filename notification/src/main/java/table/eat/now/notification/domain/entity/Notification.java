@@ -81,4 +81,5 @@ public class Notification {
     this.notificationMethod = NotificationMethod.valueOf(notificationMethod);
     this.scheduledTime = scheduledTime;
   }
+
 }
