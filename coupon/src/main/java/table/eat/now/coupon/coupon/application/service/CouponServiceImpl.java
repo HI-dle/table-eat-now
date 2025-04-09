@@ -1,6 +1,9 @@
 package table.eat.now.coupon.coupon.application.service;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +15,7 @@ import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
 import table.eat.now.coupon.coupon.application.dto.request.SearchCouponsQuery;
 import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI;
 import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
 import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
@@ -66,5 +70,14 @@ public class CouponServiceImpl implements CouponService {
         couponRepository.searchCouponByPageableAndCondition(pageable, query.toCriteria())
         .map(SearchCouponInfo::from);
     return PageResponse.from(couponInfoPage);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public GetCouponsInfoI getCouponsInternal(Set<UUID> couponUuids) {
+
+    Set<String> couponUuidsStr = couponUuids.stream().map(UUID::toString).collect(Collectors.toSet());
+    List<Coupon> coupons = couponRepository.findByCouponUuidsInAndDeletedAtIsNullFetchJoin(couponUuidsStr);
+    return GetCouponsInfoI.from(coupons);
   }
 }
