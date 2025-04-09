@@ -1,8 +1,6 @@
 package table.eat.now.review.presentation;
 
 import jakarta.validation.Valid;
-import jakarta.ws.rs.Path;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

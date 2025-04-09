@@ -5,9 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import java.util.UUID;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
-import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.review.application.service.dto.request.CreateReviewCommand;
 
 public record CreateReviewRequest(

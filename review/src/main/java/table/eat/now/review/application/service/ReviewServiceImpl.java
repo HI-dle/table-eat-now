@@ -1,9 +1,9 @@
 package table.eat.now.review.application.service;
 
+import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_IS_INVISIBLE;
 import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_NOT_FOUND;
 import static table.eat.now.review.application.exception.ReviewErrorCode.SERVICE_USER_MISMATCH;
 
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import table.eat.now.common.exception.CustomException;
@@ -32,7 +32,6 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override
 	public CreateReviewInfo createReview(CreateReviewCommand command) {
-
 		validateUser(command);
 		return CreateReviewInfo.from(reviewRepository.save(command.toEntity()));
 	}
@@ -46,8 +45,8 @@ public class ReviewServiceImpl implements ReviewService {
 		}
 	}
 
-	private GetServiceInfo getServiceInfo(ServiceType serviceType, String serviceId,
-			Long customerId) {
+	private GetServiceInfo getServiceInfo(
+			ServiceType serviceType, String serviceId, Long customerId) {
 		return switch (serviceType) {
 			case WAITING -> waitingClient.getWaiting(serviceId, customerId);
 			case RESERVATION -> reservationClient.getReservation(serviceId, customerId);
@@ -68,7 +67,7 @@ public class ReviewServiceImpl implements ReviewService {
 
 	private void validateAccess(Review review, Long userId, UserRole role) {
 		if (!review.isAccessible(userId, role.name()) && !isRestaurantStaff(review, userId, role)) {
-			throw CustomException.from(REVIEW_NOT_FOUND);
+			throw CustomException.from(REVIEW_IS_INVISIBLE);
 		}
 	}
 
