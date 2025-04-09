@@ -4,6 +4,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static table.eat.now.review.domain.entity.ReviewVisibility.HiddenByRole.CUSTOMER;
 
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +47,7 @@ class ReviewTest {
 					IllegalArgumentException.class, () -> Review.create(
 							null, validContent, validVisibility));
 
-			assertThat(exception.getMessage()).contains("ReviewReference는 null일 수 없습니다");
+			assertThat(exception.getMessage()).contains("null일 수 없습니다");
 		}
 
 		@Test
@@ -60,7 +61,7 @@ class ReviewTest {
 					IllegalArgumentException.class, () -> Review.create(
 							validReference, null, validVisibility));
 
-			assertThat(exception.getMessage()).contains("ReviewContent는 null일 수 없습니다");
+			assertThat(exception.getMessage()).contains("null일 수 없습니다");
 		}
 
 		@Test
@@ -74,7 +75,7 @@ class ReviewTest {
 					IllegalArgumentException.class, () -> Review.create(
 							validReference, validContent, null));
 
-			assertThat(exception.getMessage()).contains("ReviewVisibility는 null일 수 없습니다");
+			assertThat(exception.getMessage()).contains("null일 수 없습니다");
 		}
 
 		@Test
@@ -97,33 +98,36 @@ class ReviewTest {
 	@Nested
 	class isAccessible_은 {
 
+		private Long ownerId;
+		private Long otherUserId;
+		private String restaurantId;
+		private String serviceId;
 		private Review review;
-		private Long ownerId = 123L;
-		private Long otherUserId = 456L;
-		private String restaurantId = UUID.randomUUID().toString();
-		private String serviceId = UUID.randomUUID().toString();
 
 		@BeforeEach
 		void setUp() {
-			// CreateReviewCommand를 사용하여 Review 객체 생성
+			ownerId = 123L;
+			otherUserId = 456L;
+			serviceId = "RESERVATION";
+			String role = "CUSTOMER";
+			restaurantId = UUID.randomUUID().toString();
+			serviceId = UUID.randomUUID().toString();
 			CreateReviewCommand command = new CreateReviewCommand(
 					restaurantId, serviceId, ownerId, "RESERVATION",
 					"맛있는 식당이었습니다.", 4,
-					false, // 기본적으로 비공개로 설정
-					UserRole.CUSTOMER
+					false,
+					UserRole.valueOf(role)
 			);
-
 			review = command.toEntity();
 		}
 
 		@Test
 		void 공개_리뷰는_모든_사용자가_접근_가능하다() {
 			// given
-			// 공개 리뷰 생성
 			CreateReviewCommand publicCommand = new CreateReviewCommand(
 					restaurantId, serviceId, ownerId, "RESERVATION",
 					"맛있는 식당이었습니다.", 4,
-					true, // 공개로 설정
+					true,
 					UserRole.CUSTOMER
 			);
 			Review publicReview = publicCommand.toEntity();
@@ -149,6 +153,172 @@ class ReviewTest {
 		void 리뷰_작성자는_항상_자신의_리뷰에_접근_가능하다() {
 			// when & then
 			assertThat(review.isAccessible(ownerId, "CUSTOMER")).isTrue();
+		}
+	}
+
+	@Nested
+	class hide_는 {
+
+		private Long ownerId;
+		private Long otherUserId;
+		private String restaurantId;
+		private String serviceId;
+		private String role;
+		private Review review;
+
+		@BeforeEach
+		void setUp() {
+			ownerId = 123L;
+			otherUserId = 456L;
+			serviceId = "RESERVATION";
+			role = "CUSTOMER";
+			restaurantId = UUID.randomUUID().toString();
+			serviceId = UUID.randomUUID().toString();
+			CreateReviewCommand command = new CreateReviewCommand(
+					restaurantId, serviceId, ownerId, "RESERVATION",
+					"맛있는 식당이었습니다.", 4,
+					true,
+					UserRole.valueOf(role)
+			);
+			review = command.toEntity();
+		}
+
+		@Test
+		void 숨김_상태로_변경할_수_있다() {
+			// when
+			Review hidden = review.hide(ownerId, role);
+
+			// then
+			assertThat(hidden.getVisibility().getHiddenBy()).isEqualTo(ownerId);
+			assertThat(hidden.getVisibility().getHiddenByRole()).isEqualTo(CUSTOMER);
+			assertThat(hidden.getVisibility().isVisible()).isFalse();
+		}
+
+		@Test
+		void 일반_유저인_경우_본인의_리뷰가_아니면_IllegalArgumentException_을_던진다() {
+			// given
+			CreateReviewCommand command = new CreateReviewCommand(
+					restaurantId, serviceId, ownerId, "RESERVATION",
+					"맛있는 식당이었습니다.", 4,
+					false,
+					UserRole.valueOf(role)
+			);
+			Review review = command.toEntity();
+
+			// when & then
+			IllegalArgumentException exception = assertThrows(
+					IllegalArgumentException.class, () -> review.hide(otherUserId, role));
+			assertThat(exception.getMessage()).contains("이 작업에 대한 권한은 작성자에게만 있습니다.");
+		}
+	}
+
+	@Nested
+	class show_는 {
+
+		private Long ownerId;
+		private Long otherUserId;
+		private String restaurantId;
+		private String serviceId;
+		private String role;
+		private Review review;
+
+		@BeforeEach
+		void setUp() {
+			ownerId = 123L;
+			otherUserId = 456L;
+			serviceId = "RESERVATION";
+			role = "CUSTOMER";
+			restaurantId = UUID.randomUUID().toString();
+			serviceId = UUID.randomUUID().toString();
+			CreateReviewCommand command = new CreateReviewCommand(
+					restaurantId, serviceId, ownerId, "RESERVATION",
+					"맛있는 식당이었습니다.", 4,
+					false,
+					UserRole.valueOf(role)
+			);
+			review = command.toEntity();
+		}
+
+		@Test
+		void 공개_상태로_변경할_수_있다() {
+			// when
+			Review shown = review.show(ownerId, role);
+
+			// then
+			assertThat(shown.getVisibility().getHiddenBy()).isNull();
+			assertThat(shown.getVisibility().getHiddenByRole()).isNull();
+			assertThat(shown.getVisibility().isVisible()).isTrue();
+		}
+
+		@Test
+		void 일반_유저인_경우_본인의_리뷰가_아니면_IllegalArgumentException_을_던진다() {
+			// given
+			CreateReviewCommand command = new CreateReviewCommand(
+					restaurantId, serviceId, ownerId, "RESERVATION",
+					"맛있는 식당이었습니다.", 4,
+					false,
+					UserRole.valueOf(role)
+			);
+			Review review = command.toEntity();
+
+			// when & then
+			IllegalArgumentException exception = assertThrows(
+					IllegalArgumentException.class, () -> review.show(otherUserId, role));
+			assertThat(exception.getMessage()).contains("이 작업에 대한 권한은 작성자에게만 있습니다.");
+		}
+	}
+
+	@Nested
+	class update_는 {
+
+		private Long ownerId;
+		private Long otherUserId;
+		private String restaurantId;
+		private String serviceId;
+		private String role;
+		private Review review;
+		private String newContent;
+		private Integer newRating;
+		private ReviewContent newReviewContent;
+
+		@BeforeEach
+		void setUp() {
+			ownerId = 123L;
+			otherUserId = 456L;
+			serviceId = "RESERVATION";
+			role = "CUSTOMER";
+			restaurantId = UUID.randomUUID().toString();
+			serviceId = UUID.randomUUID().toString();
+			CreateReviewCommand command = new CreateReviewCommand(
+					restaurantId, serviceId, ownerId, "RESERVATION",
+					"맛있는 식당이었습니다.", 4,
+					false,
+					UserRole.valueOf(role)
+			);
+			review = command.toEntity();
+
+			newContent  = "나쁘지않네요";
+			newRating = 1;
+			newReviewContent = ReviewContent.create(newContent, newRating);
+		}
+
+		@Test
+		void 본인의_리뷰를_수정할_수_있다() {
+			// when
+			review.update(newReviewContent, ownerId, role);
+
+			// then
+			assertThat(review.getContent()).isEqualTo(newReviewContent);
+			assertThat(review.getContent().getRating()).isEqualTo(newRating);
+			assertThat(review.getContent().getContent()).isEqualTo(newContent);
+		}
+
+		@Test
+		void 일반_유저인_경우_본인의_리뷰가_아니면_IllegalArgumentException_을_던진다() {
+			// when & then
+			IllegalArgumentException exception = assertThrows(
+					IllegalArgumentException.class, () -> review.update(newReviewContent, otherUserId, role));
+			assertThat(exception.getMessage()).contains("이 작업에 대한 권한은 작성자에게만 있습니다.");
 		}
 	}
 }
