@@ -6,19 +6,20 @@ import table.eat.now.notification.domain.entity.Notification;
 
 /**
  * @author : hanjihoon
- * @Date : 2025. 04. 08.
+ * @Date : 2025. 04. 09.
  */
 @Builder
-public record CreateNotificationInfo(String notificationUuid,
-                                     Long userId,
-                                     String notificationType,
-                                     String message,
-                                     String status,
-                                     String notificationMethod,
-                                     LocalDateTime scheduledTime) {
+public record GetNotificationInfo(String notificationUuid,
+                                  Long userId,
+                                  String notificationType,
+                                  String message,
+                                  String status,
+                                  String notificationMethod,
+                                  LocalDateTime scheduledTime) {
 
-  public static CreateNotificationInfo from(Notification notification) {
-    return CreateNotificationInfo.builder()
+
+  public static GetNotificationInfo from(Notification notification) {
+    return GetNotificationInfo.builder()
         .notificationUuid(notification.getNotificationUuid())
         .userId(notification.getUserId())
         .notificationType(notification.getNotificationType().toString())
@@ -28,5 +29,4 @@ public record CreateNotificationInfo(String notificationUuid,
         .scheduledTime(notification.getScheduledTime())
         .build();
   }
-
 }

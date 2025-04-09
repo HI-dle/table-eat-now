@@ -13,6 +13,7 @@ import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import table.eat.now.common.domain.BaseEntity;
 
 /**
  * @author : hanjihoon
@@ -22,13 +23,13 @@ import lombok.NoArgsConstructor;
 @Table(name = "p_notification")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Notification {
+public class Notification extends BaseEntity{
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-  private UUID notificationUuid;
+  @Column(nullable = false, unique = true, length = 100, name = "notification_uuid")
+  private String notificationUuid;
 
   @Column(nullable = false, name = "user_id")
   private Long userId;
@@ -54,7 +55,7 @@ public class Notification {
   private Notification(Long userId, NotificationType notificationType,
       String message, NotificationStatus status, NotificationMethod notificationMethod,
       LocalDateTime scheduledTime) {
-    this.notificationUuid = UUID.randomUUID();
+    this.notificationUuid = UUID.randomUUID().toString();
     this.userId = userId;
     this.notificationType = notificationType;
     this.message = message;

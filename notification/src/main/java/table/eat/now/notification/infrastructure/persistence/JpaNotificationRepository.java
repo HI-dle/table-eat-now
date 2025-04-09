@@ -9,6 +9,6 @@ import table.eat.now.notification.domain.repository.NotificationRepository;
  * @Date : 2025. 04. 08.
  */
 public interface JpaNotificationRepository extends
-    JpaRepository<Notification, Long>, NotificationRepository {
+    JpaRepository<Notification, Long>, NotificationRepository, JpaNotificationRepositoryCustom {
 
 }

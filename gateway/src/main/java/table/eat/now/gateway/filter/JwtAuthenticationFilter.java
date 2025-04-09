@@ -1,7 +1,5 @@
 package table.eat.now.gateway.filter;
 
-import static table.eat.now.common.constant.UserInfoConstant.*;
-
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +16,9 @@ import table.eat.now.gateway.util.JwtResolver;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
+
+	public static final String USER_ID_HEADER = "X-User-Id";
+	public static final String USER_ROLE_HEADER = "X-User-Role";
 
 	private final JwtResolver resolver;
 

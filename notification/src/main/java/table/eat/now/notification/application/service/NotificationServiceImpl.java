@@ -1,14 +1,17 @@
 package table.eat.now.notification.application.service;
 
 
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.notification.application.dto.PaginatedResultCommand;
 import table.eat.now.notification.application.dto.request.CreateNotificationCommand;
+import table.eat.now.notification.application.dto.request.NotificationSearchCommand;
 import table.eat.now.notification.application.dto.request.UpdateNotificationCommand;
 import table.eat.now.notification.application.dto.response.CreateNotificationInfo;
+import table.eat.now.notification.application.dto.response.GetNotificationInfo;
+import table.eat.now.notification.application.dto.response.NotificationSearchInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
 import table.eat.now.notification.application.exception.NotificationErrorCode;
 import table.eat.now.notification.domain.entity.Notification;
@@ -35,8 +38,8 @@ public class NotificationServiceImpl implements NotificationService{
   @Override
   @Transactional
   public UpdateNotificationInfo updateNotification(UpdateNotificationCommand command,
-      UUID notificationUuid) {
-    Notification notification = findNotification(notificationUuid);
+      String notificationUuid) {
+    Notification notification = findByNotification(notificationUuid);
 
     notification.modifyNotification(
         command.userId(),
@@ -50,7 +53,20 @@ public class NotificationServiceImpl implements NotificationService{
     return UpdateNotificationInfo.from(notification);
   }
 
-  private Notification findNotification(UUID notificationUuid) {
+  @Override
+  public GetNotificationInfo findNotification(String notificationsUuid) {
+    return GetNotificationInfo.from(findByNotification(notificationsUuid));
+  }
+
+  @Override
+  public PaginatedResultCommand<NotificationSearchInfo> searchNotification(
+      NotificationSearchCommand command) {
+
+    return PaginatedResultCommand.from(
+        notificationRepository.searchNotification(command.toEntity()));
+  }
+
+  private Notification findByNotification(String notificationUuid) {
     return notificationRepository.findByNotificationUuid(notificationUuid)
         .orElseThrow(() ->
             CustomException.from(NotificationErrorCode.INVALID_NOTIFICATION_UUID));

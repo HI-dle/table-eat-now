@@ -40,7 +40,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     //COMMON
-    implementation project(':common')
+//    implementation project(':common')
 }
 
 dependencyManagement {
