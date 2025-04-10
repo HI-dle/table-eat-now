@@ -43,4 +43,9 @@ public class AvailablePeriod {
     LocalDateTime now = LocalDateTime.now();
     return now.isBefore(startAt.minusHours(2));
   }
+
+  public boolean isValidIssuePeriod() {
+    LocalDateTime now = LocalDateTime.now();
+    return startAt.isBefore(now) && endAt.isAfter(now);
+  }
 }

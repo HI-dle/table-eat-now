@@ -117,4 +117,8 @@ public class Coupon extends BaseEntity {
     LocalDateTime now = LocalDateTime.now();
     return now.isAfter(endAt);
   }
+
+  public boolean hasStockCount() {
+    return getCount() > 0;
+  }
 }
