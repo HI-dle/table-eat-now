@@ -1,21 +1,16 @@
-package table.eat.now.promotion.promotionRestaurant.domain.repository;
+package table.eat.now.promotion.promotionRestaurant.infrastructure.persistence;
 
-import java.util.Optional;
-import table.eat.now.promotion.promotionRestaurant.domain.entity.PromotionRestaurant;
 import table.eat.now.promotion.promotionRestaurant.domain.repository.search.PaginatedResult;
 import table.eat.now.promotion.promotionRestaurant.domain.repository.search.PromotionRestaurantSearchCriteria;
 import table.eat.now.promotion.promotionRestaurant.domain.repository.search.PromotionRestaurantSearchCriteriaQuery;
 
 /**
  * @author : hanjihoon
- * @Date : 2025. 04. 08.
+ * @Date : 2025. 04. 11.
  */
-public interface PromotionRestaurantRepository {
-
-  PromotionRestaurant save(PromotionRestaurant promotionRestaurant);
-  Optional<PromotionRestaurant> findByPromotionRestaurantUuidAndDeletedAtIsNull(
-      String promotionRestaurantUuid);
+public interface JpaPromotionRestaurantRepositoryCustom {
 
   PaginatedResult<PromotionRestaurantSearchCriteriaQuery> searchPromotionRestaurant(
       PromotionRestaurantSearchCriteria criteria);
+
 }

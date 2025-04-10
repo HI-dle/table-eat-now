@@ -29,6 +29,7 @@ import table.eat.now.promotion.promotionRestaurant.application.dto.response.Crea
 import table.eat.now.promotion.promotionRestaurant.application.dto.response.UpdatePromotionRestaurantInfo;
 import table.eat.now.promotion.promotionRestaurant.application.service.PromotionRestaurantService;
 import table.eat.now.promotion.promotionRestaurant.domain.entity.PromotionRestaurant;
+import table.eat.now.promotion.promotionRestaurant.presentation.PromotionRestaurantAdminController;
 import table.eat.now.promotion.promotionRestaurant.presentation.dto.request.CreatePromotionRestaurantRequest;
 import table.eat.now.promotion.promotionRestaurant.presentation.dto.request.UpdatePromotionRestaurantRequest;
 

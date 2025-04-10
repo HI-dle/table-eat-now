@@ -4,10 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.promotion.promotionRestaurant.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.excepton.PromotionRestaurantErrorCode;
 import table.eat.now.promotion.promotionRestaurant.application.dto.request.CreatePromotionRestaurantCommand;
+import table.eat.now.promotion.promotionRestaurant.application.dto.request.SearchPromotionRestaurantCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.request.UpdatePromotionRestaurantCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.response.CreatePromotionRestaurantInfo;
+import table.eat.now.promotion.promotionRestaurant.application.dto.response.SearchPromotionRestaurantInfo;
 import table.eat.now.promotion.promotionRestaurant.application.dto.response.UpdatePromotionRestaurantInfo;
 import table.eat.now.promotion.promotionRestaurant.domain.entity.PromotionRestaurant;
 import table.eat.now.promotion.promotionRestaurant.domain.repository.PromotionRestaurantRepository;
@@ -39,6 +42,14 @@ public class PromotionRestaurantServiceImpl implements PromotionRestaurantServic
         command.promotionUuid(),
         command.restaurantUuid());
     return UpdatePromotionRestaurantInfo.from(promotionRestaurant);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PaginatedResultCommand<SearchPromotionRestaurantInfo> searchPromotionRestaurant(
+      SearchPromotionRestaurantCommand command) {
+    return PaginatedResultCommand.from(
+        promotionRestaurantRepository.searchPromotionRestaurant(command.toCriteria()));
   }
 
   public PromotionRestaurant findByPromotionRestaurant(String promotionRestaurantUuid) {

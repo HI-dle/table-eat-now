@@ -1,8 +1,11 @@
 package table.eat.now.promotion.promotionRestaurant.application.service;
 
+import table.eat.now.promotion.promotionRestaurant.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.request.CreatePromotionRestaurantCommand;
+import table.eat.now.promotion.promotionRestaurant.application.dto.request.SearchPromotionRestaurantCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.request.UpdatePromotionRestaurantCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.response.CreatePromotionRestaurantInfo;
+import table.eat.now.promotion.promotionRestaurant.application.dto.response.SearchPromotionRestaurantInfo;
 import table.eat.now.promotion.promotionRestaurant.application.dto.response.UpdatePromotionRestaurantInfo;
 
 /**
@@ -15,4 +18,7 @@ public interface PromotionRestaurantService {
 
   UpdatePromotionRestaurantInfo updatePromotionRestaurant(
       UpdatePromotionRestaurantCommand command, String promotionRestaurantUuid);
+
+  PaginatedResultCommand<SearchPromotionRestaurantInfo> searchPromotionRestaurant(
+      SearchPromotionRestaurantCommand info);
 }

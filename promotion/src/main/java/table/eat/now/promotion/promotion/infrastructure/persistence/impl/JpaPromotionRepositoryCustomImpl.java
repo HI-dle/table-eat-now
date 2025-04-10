@@ -1,28 +1,26 @@
 package table.eat.now.promotion.promotion.infrastructure.persistence.impl;
 
 import static table.eat.now.promotion.promotion.domain.entity.QPromotion.*;
+import static table.eat.now.promotion.promotionRestaurant.domain.entity.QPromotionRestaurant.promotionRestaurant;
 
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.JPQLQueryFactory;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
-import table.eat.now.promotion.promotion.domain.entity.QPromotion;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PaginatedResult;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PromotionSearchCriteria;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PromotionSearchCriteriaQuery;
-import table.eat.now.promotion.promotion.infrastructure.persistence.JpaPromotionCustom;
+import table.eat.now.promotion.promotion.infrastructure.persistence.JpaPromotionRepositoryCustom;
 
 /**
  * @author : hanjihoon
  * @Date : 2025. 04. 10.
  */
 @RequiredArgsConstructor
-public class JpaPromotionCustomImpl implements JpaPromotionCustom {
+public class JpaPromotionRepositoryCustomImpl implements JpaPromotionRepositoryCustom {
 
   private final JPAQueryFactory queryFactory;
 
@@ -35,7 +33,8 @@ public class JpaPromotionCustomImpl implements JpaPromotionCustom {
         goeStartTime(criteria.startTime()),
         loeEndTime(criteria.endTime()),
         equalPromotionStatus(criteria.promotionStatus()),
-        equalPromotionType(criteria.promotionType())
+        equalPromotionType(criteria.promotionType()),
+        deletedByIsNull()
     };
 
     List<Promotion> fetch = queryFactory.selectFrom(promotion)
@@ -86,6 +85,9 @@ public class JpaPromotionCustomImpl implements JpaPromotionCustom {
   private BooleanExpression equalPromotionType(String promotionType) {
     return promotionType == null ? null :
         promotion.promotionType.stringValue().containsIgnoreCase(promotionType);
+  }
+  private BooleanExpression deletedByIsNull() {
+    return promotionRestaurant.deletedBy.isNull();
   }
 
   private OrderSpecifier<?> getOrderSpecifier(PromotionSearchCriteria criteria) {
