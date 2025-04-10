@@ -9,6 +9,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -29,6 +31,7 @@ import table.eat.now.common.domain.BaseEntity;
 public class ReservationPaymentDetail extends BaseEntity {
 
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", nullable = false)
   private Long id;
 
@@ -52,14 +55,13 @@ public class ReservationPaymentDetail extends BaseEntity {
   @Builder
   private ReservationPaymentDetail(
       BigDecimal amount,
-      UUID detailReferenceId,
+      String detailReferenceId,
       Reservation reservation,
-      UUID reservationPaymentDetailUuid,
       PaymentType type) {
     this.amount = amount;
-    this.detailReferenceId = detailReferenceId.toString();
+    this.detailReferenceId = detailReferenceId;
     this.reservation = reservation;
-    this.reservationPaymentDetailUuid = reservationPaymentDetailUuid.toString();
+    this.reservationPaymentDetailUuid = UUID.randomUUID().toString();
     this.type = type;
   }
 

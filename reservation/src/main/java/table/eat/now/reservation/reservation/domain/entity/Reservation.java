@@ -11,6 +11,8 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
@@ -37,6 +39,7 @@ import table.eat.now.reservation.reservation.domain.entity.vo.ReservationPayment
 public class Reservation extends BaseEntity {
 
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", nullable = false)
   private Long id;
 
@@ -87,13 +90,19 @@ public class Reservation extends BaseEntity {
 
   @Builder
   private Reservation(
-      UUID reservationUuid,
       Long reserverId,
-      UUID restaurantTimeSlotUuid,
-      RestaurantTimeSlotDetails restaurantTimeSlotDetails,
-      UUID restaurantId,
-      RestaurantDetails restaurantDetails,
-      RestaurantMenuDetails restaurantMenuDetails,
+      String restaurantTimeSlotUuid,
+      String reservationDate,
+      String reservationTimeslot,
+      String restaurantId,
+      String restaurantAddress,
+      String restaurantClosingAt,
+      String restaurantContactNumber,
+      String restaurantName,
+      String restaurantOpeningAt,
+      String menuName,
+      BigDecimal menuPrice,
+      Integer menuQuantity,
       String reserverName,
       String reserverContact,
       Integer guestCount,
@@ -101,13 +110,16 @@ public class Reservation extends BaseEntity {
       String specialRequest,
       List<ReservationPaymentDetail> details
   ) {
-    this.reservationUuid = reservationUuid.toString();
+    this.reservationUuid = UUID.randomUUID().toString();
     this.reserverId = reserverId;
-    this.restaurantTimeSlotUuid = restaurantTimeSlotUuid.toString();
-    this.restaurantTimeSlotDetails = restaurantTimeSlotDetails;
-    this.restaurantId = restaurantId.toString();
-    this.restaurantDetails = restaurantDetails;
-    this.restaurantMenuDetails = restaurantMenuDetails;
+    this.restaurantTimeSlotUuid = restaurantTimeSlotUuid;
+    this.restaurantTimeSlotDetails =
+        RestaurantTimeSlotDetails.of(reservationDate, reservationTimeslot);
+    this.restaurantId = restaurantId;
+    this.restaurantDetails =
+        RestaurantDetails.of(restaurantAddress, restaurantClosingAt, restaurantContactNumber,
+            restaurantName, restaurantOpeningAt);
+    this.restaurantMenuDetails = RestaurantMenuDetails.of(menuName, menuPrice, menuQuantity);
     this.guestInfo = ReservationGuestInfo.of(reserverName, reserverContact, guestCount);
     this.status = status;
     this.specialRequest = specialRequest;

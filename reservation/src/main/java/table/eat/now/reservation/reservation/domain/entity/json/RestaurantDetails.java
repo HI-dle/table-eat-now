@@ -4,12 +4,14 @@
  */
 package table.eat.now.reservation.reservation.domain.entity.json;
 
-import lombok.Builder;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class RestaurantDetails {
   private String name;
   private String address;
@@ -17,18 +19,7 @@ public class RestaurantDetails {
   private String openingAt;
   private String closingAt;
 
-  @Builder
-  private RestaurantDetails(
-      String address,
-      String closingAt,
-      String contactNumber,
-      String name,
-      String openingAt
-  ) {
-    this.address = address;
-    this.closingAt = closingAt;
-    this.contactNumber = contactNumber;
-    this.name = name;
-    this.openingAt = openingAt;
+  public static RestaurantDetails of(String address, String closingAt, String contactNumber, String name, String openingAt) {
+    return new RestaurantDetails(address, closingAt, contactNumber, name, openingAt);
   }
 }
