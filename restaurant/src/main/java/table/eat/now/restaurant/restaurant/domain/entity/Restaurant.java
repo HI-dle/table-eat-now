@@ -12,11 +12,13 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -36,6 +38,7 @@ import table.eat.now.restaurant.restaurant.domain.entity.vo.OperatingTime;
 public class Restaurant extends BaseEntity {
 
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", nullable = false)
   private Long id;
 
@@ -90,17 +93,16 @@ public class Restaurant extends BaseEntity {
 
   @Builder(builderMethodName = "inactiveRestaurantBuilder")
   private Restaurant(
-      UUID restaurantUuid,
       Long ownerId,
       String name,
       String info,
       Integer maxReservationGuestCountPerTeamOnline,
       String contactNumber,
       String address,
-      LocalDateTime openingAt,
-      LocalDateTime closingAt
+      LocalTime openingAt,
+      LocalTime closingAt
   ) {
-    this.restaurantUuid = restaurantUuid.toString();
+    this.restaurantUuid = UUID.randomUUID().toString();
     this.ownerId = ownerId;
     this.name = name;
     this.info = info;
@@ -109,6 +111,28 @@ public class Restaurant extends BaseEntity {
     this.operatingTime = OperatingTime.of(openingAt, closingAt);
     this.status = RestaurantStatus.INACTIVE;
     this.waitingStatus = WaitingStatus.INACTIVE;
+  }
+
+  @Builder(builderMethodName = "fullBuilder")
+  private Restaurant(ContactInfo contactInfo, Long id, String info,
+      Integer maxReservationGuestCountPerTeamOnline, List<RestaurantMenu> menus, String name,
+      OperatingTime operatingTime, Long ownerId, String restaurantUuid, BigDecimal reviewRatingAvg,
+      Long staffId, RestaurantStatus status, List<RestaurantTimeSlot> timeSlots,
+      WaitingStatus waitingStatus) {
+    this.contactInfo = contactInfo;
+    this.id = id;
+    this.info = info;
+    this.maxReservationGuestCountPerTeamOnline = maxReservationGuestCountPerTeamOnline;
+    this.menus = menus;
+    this.name = name;
+    this.operatingTime = operatingTime;
+    this.ownerId = ownerId;
+    this.restaurantUuid = restaurantUuid;
+    this.reviewRatingAvg = reviewRatingAvg;
+    this.staffId = staffId;
+    this.status = status;
+    this.timeSlots = timeSlots;
+    this.waitingStatus = waitingStatus;
   }
 
   public void addMenus(List<RestaurantMenu> menus) {
