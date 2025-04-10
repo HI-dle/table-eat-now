@@ -1,6 +1,7 @@
 package table.eat.now.promotion.promotion.application.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
@@ -24,6 +25,7 @@ import table.eat.now.promotion.promotion.domain.entity.repository.PromotionRepos
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PromotionServiceImpl implements PromotionService{
 
   private final PromotionRepository promotionRepository;
@@ -62,6 +64,14 @@ public class PromotionServiceImpl implements PromotionService{
       SearchPromotionCommand command) {
     return PaginatedResultCommand.from(
         promotionRepository.searchPromotion(command.toCriteria()));
+  }
+
+  @Override
+  @Transactional
+  public void deletePromotion(String promotionUuid, Long userId) {
+    Promotion promotion = findByPromotion(promotionUuid);
+    promotion.delete(userId);
+    log.info("삭제가 완료 되었습니다. 삭제한 userId: {}", promotion);
   }
 
   private Promotion findByPromotion(String promotionUuid) {

@@ -16,4 +16,5 @@ public interface PromotionRepository {
   Optional<Promotion> findByPromotionUuidAndDeletedByIsNull(String promotionUuid);
 
   PaginatedResult<PromotionSearchCriteriaQuery> searchPromotion(PromotionSearchCriteria criteria);
+
 }

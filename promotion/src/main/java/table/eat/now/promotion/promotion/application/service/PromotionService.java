@@ -21,4 +21,6 @@ public interface PromotionService {
   GetPromotionInfo findPromotion(String promotionUuid);
 
   PaginatedResultCommand<SearchPromotionInfo> searchPromotion(SearchPromotionCommand command);
+
+  void deletePromotion(String promotionUuid, Long userId);
 }
