@@ -3,9 +3,7 @@ package table.eat.now.promotion.promotionUser.presentation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,9 +11,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.promotion.promotionUser.application.service.PromotionUserService;
 import table.eat.now.promotion.promotionUser.presentation.dto.request.CreatePromotionUserRequest;
-import table.eat.now.promotion.promotionUser.presentation.dto.request.UpdatePromotionUserRequest;
 import table.eat.now.promotion.promotionUser.presentation.dto.response.CreatePromotionUserResponse;
-import table.eat.now.promotion.promotionUser.presentation.dto.response.UpdatePromotionUserResponse;
 
 /**
  * @author : hanjihoon
@@ -41,17 +37,6 @@ public class PromotionUserController {
             .buildAndExpand(userResponse.promotionUserUuid())
             .toUri())
         .build();
-  }
-
-  @PutMapping("/{promotionUserUuid}")
-  @AuthCheck
-  public ResponseEntity<UpdatePromotionUserResponse> updatePromotionUser(
-      @Valid @RequestBody UpdatePromotionUserRequest request,
-      @PathVariable("promotionUserUuid") String promotionUserUuid
-  ) {
-    return ResponseEntity.ok(
-        UpdatePromotionUserResponse.from(promotionUserService
-            .updatePromotionUser(request.toApplication(), promotionUserUuid)));
   }
 
 
