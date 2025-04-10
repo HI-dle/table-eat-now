@@ -1,6 +1,7 @@
 package table.eat.now.promotion.promotion.presentation;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -13,6 +14,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,8 +26,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import table.eat.now.promotion.promotion.application.dto.PaginatedResultCommand;
+import table.eat.now.promotion.promotion.application.dto.request.SearchPromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.GetPromotionInfo;
+import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.service.PromotionService;
+import table.eat.now.promotion.promotion.presentation.dto.request.SearchPromotionRequest;
 
 /**
  * @author : hanjihoon
@@ -86,4 +93,91 @@ class PromotionControllerTest {
         .andExpect(jsonPath("$.promotionType").value("SEASON"))
         .andDo(print());
   }
+  @DisplayName("검색 결과에 따라 프로모션에 대한 결과 값을 반환합니다.")
+  @Test
+  void search_promotions_controller_test() throws Exception {
+    // given
+    SearchPromotionRequest request = new SearchPromotionRequest(
+        "할인",
+        "시즌",
+        LocalDateTime.now().plusDays(1),
+        LocalDateTime.now().plusDays(5),
+        BigDecimal.valueOf(1000),
+        "READY",
+        "COUPON",
+        true,
+        "startTime",
+        0,
+        2
+    );
+
+    SearchPromotionCommand command = request.toApplication();
+
+    SearchPromotionInfo info1 = new SearchPromotionInfo(
+        1L,
+        UUID.randomUUID().toString(),
+        "봄맞이 할인",
+        "봄 시즌 한정 할인",
+        LocalDateTime.now().plusDays(1),
+        LocalDateTime.now().plusDays(3),
+        BigDecimal.valueOf(1000),
+        "READY",
+        "COUPON"
+    );
+
+    SearchPromotionInfo info2 = new SearchPromotionInfo(
+        2L,
+        UUID.randomUUID().toString(),
+        "여름맞이 할인",
+        "여름 시즌 한정 할인",
+        LocalDateTime.now().plusDays(1),
+        LocalDateTime.now().plusDays(4),
+        BigDecimal.valueOf(2000),
+        "READY",
+        "COUPON"
+    );
+
+    var serviceResult = new PaginatedResultCommand<>(
+        List.of(info1, info2),
+        request.page(),
+        request.size(),
+        2L,
+        1
+    );
+
+    given(promotionService.searchPromotion(eq(command)))
+        .willReturn(serviceResult);
+
+    //when then
+    DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+    mockMvc.perform(get("/api/v1/promotions")
+            .param("promotionName", request.promotionName())
+            .param("description", request.description())
+            .param("startTime", request.startTime().format(formatter))
+            .param("endTime", request.endTime().format(formatter))
+            .param("discountAmount", request.discountAmount().toString())
+            .param("promotionStatus", request.promotionStatus())
+            .param("promotionType", request.promotionType())
+            .param("isAsc", request.isAsc().toString())
+            .param("sortBy", request.sortBy())
+            .param("page", String.valueOf(request.page()))
+            .param("size", String.valueOf(request.size()))
+            .header("Authorization", "Bearer {ACCESS_TOKEN}")
+            .header(USER_ID_HEADER, "1")
+            .header(USER_ROLE_HEADER, "MASTER")
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content", org.hamcrest.Matchers.hasSize(2)))
+        .andExpect(jsonPath("$.page").value(request.page()))
+        .andExpect(jsonPath("$.size").value(request.size()))
+        .andExpect(jsonPath("$.totalElements").value(2))
+        .andExpect(jsonPath("$.totalPages").value(1))
+        .andExpect(jsonPath("$.content[0].promotionName").value("봄맞이 할인"))
+        .andExpect(jsonPath("$.content[1].promotionName").value("여름맞이 할인"))
+        .andDo(print());
+
+  }
+
+
 }

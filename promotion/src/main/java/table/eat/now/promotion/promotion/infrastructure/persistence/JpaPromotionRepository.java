@@ -10,7 +10,7 @@ import table.eat.now.promotion.promotion.domain.entity.repository.PromotionRepos
  * @Date : 2025. 04. 08.
  */
 public interface JpaPromotionRepository extends JpaRepository<Promotion, Long>,
-    PromotionRepository {
+    PromotionRepository, JpaPromotionCustom {
 
   Optional<Promotion> findByPromotionUuidAndDeletedByIsNull(String promotionUuid);
 

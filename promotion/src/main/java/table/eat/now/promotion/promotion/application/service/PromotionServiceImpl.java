@@ -4,10 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.promotion.promotion.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotion.application.dto.request.CreatePromotionCommand;
+import table.eat.now.promotion.promotion.application.dto.request.SearchPromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.GetPromotionInfo;
+import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
@@ -51,6 +54,14 @@ public class PromotionServiceImpl implements PromotionService{
   @Transactional(readOnly = true)
   public GetPromotionInfo findPromotion(String promotionUuid) {
     return GetPromotionInfo.from(findByPromotion(promotionUuid));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PaginatedResultCommand<SearchPromotionInfo> searchPromotion(
+      SearchPromotionCommand command) {
+    return PaginatedResultCommand.from(
+        promotionRepository.searchPromotion(command.toCriteria()));
   }
 
   private Promotion findByPromotion(String promotionUuid) {

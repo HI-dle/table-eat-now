@@ -1,6 +1,5 @@
-package table.eat.now.promotion.promotion.domain.entity.repository;
+package table.eat.now.promotion.promotion.infrastructure.persistence;
 
-import java.util.Optional;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PaginatedResult;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PromotionSearchCriteria;
@@ -8,12 +7,9 @@ import table.eat.now.promotion.promotion.domain.entity.repository.search.Promoti
 
 /**
  * @author : hanjihoon
- * @Date : 2025. 04. 08.
+ * @Date : 2025. 04. 10.
  */
-public interface PromotionRepository {
-
-  Promotion save(Promotion promotion);
-  Optional<Promotion> findByPromotionUuidAndDeletedByIsNull(String promotionUuid);
-
+public interface JpaPromotionCustom {
   PaginatedResult<PromotionSearchCriteriaQuery> searchPromotion(PromotionSearchCriteria criteria);
+
 }
