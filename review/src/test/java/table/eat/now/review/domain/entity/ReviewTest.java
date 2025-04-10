@@ -164,7 +164,7 @@ class ReviewTest {
 		private String restaurantId;
 		private String serviceId;
 		private String role;
-		private Review review;
+		private Review originalReview;
 
 		@BeforeEach
 		void setUp() {
@@ -180,13 +180,13 @@ class ReviewTest {
 					true,
 					UserRole.valueOf(role)
 			);
-			review = command.toEntity();
+			originalReview = command.toEntity();
 		}
 
 		@Test
 		void 숨김_상태로_변경할_수_있다() {
 			// when
-			Review hidden = review.hide(ownerId, role);
+			Review hidden = originalReview.hide(ownerId, role);
 
 			// then
 			assertThat(hidden.getVisibility().getHiddenBy()).isEqualTo(ownerId);
@@ -220,7 +220,7 @@ class ReviewTest {
 		private String restaurantId;
 		private String serviceId;
 		private String role;
-		private Review review;
+		private Review originalReview;
 
 		@BeforeEach
 		void setUp() {
@@ -236,13 +236,13 @@ class ReviewTest {
 					false,
 					UserRole.valueOf(role)
 			);
-			review = command.toEntity();
+			originalReview = command.toEntity();
 		}
 
 		@Test
 		void 공개_상태로_변경할_수_있다() {
 			// when
-			Review shown = review.show(ownerId, role);
+			Review shown = originalReview.show(ownerId, role);
 
 			// then
 			assertThat(shown.getVisibility().getHiddenBy()).isNull();
@@ -274,7 +274,7 @@ class ReviewTest {
 		private Long ownerId;
 		private Long otherUserId;
 		private String role;
-		private Review review;
+		private Review originalReview;
 		private String newContent;
 		private Integer newRating;
 		private ReviewContent newReviewContent;
@@ -293,7 +293,7 @@ class ReviewTest {
 					false,
 					UserRole.valueOf(role)
 			);
-			review = command.toEntity();
+			originalReview = command.toEntity();
 
 			newContent  = "나쁘지않네요";
 			newRating = 1;
@@ -306,12 +306,12 @@ class ReviewTest {
 			UpdateContent updateContent = new UpdateContent(newReviewContent, ownerId, role);
 
 			// when
-			review.update(updateContent);
+			originalReview.update(updateContent);
 
 			// then
-			assertThat(review.getContent()).isEqualTo(newReviewContent);
-			assertThat(review.getContent().getRating()).isEqualTo(newRating);
-			assertThat(review.getContent().getContent()).isEqualTo(newContent);
+			assertThat(originalReview.getContent()).isEqualTo(newReviewContent);
+			assertThat(originalReview.getContent().getRating()).isEqualTo(newRating);
+			assertThat(originalReview.getContent().getContent()).isEqualTo(newContent);
 		}
 
 		@Test
@@ -321,7 +321,7 @@ class ReviewTest {
 
 			// when & then
 			IllegalArgumentException exception = assertThrows(
-					IllegalArgumentException.class, () -> review.update(updateContent));
+					IllegalArgumentException.class, () -> originalReview.update(updateContent));
 			assertThat(exception.getMessage()).contains("이 작업에 대한 권한은 작성자에게만 있습니다.");
 		}
 	}
