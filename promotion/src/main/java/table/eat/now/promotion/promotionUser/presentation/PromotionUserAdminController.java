@@ -3,6 +3,7 @@ package table.eat.now.promotion.promotionUser.presentation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import table.eat.now.common.aop.annotation.AuthCheck;
+import table.eat.now.common.resolver.annotation.CurrentUserInfo;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.promotion.promotionUser.application.service.PromotionUserService;
 import table.eat.now.promotion.promotionUser.presentation.dto.PaginatedResultResponse;
@@ -51,6 +54,16 @@ public class PromotionUserAdminController {
         PaginatedResultResponse.from(
             promotionUserService.searchPromotionUser(
                 request.toApplication())));
+  }
+
+  @DeleteMapping("/{promotionUuid}")
+  @AuthCheck(roles = UserRole.MASTER)
+  public ResponseEntity<Void> deletePromotionUser(
+      @PathVariable("promotionUuid") String promotionUuid,
+      @CurrentUserInfo CurrentUserInfoDto userInfoDto
+  ) {
+    promotionUserService.deletePromotionUser(promotionUuid, userInfoDto);
+    return ResponseEntity.noContent().build();
   }
 
 

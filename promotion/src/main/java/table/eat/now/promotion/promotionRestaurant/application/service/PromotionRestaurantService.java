@@ -1,5 +1,6 @@
 package table.eat.now.promotion.promotionRestaurant.application.service;
 
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.promotion.promotionRestaurant.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.request.CreatePromotionRestaurantCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.request.SearchPromotionRestaurantCommand;
@@ -21,4 +22,6 @@ public interface PromotionRestaurantService {
 
   PaginatedResultCommand<SearchPromotionRestaurantInfo> searchPromotionRestaurant(
       SearchPromotionRestaurantCommand info);
+
+  void deletePromotionRestaurant(String promotionUuid, CurrentUserInfoDto userInfoDto);
 }

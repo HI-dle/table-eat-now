@@ -1,9 +1,11 @@
 package table.eat.now.promotion.promotionRestaurant.application.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.promotion.promotionRestaurant.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.excepton.PromotionRestaurantErrorCode;
 import table.eat.now.promotion.promotionRestaurant.application.dto.request.CreatePromotionRestaurantCommand;
@@ -21,6 +23,7 @@ import table.eat.now.promotion.promotionRestaurant.domain.repository.PromotionRe
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PromotionRestaurantServiceImpl implements PromotionRestaurantService{
 
   private final PromotionRestaurantRepository promotionRestaurantRepository;
@@ -50,6 +53,14 @@ public class PromotionRestaurantServiceImpl implements PromotionRestaurantServic
       SearchPromotionRestaurantCommand command) {
     return PaginatedResultCommand.from(
         promotionRestaurantRepository.searchPromotionRestaurant(command.toCriteria()));
+  }
+
+  @Override
+  @Transactional
+  public void deletePromotionRestaurant(String promotionUuid, CurrentUserInfoDto userInfoDto) {
+    PromotionRestaurant promotionRestaurant = findByPromotionRestaurant(promotionUuid);
+    promotionRestaurant.delete(userInfoDto.userId());
+    log.info("삭제가 완료 되었습니다. 삭제한 userId: {}", promotionRestaurant);
   }
 
   public PromotionRestaurant findByPromotionRestaurant(String promotionRestaurantUuid) {
