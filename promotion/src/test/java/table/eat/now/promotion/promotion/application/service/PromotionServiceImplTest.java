@@ -16,9 +16,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.promotion.promotion.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotion.application.dto.request.CreatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.request.SearchPromotionCommand;
@@ -257,6 +260,46 @@ class PromotionServiceImplTest {
     assertThat(result.content().get(0).promotionName()).isEqualTo("봄맞이 할인");
 
     verify(promotionRepository).searchPromotion(criteria);
+  }
+
+  @DisplayName("promotionUuid로 생성된 프로모션을 삭제한다.")
+  @Test
+  void delete_promotion_success() {
+    // given
+    String promotionUuid = UUID.randomUUID().toString();
+    Long deleterUserId = 1L;
+    CurrentUserInfoDto currentUserInfo = new CurrentUserInfoDto(deleterUserId, UserRole.MASTER);
+
+    Promotion promotion = Mockito.mock(Promotion.class);
+
+    when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))
+        .thenReturn(Optional.of(promotion));
+
+    // when
+    promotionService.deletePromotion(promotionUuid, currentUserInfo);
+
+    // then
+    verify(promotionRepository).findByPromotionUuidAndDeletedByIsNull(promotionUuid);
+    verify(promotion).delete(deleterUserId);
+  }
+
+  @DisplayName("존재하지 않는 promotionUuid로 프로모션을 삭제 시 예외가 발생한다.")
+  @Test
+  void delete_promotion_invalid_uuid_exception() {
+    // given
+    String promotionUuid = UUID.randomUUID().toString();
+    CurrentUserInfoDto currentUserInfo = new CurrentUserInfoDto(1L, UserRole.MASTER);
+
+    when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))
+        .thenReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() ->
+        promotionService.deletePromotion(promotionUuid, currentUserInfo)
+    ).isInstanceOf(CustomException.class)
+        .hasMessage(PromotionErrorCode.INVALID_PROMOTION_UUID.getMessage());
+
+    verify(promotionRepository).findByPromotionUuidAndDeletedByIsNull(promotionUuid);
   }
 
 
