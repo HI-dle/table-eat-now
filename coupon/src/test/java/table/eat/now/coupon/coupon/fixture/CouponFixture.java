@@ -6,6 +6,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
+import table.eat.now.coupon.coupon.application.dto.response.AvailableCouponInfo;
 import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
 import table.eat.now.coupon.coupon.domain.entity.CouponType;
@@ -49,6 +50,30 @@ public class CouponFixture {
             .startAt(LocalDateTime.now().minusDays(i).truncatedTo(ChronoUnit.DAYS))
             .endAt(LocalDateTime.now().plusDays(19-i).truncatedTo(ChronoUnit.DAYS))
             .count(10000 * i)
+            .allowDuplicate(false)
+            .minPurchaseAmount(50000)
+            .amount(3000)
+            .percent(null)
+            .maxDiscountAmount(null)
+            .createdAt(LocalDateTime.now().minusHours(i))
+            .createdBy(1L)
+            .build()
+        )
+        .toList();
+    return couponInfos;
+  }
+
+  public static List<AvailableCouponInfo> createAvailableCouponInfos(int length) {
+    List<AvailableCouponInfo> couponInfos = IntStream.range(0, length)
+        .mapToObj(i -> AvailableCouponInfo.builder()
+            .couponId((long) i)
+            .couponUuid(UUID.randomUUID().toString())
+            .name("test coupon " + i)
+            .type("FIXED_DISCOUNT")
+            .startAt(LocalDateTime.now().minusDays(i).truncatedTo(ChronoUnit.DAYS))
+            .endAt(LocalDateTime.now().plusDays(19-i).truncatedTo(ChronoUnit.DAYS))
+            .count(10000 * i)
+            .issuedCount(100)
             .allowDuplicate(false)
             .minPurchaseAmount(50000)
             .amount(3000)
