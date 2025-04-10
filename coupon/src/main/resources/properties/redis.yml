@@ -6,7 +6,7 @@ spring:
       host: localhost
       port: 6380
       username: default
-      password: systempass
+#      password: systempass
 
 ---
 # develop 환경
@@ -17,7 +17,7 @@ spring:
       host: ${DEV_REDIS_HOST}
       port: ${DEV_REDIS_PORT}
       username: ${DEV_REDIS_USERNAME}
-      password: ${DEV_REDIS_PASSWORD}
+#      password: ${DEV_REDIS_PASSWORD}
 
 ---
 # test 환경
@@ -28,4 +28,4 @@ spring:
       host:
       port:
       username:
-      password: systempass
+#      password: systempass
