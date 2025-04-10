@@ -17,7 +17,7 @@ import table.eat.now.common.domain.BaseEntity;
  * @Date : 2025. 04. 08.
  */
 @Entity
-@Table(name = "p_promotion_restaurant")
+@Table(name = "p_promotion_user")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PromotionUser extends BaseEntity {
@@ -26,8 +26,8 @@ public class PromotionUser extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   Long id;
 
-  @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-  private UUID promotionUserUuid;
+  @Column(nullable = false, unique = true, length = 100, name = "promotion_user_uuid")
+  private String promotionUserUuid;
 
   @Column(nullable = false)
   private Long userId;

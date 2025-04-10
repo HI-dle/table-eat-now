@@ -26,25 +26,30 @@ public class PromotionRestaurant extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   Long id;
 
-  @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-  private UUID promotionRestaurantUuid;
+  @Column(nullable = false, unique = true, length = 100, name = "promotion_restaurant_uuid")
+  private String promotionRestaurantUuid;
 
   @Column(nullable = false, columnDefinition = "VARCHAR(100)")
-  private UUID promotionUuid;
+  private String promotionUuid;
 
   @Column(nullable = false, columnDefinition = "VARCHAR(100)")
-  private UUID restaurantUuid;
+  private String restaurantUuid;
 
-  private PromotionRestaurant(UUID promotionUuid,
-      UUID restaurantUuid) {
-    this.promotionRestaurantUuid = UUID.randomUUID();
+  private PromotionRestaurant(String promotionUuid,
+      String restaurantUuid) {
+    this.promotionRestaurantUuid = UUID.randomUUID().toString();
     this.promotionUuid = promotionUuid;
     this.restaurantUuid = restaurantUuid;
   }
 
-  public static PromotionRestaurant of(UUID promotionUuid, UUID restaurantUuid) {
+  public static PromotionRestaurant of(String promotionUuid, String restaurantUuid) {
     return new PromotionRestaurant(
         promotionUuid,
         restaurantUuid);
+  }
+
+  public void modifyPromotionRestaurant(String promotionUuid, String restaurantUuid) {
+    this.promotionUuid = promotionUuid;
+    this.restaurantUuid = restaurantUuid;
   }
 }

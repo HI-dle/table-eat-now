@@ -34,7 +34,7 @@ public class Promotion extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
+  @Column(nullable = false, unique = true, length = 100, name = "promotion_uuid")
   private String promotionUuid;
 
   @Embedded
