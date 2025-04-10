@@ -10,7 +10,7 @@ X-User-Role: CUSTOMER
   "restaurantId": "123e4567-e89b-12d3-a456-426614174000",
   "serviceId": "123e4567-e89b-12d3-a456-426614174001",
   "rating": 4,
-  "content": "음식이 맛있고 서비스가 좋았습니다. 특히 스테이크가 정말 맛있었어요!",
+  "content": "리뷰를~~~~공개합니다!11",
   "isVisible": true
 }
 
@@ -29,7 +29,7 @@ X-User-Role: CUSTOMER
   "restaurantId": "123e4567-e89b-12d3-a456-426614174000",
   "serviceId": "123e4567-e89b-12d3-a456-426614174002",
   "rating": 2,
-  "content": "아쉬운 점이 많았습니다. 다음에는 개선되길 바랍니다.",
+  "content": "내가쓴비밀일기",
   "isVisible": false
 }
 
@@ -48,7 +48,7 @@ X-User-Role: CUSTOMER
   "restaurantId": "123e4567-e89b-12d3-a456-426614174000",
   "serviceId": "123e4567-e89b-12d3-a456-426614174003",
   "rating": 5,
-  "content": "최고의 레스토랑입니다! 다음에도 꼭 방문할게요.",
+  "content": "절봐주세요",
   "isVisible": true
 }
 
@@ -67,7 +67,7 @@ X-User-Role: CUSTOMER
   "restaurantId": "123e4567-e89b-12d3-a456-426614174000",
   "serviceId": "123e4567-e89b-12d3-a456-426614174004",
   "rating": 1,
-  "content": "서비스가 너무 아쉬웠습니다. 개선이 필요합니다.",
+  "content": "제가 보이시나요..?",
   "isVisible": false
 }
 
@@ -133,7 +133,7 @@ X-User-Id: 1
 X-User-Role: CUSTOMER
 
 ### 시나리오 11: 필터링 기능 테스트 (평점 범위)
-GET localhost:8087/api/v1/reviews?minRating=0&maxRating=5
+GET localhost:8087/api/v1/reviews?minRating=3&maxRating=5
 X-User-Id: 1
 X-User-Role: CUSTOMER
 
