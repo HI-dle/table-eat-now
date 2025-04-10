@@ -23,5 +23,5 @@ public interface PromotionUserService {
   PaginatedResultCommand<SearchPromotionUserInfo> searchPromotionUser(
       SearchPromotionUserCommand command);
 
-  void deletePromotionUser(String promotionUuid, CurrentUserInfoDto userInfoDto);
+  void deletePromotionUser(Long userId, CurrentUserInfoDto userInfoDto);
 }

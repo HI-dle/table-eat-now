@@ -56,13 +56,13 @@ public class PromotionUserAdminController {
                 request.toApplication())));
   }
 
-  @DeleteMapping("/{promotionUuid}")
+  @DeleteMapping("/{userId}")
   @AuthCheck(roles = UserRole.MASTER)
   public ResponseEntity<Void> deletePromotionUser(
-      @PathVariable("promotionUuid") String promotionUuid,
+      @PathVariable("userId") Long userId,
       @CurrentUserInfo CurrentUserInfoDto userInfoDto
   ) {
-    promotionUserService.deletePromotionUser(promotionUuid, userInfoDto);
+    promotionUserService.deletePromotionUser(userId, userInfoDto);
     return ResponseEntity.noContent().build();
   }
 

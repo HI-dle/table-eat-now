@@ -1,6 +1,10 @@
 package table.eat.now.promotion.promotionUser.presentation;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -23,6 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.promotion.promotionUser.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotionUser.application.dto.response.SearchPromotionUserInfo;
 import table.eat.now.promotion.promotionUser.application.dto.response.UpdatePromotionUserInfo;
@@ -138,6 +143,29 @@ class PromotionUserAdminControllerTest {
         .andExpect(jsonPath("$.totalElements").value(2))
         .andExpect(jsonPath("$.totalPages").value(1))
         .andDo(print());
+  }
+
+  @DisplayName("userId로 프로모션 유저 정보를 삭제한다.")
+  @Test
+  void promotion_uuid_delete_promotion_restaurant_controller_test() throws Exception {
+    // given
+    Long userId = 1L;
+
+    willDoNothing().given(promotionUserService)
+        .deletePromotionUser(eq(userId), any(CurrentUserInfoDto.class));
+
+    // when
+    ResultActions resultActions = mockMvc.perform(delete(
+        "/admin/v1/promotion-users/{userId}", userId)
+        .header("Authorization", "Bearer {ACCESS_TOKEN}")
+        .header(USER_ID_HEADER, "1")
+        .header(USER_ROLE_HEADER, "MASTER"));
+
+    // then
+    resultActions.andExpect(status().isNoContent())
+        .andDo(print());
+
+    verify(promotionUserService).deletePromotionUser(eq(userId), any());
   }
 
 

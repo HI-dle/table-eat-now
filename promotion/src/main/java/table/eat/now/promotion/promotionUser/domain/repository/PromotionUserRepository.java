@@ -18,4 +18,6 @@ public interface PromotionUserRepository {
       String promotionUserUuid);
 
   PaginatedResult<PromotionUserSearchCriteriaQuery> searchPromotionUser(PromotionUserSearchCriteria criteria);
+
+  Optional<PromotionUser> findByUserIdAndDeletedAtIsNull(Long userId);
 }

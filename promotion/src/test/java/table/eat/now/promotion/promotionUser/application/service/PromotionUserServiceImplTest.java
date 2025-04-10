@@ -14,9 +14,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.promotion.promotionUser.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotionUser.application.dto.request.CreatePromotionUserCommand;
 import table.eat.now.promotion.promotionUser.application.dto.request.SearchPromotionUserCommand;
@@ -29,6 +32,7 @@ import table.eat.now.promotion.promotionUser.domain.entity.PromotionUser;
 import table.eat.now.promotion.promotionUser.domain.repository.PromotionUserRepository;
 import table.eat.now.promotion.promotionUser.domain.repository.search.PaginatedResult;
 import table.eat.now.promotion.promotionUser.domain.repository.search.PromotionUserSearchCriteriaQuery;
+
 
 /**
  * @author : hanjihoon
@@ -158,6 +162,46 @@ class PromotionUserServiceImplTest {
 
     verify(promotionUserRepository).searchPromotionUser(any());
   }
+  @DisplayName("userId로 PromotionUser를 삭제한다.")
+  @Test
+  void delete_promotion_user_success() {
+    // given
+    Long targetUserId = 999L;
+    Long deleterUserId = 1L;
+    CurrentUserInfoDto currentUserInfo = new CurrentUserInfoDto(deleterUserId, UserRole.MASTER);
+
+    PromotionUser promotionUser = Mockito.mock(PromotionUser.class);
+
+    when(promotionUserRepository.findByUserIdAndDeletedAtIsNull(targetUserId))
+        .thenReturn(Optional.of(promotionUser));
+
+    // when
+    promotionUserService.deletePromotionUser(targetUserId, currentUserInfo);
+
+    // then
+    verify(promotionUserRepository).findByUserIdAndDeletedAtIsNull(targetUserId);
+    verify(promotionUser).delete(deleterUserId);
+  }
+
+  @DisplayName("존재하지 않는 userId로 삭제 시 예외가 발생한다.")
+  @Test
+  void delete_promotion_user_invalid_userId_exception() {
+    // given
+    Long targetUserId = 999L;
+    CurrentUserInfoDto currentUserInfo = new CurrentUserInfoDto(1L, UserRole.MASTER);
+
+    when(promotionUserRepository.findByUserIdAndDeletedAtIsNull(targetUserId))
+        .thenReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() ->
+        promotionUserService.deletePromotionUser(targetUserId, currentUserInfo)
+    ).isInstanceOf(CustomException.class)
+        .hasMessage(PromotionUserErrorCode.INVALID_PROMOTION_USER_UUID.getMessage());
+
+    verify(promotionUserRepository).findByUserIdAndDeletedAtIsNull(targetUserId);
+  }
+
 
 
 }

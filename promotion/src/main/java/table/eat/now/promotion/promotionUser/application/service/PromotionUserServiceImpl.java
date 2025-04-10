@@ -52,15 +52,21 @@ public class PromotionUserServiceImpl implements PromotionUserService{
 
   @Override
   @Transactional
-  public void deletePromotionUser(String promotionUuid, CurrentUserInfoDto userInfoDto) {
-    PromotionUser promotionUser = findByPromotionUser(promotionUuid);
+  public void deletePromotionUser(Long userId, CurrentUserInfoDto userInfoDto) {
+    PromotionUser promotionUser = findByPromotionUserFromUserId(userId);
     promotionUser.delete(userInfoDto.userId());
     log.info("삭제가 완료 되었습니다. 삭제한 userId: {}", promotionUser);
   }
 
-  public PromotionUser findByPromotionUser(String promotionUserUuid) {
+  private PromotionUser findByPromotionUser(String promotionUserUuid) {
     return promotionUserRepository.findByPromotionUserUuidAndDeletedAtIsNull(
         promotionUserUuid).orElseThrow(() ->
         CustomException.from(PromotionUserErrorCode.INVALID_PROMOTION_USER_UUID));
+  }
+
+  private PromotionUser findByPromotionUserFromUserId(Long userId) {
+    return promotionUserRepository.findByUserIdAndDeletedAtIsNull(userId)
+        .orElseThrow(() ->
+            CustomException.from(PromotionUserErrorCode.INVALID_PROMOTION_USER_UUID));
   }
 }
