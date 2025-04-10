@@ -9,14 +9,14 @@ import table.eat.now.promotion.promotionUser.domain.repository.search.PromotionU
  */
 @Builder
 public record SearchPromotionUserInfo(String promotionUserUuid,
-                                      Long userId,
-                                      String promotionUuid) {
+                                      String promotionUuid,
+                                      Long userId) {
 
   public static SearchPromotionUserInfo from(PromotionUserSearchCriteriaQuery query) {
     return SearchPromotionUserInfo.builder()
         .promotionUserUuid(query.promotionUserUuid())
-        .userId(query.userId())
         .promotionUuid(query.promotionUuid())
+        .userId(query.userId())
         .build();
   }
 }

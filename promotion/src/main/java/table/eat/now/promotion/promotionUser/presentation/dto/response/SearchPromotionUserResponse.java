@@ -10,14 +10,14 @@ import table.eat.now.promotion.promotionUser.application.dto.response.SearchProm
  */
 @Builder
 public record SearchPromotionUserResponse(String promotionUserUuid,
-                                          Long userId,
-                                          String promotionUuid) {
+                                          String promotionUuid,
+                                          Long userId) {
 
   public static SearchPromotionUserResponse from(SearchPromotionUserInfo info) {
     return SearchPromotionUserResponse.builder()
         .promotionUserUuid(info.promotionUserUuid())
-        .userId(info.userId())
         .promotionUuid(info.promotionUuid())
+        .userId(info.userId())
         .build();
   }
 
