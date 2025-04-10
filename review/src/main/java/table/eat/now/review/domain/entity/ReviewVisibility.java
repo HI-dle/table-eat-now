@@ -26,6 +26,7 @@ public class ReviewVisibility {
 	@Column(name = "hidden_by_role")
 	private HiddenByRole hiddenByRole;
 
+	//공개로 작성할거다, 공개
 	public static ReviewVisibility create(Boolean isVisible, Long hiddenBy, String hiddenByRole) {
 		validateVisibility(isVisible);
 		return isVisible ? createVisible() : createHidden(hiddenBy, hiddenByRole);

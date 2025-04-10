@@ -17,8 +17,8 @@ class ReviewReferenceTest {
 		@Test
 		void 유효한_입력값으로_ReviewReference_를_생성_할_수_있다() {
 			//given
-			UUID validRestaurantId = UUID.randomUUID();
-			UUID validServiceId = UUID.randomUUID();
+			String validRestaurantId = UUID.randomUUID().toString();
+			String validServiceId = UUID.randomUUID().toString();
 			Long validCustomerId = 123L;
 			ServiceType validServiceType = ServiceType.RESERVATION;
 
@@ -36,7 +36,7 @@ class ReviewReferenceTest {
 		@Test
 		void restaurantId가_null_이면_IllegalArgumentException_을_던진다() {
 			//given
-			UUID validServiceId = UUID.randomUUID();
+			String validServiceId = UUID.randomUUID().toString();
 			Long validCustomerId = 123L;
 			ServiceType validServiceType = ServiceType.RESERVATION;
 
@@ -51,7 +51,7 @@ class ReviewReferenceTest {
 		@Test
 		void serviceId가_null_이면_IllegalArgumentException_을_던진다() {
 			//given
-			UUID validRestaurantId = UUID.randomUUID();
+			String validRestaurantId = UUID.randomUUID().toString();
 			Long validCustomerId = 123L;
 			ServiceType validServiceType = ServiceType.RESERVATION;
 
@@ -67,8 +67,8 @@ class ReviewReferenceTest {
 		@Test
 		void customerId가_null_이면_IllegalArgumentException_을_던진다() {
 			//given
-			UUID validRestaurantId = UUID.randomUUID();
-			UUID validServiceId = UUID.randomUUID();
+			String validRestaurantId = UUID.randomUUID().toString();
+			String validServiceId = UUID.randomUUID().toString();
 			ServiceType validServiceType = ServiceType.RESERVATION;
 
 			//when & then
@@ -82,8 +82,8 @@ class ReviewReferenceTest {
 		@Test
 		void serviceType이_null_이면_IllegalArgumentException_을_던진다() {
 			//given
-			UUID validRestaurantId = UUID.randomUUID();
-			UUID validServiceId = UUID.randomUUID();
+			String validRestaurantId = UUID.randomUUID().toString();
+			String validServiceId = UUID.randomUUID().toString();
 			Long validCustomerId = 123L;
 
 			//when & then

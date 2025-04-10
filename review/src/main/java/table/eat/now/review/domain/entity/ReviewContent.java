@@ -7,17 +7,16 @@ import lombok.Getter;
 @Getter
 @Embeddable
 public class ReviewContent {
-	@Column(name = "content", nullable = false)
+	@Column(name = "content", nullable = false, columnDefinition = "TEXT")
 	private String content;
 
-	@Column(name = "rating", nullable = false, columnDefinition = "TEXT")
+	@Column(name = "rating", nullable = false)
 	private Integer rating;
 
 	public static ReviewContent create(String content, Integer rating) {
 		validateNull(content, rating);
 		validateContent(content);
 		validateRating(rating);
-
 		return new ReviewContent(content, rating);
 	}
 

@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +15,7 @@ import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.review.application.service.ReviewService;
 import table.eat.now.review.presentation.dto.request.CreateReviewRequest;
 import table.eat.now.review.presentation.dto.response.CreateReviewResponse;
+import table.eat.now.review.presentation.dto.response.GetReviewResponse;
 
 @RestController
 @RequestMapping("/api/v1/reviews")
@@ -28,5 +31,13 @@ public class ReviewController {
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(
 				CreateReviewResponse.from(reviewService.createReview(request.toCommand(userInfo))));
+	}
+
+	@GetMapping("/{reviewId}")
+	public ResponseEntity<GetReviewResponse> getReview(
+			@PathVariable String reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo){
+
+		return ResponseEntity.status(HttpStatus.OK).body(
+				GetReviewResponse.from(reviewService.getReview(reviewId, userInfo)));
 	}
 }
