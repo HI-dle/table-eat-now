@@ -1,7 +1,31 @@
 ###
+POST http://localhost:8080/api/v1/users/signup
+Content-Type: application/json
+
+{
+  "username": "test",
+  "email": "test@test",
+  "phone": "123",
+  "password": "1234",
+  "role": "MASTER"
+}
+
+###
+POST http://localhost:8080/api/v1/users/login
+Content-Type: application/json
+
+{
+  "username": "test",
+  "password": "1234"
+}
+> {%
+  client.global.set("access_token", response.headers.valueOf("Authorization"))
+%}
+
+###
 POST http://localhost:8080/admin/v1/promotions
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwicm9sZSI6Ik1BU1RFUiIsInVzZXJuYW1lIjoidGVzdCIsImlhdCI6MTc0NDEwNTUxNCwiZXhwIjoxNzQ0MTA5MTE0fQ.ybwqrR92d3Cv_b4SRYdzpbquFNSrAwPQWJC9MV6UWPSTJsTbr1uPvbUtR88IvsCY3VQT1UBWBMOoQa6NqcT_Nw
+Authorization: {{access_token}}
 
 {
   "promotionName": "봄맞이 할인 프로모션",
@@ -9,6 +33,21 @@ Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwicm9sZSI6Ik1BU1RFUiIsI
   "startTime": "2025-04-09T00:00:00",
   "endTime": "2025-04-18T00:00:00",
   "discountAmount": 3000,
+  "promotionStatus": "READY",
+  "promotionType": "COUPON"
+}
+
+###
+PUT http://localhost:8080/admin/v1/promotions/{{promotionUuid}}
+Content-Type: application/json
+Authorization: {{access_token}}
+
+{
+  "promotionName": "봄맞이 할인 프로모션",
+  "description": "전 메뉴 4000원 할인 - 수정",
+  "startTime": "2025-04-10T00:00:00",
+  "endTime": "2025-04-20T00:00:00",
+  "discountAmount": 4000,
   "promotionStatus": "READY",
   "promotionType": "COUPON"
 }

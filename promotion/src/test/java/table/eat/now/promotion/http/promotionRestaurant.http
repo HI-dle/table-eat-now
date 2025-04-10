@@ -1,9 +1,44 @@
 ###
+POST http://localhost:8080/api/v1/users/signup
+Content-Type: application/json
+
+{
+  "username": "test",
+  "email": "test@test",
+  "phone": "123",
+  "password": "1234",
+  "role": "MASTER"
+}
+
+###
+POST http://localhost:8080/api/v1/users/login
+Content-Type: application/json
+
+{
+  "username": "test",
+  "password": "1234"
+}
+> {%
+  client.global.set("access_token", response.headers.valueOf("Authorization"))
+%}
+
+
+###
 POST http://localhost:8080/admin/v1/promotion-restaurants
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwicm9sZSI6Ik1BU1RFUiIsInVzZXJuYW1lIjoidGVzdCIsImlhdCI6MTc0NDEwNTUxNCwiZXhwIjoxNzQ0MTA5MTE0fQ.ybwqrR92d3Cv_b4SRYdzpbquFNSrAwPQWJC9MV6UWPSTJsTbr1uPvbUtR88IvsCY3VQT1UBWBMOoQa6NqcT_Nw
+Authorization: {{access_token}}
 
 {
   "promotionUuid": "7bde88ba-ec55-4d5c-92d9-4de6f8cb14c9",
   "restaurantUuid": "a03e77a7-4f26-4d4f-8412-bb68b2dd1b88"
+}
+
+###
+PUT http://localhost:8080/admin/v1/promotion-restaurants/{{promotionRestaurantUuid}}
+Content-Type: application/json
+Authorization: {{access_token}}
+
+{
+  "promotionUuid": "7bde88ba-ec55-4d5c-92d9-4nj2jk2kj7",
+  "restaurantUuid": "a03e77a7-4f26-4d4f-8412-4n4j12n442"
 }

@@ -1,8 +1,41 @@
 ###
-POST http://localhost:8084/api/v1/promotion-users
+POST http://localhost:8080/api/v1/users/signup
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwicm9sZSI6Ik1BU1RFUiIsInVzZXJuYW1lIjoidGVzdCIsImlhdCI6MTc0NDEwNTUxNCwiZXhwIjoxNzQ0MTA5MTE0fQ.ybwqrR92d3Cv_b4SRYdzpbquFNSrAwPQWJC9MV6UWPSTJsTbr1uPvbUtR88IvsCY3VQT1UBWBMOoQa6NqcT_Nw
+
+{
+  "username": "test",
+  "email": "test@test",
+  "phone": "123",
+  "password": "1234",
+  "role": "MASTER"
+}
+
+###
+POST http://localhost:8080/api/v1/users/login
+Content-Type: application/json
+
+{
+  "username": "test",
+  "password": "1234"
+}
+> {%
+  client.global.set("access_token", response.headers.valueOf("Authorization"))
+%}
+
+###
+POST http://localhost:8080/api/v1/promotion-users
+Content-Type: application/json
+Authorization: {{access_token}}
 
 {
   "userId": 1
+}
+
+###
+PUT http://localhost:8080/admin/v1/promotion-users/{{promotionUserUuid}}
+Content-Type: application/json
+Authorization: {{access_token}}
+
+{
+  "userId": 2
 }
