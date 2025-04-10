@@ -47,9 +47,11 @@ class PromotionUserAdminControllerTest {
   void promotion_user_update_controller_test() throws Exception {
     // given
     String promotionUserUuid = UUID.randomUUID().toString();
-    UpdatePromotionUserRequest request = new UpdatePromotionUserRequest(1L);
+    String promotionUuid = UUID.randomUUID().toString();
+    UpdatePromotionUserRequest request = new UpdatePromotionUserRequest(1L,promotionUuid);
 
-    UpdatePromotionUserInfo info = new UpdatePromotionUserInfo(promotionUserUuid, 1L);
+    UpdatePromotionUserInfo info = new UpdatePromotionUserInfo(
+        promotionUserUuid, 1L, promotionUuid);
 
     given(promotionUserService.updatePromotionUser(request.toApplication(), promotionUserUuid))
         .willReturn(info);
@@ -67,6 +69,7 @@ class PromotionUserAdminControllerTest {
     resultActions.andExpect(status().isOk())
         .andExpect(jsonPath("$.promotionUserUuid").value(promotionUserUuid))
         .andExpect(jsonPath("$.userId").value(1))
+        .andExpect(jsonPath("$.promotionUuid").value(promotionUuid))
         .andDo(print());
   }
 }

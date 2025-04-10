@@ -41,7 +41,8 @@ class PromotionUserServiceImplTest {
   @Test
   void promotion_user_create_service_test() {
     // given
-    CreatePromotionUserCommand command = new CreatePromotionUserCommand(1L);
+    String promotionUuid = UUID.randomUUID().toString();
+    CreatePromotionUserCommand command = new CreatePromotionUserCommand(1L, promotionUuid);
 
     PromotionUser entity = command.toEntity();
 
@@ -61,23 +62,26 @@ class PromotionUserServiceImplTest {
   @Test
   void update_promotion_user_success() {
     // given
+    String promotionUuid = UUID.randomUUID().toString();
     String promotionUserUuid = UUID.randomUUID().toString();
     Long userId = 1L;
 
-    UpdatePromotionUserCommand command = new UpdatePromotionUserCommand(userId);
+    UpdatePromotionUserCommand command = new UpdatePromotionUserCommand(userId, promotionUuid);
 
-    PromotionUser promotionUser = PromotionUser.of(2L);
+    PromotionUser promotionUser = PromotionUser.of(2L, promotionUuid);
     ReflectionTestUtils.setField(promotionUser, "promotionUserUuid", promotionUserUuid);
 
     when(promotionUserRepository.findByPromotionUserUuidAndDeletedAtIsNull(promotionUserUuid))
         .thenReturn(Optional.of(promotionUser));
 
     // when
-    UpdatePromotionUserInfo result = promotionUserService.updatePromotionUser(command, promotionUserUuid);
+    UpdatePromotionUserInfo result = promotionUserService.updatePromotionUser(
+        command, promotionUserUuid);
 
     // then
     assertThat(result.promotionUserUuid()).isEqualTo(promotionUserUuid);
     assertThat(result.userId()).isEqualTo(userId);
+    assertThat(result.promotionUuid()).isEqualTo(promotionUuid);
 
     verify(promotionUserRepository).findByPromotionUserUuidAndDeletedAtIsNull(promotionUserUuid);
   }
@@ -86,8 +90,9 @@ class PromotionUserServiceImplTest {
   @Test
   void update_promotion_user_invalid_uuid_exception() {
     // given
+    String promotionUuid = UUID.randomUUID().toString();
     String promotionUserUuid = UUID.randomUUID().toString();
-    UpdatePromotionUserCommand command = new UpdatePromotionUserCommand(1L);
+    UpdatePromotionUserCommand command = new UpdatePromotionUserCommand(1L,promotionUuid);
 
     when(promotionUserRepository.findByPromotionUserUuidAndDeletedAtIsNull(promotionUserUuid))
         .thenReturn(Optional.empty());

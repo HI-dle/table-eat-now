@@ -8,9 +8,11 @@ import table.eat.now.promotion.promotionUser.application.dto.request.CreatePromo
  * @Date : 2025. 04. 08.
  */
 public record CreatePromotionUserRequest(@NotNull
-                                         Long userId) {
+                                         Long userId,
+                                         @NotNull
+                                         String promotionUuid) {
 
   public CreatePromotionUserCommand toApplication() {
-    return new CreatePromotionUserCommand(userId);
+    return new CreatePromotionUserCommand(userId, promotionUuid);
   }
 }

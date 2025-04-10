@@ -31,7 +31,7 @@ public class PromotionUserServiceImpl implements PromotionUserService{
   public UpdatePromotionUserInfo updatePromotionUser(UpdatePromotionUserCommand command,
       String promotionUserUuid) {
     PromotionUser promotionUser = findByPromotionUser(promotionUserUuid);
-    promotionUser.modifyPromotionUser(command.userId());
+    promotionUser.modifyPromotionUser(command.userId(), command.promotionUuid());
     return UpdatePromotionUserInfo.from(promotionUser);
   }
 

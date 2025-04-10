@@ -29,18 +29,23 @@ public class PromotionUser extends BaseEntity {
   @Column(nullable = false, unique = true, length = 100, name = "promotion_user_uuid")
   private String promotionUserUuid;
 
+  @Column(nullable = false, columnDefinition = "VARCHAR(100)")
+  private String promotionUuid;
+
   @Column(nullable = false)
   private Long userId;
 
 
-  private PromotionUser(Long userId) {
+  private PromotionUser(Long userId, String promotionUuid) {
     this.promotionUserUuid = UUID.randomUUID().toString();
     this.userId = userId;
+    this.promotionUuid = promotionUuid;
   }
-  public static PromotionUser of(Long userId) {
-    return new PromotionUser(userId);
+  public static PromotionUser of(Long userId, String promotionUuid) {
+    return new PromotionUser(userId, promotionUuid);
   }
-  public void modifyPromotionUser(Long userId) {
+  public void modifyPromotionUser(Long userId, String promotionUuid) {
     this.userId = userId;
+    this.promotionUuid = promotionUuid;
   }
 }

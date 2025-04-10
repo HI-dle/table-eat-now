@@ -9,12 +9,14 @@ import table.eat.now.promotion.promotionUser.domain.entity.PromotionUser;
  */
 @Builder
 public record CreatePromotionUserInfo(String promotionUserUuid,
-                                      Long userId) {
+                                      Long userId,
+                                      String promotionUuid) {
 
   public static CreatePromotionUserInfo from(PromotionUser promotionUser) {
     return CreatePromotionUserInfo.builder()
         .promotionUserUuid(promotionUser.getPromotionUserUuid())
         .userId(promotionUser.getUserId())
+        .promotionUuid(promotionUser.getPromotionUuid())
         .build();
   }
 }

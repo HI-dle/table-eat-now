@@ -2,10 +2,8 @@ package table.eat.now.promotion.promotionUser.presentation;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
@@ -23,11 +21,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.promotion.promotionUser.application.dto.response.CreatePromotionUserInfo;
-import table.eat.now.promotion.promotionUser.application.dto.response.UpdatePromotionUserInfo;
 import table.eat.now.promotion.promotionUser.application.service.PromotionUserService;
 import table.eat.now.promotion.promotionUser.domain.entity.PromotionUser;
 import table.eat.now.promotion.promotionUser.presentation.dto.request.CreatePromotionUserRequest;
-import table.eat.now.promotion.promotionUser.presentation.dto.request.UpdatePromotionUserRequest;
 
 /**
  * @author : hanjihoon
@@ -51,7 +47,8 @@ class PromotionUserControllerTest {
   @Test
   void promotion_user_create_test() throws Exception {
     // given
-    CreatePromotionUserRequest request = new CreatePromotionUserRequest(1L);
+    String promotionUuid = UUID.randomUUID().toString();
+    CreatePromotionUserRequest request = new CreatePromotionUserRequest(1L,promotionUuid);
 
     PromotionUser entity = request.toApplication().toEntity();
 

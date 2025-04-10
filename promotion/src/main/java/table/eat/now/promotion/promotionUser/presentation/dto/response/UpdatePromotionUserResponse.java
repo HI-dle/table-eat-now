@@ -9,12 +9,14 @@ import table.eat.now.promotion.promotionUser.application.dto.response.UpdateProm
  */
 @Builder
 public record UpdatePromotionUserResponse(String promotionUserUuid,
-                                          Long userId) {
+                                          Long userId,
+                                          String promotionUuid) {
 
   public static UpdatePromotionUserResponse from(UpdatePromotionUserInfo info) {
     return UpdatePromotionUserResponse.builder()
         .promotionUserUuid(info.promotionUserUuid())
         .userId(info.userId())
+        .promotionUuid(info.promotionUuid())
         .build();
   }
 
