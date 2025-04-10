@@ -39,7 +39,7 @@ public class NoDuplicateWithStockStrategy implements CouponIssueStrategy {
 
   private void checkStockAndDecrease(String couponUuid) {
     Long remainder = couponRepository.decreaseCouponCount(couponUuid);
-    boolean result = remainder !=null && remainder > 0;
+    boolean result = remainder !=null && remainder >= 0;
     if (!result) {
       throw CustomException.from(CouponErrorCode.INSUFFICIENT_STOCK);
     }

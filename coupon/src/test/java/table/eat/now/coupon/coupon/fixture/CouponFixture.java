@@ -18,21 +18,21 @@ public class CouponFixture {
 
     return IntStream.range(0, i)
         .mapToObj(j -> CouponFixture.createCoupon(
-            j, "FIXED_DISCOUNT", false,
+            j, "FIXED_DISCOUNT", 1000 * i ,false,
             1000, null, null)
         )
         .toList();
   }
 
   public static Coupon createCoupon(
-      int i, String type, boolean allowDuplicate,
+      int i, String type, Integer count, boolean allowDuplicate,
       Integer amount, Integer percent, Integer maxDiscountAmount
   ) {
 
     Coupon coupon = Coupon.of("test 쿠폰 " + i, CouponType.valueOf(type),
         LocalDateTime.now().plusDays(2+i).truncatedTo(ChronoUnit.DAYS),
         LocalDateTime.now().plusDays(12+i).truncatedTo(ChronoUnit.DAYS),
-        10000 * i, allowDuplicate);
+        count, allowDuplicate);
     DiscountPolicy policy = DiscountPolicy.of(
         10000, amount, percent, maxDiscountAmount);
     coupon.registerPolicy(policy);
