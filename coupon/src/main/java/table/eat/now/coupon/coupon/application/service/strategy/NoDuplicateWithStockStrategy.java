@@ -22,8 +22,8 @@ public class NoDuplicateWithStockStrategy implements CouponIssueStrategy {
   @Override
   public void issue(String couponUuid, Long userId) {
     checkAlreadyIssued(couponUuid, userId);
-    checkStockAndDecrease(couponUuid);
     try {
+      checkStockAndDecrease(couponUuid);
       markAsIssued(couponUuid, userId);
     } catch (CustomException e) {
       rollbackStock(couponUuid);

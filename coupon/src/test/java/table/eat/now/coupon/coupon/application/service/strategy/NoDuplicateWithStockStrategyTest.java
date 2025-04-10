@@ -95,7 +95,7 @@ class NoDuplicateWithStockStrategyTest extends IntegrationTestSupport {
   @Test
   void issueFailedThenRollback() throws InterruptedException {
     // given
-    int threadCount = 2;
+    int threadCount = 10;
     ExecutorService executorService = Executors.newFixedThreadPool(32);
     CountDownLatch latch = new CountDownLatch(threadCount);
 
