@@ -73,13 +73,13 @@ public class PromotionRestaurantAdminController {
                 request.toApplication())));
   }
 
-  @DeleteMapping("/{promotionUuid}")
+  @DeleteMapping("/{restaurantUuid}")
   @AuthCheck(roles = UserRole.MASTER)
   public ResponseEntity<Void> deletePromotionRestaurant(
-      @PathVariable("promotionUuid") String promotionUuid,
+      @PathVariable("restaurantUuid") String restaurantUuid,
       @CurrentUserInfo CurrentUserInfoDto userInfoDto
   ) {
-    promotionRestaurantService.deletePromotionRestaurant(promotionUuid, userInfoDto);
+    promotionRestaurantService.deletePromotionRestaurant(restaurantUuid, userInfoDto);
     return ResponseEntity.noContent().build();
   }
 }

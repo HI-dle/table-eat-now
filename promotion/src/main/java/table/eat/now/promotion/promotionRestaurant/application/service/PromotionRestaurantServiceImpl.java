@@ -57,16 +57,22 @@ public class PromotionRestaurantServiceImpl implements PromotionRestaurantServic
 
   @Override
   @Transactional
-  public void deletePromotionRestaurant(String promotionUuid, CurrentUserInfoDto userInfoDto) {
-    PromotionRestaurant promotionRestaurant = findByPromotionRestaurant(promotionUuid);
+  public void deletePromotionRestaurant(String restaurantUuid, CurrentUserInfoDto userInfoDto) {
+    PromotionRestaurant promotionRestaurant =
+        findByPromotionRestaurantFromRestaurantId(restaurantUuid);
     promotionRestaurant.delete(userInfoDto.userId());
     log.info("삭제가 완료 되었습니다. 삭제한 userId: {}", promotionRestaurant);
   }
 
-  public PromotionRestaurant findByPromotionRestaurant(String promotionRestaurantUuid) {
+  private PromotionRestaurant findByPromotionRestaurant(String promotionRestaurantUuid) {
     return promotionRestaurantRepository.findByPromotionRestaurantUuidAndDeletedAtIsNull(
         promotionRestaurantUuid).orElseThrow(() ->
         CustomException.from(PromotionRestaurantErrorCode.INVALID_PROMOTION_RESTAURANT_UUID));
+  }
+  private PromotionRestaurant findByPromotionRestaurantFromRestaurantId(String restaurantUuid) {
+    return promotionRestaurantRepository.findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid)
+        .orElseThrow(() ->
+            CustomException.from(PromotionRestaurantErrorCode.INVALID_PROMOTION_RESTAURANT_UUID));
   }
 
 

@@ -14,9 +14,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.promotion.promotionRestaurant.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.excepton.PromotionRestaurantErrorCode;
 import table.eat.now.promotion.promotionRestaurant.application.dto.request.CreatePromotionRestaurantCommand;
@@ -177,5 +180,49 @@ class PromotionRestaurantServiceImplTest {
 
     verify(promotionRestaurantRepository).searchPromotionRestaurant(command.toCriteria());
   }
+
+  @DisplayName("restaurantUuid로 프로모션에 참여한 레스토랑을 삭제한다.")
+  @Test
+  void delete_promotion_restaurant_success() {
+    // given
+    String restaurantUuid = UUID.randomUUID().toString();
+    Long deleterUserId = 1L;
+    var currentUserInfo = new CurrentUserInfoDto(deleterUserId, UserRole.MASTER);
+
+    PromotionRestaurant promotionRestaurant = Mockito.mock(PromotionRestaurant.class);
+
+    when(promotionRestaurantRepository.findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid))
+        .thenReturn(Optional.of(promotionRestaurant));
+
+    // when
+    promotionRestaurantService.deletePromotionRestaurant(restaurantUuid, currentUserInfo);
+
+    // then
+    verify(promotionRestaurantRepository)
+        .findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid);
+    verify(promotionRestaurant).delete(deleterUserId);
+  }
+
+  @DisplayName("존재하지 않는 restaurantUuid로 프로모션에 참여한 레스토랑 삭제 시 예외가 발생한다.")
+  @Test
+  void delete_promotion_restaurant_invalid_uuid_exception() {
+    // given
+    String restaurantUuid = UUID.randomUUID().toString();
+    CurrentUserInfoDto currentUserInfo = new CurrentUserInfoDto(1L, UserRole.MASTER);
+
+    when(promotionRestaurantRepository.findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid))
+        .thenReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() ->
+        promotionRestaurantService.deletePromotionRestaurant(restaurantUuid, currentUserInfo)
+    ).isInstanceOf(CustomException.class)
+        .hasMessage(PromotionRestaurantErrorCode.INVALID_PROMOTION_RESTAURANT_UUID.getMessage());
+
+    verify(promotionRestaurantRepository)
+        .findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid);
+  }
+
+
 
 }

@@ -23,5 +23,5 @@ public interface PromotionRestaurantService {
   PaginatedResultCommand<SearchPromotionRestaurantInfo> searchPromotionRestaurant(
       SearchPromotionRestaurantCommand info);
 
-  void deletePromotionRestaurant(String promotionUuid, CurrentUserInfoDto userInfoDto);
+  void deletePromotionRestaurant(String restaurantUuid, CurrentUserInfoDto userInfoDto);
 }

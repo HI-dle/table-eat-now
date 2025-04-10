@@ -184,18 +184,18 @@ class PromotionRestaurantAdminControllerTest {
         .andDo(print());
   }
 
-  @DisplayName("promotionUuid로 프로모션-레스토랑을 삭제한다.")
+  @DisplayName("restaurantUuid로 참여된 프로모션-레스토랑을 삭제한다.")
   @Test
-  void promotion_uuid_delete_promotion_restaurant_controller_test() throws Exception {
+  void restaurant_uuid_delete_promotion_restaurant_controller_test() throws Exception {
     // given
-    String promotionUuid = UUID.randomUUID().toString();
+    String restaurantUuid = UUID.randomUUID().toString();
 
     willDoNothing().given(promotionRestaurantService)
-        .deletePromotionRestaurant(eq(promotionUuid), any(CurrentUserInfoDto.class));
+        .deletePromotionRestaurant(eq(restaurantUuid), any(CurrentUserInfoDto.class));
 
     // when
     ResultActions resultActions = mockMvc.perform(delete(
-        "/admin/v1/promotion-restaurants/{promotionUuid}", promotionUuid)
+        "/admin/v1/promotion-restaurants/{restaurantUuid}", restaurantUuid)
         .header("Authorization", "Bearer {ACCESS_TOKEN}")
         .header(USER_ID_HEADER, "1")
         .header(USER_ROLE_HEADER, "MASTER"));
@@ -204,7 +204,7 @@ class PromotionRestaurantAdminControllerTest {
     resultActions.andExpect(status().isNoContent())
         .andDo(print());
 
-    verify(promotionRestaurantService).deletePromotionRestaurant(eq(promotionUuid), any());
+    verify(promotionRestaurantService).deletePromotionRestaurant(eq(restaurantUuid), any());
   }
 
 
