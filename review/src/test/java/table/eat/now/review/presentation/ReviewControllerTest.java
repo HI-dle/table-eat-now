@@ -39,9 +39,11 @@ import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.review.application.service.ReviewService;
 import table.eat.now.review.application.service.dto.request.CreateReviewCommand;
+import table.eat.now.review.application.service.dto.request.UpdateReviewCommand;
 import table.eat.now.review.application.service.dto.response.CreateReviewInfo;
 import table.eat.now.review.application.service.dto.response.GetReviewInfo;
 import table.eat.now.review.presentation.dto.request.CreateReviewRequest;
+import table.eat.now.review.presentation.dto.request.UpdateReviewRequest;
 
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
@@ -471,6 +473,184 @@ class ReviewControllerTest {
 			// then
 			actions.andExpect(status().isForbidden())
 					.andExpect(jsonPath("$.message").value("수정 요청에 대한 권한이 없습니다."));
+		}
+	}
+
+	@Nested
+	class 리뷰_내용_수정_요청시 {
+
+		private String restaurantId;
+		private String serviceId;
+		private String reviewId;
+		private CurrentUserInfoDto userInfo;
+		private CurrentUserInfoDto otherUserInfo;
+		private GetReviewInfo reviewInfo;
+		private UpdateReviewRequest request;
+
+		@BeforeEach
+		void setUp() {
+			restaurantId = UUID.randomUUID().toString();
+			serviceId = UUID.randomUUID().toString();
+			reviewId = UUID.randomUUID().toString();
+			userInfo = CurrentUserInfoDto.of(123L, UserRole.CUSTOMER);
+			otherUserInfo = CurrentUserInfoDto.of(456L, UserRole.CUSTOMER);
+			reviewInfo = GetReviewInfo.builder()
+					.reviewUuid(reviewId)
+					.customerId(userInfo.userId())
+					.restaurantId(restaurantId)
+					.serviceId(serviceId)
+					.serviceType("RESERVATION")
+					.rating(3)
+					.content("리뷰 수정합니다요")
+					.isVisible(true)
+					.createdAt(LocalDateTime.now())
+					.updatedAt(LocalDateTime.now())
+					.build();
+
+			request = new UpdateReviewRequest("리뷰 수정합니다요", 3);
+		}
+
+		@Test
+		void 유효한_요청으로_리뷰를_수정하면_200_상태_코드와_수정된_리뷰_정보를_반환한다() throws Exception {
+			// given
+			when(reviewService.updateReview(reviewId, request.toCommand(userInfo)))
+					.thenReturn(reviewInfo);
+
+			// when
+			ResultActions actions = mockMvc.perform(patch("/api/v1/reviews/{reviewId}", reviewId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(objectMapper.writeValueAsString(request))
+					.header(USER_ID_HEADER, userInfo.userId())
+					.header(USER_ROLE_HEADER, userInfo.role()));
+
+			// then
+			actions.andExpect(status().isOk())
+					.andExpect(jsonPath("$.reviewUuid").value(reviewId))
+					.andExpect(jsonPath("$.customerId").value(userInfo.userId()))
+					.andExpect(jsonPath("$.restaurantId").value(restaurantId))
+					.andExpect(jsonPath("$.serviceId").value(serviceId))
+					.andExpect(jsonPath("$.serviceType").value("RESERVATION"))
+					.andExpect(jsonPath("$.rating").value(3))
+					.andExpect(jsonPath("$.content").value("리뷰 수정합니다요"))
+					.andExpect(jsonPath("$.isVisible").value(true))
+			;
+
+			verify(reviewService).updateReview(reviewId, request.toCommand(userInfo));
+		}
+
+		@Test
+		void 존재하지_않는_리뷰를_업데이트하려고_하면_404_상태코드와_메시지를_반환한다() throws Exception {
+			// given
+			when(reviewService.updateReview(reviewId, request.toCommand(userInfo)))
+					.thenThrow(CustomException.from(REVIEW_NOT_FOUND));
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					patch("/api/v1/reviews/{reviewId}", reviewId)
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(request))
+							.header(USER_ID_HEADER, userInfo.userId())
+							.header(USER_ROLE_HEADER, userInfo.role())
+			);
+
+			// then
+			actions.andExpect(status().isNotFound())
+					.andExpect(jsonPath("$.message").value("해당 리뷰를 찾을 수 없습니다."));
+		}
+
+		@Test
+		void 권한이_없는_리뷰를_업데이트하려고_하면_403_상태코드와_메시지를_반환한다() throws Exception {
+			// given
+			when(reviewService.updateReview(anyString(), any(UpdateReviewCommand.class)))
+					.thenThrow(CustomException.from(MODIFY_PERMISSION_DENIED));
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					patch("/api/v1/reviews/{reviewId}", reviewId)
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(request))
+							.header(USER_ID_HEADER, otherUserInfo.userId())
+							.header(USER_ROLE_HEADER, otherUserInfo.role())
+			);
+
+			// then
+			actions.andExpect(status().isForbidden())
+					.andExpect(jsonPath("$.message").value("수정 요청에 대한 권한이 없습니다."));
+		}
+
+		@Test
+		void 작성자가_아닌_일반유저가_업데이트하려고_하면_400_상태코드와_메시지를_반환한다() throws Exception {
+			// given
+			when(reviewService.updateReview(anyString(), any(UpdateReviewCommand.class)))
+					.thenThrow(new IllegalArgumentException("이 작업에 대한 권한은 작성자에게만 있습니다."));
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					patch("/api/v1/reviews/{reviewId}", reviewId)
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(request))
+							.header(USER_ID_HEADER, otherUserInfo.userId())
+							.header(USER_ROLE_HEADER, otherUserInfo.role())
+			);
+
+			// then
+			actions.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.message").value("이 작업에 대한 권한은 작성자에게만 있습니다."));
+		}
+
+		@Test
+		void 리뷰_내용이_비어_있으면_400_상태코드를_반환한다() throws Exception {
+			// given
+			UpdateReviewRequest invalidRequest = new UpdateReviewRequest("", 5);
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					patch("/api/v1/reviews/{reviewId}", reviewId)
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(invalidRequest))
+							.header(USER_ID_HEADER, userInfo.userId())
+							.header(USER_ROLE_HEADER, userInfo.role())
+			);
+
+			// then
+			actions.andExpect(status().isBadRequest());
+		}
+
+		@Test
+		void 평점이_범위를_벗어나면_400_상태코드를_반환한다() throws Exception {
+			// given
+			UpdateReviewRequest invalidRequest = new UpdateReviewRequest("수정된 리뷰 내용입니다.", 6);
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					patch("/api/v1/reviews/{reviewId}", reviewId)
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(invalidRequest))
+							.header(USER_ID_HEADER, userInfo.userId())
+							.header(USER_ROLE_HEADER, userInfo.role())
+			);
+
+			// then
+			actions.andExpect(status().isBadRequest());
+		}
+
+		@Test
+		void 필수_값이_null이면_400_상태_코드를_반환한다() throws Exception {
+			// given
+			UpdateReviewRequest invalidRequest =
+					new UpdateReviewRequest("수정된 리뷰 내용입니다.", null);
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					patch("/api/v1/reviews/{reviewId}", reviewId)
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(objectMapper.writeValueAsString(invalidRequest))
+							.header(USER_ID_HEADER, userInfo.userId())
+							.header(USER_ROLE_HEADER, userInfo.role())
+			);
+
+			// then
+			actions.andExpect(status().isBadRequest());
 		}
 	}
 }

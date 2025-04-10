@@ -273,8 +273,6 @@ class ReviewTest {
 
 		private Long ownerId;
 		private Long otherUserId;
-		private String restaurantId;
-		private String serviceId;
 		private String role;
 		private Review review;
 		private String newContent;
@@ -285,10 +283,10 @@ class ReviewTest {
 		void setUp() {
 			ownerId = 123L;
 			otherUserId = 456L;
-			serviceId = "RESERVATION";
 			role = "CUSTOMER";
-			restaurantId = UUID.randomUUID().toString();
-			serviceId = UUID.randomUUID().toString();
+			String restaurantId = UUID.randomUUID().toString();
+			String serviceId = UUID.randomUUID().toString();
+
 			CreateReviewCommand command = new CreateReviewCommand(
 					restaurantId, serviceId, ownerId, "RESERVATION",
 					"맛있는 식당이었습니다.", 4,
@@ -304,8 +302,11 @@ class ReviewTest {
 
 		@Test
 		void 본인의_리뷰를_수정할_수_있다() {
+			// given
+			UpdateContent updateContent = new UpdateContent(newReviewContent, ownerId, role);
+
 			// when
-			review.update(newReviewContent, ownerId, role);
+			review.update(updateContent);
 
 			// then
 			assertThat(review.getContent()).isEqualTo(newReviewContent);
@@ -315,9 +316,12 @@ class ReviewTest {
 
 		@Test
 		void 일반_유저인_경우_본인의_리뷰가_아니면_IllegalArgumentException_을_던진다() {
+			// given
+			UpdateContent updateContent = new UpdateContent(newReviewContent, otherUserId, role);
+
 			// when & then
 			IllegalArgumentException exception = assertThrows(
-					IllegalArgumentException.class, () -> review.update(newReviewContent, otherUserId, role));
+					IllegalArgumentException.class, () -> review.update(updateContent));
 			assertThat(exception.getMessage()).contains("이 작업에 대한 권한은 작성자에게만 있습니다.");
 		}
 	}

@@ -24,6 +24,7 @@ import table.eat.now.review.application.client.ReservationClient;
 import table.eat.now.review.application.client.RestaurantClient;
 import table.eat.now.review.application.client.WaitingClient;
 import table.eat.now.review.application.service.dto.request.CreateReviewCommand;
+import table.eat.now.review.application.service.dto.request.UpdateReviewCommand;
 import table.eat.now.review.application.service.dto.response.CreateReviewInfo;
 import table.eat.now.review.application.service.dto.response.GetRestaurantStaffInfo;
 import table.eat.now.review.application.service.dto.response.GetReviewInfo;
@@ -556,6 +557,155 @@ class ReviewServiceImplTest {
 					reviewService.showReview(reviewId, customerInfo));
 
 			assertThat(exception.getMessage()).contains("관리자가 숨긴 리뷰는 일반 사용자가 공개할 수 없습니다");
+		}
+	}
+
+	@Nested
+	class updateReview_는 {
+
+		private String reviewId;
+		private String restaurantId;
+		private String serviceId;
+		private Long customerId;
+		private Long otherUserId;
+		private Long staffId;
+		private Long ownerId;
+		private CurrentUserInfoDto customerInfo;
+		private CurrentUserInfoDto otherUserInfo;
+		private CurrentUserInfoDto staffInfo;
+		private CurrentUserInfoDto ownerInfo;
+		private CurrentUserInfoDto masterInfo;
+		private UpdateReviewCommand updateCommand;
+
+		@BeforeEach
+		void setUp() {
+			serviceId = UUID.randomUUID().toString();
+			customerId = 123L;
+			otherUserId = 456L;
+			reviewId = UUID.randomUUID().toString();
+			restaurantId = UUID.randomUUID().toString();
+			staffId = 789L;
+			ownerId = 999L;
+
+			customerInfo = new CurrentUserInfoDto(customerId, CUSTOMER);
+			otherUserInfo = new CurrentUserInfoDto(otherUserId, CUSTOMER);
+			staffInfo = new CurrentUserInfoDto(staffId, STAFF);
+			ownerInfo = new CurrentUserInfoDto(ownerId, OWNER);
+			masterInfo = new CurrentUserInfoDto(otherUserId, MASTER);
+
+			updateCommand = new UpdateReviewCommand("수정된 리뷰 내용입니다.", 5, customerInfo);
+
+			CreateReviewCommand command = new CreateReviewCommand(
+					restaurantId, serviceId, customerId, "RESERVATION",
+					"맛있는 식당이었습니다.", 4, true, CUSTOMER
+			);
+
+			Review review = reviewRepository.save(command.toEntity());
+			reviewId = review.getReviewId();
+		}
+
+		@Test
+		void 작성자가_요청시_자신의_리뷰를_수정할_수_있다() {
+			// when
+			GetReviewInfo result = reviewService.updateReview(reviewId, updateCommand);
+
+			// then
+			assertThat(result).isNotNull();
+			assertThat(result.reviewUuid()).isEqualTo(reviewId);
+			assertThat(result.content()).isEqualTo("수정된 리뷰 내용입니다.");
+			assertThat(result.rating()).isEqualTo(5);
+		}
+
+		@Test
+		void 다른_일반_사용자가_요청시_예외를_발생시킨다() {
+			// given
+			UpdateReviewCommand otherUserCommand = new UpdateReviewCommand(
+					"다른 사용자가 수정한 내용", 3, otherUserInfo);
+
+			// when & then
+			IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+					reviewService.updateReview(reviewId, otherUserCommand));
+
+			assertThat(exception.getMessage()).contains("이 작업에 대한 권한은 작성자에게만 있습니다.");
+		}
+
+		@Test
+		void 레스토랑_직원이_요청시_리뷰를_수정할_수_있다() {
+			// given
+			UpdateReviewCommand staffCommand = new UpdateReviewCommand(
+					"직원이 수정한 내용", 3, staffInfo);
+			GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
+			when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+
+			// when
+			GetReviewInfo result = reviewService.updateReview(reviewId, staffCommand);
+			// then
+			assertThat(result).isNotNull();
+			assertThat(result.reviewUuid()).isEqualTo(reviewId);
+			assertThat(result.content()).isEqualTo("직원이 수정한 내용");
+			assertThat(result.rating()).isEqualTo(3);
+		}
+
+		@Test
+		void 레스토랑_주인이_요청시_리뷰를_수정할_수_있다() {
+			// given
+			UpdateReviewCommand staffCommand = new UpdateReviewCommand(
+					"주인이 수정한 내용", 3, ownerInfo);
+			GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
+			when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+
+			// when
+			GetReviewInfo result = reviewService.updateReview(reviewId, staffCommand);
+			// then
+			assertThat(result).isNotNull();
+			assertThat(result.reviewUuid()).isEqualTo(reviewId);
+			assertThat(result.content()).isEqualTo("주인이 수정한 내용");
+			assertThat(result.rating()).isEqualTo(3);
+		}
+
+		@Test
+		void 관리자는_리뷰를_수정할_수_있다() {
+			// given
+			UpdateReviewCommand masterCommand = new UpdateReviewCommand(
+					"관리자가 수정한 내용", 2, masterInfo);
+
+			// when
+			GetReviewInfo result = reviewService.updateReview(reviewId, masterCommand);
+
+			// then
+			assertThat(result).isNotNull();
+			assertThat(result.reviewUuid()).isEqualTo(reviewId);
+			assertThat(result.content()).isEqualTo("관리자가 수정한 내용");
+			assertThat(result.rating()).isEqualTo(2);
+		}
+
+		@Test
+		void 존재하지_않는_리뷰를_수정하려고_하면_예외를_발생시킨다() {
+			// given
+			String nonExistentReviewId = UUID.randomUUID().toString();
+
+			// when & then
+			CustomException exception = assertThrows(CustomException.class, () ->
+					reviewService.updateReview(nonExistentReviewId, updateCommand));
+
+			assertThat(exception.getMessage()).isEqualTo("해당 리뷰를 찾을 수 없습니다.");
+		}
+
+		@Test
+		void 리뷰_내용과_평점을_모두_수정할_수_있다() {
+			// given
+			String newContent = "완전히 다른 내용으로 수정합니다.";
+			int newRating = 1;
+			UpdateReviewCommand fullUpdateCommand = new UpdateReviewCommand(
+					newContent, newRating, customerInfo);
+
+			// when
+			GetReviewInfo result = reviewService.updateReview(reviewId, fullUpdateCommand);
+
+			// then
+			assertThat(result).isNotNull();
+			assertThat(result.content()).isEqualTo(newContent);
+			assertThat(result.rating()).isEqualTo(newRating);
 		}
 	}
 }
