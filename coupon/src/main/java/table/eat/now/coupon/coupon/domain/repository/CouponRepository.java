@@ -35,4 +35,6 @@ public interface CouponRepository {
   boolean markAsIssued(String couponUuid, Long userId);
 
   Long increaseCouponCount(String couponUuid);
+
+  Integer getCouponCount(String couponUuid);
 }

@@ -15,4 +15,6 @@ public interface RedisCouponRepository {
   boolean markAsIssued(String couponUuid, Long userId);
 
   Long increaseCouponCount(String couponUuid);
+
+  Integer getCouponCount(String couponUuid);
 }

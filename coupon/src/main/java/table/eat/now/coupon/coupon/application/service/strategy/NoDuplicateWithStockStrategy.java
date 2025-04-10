@@ -27,6 +27,7 @@ public class NoDuplicateWithStockStrategy implements CouponIssueStrategy {
       markAsIssued(couponUuid, userId);
     } catch (CustomException e) {
       rollbackStock(couponUuid);
+      throw e;
     }
   }
 

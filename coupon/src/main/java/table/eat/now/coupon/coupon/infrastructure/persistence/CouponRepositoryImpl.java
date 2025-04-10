@@ -81,4 +81,9 @@ public class CouponRepositoryImpl implements CouponRepository {
   public Long increaseCouponCount(String couponUuid) {
     return redisRepository.increaseCouponCount(couponUuid);
   }
+
+  @Override
+  public Integer getCouponCount(String couponUuid) {
+    return redisRepository.getCouponCount(couponUuid);
+  }
 }

@@ -44,4 +44,9 @@ public class RedisCouponRepositoryImpl implements RedisCouponRepository {
   public Long increaseCouponCount(String couponUuid) {
     return redisTemplate.opsForValue().increment(COUNT_PREFIX + couponUuid);
   }
+
+  @Override
+  public Integer getCouponCount(String couponUuid) {
+    return (Integer) redisTemplate.opsForValue().get(COUNT_PREFIX + couponUuid);
+  }
 }
