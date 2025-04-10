@@ -1,5 +1,6 @@
 package table.eat.now.common.exception;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -94,6 +95,15 @@ public class GlobalErrorHandler {
       HttpServletRequest request) {
 
     HttpStatus status = INTERNAL_SERVER_ERROR;
+    log(e, request, status);
+    return ResponseEntity.status(status).body(ErrorResponse.from(e));
+  }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e,
+      HttpServletRequest request){
+
+    HttpStatus status = BAD_REQUEST;
     log(e, request, status);
     return ResponseEntity.status(status).body(ErrorResponse.from(e));
   }

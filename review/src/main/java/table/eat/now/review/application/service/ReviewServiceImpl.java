@@ -19,6 +19,7 @@ import table.eat.now.review.application.client.ReservationClient;
 import table.eat.now.review.application.client.RestaurantClient;
 import table.eat.now.review.application.client.WaitingClient;
 import table.eat.now.review.application.service.dto.request.CreateReviewCommand;
+import table.eat.now.review.application.service.dto.request.UpdateReviewCommand;
 import table.eat.now.review.application.service.dto.response.CreateReviewInfo;
 import table.eat.now.review.application.service.dto.response.GetRestaurantStaffInfo;
 import table.eat.now.review.application.service.dto.response.GetReviewInfo;
@@ -107,7 +108,7 @@ public class ReviewServiceImpl implements ReviewService {
 
 	private boolean isAdmin(CurrentUserInfoDto userInfo, Review review) {
 		return isRestaurantStaff(review, userInfo.userId(), userInfo.role())
-				|| !userInfo.role().equals(MASTER);
+				|| userInfo.role().equals(MASTER);
 	}
 
 	@Override
@@ -116,5 +117,13 @@ public class ReviewServiceImpl implements ReviewService {
 		Review review = findReview(reviewId);
 		validateModify(userInfo, review);
 		return GetReviewInfo.from(review.show(userInfo.userId(), userInfo.role().name()));
+	}
+
+	@Override
+	@Transactional
+	public GetReviewInfo updateReview(String reviewId, UpdateReviewCommand command) {
+		Review review = findReview(reviewId);
+		validateModify(command.userInfo(), review);
+		return GetReviewInfo.from(review.update(command.toEntity()));
 	}
 }

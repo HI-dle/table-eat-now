@@ -71,9 +71,9 @@ public class Review extends BaseEntity {
 		}
 	}
 
-	public Review update(ReviewContent content, Long userId, String userRole) {
-		validateCustomer(userId, userRole);
-		this.content = content;
+	public Review update(UpdateContent updateContent) {
+		validateCustomer(updateContent.userId(), updateContent.userRole());
+		this.content = updateContent.content();
 		return this;
 	}
 
