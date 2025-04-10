@@ -46,10 +46,10 @@ public class Review extends BaseEntity {
 	}
 
 	public boolean isAccessible(Long userId, String role) {
-		return this.visibility.isVisible() || isOwner(userId) || role.equals("MASTER");
+		return this.visibility.isVisible() || isWriter(userId) || role.equals("MASTER");
 	}
 
-	private boolean isOwner(Long userId) {
+	public boolean isWriter(Long userId) {
 		return this.reference.getCustomerId().equals(userId);
 	}
 
@@ -66,7 +66,7 @@ public class Review extends BaseEntity {
 	}
 
 	private void validateCustomer(Long userId, String userRole) {
-		if (userRole.equals("CUSTOMER") && !isOwner(userId)) {
+		if (userRole.equals("CUSTOMER") && !isWriter(userId)) {
 			throw new IllegalArgumentException("이 작업에 대한 권한은 작성자에게만 있습니다.");
 		}
 	}
