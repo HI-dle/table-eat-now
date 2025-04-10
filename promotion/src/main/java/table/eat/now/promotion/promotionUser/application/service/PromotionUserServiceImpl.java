@@ -2,10 +2,14 @@ package table.eat.now.promotion.promotionUser.application.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.promotion.promotionUser.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotionUser.application.dto.request.CreatePromotionUserCommand;
+import table.eat.now.promotion.promotionUser.application.dto.request.SearchPromotionUserCommand;
 import table.eat.now.promotion.promotionUser.application.dto.request.UpdatePromotionUserCommand;
 import table.eat.now.promotion.promotionUser.application.dto.response.CreatePromotionUserInfo;
+import table.eat.now.promotion.promotionUser.application.dto.response.SearchPromotionUserInfo;
 import table.eat.now.promotion.promotionUser.application.dto.response.UpdatePromotionUserInfo;
 import table.eat.now.promotion.promotionUser.application.exception.PromotionUserErrorCode;
 import table.eat.now.promotion.promotionUser.domain.entity.PromotionUser;
@@ -33,6 +37,14 @@ public class PromotionUserServiceImpl implements PromotionUserService{
     PromotionUser promotionUser = findByPromotionUser(promotionUserUuid);
     promotionUser.modifyPromotionUser(command.userId(), command.promotionUuid());
     return UpdatePromotionUserInfo.from(promotionUser);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PaginatedResultCommand<SearchPromotionUserInfo> searchPromotionUser(
+      SearchPromotionUserCommand command) {
+    return PaginatedResultCommand.from(
+        promotionUserRepository.searchPromotionUser(command.toCriteria()));
   }
 
   public PromotionUser findByPromotionUser(String promotionUserUuid) {
