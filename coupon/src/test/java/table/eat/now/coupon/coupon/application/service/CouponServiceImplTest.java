@@ -111,7 +111,7 @@ class CouponServiceImplTest {
         .build();
 
     // when
-    couponService.updateCoupon(UUID.fromString(coupons.get(0).getCouponUuid()), command);
+    couponService.updateCoupon(coupons.get(0).getCouponUuid(), command);
 
     // then
     Coupon updated = couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(coupons.get(0).getCouponUuid())
@@ -124,7 +124,7 @@ class CouponServiceImplTest {
   void getCoupon() {
     // given
     // when
-    GetCouponInfo couponInfo = couponService.getCoupon(UUID.fromString(coupons.get(0).getCouponUuid()));
+    GetCouponInfo couponInfo = couponService.getCoupon(coupons.get(0).getCouponUuid());
 
     // then
     assertThat(couponInfo.name()).isEqualTo(coupons.get(0).getName());
@@ -141,7 +141,7 @@ class CouponServiceImplTest {
     CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(1L, UserRole.MASTER);
 
     // when
-    couponService.deleteCoupon(userInfo, UUID.fromString(coupons.get(0).getCouponUuid()));
+    couponService.deleteCoupon(userInfo, coupons.get(0).getCouponUuid());
 
     // then
     assertThatThrownBy(() ->
@@ -162,7 +162,7 @@ class CouponServiceImplTest {
         .build();
 
     // when
-    PageResponse<SearchCouponInfo> coupons = couponService.getCoupons(pageable, query);
+    PageResponse<SearchCouponInfo> coupons = couponService.searchCoupons(pageable, query);
 
     // then
     assertThat(coupons.pageNumber()).isEqualTo(1);

@@ -54,10 +54,10 @@ class CouponInternalControllerTest {
   @Test
   void getCouponInternal() throws Exception {
     // given
-    UUID couponUuid = UUID.randomUUID();
+    String couponUuid = UUID.randomUUID().toString();
     GetCouponInfo couponInfo = GetCouponInfo.builder()
         .couponId(1L)
-        .couponUuid(couponUuid.toString())
+        .couponUuid(couponUuid)
         .name("test")
         .type("FIXED_DISCOUNT")
         .startAt(LocalDateTime.now().plusDays(1))
@@ -76,7 +76,7 @@ class CouponInternalControllerTest {
 
     // when
     ResultActions resultActions = mockMvc.perform(
-        get("/internal/v1/coupons/{couponUuid}", couponUuid.toString())
+        get("/internal/v1/coupons/{couponUuid}", couponUuid)
             .header("Authorization", "Bearer {ACCESS_TOKEN}")
             .header(USER_ID_HEADER, "1")
             .header(USER_ROLE_HEADER, "MASTER"));
@@ -84,7 +84,7 @@ class CouponInternalControllerTest {
     // then
     resultActions.andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.couponUuid").value(couponUuid.toString()))
+        .andExpect(jsonPath("$.couponUuid").value(couponUuid))
         .andExpect(jsonPath("$.type").value("FIXED_DISCOUNT"))
         .andDo(print());
   }
