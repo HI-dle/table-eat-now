@@ -1,7 +1,6 @@
 package table.eat.now.promotion.promotionUser.domain.repository.search;
 
 import lombok.Builder;
-import table.eat.now.promotion.promotionRestaurant.domain.entity.PromotionRestaurant;
 import table.eat.now.promotion.promotionUser.domain.entity.PromotionUser;
 
 

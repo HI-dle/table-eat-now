@@ -2,9 +2,6 @@ package table.eat.now.promotion.promotion.application.dto.request;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import table.eat.now.promotion.promotion.domain.entity.Promotion;
-import table.eat.now.promotion.promotion.domain.entity.PromotionStatus;
-import table.eat.now.promotion.promotion.domain.entity.PromotionType;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PromotionSearchCriteria;
 
 /**

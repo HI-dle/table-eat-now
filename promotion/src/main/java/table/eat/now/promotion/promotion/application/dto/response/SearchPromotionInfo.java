@@ -3,7 +3,6 @@ package table.eat.now.promotion.promotion.application.dto.response;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Builder;
-import table.eat.now.promotion.promotion.domain.entity.Promotion;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PromotionSearchCriteriaQuery;
 
 /**

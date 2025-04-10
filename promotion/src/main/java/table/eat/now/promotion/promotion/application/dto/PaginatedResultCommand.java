@@ -2,7 +2,6 @@ package table.eat.now.promotion.promotion.application.dto;
 
 import java.util.List;
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
-import table.eat.now.promotion.promotion.domain.entity.Promotion;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PaginatedResult;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PromotionSearchCriteriaQuery;
 

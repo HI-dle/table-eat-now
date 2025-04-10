@@ -1,7 +1,5 @@
 package table.eat.now.promotion.promotionUser.presentation.dto.request;
 
-import jakarta.validation.constraints.NotNull;
-import table.eat.now.promotion.promotionUser.application.dto.request.CreatePromotionUserCommand;
 import table.eat.now.promotion.promotionUser.application.dto.request.SearchPromotionUserCommand;
 
 /**

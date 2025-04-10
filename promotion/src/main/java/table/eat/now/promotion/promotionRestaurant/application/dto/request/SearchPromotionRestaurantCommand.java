@@ -1,6 +1,5 @@
 package table.eat.now.promotion.promotionRestaurant.application.dto.request;
 
-import table.eat.now.promotion.promotionRestaurant.domain.entity.PromotionRestaurant;
 import table.eat.now.promotion.promotionRestaurant.domain.repository.search.PromotionRestaurantSearchCriteria;
 
 /**
