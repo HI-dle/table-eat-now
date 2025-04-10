@@ -25,9 +25,11 @@ public class RestaurantClientImpl implements RestaurantClient {
   }
 
   @Override
-  public ModifyRestaurantCurTotalGuestCountInfo modifyRestaurantCurTotalGuestCount(int delta) {
+  public ModifyRestaurantCurTotalGuestCountInfo modifyRestaurantCurTotalGuestCount(
+      int delta, String restaurantTimeSlotUuid) {
     ModifyRestaurantCurTotalGuestCountResponse response =
-        restaurantFeignClient.modifyRestaurantCurTotalGuestCount(delta).getBody();
+        restaurantFeignClient
+            .modifyRestaurantCurTotalGuestCount(delta, restaurantTimeSlotUuid).getBody();
     return response.toInfo();
   }
 }
