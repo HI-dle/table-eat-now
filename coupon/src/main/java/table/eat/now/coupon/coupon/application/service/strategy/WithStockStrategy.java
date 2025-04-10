@@ -23,7 +23,8 @@ public class WithStockStrategy  implements CouponIssueStrategy {
   }
 
   private void checkStockAndDecrease(String couponUuid) {
-    boolean result = couponRepository.decreaseCouponCount(couponUuid);
+    Long remainder = couponRepository.decreaseCouponCount(couponUuid);
+    boolean result = remainder !=null && remainder > 0;
     if (!result) {
       throw CustomException.from(CouponErrorCode.INSUFFICIENT_STOCK);
     }

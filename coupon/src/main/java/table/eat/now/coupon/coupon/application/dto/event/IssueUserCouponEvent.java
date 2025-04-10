@@ -1,7 +1,6 @@
 package table.eat.now.coupon.coupon.application.dto.event;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 import lombok.Builder;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
@@ -15,11 +14,11 @@ public record IssueUserCouponEvent(
     LocalDateTime expiresAt
 ) {
 
-  public static IssueUserCouponEvent from(UUID userCouponUuid, CurrentUserInfoDto userInfoDto, Coupon coupon) {
+  public static IssueUserCouponEvent from(String userCouponUuid, CurrentUserInfoDto userInfoDto, Coupon coupon) {
     return IssueUserCouponEvent.builder()
         .userId(userInfoDto.userId())
         .couponUuid(coupon.getCouponUuid())
-        .userCouponUuid(userCouponUuid.toString())
+        .userCouponUuid(userCouponUuid)
         .name(coupon.getName())
         .expiresAt(coupon.getPeriod().getEndAt())
         .build();

@@ -30,5 +30,5 @@ public interface CouponService {
 
   PageResponse<AvailableCouponInfo> getAvailableCoupons(Pageable pageable, LocalDateTime time);
 
-  UUID requestCouponIssue(CurrentUserInfoDto userInfoDto, String couponUuid);
+  String requestCouponIssue(CurrentUserInfoDto userInfoDto, String couponUuid);
 }

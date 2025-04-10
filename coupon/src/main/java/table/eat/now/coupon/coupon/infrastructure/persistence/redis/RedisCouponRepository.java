@@ -8,11 +8,11 @@ public interface RedisCouponRepository {
 
   void setCouponSetWithTtl(String couponUuid, Duration ttl);
 
-  boolean decreaseCouponCount(String couponUuid);
+  Long decreaseCouponCount(String couponUuid);
 
   boolean isAlreadyIssued(String couponUuid, Long userId);
 
   boolean markAsIssued(String couponUuid, Long userId);
 
-  boolean increaseCouponCount(String couponUuid);
+  Long increaseCouponCount(String couponUuid);
 }

@@ -24,9 +24,8 @@ public class RedisCouponRepositoryImpl implements RedisCouponRepository {
   }
 
   @Override
-  public boolean decreaseCouponCount(String couponUuid) {
-    Long stock = redisTemplate.opsForValue().decrement(COUNT_PREFIX + couponUuid);
-    return stock != null && stock >= 0;
+  public Long decreaseCouponCount(String couponUuid) {
+    return redisTemplate.opsForValue().decrement(COUNT_PREFIX + couponUuid);
   }
 
   @Override
@@ -42,8 +41,7 @@ public class RedisCouponRepositoryImpl implements RedisCouponRepository {
   }
 
   @Override
-  public boolean increaseCouponCount(String couponUuid) {
-    Long stock = redisTemplate.opsForValue().increment(COUNT_PREFIX + couponUuid);
-    return stock != null;
+  public Long increaseCouponCount(String couponUuid) {
+    return redisTemplate.opsForValue().increment(COUNT_PREFIX + couponUuid);
   }
 }

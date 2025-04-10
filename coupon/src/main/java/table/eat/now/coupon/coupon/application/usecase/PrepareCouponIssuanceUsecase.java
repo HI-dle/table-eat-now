@@ -25,10 +25,10 @@ public class PrepareCouponIssuanceUsecase {
     }
   }
 
-  public void prepareCouponIssuance(Coupon coupon) {
+  private void prepareCouponIssuance(Coupon coupon) {
     Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getEndAt())
         .plusMinutes(10);
-    if (coupon.getCount() > 0) {
+    if (coupon.hasStockCount()) {
       couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
     }
     if (!coupon.getAllowDuplicate()) {

@@ -38,7 +38,8 @@ public class NoDuplicateWithStockStrategy implements CouponIssueStrategy {
   }
 
   private void checkStockAndDecrease(String couponUuid) {
-    boolean result = couponRepository.decreaseCouponCount(couponUuid);
+    Long remainder = couponRepository.decreaseCouponCount(couponUuid);
+    boolean result = remainder !=null && remainder > 0;
     if (!result) {
       throw CustomException.from(CouponErrorCode.INSUFFICIENT_STOCK);
     }
@@ -52,7 +53,8 @@ public class NoDuplicateWithStockStrategy implements CouponIssueStrategy {
   }
 
   private void rollbackStock(String couponUuid) {
-    boolean result = couponRepository.increaseCouponCount(couponUuid);
+    Long remainder = couponRepository.increaseCouponCount(couponUuid);
+    boolean result = remainder !=null;
     if (!result) {
       log.error("쿠폰 재고 수량 롤백 수행 실패::couponUuid:{}", couponUuid);
       throw CustomException.from(CouponErrorCode.FAILED_ROLLBACK_COUNT);

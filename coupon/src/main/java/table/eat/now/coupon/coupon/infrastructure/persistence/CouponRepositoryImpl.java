@@ -63,7 +63,7 @@ public class CouponRepositoryImpl implements CouponRepository {
   }
 
   @Override
-  public boolean decreaseCouponCount(String couponUuid) {
+  public Long decreaseCouponCount(String couponUuid) {
     return redisRepository.decreaseCouponCount(couponUuid);
   }
 
@@ -78,7 +78,7 @@ public class CouponRepositoryImpl implements CouponRepository {
   }
 
   @Override
-  public boolean increaseCouponCount(String couponUuid) {
+  public Long increaseCouponCount(String couponUuid) {
     return redisRepository.increaseCouponCount(couponUuid);
   }
 }

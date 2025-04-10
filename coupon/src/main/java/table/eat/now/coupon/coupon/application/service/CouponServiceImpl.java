@@ -94,7 +94,7 @@ public class CouponServiceImpl implements CouponService {
   }
 
   @Override
-  public UUID requestCouponIssue(CurrentUserInfoDto userInfoDto, String couponUuid) {
+  public String requestCouponIssue(CurrentUserInfoDto userInfoDto, String couponUuid) {
 
     Coupon coupon = findByCouponUuid(couponUuid);
     if (!coupon.getPeriod().isValidIssuePeriod()) {
@@ -106,7 +106,7 @@ public class CouponServiceImpl implements CouponService {
         .findAny()
         .ifPresent(strategy -> strategy.issue(couponUuid, userInfoDto.userId()));
 
-    UUID userCouponUuid = UUID.randomUUID();
+    String userCouponUuid = UUID.randomUUID().toString();
     eventPublisher.publishEvent(IssueUserCouponEvent.from(userCouponUuid, userInfoDto, coupon));
     return userCouponUuid;
   }
