@@ -4,11 +4,12 @@ import java.util.List;
 import table.eat.now.review.domain.repository.search.PaginatedResult;
 import table.eat.now.review.domain.repository.search.SearchReviewResult;
 
-public record PaginatedInfo<T>(List<T> content,
-															 int page,
-															 int size,
-															 Long totalElements,
-															 int totalPages) {
+public record PaginatedInfo<T>(
+		List<T> content,
+		int page,
+		int size,
+		Long totalElements,
+		int totalPages) {
 
 	public static PaginatedInfo<SearchReviewInfo> from(
 			PaginatedResult<SearchReviewResult> result) {
@@ -23,5 +24,4 @@ public record PaginatedInfo<T>(List<T> content,
 				result.totalPages()
 		);
 	}
-
 }

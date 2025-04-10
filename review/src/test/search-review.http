@@ -1,0 +1,143 @@
+
+### 1. 리뷰 생성 (사용자 1)
+POST localhost:8087/api/v1/reviews
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+{
+  "serviceType": "RESERVATION",
+  "restaurantId": "123e4567-e89b-12d3-a456-426614174000",
+  "serviceId": "123e4567-e89b-12d3-a456-426614174001",
+  "rating": 4,
+  "content": "음식이 맛있고 서비스가 좋았습니다. 특히 스테이크가 정말 맛있었어요!",
+  "isVisible": true
+}
+
+> {%
+  client.global.set("reviewId1", response.body.reviewUuid)
+%}
+
+### 2. 비공개 리뷰 생성 (사용자 1)
+POST localhost:8087/api/v1/reviews
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+{
+  "serviceType": "RESERVATION",
+  "restaurantId": "123e4567-e89b-12d3-a456-426614174000",
+  "serviceId": "123e4567-e89b-12d3-a456-426614174002",
+  "rating": 2,
+  "content": "아쉬운 점이 많았습니다. 다음에는 개선되길 바랍니다.",
+  "isVisible": false
+}
+
+> {%
+  client.global.set("reviewId2", response.body.reviewUuid)
+%}
+
+### 3. 다른 사용자의 리뷰 생성 (사용자 2)
+POST localhost:8087/api/v1/reviews
+Content-Type: application/json
+X-User-Id: 2
+X-User-Role: CUSTOMER
+
+{
+  "serviceType": "WAITING",
+  "restaurantId": "123e4567-e89b-12d3-a456-426614174000",
+  "serviceId": "123e4567-e89b-12d3-a456-426614174003",
+  "rating": 5,
+  "content": "최고의 레스토랑입니다! 다음에도 꼭 방문할게요.",
+  "isVisible": true
+}
+
+> {%
+  client.global.set("reviewId3", response.body.reviewUuid)
+%}
+
+### 4. 다른 사용자의 비공개 리뷰 생성 (사용자 2)
+POST localhost:8087/api/v1/reviews
+Content-Type: application/json
+X-User-Id: 2
+X-User-Role: CUSTOMER
+
+{
+  "serviceType": "WAITING",
+  "restaurantId": "123e4567-e89b-12d3-a456-426614174000",
+  "serviceId": "123e4567-e89b-12d3-a456-426614174004",
+  "rating": 1,
+  "content": "서비스가 너무 아쉬웠습니다. 개선이 필요합니다.",
+  "isVisible": false
+}
+
+> {%
+  client.global.set("reviewId4", response.body.reviewUuid)
+%}
+
+### 시나리오 1: 전체 리뷰 조회 (사용자 1로 로그인)
+# 결과: 사용자 1의 모든 리뷰(공개+비공개)와 사용자 2의 공개 리뷰만 보여야 함
+GET localhost:8087/api/v1/reviews
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+### 시나리오 2: 전체 리뷰 조회 (사용자 2로 로그인)
+# 결과: 사용자 2의 모든 리뷰(공개+비공개)와 사용자 1의 공개 리뷰만 보여야 함
+GET localhost:8087/api/v1/reviews
+X-User-Id: 2
+X-User-Role: CUSTOMER
+
+### 시나리오 3: 내 리뷰만 조회 (사용자 1)
+# 결과: 사용자 1의 모든 리뷰(공개+비공개)만 보여야 함
+GET localhost:8087/api/v1/reviews?userId=1
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+### 시나리오 4: 내 리뷰 중 공개된 것만 조회 (사용자 1)
+# 결과: 사용자 1의 공개 리뷰만 보여야 함
+GET localhost:8087/api/v1/reviews?userId=1&isVisible=true
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+### 시나리오 5: 내 리뷰 중 비공개 것만 조회 (사용자 1)
+# 결과: 사용자 1의 비공개 리뷰만 보여야 함
+GET localhost:8087/api/v1/reviews?userId=1&isVisible=false
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+### 시나리오 6: 다른 사용자의 리뷰 조회 (사용자 1이 사용자 2의 리뷰 조회)
+# 결과: 사용자 2의 공개 리뷰만 보여야 함
+GET localhost:8087/api/v1/reviews?userId=2
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+### 시나리오 7: 특정 레스토랑의 리뷰 조회
+# 결과: 해당 레스토랑의 모든 공개 리뷰와 자신의 비공개 리뷰가 보여야 함
+GET localhost:8087/api/v1/reviews?restaurantId=123e4567-e89b-12d3-a456-426614174000
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+### 시나리오 8: 정렬 기능 테스트 (평점 높은 순)
+GET localhost:8087/api/v1/reviews?orderBy=rating&sort=desc
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+### 시나리오 9: 정렬 기능 테스트 (날짜 오래된 순)
+GET localhost:8087/api/v1/reviews?orderBy=createdAt&sort=asc
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+### 시나리오 10: 필터링 기능 테스트 (서비스 타입)
+GET localhost:8087/api/v1/reviews?serviceType=WAITING
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+### 시나리오 11: 필터링 기능 테스트 (평점 범위)
+GET localhost:8087/api/v1/reviews?minRating=0&maxRating=5
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+### 시나리오 12: 복합 필터링 및 정렬 테스트
+GET localhost:8087/api/v1/reviews?serviceType=RESERVATION&minRating=3&maxRating=5&orderBy=rating&sort=desc
+X-User-Id: 1
+X-User-Role: CUSTOMER

@@ -6,11 +6,18 @@ import table.eat.now.review.application.service.dto.response.SearchReviewInfo;
 
 @Builder
 public record SearchReviewResponse(
-		String reviewUuid, Long customerId, String restaurantId,
-		String serviceId, String serviceType,
-		Integer rating, String content, boolean isVisible,
-		String hiddenBy, String hiddenByRole,
-		LocalDateTime createdAt, LocalDateTime updatedAt
+		String reviewUuid,
+		Long customerId,
+		String restaurantId,
+		String serviceId,
+		String serviceType,
+		Integer rating,
+		String content,
+		boolean isVisible,
+		Long hiddenBy,
+		String hiddenByRole,
+		LocalDateTime createdAt,
+		LocalDateTime updatedAt
 ) {
 
 	public static SearchReviewResponse from(SearchReviewInfo info) {

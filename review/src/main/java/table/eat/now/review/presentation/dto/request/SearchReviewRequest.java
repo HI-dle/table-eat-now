@@ -17,7 +17,9 @@ public record SearchReviewRequest(
 		@PastOrPresent LocalDate endDate,
 		@Max(4) Integer minRating,
 		@Min(1) Integer maxRating,
-		UUID restaurantId, Long userId) {
+		UUID restaurantId,
+		Long userId,
+		Boolean isVisible) {
 
 	public SearchReviewRequest {
 		orderBy = orderBy != null ? orderBy : "createdAt";
@@ -35,6 +37,7 @@ public record SearchReviewRequest(
 				.serviceType(serviceType)
 				.restaurantId(restaurantId != null ? restaurantId.toString() : null)
 				.userId(userId)
+				.isVisible(isVisible)
 				.page(pageable.getPageNumber())
 				.size(pageable.getPageSize())
 				.build();

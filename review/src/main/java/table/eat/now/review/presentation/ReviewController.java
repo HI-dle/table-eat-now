@@ -81,7 +81,7 @@ public class ReviewController {
 			@Valid SearchReviewRequest request, Pageable pageable) {
 
 		return ResponseEntity.status(HttpStatus.OK).body(
-				SearchReviewResponse.from(
-						reviewService.searchReview(request.toQuery(pageable), userInfo)));
+				PaginatedResponse.from(
+						reviewService.getReviews(request.toQuery(pageable), userInfo)));
 	}
 }

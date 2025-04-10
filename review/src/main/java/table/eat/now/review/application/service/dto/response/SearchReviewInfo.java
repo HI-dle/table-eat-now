@@ -5,11 +5,19 @@ import lombok.Builder;
 import table.eat.now.review.domain.repository.search.SearchReviewResult;
 
 @Builder
-public record SearchReviewInfo(String reviewUuid, Long customerId, String restaurantId,
-															 String serviceId, String serviceType,
-															 Integer rating, String content, boolean isVisible,
-															 String hiddenBy, String hiddenByRole,
-															 LocalDateTime createdAt, LocalDateTime updatedAt) {
+public record SearchReviewInfo(
+		String reviewUuid,
+		Long customerId,
+		String restaurantId,
+		String serviceId,
+		String serviceType,
+		Integer rating,
+		String content,
+		boolean isVisible,
+		Long hiddenBy,
+		String hiddenByRole,
+		LocalDateTime createdAt,
+		LocalDateTime updatedAt) {
 
 	public static SearchReviewInfo from(SearchReviewResult result) {
 		return SearchReviewInfo.builder()

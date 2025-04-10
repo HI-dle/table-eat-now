@@ -21,5 +21,5 @@ public interface ReviewService {
 
 	GetReviewInfo updateReview(String reviewId, UpdateReviewCommand command);
 
-	PaginatedInfo<SearchReviewInfo> searchReview(SearchReviewQuery query, CurrentUserInfoDto userInfo);
+	PaginatedInfo<SearchReviewInfo> getReviews(SearchReviewQuery query, CurrentUserInfoDto userInfo);
 }
