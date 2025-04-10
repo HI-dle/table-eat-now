@@ -62,7 +62,7 @@ public class PromotionAdminController {
       @PathVariable("promotionUuid") String promotionUuid,
       @CurrentUserInfo CurrentUserInfoDto userInfoDto
   ) {
-    promotionService.deletePromotion(promotionUuid, userInfoDto.userId());
+    promotionService.deletePromotion(promotionUuid, userInfoDto);
     return ResponseEntity.noContent().build();
   }
 

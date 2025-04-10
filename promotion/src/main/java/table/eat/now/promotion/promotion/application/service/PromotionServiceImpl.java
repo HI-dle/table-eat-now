@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.promotion.promotion.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotion.application.dto.request.CreatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.request.SearchPromotionCommand;
@@ -68,9 +69,9 @@ public class PromotionServiceImpl implements PromotionService{
 
   @Override
   @Transactional
-  public void deletePromotion(String promotionUuid, Long userId) {
+  public void deletePromotion(String promotionUuid, CurrentUserInfoDto userInfoDto) {
     Promotion promotion = findByPromotion(promotionUuid);
-    promotion.delete(userId);
+    promotion.delete(userInfoDto.userId());
     log.info("삭제가 완료 되었습니다. 삭제한 userId: {}", promotion);
   }
 
