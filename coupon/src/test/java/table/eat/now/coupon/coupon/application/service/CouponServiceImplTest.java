@@ -3,23 +3,20 @@ package table.eat.now.coupon.coupon.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
@@ -35,14 +32,9 @@ import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
 import table.eat.now.coupon.coupon.domain.repository.CouponRepository;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
-import table.eat.now.coupon.helper.DatabaseCleanUp;
-import table.eat.now.coupon.helper.RedisTestContainerExtension;
+import table.eat.now.coupon.helper.IntegrationTestSupport;
 
-@ExtendWith(RedisTestContainerExtension.class)
-@Import(DatabaseCleanUp.class)
-@ActiveProfiles("test")
-@SpringBootTest
-class CouponServiceImplTest {
+class CouponServiceImplTest extends IntegrationTestSupport {
 
   @Autowired
   private CouponService couponService;
@@ -50,21 +42,12 @@ class CouponServiceImplTest {
   @Autowired
   private CouponRepository couponRepository;
 
-  @Autowired
-  DatabaseCleanUp databaseCleanUp;
-
   private List<Coupon> coupons;
 
   @BeforeEach
   void setUp() {
     coupons = CouponFixture.createCoupons(20);
     couponRepository.saveAll(coupons);
-  }
-
-  @AfterEach
-  void tearDown() {
-    databaseCleanUp.afterPropertiesSet();
-    databaseCleanUp.execute();
   }
 
   @DisplayName("쿠폰 생성 검증 - 생성 성공")
@@ -111,7 +94,7 @@ class CouponServiceImplTest {
         .build();
 
     // when
-    couponService.updateCoupon(UUID.fromString(coupons.get(0).getCouponUuid()), command);
+    couponService.updateCoupon(coupons.get(0).getCouponUuid(), command);
 
     // then
     Coupon updated = couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(coupons.get(0).getCouponUuid())
@@ -124,7 +107,7 @@ class CouponServiceImplTest {
   void getCoupon() {
     // given
     // when
-    GetCouponInfo couponInfo = couponService.getCoupon(UUID.fromString(coupons.get(0).getCouponUuid()));
+    GetCouponInfo couponInfo = couponService.getCoupon(coupons.get(0).getCouponUuid());
 
     // then
     assertThat(couponInfo.name()).isEqualTo(coupons.get(0).getName());
@@ -141,7 +124,7 @@ class CouponServiceImplTest {
     CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(1L, UserRole.MASTER);
 
     // when
-    couponService.deleteCoupon(userInfo, UUID.fromString(coupons.get(0).getCouponUuid()));
+    couponService.deleteCoupon(userInfo, coupons.get(0).getCouponUuid());
 
     // then
     assertThatThrownBy(() ->
@@ -162,7 +145,7 @@ class CouponServiceImplTest {
         .build();
 
     // when
-    PageResponse<SearchCouponInfo> coupons = couponService.getCoupons(pageable, query);
+    PageResponse<SearchCouponInfo> coupons = couponService.searchCoupons(pageable, query);
 
     // then
     assertThat(coupons.pageNumber()).isEqualTo(1);
@@ -187,6 +170,34 @@ class CouponServiceImplTest {
     assertThat(coupons.coupons().size()).isEqualTo(2);
     assertThat(coupons.coupons().stream().map(GetCouponInfoI::couponUuid).collect(Collectors.toSet()))
         .isEqualTo(couponUuidsStr);
+  }
+
+  @DisplayName("한정 수량 및 중복 발급 제한 쿠폰 발급 요청 - 발급 요청 성공")
+  @Test
+  void requestCouponIssue() {
+    // given
+    ReflectionTestUtils.setField(coupons.get(0).getPeriod(), "startAt", LocalDateTime.now().minusDays(1));
+    couponRepository.save(coupons.get(0));
+
+    Duration duration = Duration.between(LocalDateTime.now(), coupons.get(0).getPeriod().getEndAt())
+        .plusMinutes(10);
+    couponRepository.setCouponCountWithTtl(coupons.get(0).getCouponUuid(), coupons.get(0).getCount(), duration);
+    couponRepository.setCouponSetWithTtl(coupons.get(0).getCouponUuid(), duration);
+
+    Coupon targetCoupon = coupons.get(0);
+    CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(3L, UserRole.CUSTOMER);
+
+    // when
+    couponService.requestCouponIssue(userInfo, targetCoupon.getCouponUuid());
+
+    // then
+    boolean result = couponRepository.isAlreadyIssued(targetCoupon.getCouponUuid(), userInfo.userId());
+    assertThat(result).isTrue();
+  }
+
+  @DisplayName("현재 사용가능한 쿠폰 목록 조회 - 조회 성공")
+  @Test
+  void getAvailableCoupons() {
   }
 
 }

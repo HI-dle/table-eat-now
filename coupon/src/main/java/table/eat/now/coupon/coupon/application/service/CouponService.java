@@ -16,13 +16,17 @@ public interface CouponService {
 
   String createCoupon(CreateCouponCommand command);
 
-  void updateCoupon(UUID couponUuid, UpdateCouponCommand command);
+  void updateCoupon(String couponUuid, UpdateCouponCommand command);
 
-  GetCouponInfo getCoupon(UUID couponUuid);
+  GetCouponInfo getCoupon(String couponUuid);
 
-  void deleteCoupon(CurrentUserInfoDto userInfo, UUID couponUuid);
+  void deleteCoupon(CurrentUserInfoDto userInfo, String couponUuid);
 
-  PageResponse<SearchCouponInfo> getCoupons(Pageable pageable, SearchCouponsQuery query);
+  PageResponse<SearchCouponInfo> searchCoupons(Pageable pageable, SearchCouponsQuery query);
 
   GetCouponsInfoI getCouponsInternal(Set<UUID> couponUuids);
+
+  //PageResponse<AvailableCouponInfo> getAvailableCoupons(Pageable pageable, LocalDateTime time);
+
+  String requestCouponIssue(CurrentUserInfoDto userInfoDto, String couponUuid);
 }

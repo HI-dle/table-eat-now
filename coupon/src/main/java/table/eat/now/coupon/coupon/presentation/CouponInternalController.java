@@ -28,7 +28,7 @@ public class CouponInternalController {
       @PathVariable UUID couponUuid
   ) {
 
-    GetCouponInfo coupon = couponService.getCoupon(couponUuid);
+    GetCouponInfo coupon = couponService.getCoupon(couponUuid.toString());
     return ResponseEntity.ok()
         .body(GetCouponResponse.from(coupon));
   }

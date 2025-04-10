@@ -15,7 +15,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -24,13 +23,9 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -43,17 +38,11 @@ import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
 import table.eat.now.coupon.coupon.presentation.dto.request.UpdateCouponRequest;
+import table.eat.now.coupon.helper.ControllerTestSupport;
 
-@AutoConfigureMockMvc
+
 @WebMvcTest(CouponAdminController.class)
-@ActiveProfiles("test")
-class CouponAdminControllerTest {
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
+class CouponAdminControllerTest extends ControllerTestSupport {
 
   @MockitoBean
   private CouponService couponService;
@@ -114,12 +103,12 @@ class CouponAdminControllerTest {
         .maxDiscountAmount(null)
         .build();
 
-    UUID couponUuid = UUID.randomUUID();
+    String couponUuid = UUID.randomUUID().toString();
     doNothing().when(couponService).updateCoupon(couponUuid, request.toCommand());
 
     // when
     ResultActions resultActions = mockMvc.perform(
-        patch("/admin/v1/coupons/{couponUuid}", couponUuid.toString())
+        patch("/admin/v1/coupons/{couponUuid}", couponUuid)
             .header("Authorization", "Bearer {ACCESS_TOKEN}")
             .header(USER_ID_HEADER, "1")
             .header(USER_ROLE_HEADER, "MASTER")
@@ -129,7 +118,7 @@ class CouponAdminControllerTest {
     // then
     resultActions.andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.couponUuid").value(couponUuid.toString()))
+        .andExpect(jsonPath("$.couponUuid").value(couponUuid))
         .andDo(print());
   }
 
@@ -137,10 +126,10 @@ class CouponAdminControllerTest {
   @Test
   void getCoupon() throws Exception {
     // given
-    UUID couponUuid = UUID.randomUUID();
+    String couponUuid = UUID.randomUUID().toString();
     GetCouponInfo couponInfo = GetCouponInfo.builder()
         .couponId(1L)
-        .couponUuid(couponUuid.toString())
+        .couponUuid(couponUuid)
         .name("test")
         .type("FIXED_DISCOUNT")
         .startAt(LocalDateTime.now().plusDays(1))
@@ -159,7 +148,7 @@ class CouponAdminControllerTest {
 
     // when
     ResultActions resultActions = mockMvc.perform(
-        get("/admin/v1/coupons/{couponUuid}", couponUuid.toString())
+        get("/admin/v1/coupons/{couponUuid}", couponUuid)
             .header("Authorization", "Bearer {ACCESS_TOKEN}")
             .header(USER_ID_HEADER, "1")
             .header(USER_ROLE_HEADER, "MASTER"));
@@ -167,7 +156,7 @@ class CouponAdminControllerTest {
     // then
     resultActions.andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.couponUuid").value(couponUuid.toString()))
+        .andExpect(jsonPath("$.couponUuid").value(couponUuid))
         .andExpect(jsonPath("$.type").value("FIXED_DISCOUNT"))
         .andDo(print());
   }
@@ -176,14 +165,14 @@ class CouponAdminControllerTest {
   @Test
   void deleteCoupon() throws Exception {
     // given
-    UUID couponUuid = UUID.randomUUID();
+    String couponUuid = UUID.randomUUID().toString();
     CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(1L, UserRole.MASTER);
 
     doNothing().when(couponService).deleteCoupon(userInfo, couponUuid);
 
     // when
     ResultActions resultActions = mockMvc.perform(
-        delete("/admin/v1/coupons/{couponUuid}", couponUuid.toString())
+        delete("/admin/v1/coupons/{couponUuid}", couponUuid)
             .header("Authorization", "Bearer {ACCESS_TOKEN}")
             .header(USER_ID_HEADER, userInfo.userId())
             .header(USER_ROLE_HEADER, userInfo.role()));
@@ -195,13 +184,13 @@ class CouponAdminControllerTest {
 
   @DisplayName("쿠폰 목록 조회 요청 검증 - 200 응답")
   @Test
-  void getCoupons() throws Exception {
+  void searchCoupons() throws Exception {
     // given
     List<SearchCouponInfo> couponInfos = CouponFixture.createCouponInfos(20);
     PageResponse<SearchCouponInfo> couponInfoPage = PageResponse.of(
         couponInfos, 20, 2, 1, 10);
 
-    given(couponService.getCoupons(any(), any())).willReturn(couponInfoPage);
+    given(couponService.searchCoupons(any(), any())).willReturn(couponInfoPage);
 
     // when
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();

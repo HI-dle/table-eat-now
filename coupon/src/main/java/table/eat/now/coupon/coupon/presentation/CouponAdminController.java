@@ -61,7 +61,7 @@ public class CouponAdminController {
       @RequestBody @Valid UpdateCouponRequest request
   ) {
 
-    couponService.updateCoupon(couponUuid, request.toCommand());
+    couponService.updateCoupon(couponUuid.toString(), request.toCommand());
     return ResponseEntity.ok()
         .body(UpdateCouponResponse.of(couponUuid));
   }
@@ -73,7 +73,7 @@ public class CouponAdminController {
       @PathVariable UUID couponUuid
   ) {
 
-    GetCouponInfo coupon = couponService.getCoupon(couponUuid);
+    GetCouponInfo coupon = couponService.getCoupon(couponUuid.toString());
     return ResponseEntity.ok()
         .body(GetCouponResponse.from(coupon));
   }
@@ -85,13 +85,13 @@ public class CouponAdminController {
       @PathVariable UUID couponUuid
   ) {
 
-    couponService.deleteCoupon(userInfo, couponUuid);
+    couponService.deleteCoupon(userInfo, couponUuid.toString());
     return ResponseEntity.noContent().build();
   }
 
   @AuthCheck(roles = {UserRole.MASTER})
   @GetMapping
-  public ResponseEntity<SearchCouponsResponse> getCoupons(
+  public ResponseEntity<SearchCouponsResponse> searchCoupons(
       @CurrentUserInfo CurrentUserInfoDto userInfo,
       @PageableDefault
       @SortDefault.SortDefaults({
@@ -101,7 +101,7 @@ public class CouponAdminController {
       SearchCouponsRequest request
   ) {
 
-    PageResponse<SearchCouponInfo> coupons = couponService.getCoupons(pageable, request.toQuery());
+    PageResponse<SearchCouponInfo> coupons = couponService.searchCoupons(pageable, request.toQuery());
     return ResponseEntity.ok()
         .body(SearchCouponsResponse.from(coupons));
   }

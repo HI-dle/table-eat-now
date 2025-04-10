@@ -1,5 +1,7 @@
 package table.eat.now.coupon.coupon.domain.repository;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -19,4 +21,20 @@ public interface CouponRepository {
   <S extends Coupon> List<S> saveAll(Iterable<S> coupons);
 
   List<Coupon> findByCouponUuidsInAndDeletedAtIsNullFetchJoin(Set<String> couponUuids);
+
+  List<Coupon> findCouponsStartInFromTo(LocalDateTime from, LocalDateTime to);
+
+  void setCouponCountWithTtl(String couponUuid, Integer value, Duration ttl);
+
+  void setCouponSetWithTtl(String couponUuid, Duration ttl);
+
+  Long decreaseCouponCount(String couponUuid);
+
+  boolean isAlreadyIssued(String couponUuid, Long userId);
+
+  boolean markAsIssued(String couponUuid, Long userId);
+
+  Long increaseCouponCount(String couponUuid);
+
+  Integer getCouponCount(String couponUuid);
 }
