@@ -68,25 +68,25 @@ class ReviewControllerTest {
 	@Nested
 	class 리뷰_생성시 {
 
-		private String restaurantId;
-		private String serviceId;
-		private String reviewId;
+		private UUID restaurantId;
+		private UUID serviceId;
+		private UUID reviewId;
 		private CurrentUserInfoDto userInfo;
 		private CreateReviewInfo reviewInfo;
 
 
 		@BeforeEach
 		void setUp() {
-			restaurantId = UUID.randomUUID().toString();
-			serviceId = UUID.randomUUID().toString();
-			reviewId = UUID.randomUUID().toString();
+			restaurantId = UUID.randomUUID();
+			serviceId = UUID.randomUUID();
+			reviewId = UUID.randomUUID();
 			userInfo = new CurrentUserInfoDto(123L, UserRole.CUSTOMER);
 
 			reviewInfo = CreateReviewInfo.builder()
-					.reviewUuid(reviewId)
+					.reviewUuid(reviewId.toString())
 					.customerId(userInfo.userId())
-					.restaurantId(restaurantId)
-					.serviceId(serviceId)
+					.restaurantId(restaurantId.toString())
+					.serviceId(serviceId.toString())
 					.serviceType("RESERVATION")
 					.rating(4)
 					.content("맛있는 식당이었습니다.")
@@ -199,23 +199,23 @@ class ReviewControllerTest {
 	@Nested
 	class 리뷰_단건_조회시 {
 
-		private String restaurantId;
-		private String serviceId;
-		private String reviewId;
+		private UUID restaurantId;
+		private UUID serviceId;
+		private UUID reviewId;
 		private CurrentUserInfoDto userInfo;
 		private GetReviewInfo reviewInfo;
 
 		@BeforeEach
 		void setUp() {
-			restaurantId = UUID.randomUUID().toString();
-			serviceId = UUID.randomUUID().toString();
-			reviewId = UUID.randomUUID().toString();
+			restaurantId = UUID.randomUUID();
+			serviceId = UUID.randomUUID();
+			reviewId = UUID.randomUUID();
 			userInfo = CurrentUserInfoDto.of(123L, UserRole.CUSTOMER);
 			reviewInfo = GetReviewInfo.builder()
-					.reviewUuid(reviewId)
+					.reviewUuid(reviewId.toString())
 					.customerId(userInfo.userId())
-					.restaurantId(restaurantId)
-					.serviceId(serviceId)
+					.restaurantId(restaurantId.toString())
+					.serviceId(serviceId.toString())
 					.serviceType("RESERVATION")
 					.rating(4)
 					.content("맛있는 식당이었습니다.")
@@ -228,7 +228,7 @@ class ReviewControllerTest {
 		@Test
 		void 유효한_요청으로_리뷰를_조회하면_200_상태_코드와_리뷰_정보를_반환한다() throws Exception {
 			// given
-			when(reviewService.getReview(reviewId, userInfo)).thenReturn(reviewInfo);
+			when(reviewService.getReview(reviewId.toString(), userInfo)).thenReturn(reviewInfo);
 
 			// when
 			ResultActions actions = mockMvc.perform(
@@ -248,7 +248,7 @@ class ReviewControllerTest {
 					.andExpect(jsonPath("$.rating").value(4))
 					.andExpect(jsonPath("$.content").value("맛있는 식당이었습니다."))
 					.andExpect(jsonPath("$.isVisible").value(true));
-			verify(reviewService).getReview(reviewId, userInfo);
+			verify(reviewService).getReview(reviewId.toString(), userInfo);
 		}
 
 		@Test
@@ -290,25 +290,25 @@ class ReviewControllerTest {
 	@Nested
 	class 리뷰_숨김_요청시 {
 
-		private String restaurantId;
-		private String serviceId;
-		private String reviewId;
+		private UUID restaurantId;
+		private UUID serviceId;
+		private UUID reviewId;
 		private CurrentUserInfoDto userInfo;
 		private CurrentUserInfoDto otherUserInfo;
 		private GetReviewInfo reviewInfo;
 
 		@BeforeEach
 		void setUp() {
-			restaurantId = UUID.randomUUID().toString();
-			serviceId = UUID.randomUUID().toString();
-			reviewId = UUID.randomUUID().toString();
+			restaurantId = UUID.randomUUID();
+			serviceId = UUID.randomUUID();
+			reviewId = UUID.randomUUID();
 			userInfo = CurrentUserInfoDto.of(123L, UserRole.CUSTOMER);
 			otherUserInfo = CurrentUserInfoDto.of(456L, UserRole.CUSTOMER);
 			reviewInfo = GetReviewInfo.builder()
-					.reviewUuid(reviewId)
+					.reviewUuid(reviewId.toString())
 					.customerId(userInfo.userId())
-					.restaurantId(restaurantId)
-					.serviceId(serviceId)
+					.restaurantId(restaurantId.toString())
+					.serviceId(serviceId.toString())
 					.serviceType("RESERVATION")
 					.rating(4)
 					.content("맛있는 식당이었습니다.")
@@ -321,7 +321,7 @@ class ReviewControllerTest {
 		@Test
 		void 유효한_요청이면_200_상태_코드와_숨겨진_리뷰_정보를_반환한다() throws Exception {
 			// given
-			when(reviewService.hideReview(reviewId, userInfo)).thenReturn(reviewInfo);
+			when(reviewService.hideReview(reviewId.toString(), userInfo)).thenReturn(reviewInfo);
 
 			// when
 			ResultActions actions = mockMvc.perform(
@@ -341,7 +341,7 @@ class ReviewControllerTest {
 					.andExpect(jsonPath("$.content").value("맛있는 식당이었습니다."))
 					.andExpect(jsonPath("$.isVisible").value(false)); // 숨김 처리 확인
 
-			verify(reviewService).hideReview(reviewId, userInfo);
+			verify(reviewService).hideReview(reviewId.toString(), userInfo);
 		}
 
 		@Test
@@ -384,25 +384,25 @@ class ReviewControllerTest {
 	@Nested
 	class 리뷰_공개_시 {
 
-		private String restaurantId;
-		private String serviceId;
-		private String reviewId;
+		private UUID restaurantId;
+		private UUID serviceId;
+		private UUID reviewId;
 		private CurrentUserInfoDto userInfo;
 		private CurrentUserInfoDto otherUserInfo;
 		private GetReviewInfo reviewInfo;
 
 		@BeforeEach
 		void setUp() {
-			restaurantId = UUID.randomUUID().toString();
-			serviceId = UUID.randomUUID().toString();
-			reviewId = UUID.randomUUID().toString();
+			restaurantId = UUID.randomUUID();
+			serviceId = UUID.randomUUID();
+			reviewId = UUID.randomUUID();
 			userInfo = CurrentUserInfoDto.of(123L, UserRole.CUSTOMER);
 			otherUserInfo = CurrentUserInfoDto.of(456L, UserRole.CUSTOMER);
 			reviewInfo = GetReviewInfo.builder()
-					.reviewUuid(reviewId)
+					.reviewUuid(reviewId.toString())
 					.customerId(userInfo.userId())
-					.restaurantId(restaurantId)
-					.serviceId(serviceId)
+					.restaurantId(restaurantId.toString())
+					.serviceId(serviceId.toString())
 					.serviceType("RESERVATION")
 					.rating(4)
 					.content("맛있는 식당이었습니다.")
@@ -415,7 +415,7 @@ class ReviewControllerTest {
 		@Test
 		void 유효한_요청으로_리뷰를_공개하면_200_상태_코드와_공개된_리뷰_정보를_반환한다() throws Exception {
 			// given
-			when(reviewService.showReview(reviewId, userInfo)).thenReturn(reviewInfo);
+			when(reviewService.showReview(reviewId.toString(), userInfo)).thenReturn(reviewInfo);
 
 			// when
 			ResultActions actions = mockMvc.perform(
@@ -436,7 +436,7 @@ class ReviewControllerTest {
 					.andExpect(jsonPath("$.content").value("맛있는 식당이었습니다."))
 					.andExpect(jsonPath("$.isVisible").value(true));
 
-			verify(reviewService).showReview(reviewId, userInfo);
+			verify(reviewService).showReview(reviewId.toString(), userInfo);
 		}
 
 		@Test
@@ -479,9 +479,9 @@ class ReviewControllerTest {
 	@Nested
 	class 리뷰_내용_수정_요청시 {
 
-		private String restaurantId;
-		private String serviceId;
-		private String reviewId;
+		private UUID restaurantId;
+		private UUID serviceId;
+		private UUID reviewId;
 		private CurrentUserInfoDto userInfo;
 		private CurrentUserInfoDto otherUserInfo;
 		private GetReviewInfo reviewInfo;
@@ -489,16 +489,16 @@ class ReviewControllerTest {
 
 		@BeforeEach
 		void setUp() {
-			restaurantId = UUID.randomUUID().toString();
-			serviceId = UUID.randomUUID().toString();
-			reviewId = UUID.randomUUID().toString();
+			restaurantId = UUID.randomUUID();
+			serviceId = UUID.randomUUID();
+			reviewId = UUID.randomUUID();
 			userInfo = CurrentUserInfoDto.of(123L, UserRole.CUSTOMER);
 			otherUserInfo = CurrentUserInfoDto.of(456L, UserRole.CUSTOMER);
 			reviewInfo = GetReviewInfo.builder()
-					.reviewUuid(reviewId)
+					.reviewUuid(reviewId.toString())
 					.customerId(userInfo.userId())
-					.restaurantId(restaurantId)
-					.serviceId(serviceId)
+					.restaurantId(restaurantId.toString())
+					.serviceId(serviceId.toString())
 					.serviceType("RESERVATION")
 					.rating(3)
 					.content("리뷰 수정합니다요")
@@ -513,7 +513,7 @@ class ReviewControllerTest {
 		@Test
 		void 유효한_요청으로_리뷰를_수정하면_200_상태_코드와_수정된_리뷰_정보를_반환한다() throws Exception {
 			// given
-			when(reviewService.updateReview(reviewId, request.toCommand(userInfo)))
+			when(reviewService.updateReview(reviewId.toString(), request.toCommand(userInfo)))
 					.thenReturn(reviewInfo);
 
 			// when
@@ -535,13 +535,13 @@ class ReviewControllerTest {
 					.andExpect(jsonPath("$.isVisible").value(true))
 			;
 
-			verify(reviewService).updateReview(reviewId, request.toCommand(userInfo));
+			verify(reviewService).updateReview(reviewId.toString(), request.toCommand(userInfo));
 		}
 
 		@Test
 		void 존재하지_않는_리뷰를_업데이트하려고_하면_404_상태코드와_메시지를_반환한다() throws Exception {
 			// given
-			when(reviewService.updateReview(reviewId, request.toCommand(userInfo)))
+			when(reviewService.updateReview(reviewId.toString(), request.toCommand(userInfo)))
 					.thenThrow(CustomException.from(REVIEW_NOT_FOUND));
 
 			// when
