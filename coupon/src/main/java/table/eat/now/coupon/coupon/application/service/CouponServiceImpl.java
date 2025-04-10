@@ -1,6 +1,5 @@
 package table.eat.now.coupon.coupon.application.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -18,7 +17,6 @@ import table.eat.now.coupon.coupon.application.dto.event.IssueUserCouponEvent;
 import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
 import table.eat.now.coupon.coupon.application.dto.request.SearchCouponsQuery;
 import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
-import table.eat.now.coupon.coupon.application.dto.response.AvailableCouponInfo;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI;
 import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
@@ -87,11 +85,11 @@ public class CouponServiceImpl implements CouponService {
     return GetCouponsInfoI.from(coupons);
   }
 
-  @Override
-  public PageResponse<AvailableCouponInfo> getAvailableCoupons(Pageable pageable,
-      LocalDateTime time) {
-    return null;
-  }
+//  @Override
+//  public PageResponse<AvailableCouponInfo> getAvailableCoupons(Pageable pageable,
+//      LocalDateTime time) {
+//    return null;
+//  }
 
   @Override
   public String requestCouponIssue(CurrentUserInfoDto userInfoDto, String couponUuid) {
