@@ -46,4 +46,6 @@ public class PromotionRestaurantServiceImpl implements PromotionRestaurantServic
         promotionRestaurantUuid).orElseThrow(() ->
         CustomException.from(PromotionRestaurantErrorCode.INVALID_PROMOTION_RESTAURANT_UUID));
   }
+
+
 }

@@ -14,7 +14,7 @@ public record CreatePromotionRestaurantResponse(String promotionRestaurantUuid,
 
   public static CreatePromotionRestaurantResponse from(CreatePromotionRestaurantInfo info) {
     return CreatePromotionRestaurantResponse.builder()
-        .promotionRestaurantUuid(info.restaurantUuid())
+        .promotionRestaurantUuid(info.promotionRestaurantUuid())
         .promotionUuid(info.promotionUuid())
         .restaurantUuid(info.restaurantUuid())
         .build();

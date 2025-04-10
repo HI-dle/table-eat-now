@@ -14,7 +14,7 @@ public record UpdatePromotionRestaurantResponse(String promotionRestaurantUuid,
 
   public static UpdatePromotionRestaurantResponse from(UpdatePromotionRestaurantInfo info) {
     return UpdatePromotionRestaurantResponse.builder()
-        .promotionRestaurantUuid(info.restaurantUuid())
+        .promotionRestaurantUuid(info.promotionRestaurantUuid())
         .promotionUuid(info.promotionUuid())
         .restaurantUuid(info.restaurantUuid())
         .build();
