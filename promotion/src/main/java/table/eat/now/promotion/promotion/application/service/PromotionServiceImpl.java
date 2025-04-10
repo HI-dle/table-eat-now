@@ -7,6 +7,7 @@ import table.eat.now.common.exception.CustomException;
 import table.eat.now.promotion.promotion.application.dto.request.CreatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
+import table.eat.now.promotion.promotion.application.dto.response.GetPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
@@ -46,7 +47,12 @@ public class PromotionServiceImpl implements PromotionService{
     return UpdatePromotionInfo.from(promotion);
   }
 
-  public Promotion findByPromotion(String promotionUuid) {
+  @Override
+  public GetPromotionInfo findPromotion(String promotionUuid) {
+    return GetPromotionInfo.from(findByPromotion(promotionUuid));
+  }
+
+  private Promotion findByPromotion(String promotionUuid) {
     return promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid)
         .orElseThrow(() ->
             CustomException.from(PromotionErrorCode.INVALID_PROMOTION_UUID));

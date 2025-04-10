@@ -1,0 +1,38 @@
+package table.eat.now.promotion.promotion.presentation.dto.response;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import lombok.Builder;
+import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
+import table.eat.now.promotion.promotion.application.dto.response.GetPromotionInfo;
+
+/**
+ * @author : hanjihoon
+ * @Date : 2025. 04. 08.
+ */
+@Builder
+public record GetPromotionResponse(Long promotionId,
+                                   String promotionUuid,
+                                   String promotionName,
+                                   String description,
+                                   LocalDateTime startTime,
+                                   LocalDateTime endTime,
+                                   BigDecimal discountAmount,
+                                   String promotionStatus,
+                                   String promotionType) {
+
+  public static GetPromotionResponse from(GetPromotionInfo getPromotionInfo) {
+    return GetPromotionResponse.builder()
+        .promotionId(getPromotionInfo.promotionId())
+        .promotionUuid(getPromotionInfo.promotionUuid())
+        .promotionName(getPromotionInfo.promotionName())
+        .description(getPromotionInfo.description())
+        .startTime(getPromotionInfo.startTime())
+        .endTime(getPromotionInfo.endTime())
+        .discountAmount(getPromotionInfo.discountAmount())
+        .promotionStatus(getPromotionInfo.promotionStatus())
+        .promotionType(getPromotionInfo.promotionType())
+        .build();
+  }
+
+}
