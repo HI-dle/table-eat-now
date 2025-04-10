@@ -40,35 +40,41 @@ public class Review extends BaseEntity {
 
 	private static void validateNull(
 			ReviewReference reference, ReviewContent content, ReviewVisibility visibility) {
-		validateReference(reference);
-		validateContent(content);
-		validateVisibility(visibility);
-	}
-
-	private static void validateReference(ReviewReference reference) {
-		if (reference == null) {
-			throw new IllegalArgumentException("ReviewReference는 null일 수 없습니다.");
-		}
-	}
-
-	private static void validateContent(ReviewContent content) {
-		if (content == null) {
-			throw new IllegalArgumentException("ReviewContent는 null일 수 없습니다.");
-		}
-	}
-
-	private static void validateVisibility(ReviewVisibility visibility) {
-		if (visibility == null) {
-			throw new IllegalArgumentException("ReviewVisibility는 null일 수 없습니다.");
+		if (reference == null || content == null || visibility == null) {
+			throw new IllegalArgumentException("null일 수 없습니다.");
 		}
 	}
 
 	public boolean isAccessible(Long userId, String role) {
-		return this.visibility.isVisible() || isOwner(userId) || role.equals("MASTER");
+		return this.visibility.isVisible() || isWriter(userId) || role.equals("MASTER");
 	}
 
-	private boolean isOwner(Long userId) {
+	public boolean isWriter(Long userId) {
 		return this.reference.getCustomerId().equals(userId);
+	}
+
+	public Review hide(Long userId, String userRole) {
+		validateCustomer(userId, userRole);
+		this.visibility = this.visibility.hide(userId, userRole);
+		return this;
+	}
+
+	public Review show(Long userId, String userRole) {
+		validateCustomer(userId, userRole);
+		this.visibility = this.visibility.show(userRole);
+		return this;
+	}
+
+	private void validateCustomer(Long userId, String userRole) {
+		if (userRole.equals("CUSTOMER") && !isWriter(userId)) {
+			throw new IllegalArgumentException("이 작업에 대한 권한은 작성자에게만 있습니다.");
+		}
+	}
+
+	public Review update(UpdateContent updateContent) {
+		validateCustomer(updateContent.userId(), updateContent.userRole());
+		this.content = updateContent.content();
+		return this;
 	}
 
 	private Review(ReviewReference reference, ReviewContent content, ReviewVisibility visibility) {

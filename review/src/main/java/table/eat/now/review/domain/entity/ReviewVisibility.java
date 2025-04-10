@@ -6,10 +6,12 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
 @Embeddable
+@EqualsAndHashCode
 public class ReviewVisibility {
 
 	@Column(name = "is_visible", nullable = false)
@@ -26,7 +28,6 @@ public class ReviewVisibility {
 	@Column(name = "hidden_by_role")
 	private HiddenByRole hiddenByRole;
 
-	//공개로 작성할거다, 공개
 	public static ReviewVisibility create(Boolean isVisible, Long hiddenBy, String hiddenByRole) {
 		validateVisibility(isVisible);
 		return isVisible ? createVisible() : createHidden(hiddenBy, hiddenByRole);
@@ -53,12 +54,10 @@ public class ReviewVisibility {
 		}
 	}
 
-	//Todo : 해당 메서드 외부에서 권한 검사 (일반 유저인 경우 본인의 리뷰인지 확인필요)
 	public ReviewVisibility hide(Long hiddenBy, String hiddenByRole) {
 		return this.isVisible ? createHidden(hiddenBy, hiddenByRole) : this;
 	}
 
-	//Todo : 해당 메서드 외부에서 권한 검사 (일반 유저인 경우 본인의 리뷰인지 확인필요)
 	public ReviewVisibility show(String hiddenByRole) {
 		if (this.isVisible) {
 			return this;

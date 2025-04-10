@@ -20,5 +20,26 @@ X-User-Role: CUSTOMER
 ### 리뷰 조회
 GET localhost:8087/api/v1/reviews/{{reviewId}}
 Content-Type: application/json
-X-User-Id: 2
-X-User-Role: OWNER
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+### 리뷰 숨김
+PATCH localhost:8087/api/v1/reviews/{{reviewId}}/hide
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+### 리뷰 공개
+PATCH localhost:8087/api/v1/reviews/{{reviewId}}/show
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+### 리뷰 수정
+PATCH localhost:8087/api/v1/reviews/{{reviewId}}
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+{
+  "rating": 4,
+  "content": "리뷰 수정가능하지요!"
+}

@@ -2,10 +2,12 @@ package table.eat.now.review.domain.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
 @Embeddable
+@EqualsAndHashCode
 public class ReviewContent {
 	@Column(name = "content", nullable = false, columnDefinition = "TEXT")
 	private String content;
