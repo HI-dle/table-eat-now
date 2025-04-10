@@ -1,6 +1,5 @@
 package table.eat.now.promotion.promotionRestaurant.application.dto.response;
 
-import java.util.UUID;
 import lombok.Builder;
 import table.eat.now.promotion.promotionRestaurant.domain.entity.PromotionRestaurant;
 

@@ -1,7 +1,6 @@
 package table.eat.now.promotion.promotionRestaurant.presentation.dto.response;
 
 import lombok.Builder;
-import table.eat.now.promotion.promotionRestaurant.application.dto.response.CreatePromotionRestaurantInfo;
 import table.eat.now.promotion.promotionRestaurant.application.dto.response.UpdatePromotionRestaurantInfo;
 
 /**

@@ -1,6 +1,5 @@
 package table.eat.now.promotion.promotionRestaurant.application.dto.request;
 
-import java.util.UUID;
 import table.eat.now.promotion.promotionRestaurant.domain.entity.PromotionRestaurant;
 
 /**

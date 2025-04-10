@@ -1,6 +1,5 @@
 package table.eat.now.promotion.promotionUser.application.dto.response;
 
-import java.util.UUID;
 import lombok.Builder;
 import table.eat.now.promotion.promotionUser.domain.entity.PromotionUser;
 

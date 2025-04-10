@@ -2,7 +2,6 @@ package table.eat.now.promotion.promotion.presentation.dto.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 import lombok.Builder;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
 

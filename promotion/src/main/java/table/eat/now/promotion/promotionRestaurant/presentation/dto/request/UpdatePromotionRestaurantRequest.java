@@ -1,7 +1,6 @@
 package table.eat.now.promotion.promotionRestaurant.presentation.dto.request;
 
 import jakarta.validation.constraints.NotNull;
-import table.eat.now.promotion.promotionRestaurant.application.dto.request.CreatePromotionRestaurantCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.request.UpdatePromotionRestaurantCommand;
 
 /**
