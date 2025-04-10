@@ -4,6 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static table.eat.now.common.resolver.dto.UserRole.CUSTOMER;
+import static table.eat.now.common.resolver.dto.UserRole.MASTER;
+import static table.eat.now.common.resolver.dto.UserRole.OWNER;
+import static table.eat.now.common.resolver.dto.UserRole.STAFF;
 
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +20,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
-import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.review.application.client.ReservationClient;
 import table.eat.now.review.application.client.RestaurantClient;
 import table.eat.now.review.application.client.WaitingClient;
@@ -65,7 +68,7 @@ class ReviewServiceImplTest {
 
 			command = new CreateReviewCommand(
 					restaurantId, serviceId, customerId, "RESERVATION",
-					"맛있는 식당이었습니다.", 4, true, UserRole.CUSTOMER);
+					"맛있는 식당이었습니다.", 4, true, CUSTOMER);
 
 			serviceInfo = new GetServiceInfo(restaurantId, customerId);
 		}
@@ -88,7 +91,7 @@ class ReviewServiceImplTest {
 			// given
 			CreateReviewCommand waitingCommand = new CreateReviewCommand(
 					restaurantId, serviceId, customerId, "WAITING",
-					"맛있는 식당이었습니다.", 4, true, UserRole.CUSTOMER);
+					"맛있는 식당이었습니다.", 4, true, CUSTOMER);
 			when(waitingClient.getWaiting(serviceId, customerId)).thenReturn(serviceInfo);
 
 			// when
@@ -105,7 +108,8 @@ class ReviewServiceImplTest {
 			Long differentCustomerId = 456L;
 			GetServiceInfo differentServiceInfo = new GetServiceInfo(restaurantId, differentCustomerId);
 
-			when(reservationClient.getReservation(serviceId, customerId)).thenReturn(differentServiceInfo);
+			when(reservationClient.getReservation(serviceId, customerId)).thenReturn(
+					differentServiceInfo);
 
 			// when & then
 			CustomException exception = assertThrows(CustomException.class, () ->
@@ -142,17 +146,17 @@ class ReviewServiceImplTest {
 			staffId = 789L;
 			ownerId = 999L;
 
-			customerInfo = new CurrentUserInfoDto(customerId, UserRole.CUSTOMER);
-			otherUserInfo = new CurrentUserInfoDto(otherUserId, UserRole.CUSTOMER);
-			staffInfo = new CurrentUserInfoDto(staffId, UserRole.STAFF);
-			ownerInfo = new CurrentUserInfoDto(ownerId, UserRole.OWNER);
+			customerInfo = new CurrentUserInfoDto(customerId, CUSTOMER);
+			otherUserInfo = new CurrentUserInfoDto(otherUserId, CUSTOMER);
+			staffInfo = new CurrentUserInfoDto(staffId, STAFF);
+			ownerInfo = new CurrentUserInfoDto(ownerId, OWNER);
 			serviceInfo = new GetServiceInfo(restaurantId, customerId);
 
 			CreateReviewCommand command = new CreateReviewCommand(
 					restaurantId, serviceId, customerId, "RESERVATION",
 					"맛있는 식당이었습니다.", 4,
 					false,
-					UserRole.CUSTOMER
+					CUSTOMER
 			);
 
 			when(reservationClient.getReservation(serviceId, customerId)).thenReturn(serviceInfo);
@@ -222,10 +226,10 @@ class ReviewServiceImplTest {
 		}
 
 		@Test
-			void 다른_레스토랑_직원이_비공개_리뷰에_접근할_시_예외를_발생시킨다() {
+		void 다른_레스토랑_직원이_비공개_리뷰에_접근할_시_예외를_발생시킨다() {
 			// given
 			Long differentStaffId = 555L;
-			CurrentUserInfoDto differentStaffInfo = new CurrentUserInfoDto(differentStaffId, UserRole.STAFF);
+			CurrentUserInfoDto differentStaffInfo = new CurrentUserInfoDto(differentStaffId, STAFF);
 
 			GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
 			when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
@@ -246,7 +250,7 @@ class ReviewServiceImplTest {
 					restaurantId, serviceId, customerId, "RESERVATION",
 					"맛있는 식당이었습니다.", 4,
 					true, // 공개 리뷰
-					UserRole.CUSTOMER
+					CUSTOMER
 			);
 
 			when(reservationClient.getReservation(serviceId, customerId)).thenReturn(serviceInfo);
@@ -264,7 +268,7 @@ class ReviewServiceImplTest {
 		@Test
 		void MASTER_역할은_모든_리뷰에_접근_가능하게_한다() {
 			// given
-			CurrentUserInfoDto masterInfo = new CurrentUserInfoDto(otherUserId, UserRole.MASTER);
+			CurrentUserInfoDto masterInfo = new CurrentUserInfoDto(otherUserId, MASTER);
 
 			// when
 			GetReviewInfo result = reviewService.getReview(reviewId, masterInfo);
@@ -275,4 +279,283 @@ class ReviewServiceImplTest {
 		}
 	}
 
+	@Nested
+	class hideReview_는 {
+
+		private String reviewId;
+		private String restaurantId;
+		private Long staffId;
+		private Long ownerId;
+		private CurrentUserInfoDto customerInfo;
+		private CurrentUserInfoDto otherUserInfo;
+		private CurrentUserInfoDto staffInfo;
+		private CurrentUserInfoDto ownerInfo;
+		private CurrentUserInfoDto masterInfo;
+
+		@BeforeEach
+		void setUp() {
+			String serviceId = UUID.randomUUID().toString();
+			Long customerId = 123L;
+			Long otherUserId = 456L;
+			reviewId = UUID.randomUUID().toString();
+			restaurantId = UUID.randomUUID().toString();
+			staffId = 789L;
+			ownerId = 999L;
+
+			customerInfo = new CurrentUserInfoDto(customerId, CUSTOMER);
+			otherUserInfo = new CurrentUserInfoDto(otherUserId, CUSTOMER);
+			staffInfo = new CurrentUserInfoDto(staffId, STAFF);
+			ownerInfo = new CurrentUserInfoDto(ownerId, OWNER);
+			masterInfo = new CurrentUserInfoDto(otherUserId, MASTER);
+
+			CreateReviewCommand command = new CreateReviewCommand(
+					restaurantId, serviceId, customerInfo.userId(), "RESERVATION",
+					"맛있는 식당이었습니다.", 4,
+					true, customerInfo.role()
+			);
+
+			Review review = reviewRepository.save(command.toEntity());
+			reviewId = review.getReviewId();
+		}
+
+		@Test
+		void 권한을_가진_사용자로_요청시_리뷰를_숨길_수_있다() {
+			// when
+			GetReviewInfo result = reviewService.hideReview(reviewId, customerInfo);
+
+			// then
+			assertThat(result).isNotNull();
+			assertThat(result.reviewUuid()).isEqualTo(reviewId);
+			assertThat(result.isVisible()).isFalse();
+		}
+
+		@Test
+		void 작성자가_아닌_일반_사용자로_요청시_예외를_발생시킨다() {
+			// when & then
+			IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+					reviewService.hideReview(reviewId, otherUserInfo));
+
+			assertThat(exception.getMessage()).contains("이 작업에 대한 권한은 작성자에게만 있습니다.");
+		}
+
+		@Test
+		void 레스토랑_직원이_요청시_리뷰를_숨길_수_있다() {
+			// given
+			GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
+			when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+
+			// when
+			GetReviewInfo result = reviewService.hideReview(reviewId, staffInfo);
+
+			// then
+			assertThat(result).isNotNull();
+			assertThat(result.reviewUuid()).isEqualTo(reviewId);
+			assertThat(result.isVisible()).isFalse();
+			verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+		}
+
+		@Test
+		void 레스토랑_주인이_요청시_리뷰를_숨길_수_있다() {
+			// given
+			GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
+			when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+
+			// when
+			GetReviewInfo result = reviewService.hideReview(reviewId, ownerInfo);
+
+			// then
+			assertThat(result).isNotNull();
+			assertThat(result.reviewUuid()).isEqualTo(reviewId);
+			assertThat(result.isVisible()).isFalse();
+			verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+		}
+
+		@Test
+		void 다른_레스토랑_직원이_요청시_예외를_발생시킨다() {
+			// given
+			Long differentStaffId = 555L;
+			CurrentUserInfoDto differentStaffInfo = new CurrentUserInfoDto(differentStaffId, STAFF);
+
+			GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
+			when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+
+			// when & then
+			CustomException exception = assertThrows(CustomException.class, () ->
+					reviewService.hideReview(reviewId, differentStaffInfo));
+
+			assertThat(exception.getMessage()).contains("수정 요청에 대한 권한이 없습니다.");
+			verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+		}
+
+		@Test
+		void 마스터_역할은_리뷰를_숨길_수_있다() {
+			// when
+			GetReviewInfo result = reviewService.hideReview(reviewId, masterInfo);
+
+			// then
+			assertThat(result).isNotNull();
+			assertThat(result.reviewUuid()).isEqualTo(reviewId);
+			assertThat(result.isVisible()).isFalse();
+		}
+
+		@Test
+		void 존재하지_않는_리뷰를_숨기려고_하면_예외를_발생시킨다() {
+			// given
+			String nonExistentReviewId = UUID.randomUUID().toString();
+
+			// when & then
+			CustomException exception = assertThrows(CustomException.class, () ->
+					reviewService.hideReview(nonExistentReviewId, customerInfo));
+
+			assertThat(exception.getMessage()).isEqualTo("해당 리뷰를 찾을 수 없습니다.");
+		}
+	}
+
+	@Nested
+	class showReview_는 {
+
+		private String reviewId;
+		private String restaurantId;
+		private String serviceId;
+		private Long staffId;
+		private Long ownerId;
+		private CurrentUserInfoDto customerInfo;
+		private CurrentUserInfoDto otherUserInfo;
+		private CurrentUserInfoDto staffInfo;
+		private CurrentUserInfoDto ownerInfo;
+		private CurrentUserInfoDto masterInfo;
+
+		@BeforeEach
+		void setUp() {
+			serviceId = UUID.randomUUID().toString();
+			Long customerId = 123L;
+			Long otherUserId = 456L;
+			reviewId = UUID.randomUUID().toString();
+			restaurantId = UUID.randomUUID().toString();
+			staffId = 789L;
+			ownerId = 999L;
+
+			customerInfo = new CurrentUserInfoDto(customerId, CUSTOMER);
+			otherUserInfo = new CurrentUserInfoDto(otherUserId, CUSTOMER);
+			staffInfo = new CurrentUserInfoDto(staffId, STAFF);
+			ownerInfo = new CurrentUserInfoDto(ownerId, OWNER);
+			masterInfo = new CurrentUserInfoDto(otherUserId, MASTER);
+
+			CreateReviewCommand command = new CreateReviewCommand(
+					restaurantId, serviceId, customerInfo.userId(), "RESERVATION",
+					"맛있는 식당이었습니다.", 4,
+					false, customerInfo.role()
+			);
+
+			Review review = reviewRepository.save(command.toEntity());
+			reviewId = review.getReviewId();
+		}
+
+		@Test
+		void 권한을_가진_사용자로_요청시_자신의_리뷰를_공개할_수_있다() {
+			// when
+			GetReviewInfo result = reviewService.showReview(reviewId, customerInfo);
+
+			// then
+			assertThat(result).isNotNull();
+			assertThat(result.reviewUuid()).isEqualTo(reviewId);
+			assertThat(result.isVisible()).isTrue();
+		}
+
+		@Test
+		void 작성자가_아닌_일반_사용자로_요청시_예외를_발생시킨다() {
+			// when & then
+			IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+					reviewService.showReview(reviewId, otherUserInfo));
+
+			assertThat(exception.getMessage()).contains("이 작업에 대한 권한은 작성자에게만 있습니다.");
+		}
+
+		@Test
+		void 레스토랑_직원이_요청시_리뷰를_공개할_수_있다() {
+			// given
+			GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
+			when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+
+			// when
+			GetReviewInfo result = reviewService.showReview(reviewId, staffInfo);
+
+			// then
+			assertThat(result).isNotNull();
+			assertThat(result.reviewUuid()).isEqualTo(reviewId);
+			assertThat(result.isVisible()).isTrue();
+			verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+		}
+
+		@Test
+		void 레스토랑_주인이_요청시_리뷰를_공개할_수_있다() {
+			// given
+			GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
+			when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+
+			// when
+			GetReviewInfo result = reviewService.showReview(reviewId, ownerInfo);
+
+			// then
+			assertThat(result).isNotNull();
+			assertThat(result.reviewUuid()).isEqualTo(reviewId);
+			assertThat(result.isVisible()).isTrue();
+			verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+		}
+
+		@Test
+		void 다른_레스토랑_직원이_요청시_예외를_발생시킨다() {
+			// given
+			Long differentStaffId = 555L;
+			CurrentUserInfoDto differentStaffInfo = new CurrentUserInfoDto(differentStaffId, STAFF);
+
+			GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
+			when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+
+			// when & then
+			CustomException exception = assertThrows(CustomException.class, () ->
+					reviewService.showReview(reviewId, differentStaffInfo));
+
+			assertThat(exception.getMessage()).contains("수정 요청에 대한 권한이 없습니다.");
+			verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+		}
+
+		@Test
+		void 마스터_역할은_리뷰를_공개할_수_있다() {
+			// when
+			GetReviewInfo result = reviewService.showReview(reviewId, masterInfo);
+
+			// then
+			assertThat(result).isNotNull();
+			assertThat(result.reviewUuid()).isEqualTo(reviewId);
+			assertThat(result.isVisible()).isTrue();
+		}
+
+		@Test
+		void 존재하지_않는_리뷰를_공개하려고_하면_예외를_발생시킨다() {
+			// given
+			String nonExistentReviewId = UUID.randomUUID().toString();
+
+			// when & then
+			CustomException exception = assertThrows(CustomException.class, () ->
+					reviewService.showReview(nonExistentReviewId, customerInfo));
+
+			assertThat(exception.getMessage()).isEqualTo("해당 리뷰를 찾을 수 없습니다.");
+		}
+
+		@Test
+		void 관리자가_숨긴_리뷰는_일반_사용자가_공개할_수_없다() {
+			// given
+			reviewService.showReview(reviewId, customerInfo); // 숨김 상태는 변경이 없어서 공개상태로 변경
+			GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
+			when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+			reviewService.hideReview(reviewId, staffInfo);
+
+			// when & then
+			IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+					reviewService.showReview(reviewId, customerInfo));
+
+			assertThat(exception.getMessage()).contains("관리자가 숨긴 리뷰는 일반 사용자가 공개할 수 없습니다");
+		}
+	}
 }
