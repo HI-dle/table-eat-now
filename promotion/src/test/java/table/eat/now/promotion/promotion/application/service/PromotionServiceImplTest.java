@@ -21,7 +21,9 @@ import table.eat.now.common.exception.CustomException;
 import table.eat.now.promotion.promotion.application.dto.request.CreatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
+import table.eat.now.promotion.promotion.application.dto.response.GetPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
+import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
 import table.eat.now.promotion.promotion.domain.entity.PromotionStatus;
 import table.eat.now.promotion.promotion.domain.entity.PromotionType;
@@ -139,5 +141,50 @@ class PromotionServiceImplTest {
         .isInstanceOf(CustomException.class);
   }
 
+  @DisplayName("promotionUuid로 프로모션을 조회하면 성공한다.")
+  @Test
+  void promotion_uuid_find_success_test() {
+    // given
+    String promotionUuid = UUID.randomUUID().toString();
 
+    Promotion promotion = Promotion.of(
+        "봄맞이 할인",
+        "전 메뉴 5000원 할인",
+        LocalDateTime.now().plusDays(2),
+        LocalDateTime.now().plusDays(12),
+        BigDecimal.valueOf(5000),
+        PromotionStatus.valueOf("READY"),
+        PromotionType.valueOf("COUPON")
+    );
+
+    ReflectionTestUtils.setField(promotion, "promotionUuid", promotionUuid);
+    when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))
+        .thenReturn(Optional.of(promotion));
+
+    // when
+    GetPromotionInfo result = promotionService.findPromotion(promotionUuid);
+
+    // then
+    assertThat(result.promotionUuid()).isEqualTo(promotionUuid);
+    assertThat(result.promotionName()).isEqualTo("봄맞이 할인");
+    assertThat(result.discountAmount()).isEqualTo(BigDecimal.valueOf(5000));
+
+    verify(promotionRepository).findByPromotionUuidAndDeletedByIsNull(promotionUuid);
+  }
+
+
+  @DisplayName("존재하지 않는 promotionUuid로 조회 시 예외가 발생한다.")
+  @Test
+  void promotion_uuid_find_fail_test() {
+    // given
+    String invalidUuid = UUID.randomUUID().toString();
+
+    when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(invalidUuid))
+        .thenReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() -> promotionService.findPromotion(invalidUuid))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(PromotionErrorCode.INVALID_PROMOTION_UUID.getMessage());
+  }
 }

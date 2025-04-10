@@ -48,6 +48,7 @@ public class PromotionServiceImpl implements PromotionService{
   }
 
   @Override
+  @Transactional(readOnly = true)
   public GetPromotionInfo findPromotion(String promotionUuid) {
     return GetPromotionInfo.from(findByPromotion(promotionUuid));
   }
