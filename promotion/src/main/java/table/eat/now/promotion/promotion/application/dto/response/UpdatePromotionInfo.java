@@ -7,10 +7,10 @@ import table.eat.now.promotion.promotion.domain.entity.Promotion;
 
 /**
  * @author : hanjihoon
- * @Date : 2025. 04. 08.
+ * @Date : 2025. 04. 10.
  */
 @Builder
-public record CreatePromotionInfo(Long promotionId,
+public record UpdatePromotionInfo(Long promotionId,
                                   String promotionUuid,
                                   String promotionName,
                                   String description,
@@ -20,8 +20,8 @@ public record CreatePromotionInfo(Long promotionId,
                                   String promotionStatus,
                                   String promotionType) {
 
-  public static CreatePromotionInfo from(Promotion promotion) {
-    return CreatePromotionInfo.builder()
+  public static UpdatePromotionInfo from(Promotion promotion) {
+    return UpdatePromotionInfo.builder()
         .promotionId(promotion.getId())
         .promotionUuid(promotion.getPromotionUuid())
         .promotionName(promotion.getDetails().getPromotionName())
@@ -29,8 +29,8 @@ public record CreatePromotionInfo(Long promotionId,
         .startTime(promotion.getPeriod().getStartTime())
         .endTime(promotion.getPeriod().getEndTime())
         .discountAmount(promotion.getDiscountPrice().getDiscountAmount())
-        .promotionStatus(promotion.getPromotionStatus().description())
-        .promotionType(promotion.getPromotionType().description())
+        .promotionStatus(promotion.getPromotionStatus().toString())
+        .promotionType(promotion.getPromotionType().toString())
         .build();
   }
 }

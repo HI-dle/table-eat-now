@@ -10,6 +10,7 @@ import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,8 @@ class PromotionUserControllerTest {
   @Test
   void promotion_user_create_test() throws Exception {
     // given
-    CreatePromotionUserRequest request = new CreatePromotionUserRequest(1L);
+    String promotionUuid = UUID.randomUUID().toString();
+    CreatePromotionUserRequest request = new CreatePromotionUserRequest(1L,promotionUuid);
 
     PromotionUser entity = request.toApplication().toEntity();
 

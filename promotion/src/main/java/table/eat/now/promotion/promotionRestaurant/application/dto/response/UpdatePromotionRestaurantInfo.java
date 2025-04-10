@@ -8,12 +8,12 @@ import table.eat.now.promotion.promotionRestaurant.domain.entity.PromotionRestau
  * @Date : 2025. 04. 08.
  */
 @Builder
-public record CreatePromotionRestaurantInfo(String promotionRestaurantUuid,
+public record UpdatePromotionRestaurantInfo(String promotionRestaurantUuid,
                                             String promotionUuid,
                                             String restaurantUuid) {
 
-  public static CreatePromotionRestaurantInfo from(PromotionRestaurant promotionRestaurant) {
-    return CreatePromotionRestaurantInfo.builder()
+  public static UpdatePromotionRestaurantInfo from(PromotionRestaurant promotionRestaurant) {
+    return UpdatePromotionRestaurantInfo.builder()
         .promotionRestaurantUuid(promotionRestaurant.getPromotionRestaurantUuid())
         .promotionUuid(promotionRestaurant.getPromotionUuid())
         .restaurantUuid(promotionRestaurant.getRestaurantUuid())

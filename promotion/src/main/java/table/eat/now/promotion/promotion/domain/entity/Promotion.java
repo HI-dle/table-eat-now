@@ -34,8 +34,8 @@ public class Promotion extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-  private UUID promotionUuid;
+  @Column(nullable = false, unique = true, length = 100, name = "promotion_uuid")
+  private String promotionUuid;
 
   @Embedded
   private PromotionDetails details;
@@ -58,7 +58,7 @@ public class Promotion extends BaseEntity {
   private Promotion(
       String promotionName, String description, LocalDateTime startTime, LocalDateTime endTime,
       BigDecimal amount, PromotionStatus promotionStatus, PromotionType promotionType) {
-    this.promotionUuid = UUID.randomUUID();
+    this.promotionUuid = UUID.randomUUID().toString();
     this.details = PromotionDetails.of(promotionName, description);
     this.period = PromotionPeriod.of(startTime,endTime);
     this.discountPrice = DiscountPrice.of(amount);
@@ -72,5 +72,16 @@ public class Promotion extends BaseEntity {
     return new Promotion(
         promotionName, description, startTime, endTime,
         amount,promotionStatus,promotionType);
+  }
+
+  public void modifyPromotion(
+      String promotionName, String description, LocalDateTime startTime,
+      LocalDateTime endTime, BigDecimal amount,
+      PromotionStatus promotionStatus, PromotionType promotionType) {
+    this.details = PromotionDetails.of(promotionName, description);
+    this.period = PromotionPeriod.of(startTime,endTime);
+    this.discountPrice = DiscountPrice.of(amount);
+    this.promotionStatus = promotionStatus;
+    this.promotionType = promotionType;
   }
 }

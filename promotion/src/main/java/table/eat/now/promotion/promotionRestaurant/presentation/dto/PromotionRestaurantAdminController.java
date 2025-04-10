@@ -3,15 +3,20 @@ package table.eat.now.promotion.promotionRestaurant.presentation.dto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 import table.eat.now.common.aop.annotation.AuthCheck;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.promotion.promotionRestaurant.application.service.PromotionRestaurantService;
 import table.eat.now.promotion.promotionRestaurant.presentation.dto.request.CreatePromotionRestaurantRequest;
+import table.eat.now.promotion.promotionRestaurant.presentation.dto.request.UpdatePromotionRestaurantRequest;
 import table.eat.now.promotion.promotionRestaurant.presentation.dto.response.CreatePromotionRestaurantResponse;
+import table.eat.now.promotion.promotionRestaurant.presentation.dto.response.UpdatePromotionRestaurantResponse;
 
 /**
  * @author : hanjihoon
@@ -25,7 +30,7 @@ public class PromotionRestaurantAdminController {
   private final PromotionRestaurantService promotionRestaurantService;
 
   @PostMapping
-  @AuthCheck
+  @AuthCheck(roles = {UserRole.MASTER, UserRole.OWNER})
   public ResponseEntity<Void> createPromotionRestaurant(
       @Valid @RequestBody CreatePromotionRestaurantRequest request
   ) {
@@ -38,5 +43,15 @@ public class PromotionRestaurantAdminController {
             .toUri())
         .build();
   }
+  @PutMapping("/{promotionRestaurantUuid}")
+  @AuthCheck(roles = {UserRole.MASTER})
+  public ResponseEntity<UpdatePromotionRestaurantResponse> updatePromotionRestaurant(
+    @Valid @RequestBody UpdatePromotionRestaurantRequest request,
+    @PathVariable("promotionRestaurantUuid") String promotionRestaurantUuid) {
+    return ResponseEntity.ok(
+        UpdatePromotionRestaurantResponse.from(promotionRestaurantService
+            .updatePromotionRestaurant(request.toApplication(), promotionRestaurantUuid)));
+  }
+
 
 }

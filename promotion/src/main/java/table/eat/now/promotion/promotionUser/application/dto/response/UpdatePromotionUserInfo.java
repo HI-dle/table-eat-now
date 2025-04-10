@@ -8,12 +8,12 @@ import table.eat.now.promotion.promotionUser.domain.entity.PromotionUser;
  * @Date : 2025. 04. 08.
  */
 @Builder
-public record CreatePromotionUserInfo(String promotionUserUuid,
+public record UpdatePromotionUserInfo(String promotionUserUuid,
                                       Long userId,
                                       String promotionUuid) {
 
-  public static CreatePromotionUserInfo from(PromotionUser promotionUser) {
-    return CreatePromotionUserInfo.builder()
+  public static UpdatePromotionUserInfo from(PromotionUser promotionUser) {
+    return UpdatePromotionUserInfo.builder()
         .promotionUserUuid(promotionUser.getPromotionUserUuid())
         .userId(promotionUser.getUserId())
         .promotionUuid(promotionUser.getPromotionUuid())

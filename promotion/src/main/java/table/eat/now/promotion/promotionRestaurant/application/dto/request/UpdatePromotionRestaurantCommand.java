@@ -6,7 +6,7 @@ import table.eat.now.promotion.promotionRestaurant.domain.entity.PromotionRestau
  * @author : hanjihoon
  * @Date : 2025. 04. 08.
  */
-public record CreatePromotionRestaurantCommand(String promotionUuid,
+public record UpdatePromotionRestaurantCommand(String promotionUuid,
                                                String restaurantUuid) {
 
   public PromotionRestaurant toEntity() {

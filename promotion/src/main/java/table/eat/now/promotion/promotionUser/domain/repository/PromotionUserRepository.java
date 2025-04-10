@@ -1,5 +1,6 @@
 package table.eat.now.promotion.promotionUser.domain.repository;
 
+import java.util.Optional;
 import table.eat.now.promotion.promotionUser.domain.entity.PromotionUser;
 
 /**
@@ -9,4 +10,7 @@ import table.eat.now.promotion.promotionUser.domain.entity.PromotionUser;
 public interface PromotionUserRepository {
 
   PromotionUser save(PromotionUser promotionUser);
+
+  Optional<PromotionUser> findByPromotionUserUuidAndDeletedAtIsNull(
+      String promotionUserUuid);
 }
