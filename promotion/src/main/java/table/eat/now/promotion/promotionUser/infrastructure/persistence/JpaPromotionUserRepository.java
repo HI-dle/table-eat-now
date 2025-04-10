@@ -1,6 +1,8 @@
 package table.eat.now.promotion.promotionUser.infrastructure.persistence;
 
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import table.eat.now.promotion.promotionRestaurant.domain.entity.PromotionRestaurant;
 import table.eat.now.promotion.promotionUser.domain.entity.PromotionUser;
 import table.eat.now.promotion.promotionUser.domain.repository.PromotionUserRepository;
 
@@ -11,4 +13,6 @@ import table.eat.now.promotion.promotionUser.domain.repository.PromotionUserRepo
 public interface JpaPromotionUserRepository extends
     JpaRepository<PromotionUser, Long>, PromotionUserRepository {
 
+  Optional<PromotionUser> findByPromotionUserUuidAndDeletedAtIsNull(
+      String promotionUserUuid);
 }

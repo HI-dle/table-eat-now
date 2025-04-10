@@ -34,9 +34,13 @@ public class PromotionUser extends BaseEntity {
 
 
   private PromotionUser(Long userId) {
+    this.promotionUserUuid = UUID.randomUUID().toString();
     this.userId = userId;
   }
   public static PromotionUser of(Long userId) {
     return new PromotionUser(userId);
+  }
+  public void modifyPromotionUser(Long userId) {
+    this.userId = userId;
   }
 }

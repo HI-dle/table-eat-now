@@ -1,7 +1,9 @@
 package table.eat.now.promotion.promotionUser.application.service;
 
 import table.eat.now.promotion.promotionUser.application.dto.request.CreatePromotionUserCommand;
+import table.eat.now.promotion.promotionUser.application.dto.request.UpdatePromotionUserCommand;
 import table.eat.now.promotion.promotionUser.application.dto.response.CreatePromotionUserInfo;
+import table.eat.now.promotion.promotionUser.application.dto.response.UpdatePromotionUserInfo;
 
 /**
  * @author : hanjihoon
@@ -10,4 +12,6 @@ import table.eat.now.promotion.promotionUser.application.dto.response.CreateProm
 public interface PromotionUserService {
 
   CreatePromotionUserInfo createPromotionUser(CreatePromotionUserCommand command);
+
+  UpdatePromotionUserInfo updatePromotionUser(UpdatePromotionUserCommand com, String promotionUserUuid);
 }
