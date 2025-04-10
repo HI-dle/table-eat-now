@@ -5,11 +5,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
+import static table.eat.now.review.application.exception.ReviewErrorCode.MODIFY_PERMISSION_DENIED;
 import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_IS_INVISIBLE;
 import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_NOT_FOUND;
 
@@ -266,7 +268,7 @@ class ReviewControllerTest {
 
 		@Test
 		void 권한이_없는_비공개_리뷰에_접근하면_403_상태코드와_메시지를_반환한다() throws Exception {
-			// givem
+			// given
 			when(reviewService.getReview(anyString(), any(CurrentUserInfoDto.class)))
 					.thenThrow(CustomException.from(REVIEW_IS_INVISIBLE));
 
@@ -277,8 +279,198 @@ class ReviewControllerTest {
 							.header(USER_ROLE_HEADER, "CUSTOMER")
 			);
 
+			//then
 			actions.andExpect(status().isForbidden())
-					.andExpect(jsonPath("$.message").value("비공개 처리된 리뷰입니다"));
+					.andExpect(jsonPath("$.message").value("비공개 처리된 리뷰입니다."));
+		}
+	}
+
+	@Nested
+	class 리뷰_숨김_요청시 {
+
+		private String restaurantId;
+		private String serviceId;
+		private String reviewId;
+		private CurrentUserInfoDto userInfo;
+		private CurrentUserInfoDto otherUserInfo;
+		private GetReviewInfo reviewInfo;
+
+		@BeforeEach
+		void setUp() {
+			restaurantId = UUID.randomUUID().toString();
+			serviceId = UUID.randomUUID().toString();
+			reviewId = UUID.randomUUID().toString();
+			userInfo = CurrentUserInfoDto.of(123L, UserRole.CUSTOMER);
+			otherUserInfo = CurrentUserInfoDto.of(456L, UserRole.CUSTOMER);
+			reviewInfo = GetReviewInfo.builder()
+					.reviewUuid(reviewId)
+					.customerId(userInfo.userId())
+					.restaurantId(restaurantId)
+					.serviceId(serviceId)
+					.serviceType("RESERVATION")
+					.rating(4)
+					.content("맛있는 식당이었습니다.")
+					.isVisible(false)
+					.createdAt(LocalDateTime.now())
+					.updatedAt(LocalDateTime.now())
+					.build();
+		}
+
+		@Test
+		void 유효한_요청이면_200_상태_코드와_숨겨진_리뷰_정보를_반환한다() throws Exception {
+			// given
+			when(reviewService.hideReview(reviewId, userInfo)).thenReturn(reviewInfo);
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					patch("/api/v1/reviews/{reviewId}/hide", reviewId)
+							.header(USER_ID_HEADER, userInfo.userId())
+							.header(USER_ROLE_HEADER, userInfo.role())
+			);
+
+			// then
+			actions.andExpect(status().isOk())
+					.andExpect(jsonPath("$.reviewUuid").value(reviewId))
+					.andExpect(jsonPath("$.customerId").value(userInfo.userId()))
+					.andExpect(jsonPath("$.restaurantId").value(restaurantId))
+					.andExpect(jsonPath("$.serviceId").value(serviceId))
+					.andExpect(jsonPath("$.serviceType").value("RESERVATION"))
+					.andExpect(jsonPath("$.rating").value(4))
+					.andExpect(jsonPath("$.content").value("맛있는 식당이었습니다."))
+					.andExpect(jsonPath("$.isVisible").value(false)); // 숨김 처리 확인
+
+			verify(reviewService).hideReview(reviewId, userInfo);
+		}
+
+		@Test
+		void 존재하지_않는_리뷰를_숨기려고_하면_404_상태코드와_메시지를_반환한다() throws Exception {
+			// given
+			when(reviewService.hideReview(anyString(), any(CurrentUserInfoDto.class)))
+					.thenThrow(CustomException.from(REVIEW_NOT_FOUND));
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					patch("/api/v1/reviews/{reviewId}/hide", reviewId)
+							.header(USER_ID_HEADER, userInfo.userId())
+							.header(USER_ROLE_HEADER, userInfo.role())
+			);
+
+			// then
+			actions.andExpect(status().isNotFound())
+					.andExpect(jsonPath("$.message").value("해당 리뷰를 찾을 수 없습니다."));
+		}
+
+		@Test
+		void 권한이_없는_리뷰를_숨기려고_하면_403_상태코드와_메시지를_반환한다() throws Exception {
+			// given
+			when(reviewService.hideReview(anyString(), any(CurrentUserInfoDto.class)))
+					.thenThrow(CustomException.from(MODIFY_PERMISSION_DENIED));
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					patch("/api/v1/reviews/{reviewId}/hide", reviewId)
+							.header(USER_ID_HEADER, otherUserInfo.userId())
+							.header(USER_ROLE_HEADER, otherUserInfo.role())
+			);
+
+			// then
+			actions.andExpect(status().isForbidden())
+					.andExpect(jsonPath("$.message").value("수정 요청에 대한 권한이 없습니다."));
+		}
+	}
+
+	@Nested
+	class 리뷰_공개_시 {
+
+		private String restaurantId;
+		private String serviceId;
+		private String reviewId;
+		private CurrentUserInfoDto userInfo;
+		private CurrentUserInfoDto otherUserInfo;
+		private GetReviewInfo reviewInfo;
+
+		@BeforeEach
+		void setUp() {
+			restaurantId = UUID.randomUUID().toString();
+			serviceId = UUID.randomUUID().toString();
+			reviewId = UUID.randomUUID().toString();
+			userInfo = CurrentUserInfoDto.of(123L, UserRole.CUSTOMER);
+			otherUserInfo = CurrentUserInfoDto.of(456L, UserRole.CUSTOMER);
+			reviewInfo = GetReviewInfo.builder()
+					.reviewUuid(reviewId)
+					.customerId(userInfo.userId())
+					.restaurantId(restaurantId)
+					.serviceId(serviceId)
+					.serviceType("RESERVATION")
+					.rating(4)
+					.content("맛있는 식당이었습니다.")
+					.isVisible(true)
+					.createdAt(LocalDateTime.now())
+					.updatedAt(LocalDateTime.now())
+					.build();
+		}
+
+		@Test
+		void 유효한_요청으로_리뷰를_공개하면_200_상태_코드와_공개된_리뷰_정보를_반환한다() throws Exception {
+			// given
+			when(reviewService.showReview(reviewId, userInfo)).thenReturn(reviewInfo);
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					patch("/api/v1/reviews/{reviewId}/show", reviewId)
+							.header(USER_ID_HEADER, userInfo.userId())
+							.header(USER_ROLE_HEADER, userInfo.role())
+			);
+
+			// then
+			actions
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.reviewUuid").value(reviewId))
+					.andExpect(jsonPath("$.customerId").value(userInfo.userId()))
+					.andExpect(jsonPath("$.restaurantId").value(restaurantId))
+					.andExpect(jsonPath("$.serviceId").value(serviceId))
+					.andExpect(jsonPath("$.serviceType").value("RESERVATION"))
+					.andExpect(jsonPath("$.rating").value(4))
+					.andExpect(jsonPath("$.content").value("맛있는 식당이었습니다."))
+					.andExpect(jsonPath("$.isVisible").value(true));
+
+			verify(reviewService).showReview(reviewId, userInfo);
+		}
+
+		@Test
+		void 존재하지_않는_리뷰를_공개하려고_하면_404_상태코드와_메시지를_반환한다() throws Exception {
+			// given
+			when(reviewService.showReview(anyString(), any(CurrentUserInfoDto.class)))
+					.thenThrow(CustomException.from(REVIEW_NOT_FOUND));
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					patch("/api/v1/reviews/{reviewId}/show", reviewId)
+							.header(USER_ID_HEADER, userInfo.userId())
+							.header(USER_ROLE_HEADER, userInfo.role())
+			);
+
+			// then
+			actions.andExpect(status().isNotFound())
+					.andExpect(jsonPath("$.message").value("해당 리뷰를 찾을 수 없습니다."));
+		}
+
+		@Test
+		void 권한이_없는_리뷰를_공개하려고_하면_403_상태코드와_메시지를_반환한다() throws Exception {
+			// given
+			when(reviewService.showReview(anyString(), any(CurrentUserInfoDto.class)))
+					.thenThrow(CustomException.from(MODIFY_PERMISSION_DENIED));
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					patch("/api/v1/reviews/{reviewId}/show", reviewId)
+							.header(USER_ID_HEADER, otherUserInfo.userId())
+							.header(USER_ROLE_HEADER, otherUserInfo.role())
+			);
+
+			// then
+			actions.andExpect(status().isForbidden())
+					.andExpect(jsonPath("$.message").value("수정 요청에 대한 권한이 없습니다."));
 		}
 	}
 }

@@ -10,4 +10,8 @@ public interface ReviewService {
 	CreateReviewInfo createReview(CreateReviewCommand command);
 
 	GetReviewInfo getReview(String reviewId, CurrentUserInfoDto userInfo);
+
+	GetReviewInfo hideReview(String reviewId, CurrentUserInfoDto userInfo);
+
+	GetReviewInfo showReview(String reviewId, CurrentUserInfoDto userInfo);
 }

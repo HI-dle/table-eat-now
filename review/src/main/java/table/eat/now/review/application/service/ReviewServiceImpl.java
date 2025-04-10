@@ -1,11 +1,17 @@
 package table.eat.now.review.application.service;
 
+import static table.eat.now.common.resolver.dto.UserRole.CUSTOMER;
+import static table.eat.now.common.resolver.dto.UserRole.MASTER;
+import static table.eat.now.common.resolver.dto.UserRole.OWNER;
+import static table.eat.now.common.resolver.dto.UserRole.STAFF;
+import static table.eat.now.review.application.exception.ReviewErrorCode.MODIFY_PERMISSION_DENIED;
 import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_IS_INVISIBLE;
 import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_NOT_FOUND;
 import static table.eat.now.review.application.exception.ReviewErrorCode.SERVICE_USER_MISMATCH;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
@@ -54,6 +60,7 @@ public class ReviewServiceImpl implements ReviewService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public GetReviewInfo getReview(String reviewId, CurrentUserInfoDto userInfo) {
 		Review review = findReview(reviewId);
 		validateAccess(review, userInfo.userId(), userInfo.role());
@@ -72,11 +79,42 @@ public class ReviewServiceImpl implements ReviewService {
 	}
 
 	private boolean isRestaurantStaff(Review review, Long currentUserId, UserRole role) {
-		if (role != UserRole.STAFF && role != UserRole.OWNER) {
+		if (role != STAFF && role != OWNER) {
 			return false;
 		}
 		GetRestaurantStaffInfo staffInfo = restaurantClient
 				.getRestaurantStaffInfo(review.getReference().getRestaurantId());
 		return staffInfo.staffId().equals(currentUserId) || staffInfo.ownerId().equals(currentUserId);
+	}
+
+	@Override
+	@Transactional
+	public GetReviewInfo hideReview(String reviewId, CurrentUserInfoDto userInfo) {
+		Review review = findReview(reviewId);
+		validateModify(userInfo, review);
+		return GetReviewInfo.from(review.hide(userInfo.userId(), userInfo.role().name()));
+	}
+
+	private void validateModify(CurrentUserInfoDto userInfo, Review review) {
+		if (!isCustomer(userInfo) && !isAdmin(userInfo, review)) {
+			throw CustomException.from(MODIFY_PERMISSION_DENIED);
+		}
+	}
+
+	private boolean isCustomer(CurrentUserInfoDto userInfo) {
+		return userInfo.role().equals(CUSTOMER);
+	}
+
+	private boolean isAdmin(CurrentUserInfoDto userInfo, Review review) {
+		return isRestaurantStaff(review, userInfo.userId(), userInfo.role())
+				|| !userInfo.role().equals(MASTER);
+	}
+
+	@Override
+	@Transactional
+	public GetReviewInfo showReview(String reviewId, CurrentUserInfoDto userInfo) {
+		Review review = findReview(reviewId);
+		validateModify(userInfo, review);
+		return GetReviewInfo.from(review.show(userInfo.userId(), userInfo.role().name()));
 	}
 }
