@@ -86,4 +86,9 @@ public class CouponRepositoryImpl implements CouponRepository {
   public Integer getCouponCount(String couponUuid) {
     return redisRepository.getCouponCount(couponUuid);
   }
+
+  @Override
+  public Page<Coupon> getAvailableCoupons(Pageable pageable, LocalDateTime time) {
+    return jpaRepository.getAvailableCoupons(pageable, time);
+  }
 }

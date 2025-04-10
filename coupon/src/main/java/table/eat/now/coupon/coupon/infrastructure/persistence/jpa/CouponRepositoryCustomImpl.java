@@ -56,28 +56,58 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
     return PageableExecutionUtils.getPage(dtoList, pageable, countQuery::fetchOne);
   }
 
+  @Override
+  public Page<Coupon> getAvailableCoupons(Pageable pageable, LocalDateTime time) {
+
+    OrderSpecifier[] orderSpecifiers = createOrderSpecifiers(pageable.getSort());
+
+    List<Coupon> dtoList = queryFactory
+        .selectFrom(coupon)
+        .join(coupon.policy).fetchJoin()
+        .where(
+            betweenPeriod(time)
+        )
+        .orderBy(orderSpecifiers)
+        .offset(pageable.getOffset())
+        .limit(pageable.getPageSize())
+        .fetch();
+
+    JPAQuery<Long> countQuery = queryFactory
+        .select(coupon.count())
+        .from(coupon)
+        .where(
+            betweenPeriod(time)
+        );
+
+    return PageableExecutionUtils.getPage(dtoList, pageable, countQuery::fetchOne);
+  }
+
   private BooleanBuilder searchCondition(CouponCriteria criteria) {
-    return betweenPeriod(criteria.fromAt(), criteria.toAt())
+    return betweenFromTo(criteria.fromAt(), criteria.toAt())
         .and(eqType(criteria.type()));
   }
 
-  public BooleanBuilder betweenPeriod(LocalDateTime fromAt, LocalDateTime toAt) {
+  public BooleanBuilder betweenFromTo(LocalDateTime fromAt, LocalDateTime toAt) {
     if (fromAt == null && toAt == null) {
       return new BooleanBuilder();
     }
     if (fromAt == null) {
-      return new BooleanBuilder(coupon.period.startAt.before(toAt));
+      return new BooleanBuilder(coupon.period.startAt.loe(toAt));
     }
     if (toAt == null) {
-      return new BooleanBuilder(coupon.period.endAt.after(fromAt));
+      return new BooleanBuilder(coupon.period.endAt.goe(fromAt));
     }
     BooleanExpression isWithinRange =
-        coupon.period.startAt.before(toAt).and(coupon.period.endAt.after(fromAt));
+        coupon.period.startAt.loe(toAt).and(coupon.period.endAt.goe(fromAt));
     return new BooleanBuilder(isWithinRange);
   }
 
   public BooleanBuilder eqType(String type)  {
     return nullSafeBuilder(() -> coupon.type.eq(CouponType.valueOf(type)));
+  }
+
+  private BooleanBuilder betweenPeriod(LocalDateTime time) {
+    return nullSafeBuilder(() -> coupon.period.startAt.loe(time).and(coupon.period.endAt.goe(time)));
   }
 
   private OrderSpecifier[] createOrderSpecifiers(Sort sort) {
