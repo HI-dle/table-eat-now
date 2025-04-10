@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -16,13 +17,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.promotion.promotionRestaurant.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.excepton.PromotionRestaurantErrorCode;
 import table.eat.now.promotion.promotionRestaurant.application.dto.request.CreatePromotionRestaurantCommand;
+import table.eat.now.promotion.promotionRestaurant.application.dto.request.SearchPromotionRestaurantCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.request.UpdatePromotionRestaurantCommand;
 import table.eat.now.promotion.promotionRestaurant.application.dto.response.CreatePromotionRestaurantInfo;
+import table.eat.now.promotion.promotionRestaurant.application.dto.response.SearchPromotionRestaurantInfo;
 import table.eat.now.promotion.promotionRestaurant.application.dto.response.UpdatePromotionRestaurantInfo;
 import table.eat.now.promotion.promotionRestaurant.domain.entity.PromotionRestaurant;
 import table.eat.now.promotion.promotionRestaurant.domain.repository.PromotionRestaurantRepository;
+import table.eat.now.promotion.promotionRestaurant.domain.repository.search.PaginatedResult;
+import table.eat.now.promotion.promotionRestaurant.domain.repository.search.PromotionRestaurantSearchCriteriaQuery;
 
 /**
  * @author : hanjihoon
@@ -119,5 +125,57 @@ class PromotionRestaurantServiceImplTest {
         findByPromotionRestaurantUuidAndDeletedAtIsNull(invalidUuid);
   }
 
+  @DisplayName("레스토랑 아이디와 프로모션 아이디로 프로모션-레스토랑 정보를 검색한다.")
+  @Test
+  void search_promotion_restaurant_service_test() {
+    // given
+    SearchPromotionRestaurantCommand command = new SearchPromotionRestaurantCommand(
+        "promotion-uuid",
+        "restaurant-uuid",
+        true,
+        "createdAt",
+        0,
+        10
+    );
+
+    PromotionRestaurantSearchCriteriaQuery query1 = new PromotionRestaurantSearchCriteriaQuery(
+        "promotion-restaurant-uuid-1",
+        "promotion-uuid",
+        "restaurant-uuid"
+    );
+
+    PromotionRestaurantSearchCriteriaQuery query2 = new PromotionRestaurantSearchCriteriaQuery(
+        "promotion-restaurant-uuid-2",
+        "promotion-uuid",
+        "restaurant-uuid"
+    );
+
+    PaginatedResult<PromotionRestaurantSearchCriteriaQuery> paginatedResult =
+        new PaginatedResult<>(
+            List.of(query1, query2),
+            0,
+            10,
+            2L,
+            1
+        );
+
+    when(promotionRestaurantRepository.searchPromotionRestaurant(command.toCriteria()))
+        .thenReturn(paginatedResult);
+
+    // when
+    PaginatedResultCommand<SearchPromotionRestaurantInfo> result =
+        promotionRestaurantService.searchPromotionRestaurant(command);
+
+    // then
+    assertThat(result.content()).hasSize(2);
+    assertThat(result.content().get(0).promotionRestaurantUuid()).isEqualTo("promotion-restaurant-uuid-1");
+    assertThat(result.content().get(1).promotionRestaurantUuid()).isEqualTo("promotion-restaurant-uuid-2");
+    assertThat(result.page()).isEqualTo(0);
+    assertThat(result.size()).isEqualTo(10);
+    assertThat(result.totalElements()).isEqualTo(2L);
+    assertThat(result.totalPages()).isEqualTo(1);
+
+    verify(promotionRestaurantRepository).searchPromotionRestaurant(command.toCriteria());
+  }
 
 }
