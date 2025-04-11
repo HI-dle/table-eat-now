@@ -24,6 +24,8 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
 	@Override
 	public PaginatedResult<SearchReviewResult> searchReviews(SearchReviewCriteria criteria) {
 
+		BooleanExpression whereCondition = buildWhereCondition(criteria);
+
 		List<SearchReviewResult> content = queryFactory
 				.select(Projections.constructor(SearchReviewResult.class,
 						review.reviewId,
@@ -39,33 +41,16 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
 						review.createdAt,
 						review.updatedAt))
 				.from(review)
-				.where(
-						review.deletedAt.isNull(),
-						customerIdEquals(criteria.userId()),
-						restaurantIdEquals(criteria.restaurantId()),
-						serviceTypeEquals(criteria.serviceType()),
-						ratingBetween(criteria.minRating(), criteria.maxRating()),
-						createdAtBetween(criteria.startDate(), criteria.endDate()),
-						getVisibilityCondition(criteria)
-				)
+				.where(whereCondition)
 				.orderBy(getOrderSpecifier(criteria))
 				.offset(criteria.page())
 				.limit(criteria.size())
 				.fetch();
 
-		// 전체 개수 조회
 		Long totalElements = queryFactory
 				.select(review.count())
 				.from(review)
-				.where(
-						review.deletedAt.isNull(),
-						customerIdEquals(criteria.userId()),
-						restaurantIdEquals(criteria.restaurantId()),
-						serviceTypeEquals(criteria.serviceType()),
-						ratingBetween(criteria.minRating(), criteria.maxRating()),
-						createdAtBetween(criteria.startDate(), criteria.endDate()),
-						getVisibilityCondition(criteria)
-				)
+				.where(whereCondition)
 				.fetchOne();
 
 		totalElements = totalElements == null ? 0 : totalElements;
@@ -80,83 +65,95 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
 		);
 	}
 
+	private BooleanExpression buildWhereCondition(SearchReviewCriteria criteria) {
+		return review.deletedAt.isNull()
+				.and(customerIdEquals(criteria.userId()))
+				.and(restaurantIdEquals(criteria.restaurantId()))
+				.and(serviceTypeEquals(criteria.serviceType()))
+				.and(ratingBetween(criteria.minRating(), criteria.maxRating()))
+				.and(createdAtBetween(criteria.startDate(), criteria.endDate()))
+				.and(getVisibilityCondition(criteria));
+	}
+
 	private BooleanExpression getVisibilityCondition(SearchReviewCriteria criteria) {
 		BooleanExpression isVisible = review.visibility.isVisible.isTrue();
+		Long currentUserId = criteria.currentUserId();
+		Long targetUserId = criteria.userId();
 
-		if (criteria.currentUserId() == null) {
+		if (currentUserId == null) {
 			return isVisible;
 		}
 
-		if (criteria.userId() != null) {
-			if (criteria.userId().equals(criteria.currentUserId())) {
-				return criteria.isVisible() == null ?
-						null :
-						(criteria.isVisible() ? isVisible : review.visibility.isVisible.isFalse());
+		//특정 유저의 리뷰에 접근 시
+		if (targetUserId != null) {
+			//현재 로그인 한 유저와 같다면 (내 리뷰에 접근한다면)
+			if (currentUserId.equals(targetUserId)) {
+				//필터에 적용된 공개 여부를 따릅니다. (isVisible : true - 공개 , false - 비공개)
+				Boolean visibilityFilter = criteria.isVisible();
+
+				//유저가 해당 필터를 설정하지 않았다면
+				return visibilityFilter == null
+						? null // 전체를 반환하고
+						// 아니면 필터값을 따릅니다.
+						: (visibilityFilter ? isVisible : review.visibility.isVisible.isFalse());
 			}
+			//다른 유저의 리뷰에 접근한다면, 공개상태의 리뷰만 반환합니다.
 			return isVisible;
 		}
 
-		return review.visibility.isVisible.isTrue()
-				.or(review.reference.customerId.eq(criteria.currentUserId()));
+		//특정 유저에 대한 접근이 아닌, 전체 접근인 경우에는
+		//공개된 다른 유저의 리뷰 + 내 전체 리뷰를 반환합니다.
+		return isVisible.or(review.reference.customerId.eq(currentUserId));
 	}
 
 	private BooleanExpression customerIdEquals(Long customerId) {
-		return customerId == null ? null : review.reference.customerId.eq(customerId);
+		return customerId != null ? review.reference.customerId.eq(customerId) : null;
 	}
 
 	private BooleanExpression restaurantIdEquals(String restaurantId) {
-		return (restaurantId == null || restaurantId.isEmpty()) ?
-				null : review.reference.restaurantId.eq(restaurantId);
+		return (restaurantId != null && !restaurantId.isEmpty()) ?
+				review.reference.restaurantId.eq(restaurantId) : null;
 	}
 
 	private BooleanExpression serviceTypeEquals(ServiceType serviceType) {
-		return serviceType == null ? null : review.reference.serviceType.eq(serviceType);
+		return serviceType != null ? review.reference.serviceType.eq(serviceType) : null;
 	}
 
 	private BooleanExpression ratingBetween(Integer minRating, Integer maxRating) {
 		if (minRating == null && maxRating == null) {
 			return null;
 		}
-
 		if (minRating == null) {
 			return review.content.rating.loe(maxRating);
 		}
-
 		if (maxRating == null) {
 			return review.content.rating.goe(minRating);
 		}
-
 		return review.content.rating.between(minRating, maxRating);
 	}
 
 	private BooleanExpression createdAtBetween(LocalDate startDate, LocalDate endDate) {
-		if (startDate == null && endDate == null) {
+		LocalDateTime start = startDate != null ? startDate.atStartOfDay() : null;
+		LocalDateTime end = endDate != null ? endDate.atTime(LocalTime.MAX) : null;
+
+		if (start == null && end == null) {
 			return null;
 		}
-
-		if (startDate == null) {
-			LocalDateTime endDateTime = LocalDateTime.of(endDate, LocalTime.MAX);
-			return review.createdAt.loe(endDateTime);
+		if (start == null) {
+			return review.createdAt.loe(end);
 		}
-
-		if (endDate == null) {
-			LocalDateTime startDateTime = LocalDateTime.of(startDate, LocalTime.MIN);
-			return review.createdAt.goe(startDateTime);
+		if (end == null) {
+			return review.createdAt.goe(start);
 		}
-
-		LocalDateTime startDateTime = LocalDateTime.of(startDate, LocalTime.MIN);
-		LocalDateTime endDateTime = LocalDateTime.of(endDate, LocalTime.MAX);
-		return review.createdAt.between(startDateTime, endDateTime);
+		return review.createdAt.between(start, end);
 	}
 
 	private OrderSpecifier<?> getOrderSpecifier(SearchReviewCriteria criteria) {
+		boolean isAsc = "asc".equalsIgnoreCase(criteria.sort());
 		if ("rating".equals(criteria.orderBy())) {
-			return criteria.sort() != null && criteria.sort().equalsIgnoreCase("asc") ?
-					review.content.rating.asc() : review.content.rating.desc();
+			return isAsc ? review.content.rating.asc() : review.content.rating.desc();
 		}
-
-		return criteria.sort() != null && criteria.sort().equalsIgnoreCase("asc") ?
-				review.createdAt.asc() : review.createdAt.desc();
+		return isAsc ? review.createdAt.asc() : review.createdAt.desc();
 	}
 }
 
