@@ -860,10 +860,6 @@ class ReservationServiceTest extends IntegrationTestSupport {
       CreateReservationCommand command = createPromotionPaymentInfo(
           promotionUuid, BigDecimal.valueOf(3000));
 
-      // 예약일
-      LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
-          .atTime(command.restaurantTimeSlotDetails().timeslot());
-
       // 식당 정보 설정
       GetRestaurantInfo.Timeslot validTimeslot = new GetRestaurantInfo.Timeslot(
           command.restaurantTimeslotUuid(),
@@ -908,10 +904,6 @@ class ReservationServiceTest extends IntegrationTestSupport {
       String promotionUuid = UUID.randomUUID().toString();
       CreateReservationCommand command = createPromotionPaymentInfo(
           promotionUuid, BigDecimal.valueOf(3000));
-
-      // 예약일
-      LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
-          .atTime(command.restaurantTimeSlotDetails().timeslot());
 
       // 식당 정보 설정
       GetRestaurantInfo.Timeslot validTimeslot = new GetRestaurantInfo.Timeslot(
@@ -967,10 +959,6 @@ class ReservationServiceTest extends IntegrationTestSupport {
       String promotionUuid = UUID.randomUUID().toString();
       CreateReservationCommand command = createPromotionPaymentInfo(
           promotionUuid, BigDecimal.valueOf(3000));
-
-      // 예약일
-      LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
-          .atTime(command.restaurantTimeSlotDetails().timeslot());
 
       // 식당 정보 설정
       GetRestaurantInfo.Timeslot validTimeslot = new GetRestaurantInfo.Timeslot(
