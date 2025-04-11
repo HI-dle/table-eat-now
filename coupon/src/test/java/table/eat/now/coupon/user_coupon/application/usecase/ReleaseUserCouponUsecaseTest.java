@@ -29,7 +29,7 @@ class ReleaseUserCouponUsecaseTest extends IntegrationTestSupport {
 
   @BeforeEach
   void setUp() {
-    userCoupon = UserCouponFixture.create(2L);
+    userCoupon = UserCouponFixture.create(1, 2L);
     userCouponRepository.save(userCoupon);
   }
 
