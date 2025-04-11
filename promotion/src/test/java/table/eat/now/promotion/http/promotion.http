@@ -51,3 +51,11 @@ Authorization: {{access_token}}
   "promotionStatus": "READY",
   "promotionType": "COUPON"
 }
+
+###
+GET http://localhost:8080/api/v1/promotions?promotionName=할인&description=시즌&startTime=2025-04-11T14:00:00&endTime=2025-04-15T14:00:00&discountAmount=1000&promotionStatus=READY&promotionType=COUPON&isAsc=true&sortBy=startTime&page=0&size=2
+Authorization: {{access_token}}
+
+###
+DELETE http://localhost:8080/admin/v1/promotions/{{promotionUuid}}
+Authorization: {{access_token}}
