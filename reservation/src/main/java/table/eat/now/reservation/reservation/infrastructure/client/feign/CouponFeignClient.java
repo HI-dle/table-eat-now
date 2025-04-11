@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response.GetCouponsResponse;
 
-@FeignClient(name = "coupon-service")
+@FeignClient(name = "coupon")
 public interface CouponFeignClient {
 
   @GetMapping("/internal/v1/coupons")
