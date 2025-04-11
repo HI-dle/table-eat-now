@@ -2,8 +2,11 @@ package table.eat.now.review.presentation;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -11,6 +14,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
+import static table.eat.now.common.resolver.dto.UserRole.CUSTOMER;
+import static table.eat.now.common.resolver.dto.UserRole.OWNER;
 import static table.eat.now.review.application.exception.ReviewErrorCode.MODIFY_PERMISSION_DENIED;
 import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_IS_INVISIBLE;
 import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_NOT_FOUND;
@@ -23,21 +28,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import table.eat.now.common.aop.AuthCheckAspect;
 import table.eat.now.common.config.WebConfig;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.exception.GlobalErrorHandler;
 import table.eat.now.common.resolver.CurrentUserInfoResolver;
 import table.eat.now.common.resolver.CustomPageableArgumentResolver;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
-import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.review.application.service.ReviewService;
 import table.eat.now.review.application.service.dto.request.CreateReviewCommand;
 import table.eat.now.review.application.service.dto.request.SearchReviewQuery;
@@ -50,13 +55,14 @@ import table.eat.now.review.presentation.dto.request.CreateReviewRequest;
 import table.eat.now.review.presentation.dto.request.UpdateReviewRequest;
 
 @ActiveProfiles("test")
-@AutoConfigureMockMvc
 @Import({
 		WebConfig.class,
 		CustomPageableArgumentResolver.class,
 		CurrentUserInfoResolver.class,
-		GlobalErrorHandler.class
+		GlobalErrorHandler.class,
+		AuthCheckAspect.class
 })
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @WebMvcTest(ReviewController.class)
 class ReviewControllerTest {
 
@@ -84,7 +90,7 @@ class ReviewControllerTest {
 			restaurantId = UUID.randomUUID();
 			serviceId = UUID.randomUUID();
 			reviewId = UUID.randomUUID();
-			userInfo = new CurrentUserInfoDto(123L, UserRole.CUSTOMER);
+			userInfo = new CurrentUserInfoDto(123L, CUSTOMER);
 
 			reviewInfo = CreateReviewInfo.builder()
 					.reviewUuid(reviewId.toString())
@@ -214,7 +220,7 @@ class ReviewControllerTest {
 			restaurantId = UUID.randomUUID();
 			serviceId = UUID.randomUUID();
 			reviewId = UUID.randomUUID();
-			userInfo = CurrentUserInfoDto.of(123L, UserRole.CUSTOMER);
+			userInfo = CurrentUserInfoDto.of(123L, CUSTOMER);
 			reviewInfo = GetReviewInfo.builder()
 					.reviewUuid(reviewId.toString())
 					.customerId(userInfo.userId())
@@ -269,7 +275,8 @@ class ReviewControllerTest {
 			);
 
 			actions.andExpect(status().isNotFound())
-					.andExpect(jsonPath("$.message").value("해당 리뷰를 찾을 수 없습니다."));
+					.andExpect(jsonPath("$.message")
+							.value(REVIEW_NOT_FOUND.getMessage()));
 		}
 
 		@Test
@@ -287,7 +294,8 @@ class ReviewControllerTest {
 
 			//then
 			actions.andExpect(status().isForbidden())
-					.andExpect(jsonPath("$.message").value("비공개 처리된 리뷰입니다."));
+					.andExpect(jsonPath("$.message")
+							.value(REVIEW_IS_INVISIBLE.getMessage()));
 		}
 	}
 
@@ -306,8 +314,8 @@ class ReviewControllerTest {
 			restaurantId = UUID.randomUUID();
 			serviceId = UUID.randomUUID();
 			reviewId = UUID.randomUUID();
-			userInfo = CurrentUserInfoDto.of(123L, UserRole.CUSTOMER);
-			otherUserInfo = CurrentUserInfoDto.of(456L, UserRole.CUSTOMER);
+			userInfo = CurrentUserInfoDto.of(123L, CUSTOMER);
+			otherUserInfo = CurrentUserInfoDto.of(456L, CUSTOMER);
 			reviewInfo = GetReviewInfo.builder()
 					.reviewUuid(reviewId.toString())
 					.customerId(userInfo.userId())
@@ -363,7 +371,7 @@ class ReviewControllerTest {
 
 			// then
 			actions.andExpect(status().isNotFound())
-					.andExpect(jsonPath("$.message").value("해당 리뷰를 찾을 수 없습니다."));
+					.andExpect(jsonPath("$.message").value(REVIEW_NOT_FOUND.getMessage()));
 		}
 
 		@Test
@@ -381,7 +389,8 @@ class ReviewControllerTest {
 
 			// then
 			actions.andExpect(status().isForbidden())
-					.andExpect(jsonPath("$.message").value("수정 요청에 대한 권한이 없습니다."));
+					.andExpect(jsonPath("$.message")
+							.value(MODIFY_PERMISSION_DENIED.getMessage()));
 		}
 	}
 
@@ -400,8 +409,8 @@ class ReviewControllerTest {
 			restaurantId = UUID.randomUUID();
 			serviceId = UUID.randomUUID();
 			reviewId = UUID.randomUUID();
-			userInfo = CurrentUserInfoDto.of(123L, UserRole.CUSTOMER);
-			otherUserInfo = CurrentUserInfoDto.of(456L, UserRole.CUSTOMER);
+			userInfo = CurrentUserInfoDto.of(123L, CUSTOMER);
+			otherUserInfo = CurrentUserInfoDto.of(456L, CUSTOMER);
 			reviewInfo = GetReviewInfo.builder()
 					.reviewUuid(reviewId.toString())
 					.customerId(userInfo.userId())
@@ -458,7 +467,7 @@ class ReviewControllerTest {
 
 			// then
 			actions.andExpect(status().isNotFound())
-					.andExpect(jsonPath("$.message").value("해당 리뷰를 찾을 수 없습니다."));
+					.andExpect(jsonPath("$.message").value(REVIEW_NOT_FOUND.getMessage()));
 		}
 
 		@Test
@@ -476,7 +485,8 @@ class ReviewControllerTest {
 
 			// then
 			actions.andExpect(status().isForbidden())
-					.andExpect(jsonPath("$.message").value("수정 요청에 대한 권한이 없습니다."));
+					.andExpect(jsonPath("$.message")
+							.value(MODIFY_PERMISSION_DENIED.getMessage()));
 		}
 	}
 
@@ -496,8 +506,8 @@ class ReviewControllerTest {
 			restaurantId = UUID.randomUUID();
 			serviceId = UUID.randomUUID();
 			reviewId = UUID.randomUUID();
-			userInfo = CurrentUserInfoDto.of(123L, UserRole.CUSTOMER);
-			otherUserInfo = CurrentUserInfoDto.of(456L, UserRole.CUSTOMER);
+			userInfo = CurrentUserInfoDto.of(123L, CUSTOMER);
+			otherUserInfo = CurrentUserInfoDto.of(456L, CUSTOMER);
 			reviewInfo = GetReviewInfo.builder()
 					.reviewUuid(reviewId.toString())
 					.customerId(userInfo.userId())
@@ -559,7 +569,7 @@ class ReviewControllerTest {
 
 			// then
 			actions.andExpect(status().isNotFound())
-					.andExpect(jsonPath("$.message").value("해당 리뷰를 찾을 수 없습니다."));
+					.andExpect(jsonPath("$.message").value(REVIEW_NOT_FOUND.getMessage()));
 		}
 
 		@Test
@@ -579,7 +589,8 @@ class ReviewControllerTest {
 
 			// then
 			actions.andExpect(status().isForbidden())
-					.andExpect(jsonPath("$.message").value("수정 요청에 대한 권한이 없습니다."));
+					.andExpect(jsonPath("$.message")
+							.value(MODIFY_PERMISSION_DENIED.getMessage()));
 		}
 
 		@Test
@@ -599,7 +610,8 @@ class ReviewControllerTest {
 
 			// then
 			actions.andExpect(status().isBadRequest())
-					.andExpect(jsonPath("$.message").value("이 작업에 대한 권한은 작성자에게만 있습니다."));
+					.andExpect(jsonPath("$.message")
+							.value("이 작업에 대한 권한은 작성자에게만 있습니다."));
 		}
 
 		@Test
@@ -692,7 +704,7 @@ class ReviewControllerTest {
 		void setUp() {
 			restaurantId = UUID.randomUUID();
 			userId = 1L;
-			userInfo = new CurrentUserInfoDto(userId, UserRole.CUSTOMER);
+			userInfo = new CurrentUserInfoDto(userId, CUSTOMER);
 		}
 
 		@Test
@@ -815,6 +827,88 @@ class ReviewControllerTest {
 
 			// then
 			actions.andExpect(status().isBadRequest());
+		}
+	}
+
+	@Nested
+	class 리뷰_삭제_요청시 {
+
+		private CurrentUserInfoDto userInfo;
+		private UUID reviewId;
+
+		@BeforeEach
+		void setUp() {
+			userInfo = new CurrentUserInfoDto(1L, CUSTOMER);
+			reviewId = UUID.randomUUID();
+		}
+
+		@Test
+		void 권한을_가진_유저가_요청시_204_상태코드를_반환한다() throws Exception {
+			// given
+			doNothing().when(reviewService).deleteReview(anyString(), any(CurrentUserInfoDto.class));
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					delete("/api/v1/reviews/{reviewId}", reviewId)
+							.header(USER_ID_HEADER, userInfo.userId())
+							.header(USER_ROLE_HEADER, userInfo.role())
+			);
+
+			//then
+			actions.andExpect(status().isNoContent());
+		}
+
+		@Test
+		void 레스토랑_주인이_접근하려고_하면_403_상태코드와_메시지를_반환한다() throws Exception {
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					delete("/api/v1/reviews/{reviewId}", reviewId)
+							.header(USER_ID_HEADER, userInfo.userId())
+							.header(USER_ROLE_HEADER, OWNER)
+			);
+
+			//then
+			actions.andExpect(status().isForbidden())
+					.andExpect(jsonPath("$.message").value("접근이 금지 되었습니다."));
+		}
+
+		@Test
+		void 권한이_없는_유저가_요청시_400_상태코드와_매시지를_반환한다() throws Exception {
+			// given
+			doThrow(new IllegalArgumentException("이 작업에 대한 권한은 작성자에게만 있습니다."))
+					.when(reviewService).deleteReview(anyString(), any(CurrentUserInfoDto.class));
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					delete("/api/v1/reviews/{reviewId}", reviewId)
+							.header(USER_ID_HEADER, userInfo.userId())
+							.header(USER_ROLE_HEADER, CUSTOMER)
+			);
+
+			// then
+			actions.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.message")
+							.value("이 작업에 대한 권한은 작성자에게만 있습니다."));
+		}
+
+		@Test
+		void 존재하지_않는_리뷰_삭제_요청시_404_상태코드와_메시지를_반환한다() throws Exception {
+			// given
+			doThrow(CustomException.from(REVIEW_NOT_FOUND))
+					.when(reviewService).deleteReview(anyString(), any(CurrentUserInfoDto.class));
+
+			// when
+			ResultActions actions = mockMvc.perform(
+					delete("/api/v1/reviews/{reviewId}", reviewId)
+							.header(USER_ID_HEADER, userInfo.userId())
+							.header(USER_ROLE_HEADER, CUSTOMER)
+			);
+
+			// then
+			actions.andExpect(status().isNotFound())
+					.andExpect(jsonPath("$.message")
+							.value(REVIEW_NOT_FOUND.getMessage()));
 		}
 	}
 }

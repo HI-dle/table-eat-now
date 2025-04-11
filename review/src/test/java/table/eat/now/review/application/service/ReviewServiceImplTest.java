@@ -1,6 +1,7 @@
 package table.eat.now.review.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -968,6 +969,74 @@ class ReviewServiceImplTest {
 			assertThat(result.content().get(0).reviewUuid()).isEqualTo(myPublicReview.getReviewId());
 			assertThat(result.content().get(0).serviceType()).isEqualTo("RESERVATION");
 			assertThat(result.content().get(0).rating()).isGreaterThanOrEqualTo(3);
+		}
+	}
+
+	@Nested
+	class deleteReview_는 {
+
+		private String reviewId;
+		private CurrentUserInfoDto customerInfo;
+		private CurrentUserInfoDto otherUserInfo;
+		private CurrentUserInfoDto masterInfo;
+
+		@BeforeEach
+		void setUp() {
+			String serviceId = UUID.randomUUID().toString();
+			Long customerId = 123L;
+			Long otherUserId = 456L;
+			String restaurantId = UUID.randomUUID().toString();
+
+			customerInfo = new CurrentUserInfoDto(customerId, CUSTOMER);
+			otherUserInfo = new CurrentUserInfoDto(otherUserId, CUSTOMER);
+			masterInfo = new CurrentUserInfoDto(otherUserId, MASTER);
+
+			CreateReviewCommand command = new CreateReviewCommand(
+					restaurantId, serviceId, customerId, "RESERVATION",
+					"맛있는 식당이었습니다.", 4, true, CUSTOMER
+			);
+
+			Review review = reviewRepository.save(command.toEntity());
+			reviewId = review.getReviewId();
+		}
+
+		@Test
+		void 작성자가_요청시_리뷰를_성공적으로_삭제한다() {
+			// when
+			assertDoesNotThrow(() -> reviewService.deleteReview(reviewId, customerInfo));
+
+			// then
+			assertThrows(CustomException.class, () ->
+					reviewService.getReview(reviewId, customerInfo));
+		}
+
+		@Test
+		void 작성자가_아닌_일반_사용자가_요청시_예외를_발생시킨다() {
+			// when & then
+			IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+					reviewService.deleteReview(reviewId, otherUserInfo));
+
+			assertThat(exception.getMessage()).contains("이 작업에 대한 권한은 작성자에게만 있습니다.");
+		}
+
+		@Test
+		void 마스터_권한은_리뷰를_삭제할_수_있다() {
+			// when & then
+			assertDoesNotThrow(() -> reviewService.deleteReview(reviewId, masterInfo));
+			assertThrows(CustomException.class, () ->
+					reviewService.getReview(reviewId, masterInfo));
+		}
+
+		@Test
+		void 존재하지_않는_리뷰를_삭제하려고_하면_예외를_발생시킨다() {
+			// given
+			String nonExistentReviewId = UUID.randomUUID().toString();
+
+			// when & then
+			CustomException exception = assertThrows(CustomException.class, () ->
+					reviewService.deleteReview(nonExistentReviewId, customerInfo));
+
+			assertThat(exception.getMessage()).isEqualTo("해당 리뷰를 찾을 수 없습니다.");
 		}
 	}
 }
