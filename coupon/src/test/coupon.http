@@ -88,3 +88,22 @@ POST localhost:8085/api/v1/coupons/{{availableCouponUuid}}/issue
 Content-Type: application/json
 X-User-Id: 2
 X-User-Role: CUSTOMER
+
+> {%
+    const location = response.headers.valueOf("Location")
+    const match = location.match(/[0-9a-fA-F\-]{36}$/)
+
+    if (match) {
+      client.global.set("userCouponUuid", match[0]);
+    }
+%}
+
+### 쿠폰 선점 요청
+PATCH http://localhost:8085/internal/v1/user-coupons/{{userCouponUuid}}/preempt
+Content-Type: application/json
+X-User-Id: 2
+X-User-Role: CUSTOMER
+
+{
+  "reservationUuid":"2847c0d1-1c72-404a-81f5-cee00d164637"
+}
