@@ -4,10 +4,12 @@
  */
 package table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo;
+import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo.Promotion.PromotionStatus;
 
 public record GetPromotionsResponse(
     List<Promotion> promotions
@@ -16,8 +18,8 @@ public record GetPromotionsResponse(
       Long promotionId,
       String promotionUuid,
       String promotionName,
-      String startTime,
-      String endTime,
+      LocalDateTime startTime,
+      LocalDateTime endTime,
       String description,
       Double discountPrice,
       String promotionStatus,
@@ -27,17 +29,12 @@ public record GetPromotionsResponse(
   ) {
     public GetPromotionsInfo.Promotion toInfoItem() {
       return new GetPromotionsInfo.Promotion(
-          promotionId(),
           promotionUuid(),
-          promotionName(),
           startTime(),
           endTime(),
-          description(),
           discountPrice(),
-          promotionStatus(),
-          promotionType(),
-          promotionRestaurantUuid(),
-          restaurantUuid()
+          PromotionStatus.valueOf(promotionStatus()),
+          promotionRestaurantUuid()
       );
     }
   }

@@ -11,4 +11,5 @@ public interface CouponClient {
 
   GetCouponsInfo getCoupons(Set<String> uuids);
 
+  void preemptCoupon(String reservationId, String userCouponUuid);
 }

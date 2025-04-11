@@ -15,21 +15,18 @@ public record GetCouponsInfo(
 
   @Builder
   public record Coupon(
-      Long couponId,
       String couponUuid,
-      String name,
-      String type,
+      CouponType type,
       LocalDateTime startAt,
       LocalDateTime endAt,
-      Integer count,
-      Boolean allowDuplicate,
       Integer minPurchaseAmount,
       Integer amount,
       Integer percent,
-      Integer maxDiscountAmount,
-      LocalDateTime createdAt,
-      Long createdBy
+      Integer maxDiscountAmount
   ){
-
+    public enum CouponType {
+      PERCENT_DISCOUNT,
+      FIXED_DISCOUNT
+    }
   }
 }

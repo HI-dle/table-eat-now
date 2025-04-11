@@ -4,6 +4,8 @@
  */
 package table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import table.eat.now.reservation.reservation.presentation.dto.response.GetRestaurantInfo;
 
@@ -35,9 +37,10 @@ public record GetRestaurantResponse(
 
   public record Timeslot(
       String restaurantTimeslotUuid,
-      String availableStartDate,
+      LocalDate availableStartDate,
       Integer maxCapacity,
-      String timeslot
+      Integer curTotalGuestCount,
+      LocalTime timeslot
   ) {}
 
   public GetRestaurantInfo toInfo() {
@@ -55,6 +58,7 @@ public record GetRestaurantResponse(
             timeslot.restaurantTimeslotUuid(),
             timeslot.availableStartDate(),
             timeslot.maxCapacity(),
+            timeslot.curTotalGuestCount(),
             timeslot.timeslot()
         ))
         .toList();

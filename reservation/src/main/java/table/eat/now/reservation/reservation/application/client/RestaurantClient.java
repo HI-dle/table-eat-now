@@ -12,5 +12,5 @@ public interface RestaurantClient {
   GetRestaurantInfo getRestaurant(String restaurantUuid);
 
   ModifyRestaurantCurTotalGuestCountInfo modifyRestaurantCurTotalGuestCount(
-      int delta, String restaurantTimeSlotUuid);
+      int delta, String restaurantTimeSlotUuid, String restaurantUuid);
 }

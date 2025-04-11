@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo;
+import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo.Coupon.CouponType;
 
 public record GetCouponsResponse(
     List<Coupon> coupons
@@ -42,20 +43,14 @@ public record GetCouponsResponse(
 
     public GetCouponsInfo.Coupon toInfoCoupon() {
       return GetCouponsInfo.Coupon.builder()
-          .couponId(couponId)
           .couponUuid(couponUuid)
-          .name(name)
-          .type(type)
+          .type(CouponType.valueOf(type))
           .startAt(startAt)
           .endAt(endAt)
-          .count(count)
-          .allowDuplicate(allowDuplicate)
           .minPurchaseAmount(minPurchaseAmount)
           .amount(amount)
           .percent(percent)
           .maxDiscountAmount(maxDiscountAmount)
-          .createdAt(createdAt)
-          .createdBy(createdBy)
           .build();
     }
   }

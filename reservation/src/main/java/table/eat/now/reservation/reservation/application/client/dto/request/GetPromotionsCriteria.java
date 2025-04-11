@@ -11,4 +11,7 @@ public record GetPromotionsCriteria(
     String restaurantUuid
 ) {
 
+  public static GetPromotionsCriteria of(Set<String> promotionIds, String restaurantUuid) {
+    return new GetPromotionsCriteria(promotionIds, restaurantUuid);
+  }
 }

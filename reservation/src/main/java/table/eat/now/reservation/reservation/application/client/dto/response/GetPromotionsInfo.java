@@ -4,6 +4,7 @@
  */
 package table.eat.now.reservation.reservation.application.client.dto.response;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 public record GetPromotionsInfo(
@@ -11,19 +12,18 @@ public record GetPromotionsInfo(
 ) {
 
   public record Promotion(
-      Long promotionId,
       String promotionUuid,
-      String promotionName,
-      String startTime,
-      String endTime,
-      String description,
+      LocalDateTime startTime,
+      LocalDateTime endTime,
       Double discountPrice,
-      String promotionStatus,
-      String promotionType,
-      String promotionRestaurantUuid,
-      String restaurantUuid
+      PromotionStatus promotionStatus,
+      String promotionRestaurantUuid
   ) {
-
+    public enum PromotionStatus {
+      READY,
+      RUNNING,
+      CLOSED
+    }
   }
 }
 
