@@ -92,12 +92,9 @@ public class CouponServiceImpl implements CouponService {
   public PageResponse<AvailableCouponInfo> getAvailableCoupons(
       Pageable pageable, LocalDateTime time) {
 
-    Page<AvailableCouponInfo> coupons = couponRepository.getAvailableCoupons(pageable, time)
-        .map(coupon -> {
-          Integer remainder = couponRepository.getCouponCount(coupon.getCouponUuid());
-          return AvailableCouponInfo.from(coupon, remainder);
-        });
-    return PageResponse.from(coupons);
+    Page<AvailableCouponInfo> couponInfoPage = couponRepository.getAvailableCoupons(pageable, time)
+        .map(AvailableCouponInfo::from);
+    return PageResponse.from(couponInfoPage);
   }
 
   @Override
@@ -111,7 +108,7 @@ public class CouponServiceImpl implements CouponService {
     couponIssueStrategies.stream()
         .filter(strategy -> strategy.support(coupon))
         .findAny()
-        .ifPresent(strategy -> strategy.issue(couponUuid, userInfoDto.userId()));
+        .ifPresent(strategy -> strategy.requestIssue(couponUuid, userInfoDto.userId()));
 
     String userCouponUuid = UUID.randomUUID().toString();
     eventPublisher.publishEvent(IssueUserCouponEvent.from(userCouponUuid, userInfoDto, coupon));

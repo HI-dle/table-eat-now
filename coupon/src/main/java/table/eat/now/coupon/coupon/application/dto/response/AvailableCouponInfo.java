@@ -23,7 +23,7 @@ public record AvailableCouponInfo(
     Long createdBy
 ) {
 
-  public static AvailableCouponInfo from(Coupon coupon, Integer remainder) {
+  public static AvailableCouponInfo from(Coupon coupon) {
     return AvailableCouponInfo.builder()
         .couponId(coupon.getId())
         .couponUuid(coupon.getCouponUuid())
@@ -32,7 +32,7 @@ public record AvailableCouponInfo(
         .startAt(coupon.getPeriod().getStartAt())
         .endAt(coupon.getPeriod().getEndAt())
         .count(coupon.getCount())
-        .issuedCount(calcIssuedCount(remainder, coupon))
+        .issuedCount(coupon.getIssuedCount())
         .allowDuplicate(coupon.getAllowDuplicate())
         .minPurchaseAmount(coupon.getDiscountPolicy().getMinPurchaseAmount())
         .amount(coupon.getDiscountPolicy().getAmount())
@@ -41,11 +41,5 @@ public record AvailableCouponInfo(
         .createdAt(coupon.getCreatedAt())
         .createdBy(coupon.getCreatedBy())
         .build();
-  }
-
-  private static Integer calcIssuedCount(Integer remainder, Coupon coupon) {
-    return remainder == null
-        ? null
-        : remainder <= 0 ? coupon.getCount() : coupon.getCount() - remainder;
   }
 }

@@ -108,6 +108,16 @@ public class Coupon extends BaseEntity {
     getDiscountPolicy().delete(deletedBy);
   }
 
+  public boolean hasStockCount() {
+    return getCount() > 0;
+  }
+
+  public void calcIssuedCount(Integer remainder) {
+    this.issuedCount = remainder == null
+        ? this.issuedCount
+        : remainder <= 0 ? this.count : this.count - remainder;
+  }
+
   private boolean is2HourBeforeStartAt(LocalDateTime startAt) {
     LocalDateTime now = LocalDateTime.now();
     return now.isBefore(startAt.minusHours(2));
@@ -116,9 +126,5 @@ public class Coupon extends BaseEntity {
   private boolean isAfterEndAt(LocalDateTime endAt) {
     LocalDateTime now = LocalDateTime.now();
     return now.isAfter(endAt);
-  }
-
-  public boolean hasStockCount() {
-    return getCount() > 0;
   }
 }
