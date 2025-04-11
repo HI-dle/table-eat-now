@@ -8,14 +8,14 @@ import table.eat.now.review.domain.entity.ReviewVisibility;
 import table.eat.now.review.domain.entity.ServiceType;
 
 public record CreateReviewCommand(
-		String restaurantId, String serviceId, Long customerId, String serviceType,
-		String content, Integer rating,
-		Boolean isVisible, UserRole role) {
+    String restaurantId, String serviceId, Long customerId, String serviceType,
+    String content, Integer rating,
+    Boolean isVisible, UserRole role) {
 
-	public Review toEntity() {
-		return Review.create(
-				ReviewReference.create(restaurantId, serviceId, customerId, ServiceType.from(serviceType)),
-				ReviewContent.create(content, rating),
-				ReviewVisibility.create(isVisible, customerId, role.name()));
-	}
+  public Review toEntity() {
+    return Review.create(
+        ReviewReference.create(restaurantId, serviceId, customerId, ServiceType.from(serviceType)),
+        ReviewContent.create(content, rating),
+        ReviewVisibility.create(isVisible, customerId, role.name()));
+  }
 }

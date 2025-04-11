@@ -9,12 +9,12 @@ import lombok.Getter;
 @Embeddable
 public class PaymentIdentifier {
 
-	@Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-	private UUID paymentUuid;
+  @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
+  private UUID paymentUuid;
 
-	@Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-	private UUID idempotencyKey;
+  @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
+  private UUID idempotencyKey;
 
-	protected PaymentIdentifier() {
-	}
+  protected PaymentIdentifier() {
+  }
 }

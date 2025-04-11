@@ -11,11 +11,11 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class PaymentServiceImplTest {
 
-	@Autowired
-	private PaymentService paymentService;
+  @Autowired
+  private PaymentService paymentService;
 
-	@Test
-	public void 아무것도_안한다() {
-		assertDoesNotThrow(() -> paymentService.doNothing());
-	}
+  @Test
+  public void 아무것도_안한다() {
+    assertDoesNotThrow(() -> paymentService.doNothing());
+  }
 }

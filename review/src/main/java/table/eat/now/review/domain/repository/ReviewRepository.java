@@ -8,9 +8,9 @@ import table.eat.now.review.domain.repository.search.SearchReviewResult;
 
 public interface ReviewRepository {
 
-	Review save(Review review);
+  Review save(Review review);
 
-	Optional<Review> findByReviewIdAndDeletedAtIsNull(String reviewId);
-	
-	PaginatedResult<SearchReviewResult> searchReviews(SearchReviewCriteria criteria);
+  Optional<Review> findByReviewIdAndDeletedAtIsNull(String reviewId);
+
+  PaginatedResult<SearchReviewResult> searchReviews(SearchReviewCriteria criteria);
 }

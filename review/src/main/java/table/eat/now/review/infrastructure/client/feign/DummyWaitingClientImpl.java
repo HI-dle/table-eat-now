@@ -7,8 +7,8 @@ import table.eat.now.review.application.service.dto.response.GetServiceInfo;
 @Component
 public class DummyWaitingClientImpl implements WaitingClient {
 
-	@Override
-	public GetServiceInfo getWaiting(String waitingId, Long customerId) {
-		return new GetServiceInfo(waitingId, customerId);
-	}
+  @Override
+  public GetServiceInfo getWaiting(String waitingId, Long customerId) {
+    return new GetServiceInfo(waitingId, customerId);
+  }
 }

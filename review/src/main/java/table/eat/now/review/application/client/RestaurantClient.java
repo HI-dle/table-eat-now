@@ -4,6 +4,6 @@ import table.eat.now.review.application.service.dto.response.GetRestaurantStaffI
 
 public interface RestaurantClient {
 
-	GetRestaurantStaffInfo getRestaurantStaffInfo(String restaurantId);
+  GetRestaurantStaffInfo getRestaurantStaffInfo(String restaurantId);
 
 }

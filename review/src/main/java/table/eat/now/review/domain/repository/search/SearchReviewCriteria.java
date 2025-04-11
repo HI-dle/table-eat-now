@@ -6,17 +6,18 @@ import table.eat.now.review.domain.entity.ServiceType;
 
 @Builder
 public record SearchReviewCriteria(
-		String orderBy,
-		String sort,
-		LocalDate startDate,
-		LocalDate endDate,
-		Integer minRating,
-		Integer maxRating,
-		ServiceType serviceType,
-		String restaurantId,
-		Long userId,
-		Boolean isVisible,
-		Long currentUserId,
-		int page,
-		int size) {
+    String orderBy,
+    String sort,
+    LocalDate startDate,
+    LocalDate endDate,
+    Integer minRating,
+    Integer maxRating,
+    ServiceType serviceType,
+    String restaurantId,
+    Long userId,
+    Boolean isVisible,
+    Long currentUserId,
+    int page,
+    int size) {
+
 }

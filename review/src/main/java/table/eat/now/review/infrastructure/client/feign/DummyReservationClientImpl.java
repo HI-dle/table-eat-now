@@ -7,8 +7,8 @@ import table.eat.now.review.application.service.dto.response.GetServiceInfo;
 @Component
 public class DummyReservationClientImpl implements ReservationClient {
 
-	@Override
-	public GetServiceInfo getReservation(String reservationId, Long customerId) {
-		return new GetServiceInfo(reservationId, customerId);
-	}
+  @Override
+  public GetServiceInfo getReservation(String reservationId, Long customerId) {
+    return new GetServiceInfo(reservationId, customerId);
+  }
 }

@@ -6,7 +6,7 @@ import table.eat.now.review.domain.entity.Review;
 import table.eat.now.review.domain.repository.ReviewRepository;
 
 public interface JpaReviewRepository extends
-		JpaRepository<Review, Long>, ReviewRepository, JpaReviewRepositoryCustom {
+    JpaRepository<Review, Long>, ReviewRepository, JpaReviewRepositoryCustom {
 
-	Optional<Review> findByReviewIdAndDeletedAtIsNull(String reviewId);
+  Optional<Review> findByReviewIdAndDeletedAtIsNull(String reviewId);
 }
