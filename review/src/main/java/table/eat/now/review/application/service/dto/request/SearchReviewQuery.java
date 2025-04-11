@@ -25,7 +25,7 @@ public record SearchReviewQuery(
 				.endDate(endDate)
 				.minRating(minRating)
 				.maxRating(maxRating)
-				.serviceType(ServiceType.from(serviceType))
+				.serviceType(serviceType == null ? null : ServiceType.from(serviceType))
 				.restaurantId(restaurantId)
 				.userId(userId)
 				.isVisible(isVisible)

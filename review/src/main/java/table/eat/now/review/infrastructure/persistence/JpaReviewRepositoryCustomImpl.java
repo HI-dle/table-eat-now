@@ -133,8 +133,8 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
 	}
 
 	private BooleanExpression createdAtBetween(LocalDate startDate, LocalDate endDate) {
-		LocalDateTime start = startDate != null ? startDate.atStartOfDay() : null;
-		LocalDateTime end = endDate != null ? endDate.atTime(LocalTime.MAX) : null;
+		LocalDateTime start = getStartDatetime(startDate);
+		LocalDateTime end = getEndDatetime(endDate);
 
 		if (start == null && end == null) {
 			return null;
@@ -146,6 +146,14 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
 			return review.createdAt.goe(start);
 		}
 		return review.createdAt.between(start, end);
+	}
+
+	private static LocalDateTime getEndDatetime(LocalDate endDate) {
+		return endDate != null ? endDate.atTime(LocalTime.MAX) : null;
+	}
+
+	private static LocalDateTime getStartDatetime(LocalDate startDate) {
+		return startDate != null ? startDate.atStartOfDay() : null;
 	}
 
 	private OrderSpecifier<?> getOrderSpecifier(SearchReviewCriteria criteria) {
