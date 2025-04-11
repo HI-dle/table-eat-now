@@ -1,6 +1,7 @@
 package table.eat.now.review.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -1002,7 +1003,7 @@ class ReviewServiceImplTest {
 		@Test
 		void 작성자가_요청시_리뷰를_성공적으로_삭제한다() {
 			// when
-			reviewService.deleteReview(reviewId, customerInfo);
+			assertDoesNotThrow(() -> reviewService.deleteReview(reviewId, customerInfo));
 
 			// then
 			assertThrows(CustomException.class, () ->
@@ -1020,10 +1021,8 @@ class ReviewServiceImplTest {
 
 		@Test
 		void 마스터_권한은_리뷰를_삭제할_수_있다() {
-			// when
-			reviewService.deleteReview(reviewId, masterInfo);
-
-			// then
+			// when & then
+			assertDoesNotThrow(() -> reviewService.deleteReview(reviewId, masterInfo));
 			assertThrows(CustomException.class, () ->
 					reviewService.getReview(reviewId, masterInfo));
 		}
