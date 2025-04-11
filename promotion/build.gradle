@@ -89,3 +89,16 @@ dependencyManagement {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+
+processResources.dependsOn('copyEnv')
+
+tasks.register('copyEnv', Copy) {
+
+	['../', './'].each { dest ->
+		copy {
+			from '../ten-private/.env.promotion'
+			into dest
+		}
+	}
+}

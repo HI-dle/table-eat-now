@@ -1,0 +1,3 @@
+[submodule "ten-private"]
+	path = ten-private
+	url = https://github.com/HI-dle/ten-private.git

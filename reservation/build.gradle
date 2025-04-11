@@ -131,3 +131,15 @@ tasks.named('test') {
 	outputs.dir snippetsDir
 	useJUnitPlatform()
 }
+
+processResources.dependsOn('copyEnv')
+
+tasks.register('copyEnv', Copy) {
+
+	['../', './'].each { dest ->
+		copy {
+			from '../ten-private/.env.reservation'
+			into dest
+		}
+	}
+}
