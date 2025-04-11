@@ -5,6 +5,9 @@
 package table.eat.now.reservation.reservation.application.service.dto.request;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import lombok.Builder;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
@@ -20,19 +23,24 @@ public record CreateReservationCommand(
     String restaurantMenuUuid,
     Integer guestCount,
     String specialRequest,
+    BigDecimal totalPrice,
     RestaurantTimeSlotDetails restaurantTimeSlotDetails,
     RestaurantDetails restaurantDetails,
     RestaurantMenuDetails restaurantMenuDetails,
-    List<PaymentDetail> payments
+    List<PaymentDetail> payments,
+    LocalDateTime reservationDate
 ) {
 
-  public Reservation toEntityWithPaymentKey(String paymentKey) {
+  public Reservation toEntityWithUuidAndPaymentKey(
+      String reservationUuid, String reservationName, String paymentKey) {
     List<ReservationPaymentDetail> paymentDetails = this.payments().stream()
         .map(paymentDetail -> paymentDetail.toEntityWithPaymentKey(paymentKey))
         .toList();
 
     Reservation reservation = Reservation.builder()
         .reserverId(reserverId)
+        .reservationUuid(reservationUuid)
+        .name(reservationName)
         .restaurantTimeSlotUuid(restaurantTimeslotUuid)
         .reservationDate(restaurantTimeSlotDetails.availableDate())
         .reservationTimeslot(restaurantTimeSlotDetails.timeslot())
@@ -56,9 +64,20 @@ public record CreateReservationCommand(
     return reservation;
   }
 
+  public String getReservationName() {
+    return new StringBuilder()
+        .append(this.restaurantDetails.name)
+        .append("(")
+        .append(this.restaurantMenuDetails.name)
+        .append(" ")
+        .append(this.restaurantMenuDetails.quantity)
+        .append("건)")
+        .toString();
+  }
+
 
   @Builder
-  public record RestaurantTimeSlotDetails(String availableDate, String timeslot) {
+  public record RestaurantTimeSlotDetails(LocalDate availableDate, LocalTime timeslot) {
 
   }
 

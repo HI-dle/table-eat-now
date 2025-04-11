@@ -23,4 +23,9 @@ public class CouponClientImpl implements CouponClient {
     GetCouponsResponse coupons = couponFeignClient.getCoupons(uuids).getBody();
     return coupons.toInfo();
   }
+
+  @Override
+  public void preemptCoupon(String reservationId, String userCouponUuid) {
+    couponFeignClient.preemptCoupon(reservationId, userCouponUuid);
+  }
 }

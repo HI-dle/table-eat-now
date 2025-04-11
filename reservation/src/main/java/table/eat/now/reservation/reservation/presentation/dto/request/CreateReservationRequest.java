@@ -12,13 +12,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand;
 
 public record CreateReservationRequest(
-
-    @NotNull(message = "예약자 ID(reserverId)는 필수입니다.")
-    Long reserverId,
 
     @NotBlank(message = "예약자 이름(reserverName)은 필수입니다.")
     String reserverName,
@@ -42,6 +42,10 @@ public record CreateReservationRequest(
     @Size(max = 1000, message = "요청사항(specialRequest)은 최대 1000자까지 입력할 수 있습니다.")
     String specialRequest,
 
+    @NotNull(message = "총 금액(totalPrice)은 필수입니다.")
+    @Positive(message = "총 금액(totalPrice)은 0보다 커야 합니다.")
+    BigDecimal totalPrice,
+
     @NotNull(message = "레스토랑 타임슬롯 상세 정보(restaurantTimeSlotDetails)는 필수입니다.")
     @Valid
     RestaurantTimeSlotDetails restaurantTimeSlotDetails,
@@ -60,7 +64,7 @@ public record CreateReservationRequest(
 
 ) {
 
-  public CreateReservationCommand toCommand() {
+  public CreateReservationCommand toCommand(Long reserverId, LocalDateTime reservationDate) {
     return CreateReservationCommand.builder()
         .reserverId(reserverId)
         .reserverName(reserverName)
@@ -78,15 +82,16 @@ public record CreateReservationRequest(
                 .map(PaymentDetail::toCommandPaymentDetail)
                 .toList()
         )
+        .reservationDate(reservationDate)
         .build();
   }
 
   public record RestaurantTimeSlotDetails(
       @NotBlank(message = "예약 가능 날짜(availableDate)는 필수입니다.")
-      String availableDate,
+      LocalDate availableDate,
 
       @NotBlank(message = "타임슬롯(timeslot)은 필수입니다.")
-      String timeslot
+      LocalTime timeslot
   ) {
 
     public CreateReservationCommand.RestaurantTimeSlotDetails toCommandRestaurantTimeSlotDetails() {

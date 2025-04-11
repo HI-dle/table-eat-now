@@ -5,6 +5,7 @@
 package table.eat.now.reservation.reservation.presentation;
 
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import table.eat.now.common.aop.annotation.AuthCheck;
+import table.eat.now.common.resolver.annotation.CurrentUserInfo;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.reservation.reservation.application.service.ReservationService;
 import table.eat.now.reservation.reservation.presentation.dto.request.CreateReservationRequest;
 import table.eat.now.reservation.reservation.presentation.dto.response.CreateReservationResponse;
@@ -27,9 +30,11 @@ public class ReservationController {
   @PostMapping
   @AuthCheck
   public ResponseEntity<CreateReservationResponse> createReservation(
+      @CurrentUserInfo CurrentUserInfoDto userInfo,
       @Valid @RequestBody CreateReservationRequest request) {
     CreateReservationResponse restaurant = CreateReservationResponse
-        .from(reservationService.createRestaurant(request.toCommand()));
+        .from(reservationService.createRestaurant(
+            request.toCommand(userInfo.userId(), LocalDateTime.now())));
     return ResponseEntity.created(
         ServletUriComponentsBuilder
             .fromCurrentRequestUri()

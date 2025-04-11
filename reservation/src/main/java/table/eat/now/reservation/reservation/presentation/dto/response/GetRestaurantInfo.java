@@ -1,5 +1,7 @@
 package table.eat.now.reservation.reservation.presentation.dto.response;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 public record GetRestaurantInfo(
@@ -30,8 +32,9 @@ public record GetRestaurantInfo(
 
   public record Timeslot(
       String restaurantTimeslotUuid,
-      String availableStartDate,
+      LocalDate availableDate,
       Integer maxCapacity,
-      String timeslot
+      Integer curTotalGuestCount,
+      LocalTime timeslot
   ) {}
 }

@@ -16,8 +16,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
-import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -45,6 +46,9 @@ public class Reservation extends BaseEntity {
 
   @Column(name = "reservation_uuid", nullable = false, unique = true, length = 100)
   private String reservationUuid;
+
+  @Column(name = "reservation_name", nullable = false, length = 100)
+  private String name;
 
   @Column(name = "reserver_id", nullable = false)
   private Long reserverId;
@@ -91,9 +95,11 @@ public class Reservation extends BaseEntity {
   @Builder
   private Reservation(
       Long reserverId,
+      String reservationUuid,
+      String name,
       String restaurantTimeSlotUuid,
-      String reservationDate,
-      String reservationTimeslot,
+      LocalDate reservationDate,
+      LocalTime reservationTimeslot,
       String restaurantId,
       String restaurantAddress,
       String restaurantClosingAt,
@@ -110,8 +116,9 @@ public class Reservation extends BaseEntity {
       String specialRequest,
       List<ReservationPaymentDetail> details
   ) {
-    this.reservationUuid = UUID.randomUUID().toString();
+    this.reservationUuid = reservationUuid;
     this.reserverId = reserverId;
+    this.name = name;
     this.restaurantTimeSlotUuid = restaurantTimeSlotUuid;
     this.restaurantTimeSlotDetails =
         RestaurantTimeSlotDetails.of(reservationDate, reservationTimeslot);
