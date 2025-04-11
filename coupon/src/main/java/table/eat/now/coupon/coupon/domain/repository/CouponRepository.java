@@ -37,4 +37,6 @@ public interface CouponRepository {
   Long increaseCouponCount(String couponUuid);
 
   Integer getCouponCount(String couponUuid);
+
+  Page<Coupon> getAvailableCoupons(Pageable pageable, LocalDateTime time);
 }

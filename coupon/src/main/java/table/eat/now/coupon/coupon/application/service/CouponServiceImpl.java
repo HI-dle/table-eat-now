@@ -1,5 +1,6 @@
 package table.eat.now.coupon.coupon.application.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import table.eat.now.coupon.coupon.application.dto.event.IssueUserCouponEvent;
 import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
 import table.eat.now.coupon.coupon.application.dto.request.SearchCouponsQuery;
 import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
+import table.eat.now.coupon.coupon.application.dto.response.AvailableCouponInfo;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI;
 import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
@@ -85,11 +87,15 @@ public class CouponServiceImpl implements CouponService {
     return GetCouponsInfoI.from(coupons);
   }
 
-//  @Override
-//  public PageResponse<AvailableCouponInfo> getAvailableCoupons(Pageable pageable,
-//      LocalDateTime time) {
-//    return null;
-//  }
+  @Transactional(readOnly = true)
+  @Override
+  public PageResponse<AvailableCouponInfo> getAvailableCoupons(
+      Pageable pageable, LocalDateTime time) {
+
+    Page<AvailableCouponInfo> couponInfoPage = couponRepository.getAvailableCoupons(pageable, time)
+        .map(AvailableCouponInfo::from);
+    return PageResponse.from(couponInfoPage);
+  }
 
   @Override
   public String requestCouponIssue(CurrentUserInfoDto userInfoDto, String couponUuid) {
@@ -102,7 +108,7 @@ public class CouponServiceImpl implements CouponService {
     couponIssueStrategies.stream()
         .filter(strategy -> strategy.support(coupon))
         .findAny()
-        .ifPresent(strategy -> strategy.issue(couponUuid, userInfoDto.userId()));
+        .ifPresent(strategy -> strategy.requestIssue(couponUuid, userInfoDto.userId()));
 
     String userCouponUuid = UUID.randomUUID().toString();
     eventPublisher.publishEvent(IssueUserCouponEvent.from(userCouponUuid, userInfoDto, coupon));

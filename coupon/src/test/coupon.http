@@ -80,3 +80,7 @@ POST localhost:8085/api/v1/coupons/{{coupon1}}/issue
 Content-Type: application/json
 X-User-Id: 2
 X-User-Role: CUSTOMER
+
+### 가용 쿠폰 조회
+GET localhost:8085/api/v1/coupons/available?time=2025-04-11T00:00:00
+Content-Type: application/json

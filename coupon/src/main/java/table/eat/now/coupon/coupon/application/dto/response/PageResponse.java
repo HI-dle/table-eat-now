@@ -27,14 +27,14 @@ public record PageResponse<T>(
         .build();
   }
 
-  public static PageResponse<SearchCouponInfo> of(
-      List<SearchCouponInfo> couponInfos,
+  public static <T> PageResponse<T> of(
+      List<T> couponInfos,
       long totalElements,
       int totalPages,
       int pageNumber,
       int pageSize) {
 
-    return PageResponse.<SearchCouponInfo>builder()
+    return PageResponse.<T>builder()
         .contents(couponInfos)
         .totalElements(totalElements)
         .totalPages(totalPages)
