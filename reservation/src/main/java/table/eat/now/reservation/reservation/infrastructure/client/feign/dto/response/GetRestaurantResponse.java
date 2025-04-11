@@ -4,6 +4,7 @@
  */
 package table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -31,7 +32,7 @@ public record GetRestaurantResponse(
   public record Menu(
       String restaurantMenuUuid,
       String name,
-      Integer price,
+      BigDecimal price,
       String status
   ) {}
 

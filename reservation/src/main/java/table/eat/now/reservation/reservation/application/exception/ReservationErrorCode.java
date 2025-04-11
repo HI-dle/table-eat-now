@@ -17,7 +17,8 @@ public enum ReservationErrorCode implements ErrorCode {
    * BAD_REQUEST
   */
   // BAD_REQUEST - AMOUNT`
-  INVALID_TOTAL_AMOUNT("결제 금액의 총합이 메뉴 금액과 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
+  INVALID_MENU_TOTAL_AMOUNT("총 금액이 메뉴 금액과 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
+  INVALID_PAYMENT_DETAILS_TOTAL_AMOUNT("총 금액이결제 총 금액과 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
   PAYMENT_LIMIT_EXCEEDED("결제는 하나여야 합니다.", HttpStatus.BAD_REQUEST),
 
   // BAD_REQUEST - RESTAURANT
@@ -40,7 +41,6 @@ public enum ReservationErrorCode implements ErrorCode {
 
   // BAD_REQUEST - DISCOUNT - PROMOTION
   PROMOTION_NOT_FOUND("유효하지 않은 프로모션입니다.", HttpStatus.BAD_REQUEST),
-  PROMOTION_INVALID_PERIOD("프로모션 적용 기간이 아닙니다.", HttpStatus.BAD_REQUEST),
   PROMOTION_INVALID_RUNNING("진행중인 프로모션이 아닙니다.", HttpStatus.BAD_REQUEST),
   INVALID_PROMOTION_DISCOUNT("적용된 프로모션 할인 금액이 실제 할인 금액과 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
   PROMOTION_USAGE_LIMIT_EXCEEDED("프로모션 최대 사용 개수를 초과합니다.", HttpStatus.BAD_REQUEST),

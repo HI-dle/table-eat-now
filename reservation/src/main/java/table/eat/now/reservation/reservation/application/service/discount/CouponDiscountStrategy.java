@@ -26,12 +26,16 @@ public class CouponDiscountStrategy implements DiscountStrategy {
         .orElseThrow(() -> CustomException.from(ReservationErrorCode.COUPON_NOT_FOUND));
 
     // 1. 예약날짜 유효성
-    if (reservationDate.isBefore(coupon.startAt()) || reservationDate.isAfter(coupon.endAt())) {
+    boolean isOutOfCouponPeriod =
+        reservationDate.isBefore(coupon.startAt()) || reservationDate.isAfter(coupon.endAt());
+    if (isOutOfCouponPeriod) {
       throw CustomException.from(ReservationErrorCode.COUPON_INVALID_PERIOD);
     }
 
     // 2. 최소 구매 금액
-    if (totalPrice.compareTo(BigDecimal.valueOf(coupon.minPurchaseAmount())) < 0) {
+    boolean isTotalPriceUnderThanMinPurchaseAmount
+        = totalPrice.compareTo(BigDecimal.valueOf(coupon.minPurchaseAmount())) < 0;
+    if (isTotalPriceUnderThanMinPurchaseAmount) {
       throw CustomException.from(ReservationErrorCode.COUPON_MIN_PURCHASE_NOT_MET);
     }
 

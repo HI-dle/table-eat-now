@@ -19,12 +19,7 @@ public record CreatePaymentResponse(
   public CreatePaymentInfo toInfo() {
     return new CreatePaymentInfo(
         paymentUuid,
-        idempotencyKey,
-        paymentStatus,
-        originalAmount,
-        discountAmount,
-        totalAmount,
-        createdAt
+        idempotencyKey
     );
   }
 }

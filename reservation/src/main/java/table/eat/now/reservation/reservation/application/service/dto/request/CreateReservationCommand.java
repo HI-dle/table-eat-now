@@ -11,6 +11,7 @@ import java.time.LocalTime;
 import java.util.List;
 import lombok.Builder;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
+import table.eat.now.reservation.reservation.domain.entity.Reservation.ReservationStatus;
 import table.eat.now.reservation.reservation.domain.entity.ReservationPaymentDetail;
 
 @Builder
@@ -48,15 +49,15 @@ public record CreateReservationCommand(
         .restaurantName(restaurantDetails.name())
         .restaurantAddress(restaurantDetails.address())
         .restaurantContactNumber(restaurantDetails.contactNumber())
-        .restaurantOpeningAt(restaurantDetails.openingAt())
-        .restaurantClosingAt(restaurantDetails.closingAt())
+        .restaurantOpeningTime(restaurantDetails.openingTime())
+        .restaurantClosingTime(restaurantDetails.closingTime())
         .menuName(restaurantMenuDetails.name())
         .menuQuantity(restaurantMenuDetails.quantity())
         .menuPrice(restaurantMenuDetails.price())
         .reserverName(reserverName)
         .reserverContact(reserverContact)
         .guestCount(guestCount)
-        .status(Reservation.ReservationStatus.PENDING_PAYMENT)
+        .status(ReservationStatus.PENDING_PAYMENT)
         .specialRequest(specialRequest)
         .details(paymentDetails)
         .build();
@@ -86,8 +87,8 @@ public record CreateReservationCommand(
       String name,
       String address,
       String contactNumber,
-      String openingAt,
-      String closingAt
+      LocalTime openingTime,
+      LocalTime closingTime
   ) {
 
   }

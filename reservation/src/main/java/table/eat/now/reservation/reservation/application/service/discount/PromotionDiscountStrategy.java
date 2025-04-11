@@ -25,18 +25,13 @@ public class PromotionDiscountStrategy implements DiscountStrategy {
     var promotion = Optional.ofNullable(promotions.get(paymentDetail.detailReferenceId()))
         .orElseThrow(() -> CustomException.from(ReservationErrorCode.PROMOTION_NOT_FOUND));
 
-    // 1. 예약 날짜 유효성
-    if (reservationDate.isBefore(promotion.startTime()) || reservationDate.isAfter(promotion.endTime())) {
-      throw CustomException.from(ReservationErrorCode.PROMOTION_INVALID_PERIOD);
-    }
-
-    // 2. 상태 확인
+    // 1. 상태 확인
     if (promotion.promotionStatus() != GetPromotionsInfo.Promotion.PromotionStatus.RUNNING) {
       throw CustomException.from(ReservationErrorCode.PROMOTION_INVALID_RUNNING);
     }
 
-    // 3. 할인 금액 확인
-    BigDecimal expected = BigDecimal.valueOf(promotion.discountPrice());
+    // 2. 할인 금액 확인
+    BigDecimal expected = promotion.discountPrice();
     if (expected.compareTo(paymentDetail.amount()) != 0) {
       throw CustomException.from(ReservationErrorCode.INVALID_PROMOTION_DISCOUNT);
     }

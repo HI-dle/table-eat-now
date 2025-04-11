@@ -4,6 +4,7 @@
  */
 package table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,7 @@ public record GetPromotionsResponse(
       LocalDateTime startTime,
       LocalDateTime endTime,
       String description,
-      Double discountPrice,
+      BigDecimal discountPrice,
       String promotionStatus,
       String promotionType,
       String promotionRestaurantUuid,
@@ -30,8 +31,6 @@ public record GetPromotionsResponse(
     public GetPromotionsInfo.Promotion toInfoItem() {
       return new GetPromotionsInfo.Promotion(
           promotionUuid(),
-          startTime(),
-          endTime(),
           discountPrice(),
           PromotionStatus.valueOf(promotionStatus()),
           promotionRestaurantUuid()

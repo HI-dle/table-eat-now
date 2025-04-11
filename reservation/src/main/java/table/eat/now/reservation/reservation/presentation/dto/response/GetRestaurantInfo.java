@@ -4,10 +4,13 @@
  */
 package table.eat.now.reservation.reservation.presentation.dto.response;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import lombok.Builder;
 
+@Builder
 public record GetRestaurantInfo(
     Long id,
     String restaurantUuid,
@@ -30,7 +33,7 @@ public record GetRestaurantInfo(
   public record Menu(
       String restaurantMenuUuid,
       String name,
-      Integer price,
+      BigDecimal price,
       String status
   ) {}
 

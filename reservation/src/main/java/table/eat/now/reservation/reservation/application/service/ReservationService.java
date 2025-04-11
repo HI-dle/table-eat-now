@@ -9,5 +9,5 @@ import table.eat.now.reservation.reservation.application.service.dto.response.Cr
 
 public interface ReservationService {
 
-  CreateReservationInfo createRestaurant(CreateReservationCommand command);
+  CreateReservationInfo createReservation(CreateReservationCommand command);
 }

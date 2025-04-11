@@ -4,18 +4,18 @@
  */
 package table.eat.now.reservation.reservation.application.client.dto.response;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.Map;
+import lombok.Builder;
 
 public record GetPromotionsInfo(
     Map<String, Promotion> promotions
 ) {
 
+  @Builder
   public record Promotion(
       String promotionUuid,
-      LocalDateTime startTime,
-      LocalDateTime endTime,
-      Double discountPrice,
+      BigDecimal discountPrice,
       PromotionStatus promotionStatus,
       String promotionRestaurantUuid
   ) {

@@ -26,7 +26,7 @@ public record CreateReservationRequest(
     @NotBlank(message = "예약자 연락처(reserverContact)는 필수입니다.")
     String reserverContact,
 
-    @NotNull(message = "레스토랑 (restaurantUuid)는 필수입니다.")
+    @NotNull(message = "레스토랑 (reservationUuid)는 필수입니다.")
     String restaurantUuid,
 
     @NotNull(message = "레스토랑 타임슬롯 (restaurantTimeslotUuid)는 필수입니다.")
@@ -87,10 +87,10 @@ public record CreateReservationRequest(
   }
 
   public record RestaurantTimeSlotDetails(
-      @NotBlank(message = "예약 가능 날짜(availableDate)는 필수입니다.")
+      @NotNull(message = "예약 가능 날짜(availableDate)는 필수입니다.")
       LocalDate availableDate,
 
-      @NotBlank(message = "타임슬롯(timeslot)은 필수입니다.")
+      @NotNull(message = "타임슬롯(timeslot)은 필수입니다.")
       LocalTime timeslot
   ) {
 
@@ -112,11 +112,11 @@ public record CreateReservationRequest(
       @NotBlank(message = "연락처(contactNumber)는 필수입니다.")
       String contactNumber,
 
-      @NotBlank(message = "오픈 시간(openingAt)은 필수입니다.")
-      String openingAt,
+      @NotNull(message = "오픈 시간(openingTime)은 필수입니다.")
+      LocalTime openingTime,
 
-      @NotBlank(message = "마감 시간(closingAt)은 필수입니다.")
-      String closingAt
+      @NotNull(message = "마감 시간(closingTime)은 필수입니다.")
+      LocalTime closingTime
   ) {
 
     public CreateReservationCommand.RestaurantDetails toCommandRestaurantDetails() {
@@ -124,8 +124,8 @@ public record CreateReservationRequest(
           .name(name)
           .address(address)
           .contactNumber(contactNumber)
-          .openingAt(openingAt)
-          .closingAt(closingAt)
+          .openingTime(openingTime)
+          .closingTime(closingTime)
           .build();
     }
   }

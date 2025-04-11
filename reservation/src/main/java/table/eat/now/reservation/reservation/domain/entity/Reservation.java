@@ -60,15 +60,15 @@ public class Reservation extends BaseEntity {
   private String restaurantId;
 
   @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "restaurant_timeslot_details", columnDefinition = "jsonb", nullable = false)
+  @Column(name = "restaurant_timeslot_details", columnDefinition = "json", nullable = false)
   private RestaurantTimeSlotDetails restaurantTimeSlotDetails;
 
   @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "restaurant_details", columnDefinition = "jsonb", nullable = false)
+  @Column(name = "restaurant_details", columnDefinition = "json", nullable = false)
   private RestaurantDetails restaurantDetails;
 
   @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "restaurant_menu_details", columnDefinition = "jsonb", nullable = false)
+  @Column(name = "restaurant_menu_details", columnDefinition = "json", nullable = false)
   private RestaurantMenuDetails restaurantMenuDetails;
 
   @Embedded
@@ -102,10 +102,10 @@ public class Reservation extends BaseEntity {
       LocalTime reservationTimeslot,
       String restaurantId,
       String restaurantAddress,
-      String restaurantClosingAt,
+      LocalTime restaurantClosingTime,
       String restaurantContactNumber,
       String restaurantName,
-      String restaurantOpeningAt,
+      LocalTime restaurantOpeningTime,
       String menuName,
       BigDecimal menuPrice,
       Integer menuQuantity,
@@ -124,8 +124,13 @@ public class Reservation extends BaseEntity {
         RestaurantTimeSlotDetails.of(reservationDate, reservationTimeslot);
     this.restaurantId = restaurantId;
     this.restaurantDetails =
-        RestaurantDetails.of(restaurantAddress, restaurantClosingAt, restaurantContactNumber,
-            restaurantName, restaurantOpeningAt);
+        RestaurantDetails.of(
+            restaurantName,
+            restaurantAddress,
+            restaurantContactNumber,
+            restaurantOpeningTime,
+            restaurantClosingTime
+        );
     this.restaurantMenuDetails = RestaurantMenuDetails.of(menuName, menuPrice, menuQuantity);
     this.guestInfo = ReservationGuestInfo.of(reserverName, reserverContact, guestCount);
     this.status = status;

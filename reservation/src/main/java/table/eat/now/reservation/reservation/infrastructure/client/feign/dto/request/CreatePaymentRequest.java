@@ -4,6 +4,7 @@
  */
 package table.eat.now.reservation.reservation.infrastructure.client.feign.dto.request;
 
+import java.math.BigDecimal;
 import table.eat.now.reservation.reservation.application.client.dto.request.CreatePaymentCommand;
 
 public record CreatePaymentRequest(
@@ -11,7 +12,7 @@ public record CreatePaymentRequest(
     String restaurantUuid,
     Long customerId,
     String reservationName,
-    int originalAmount
+    BigDecimal originalAmount
 ) {
   public static CreatePaymentRequest from(CreatePaymentCommand command) {
     return new CreatePaymentRequest(

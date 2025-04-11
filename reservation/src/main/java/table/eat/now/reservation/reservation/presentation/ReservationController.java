@@ -32,17 +32,17 @@ public class ReservationController {
   public ResponseEntity<CreateReservationResponse> createReservation(
       @CurrentUserInfo CurrentUserInfoDto userInfo,
       @Valid @RequestBody CreateReservationRequest request) {
-    CreateReservationResponse restaurant = CreateReservationResponse
-        .from(reservationService.createRestaurant(
+    CreateReservationResponse reservation = CreateReservationResponse
+        .from(reservationService.createReservation(
             request.toCommand(userInfo.userId(), LocalDateTime.now())));
     return ResponseEntity.created(
         ServletUriComponentsBuilder
             .fromCurrentRequestUri()
-            .path("/{restaurantUuid}")
+            .path("/{reservationUuid}")
             .buildAndExpand(
-                restaurant.restaurantUuid())
+                reservation.reservationUuid())
             .toUri()
-    ).body(restaurant);
+    ).body(reservation);
   }
 
 }

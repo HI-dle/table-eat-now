@@ -34,7 +34,7 @@ import table.eat.now.reservation.reservation.application.service.dto.request.Cre
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
 import table.eat.now.reservation.reservation.application.service.dto.response.CreateReservationInfo;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
-import table.eat.now.reservation.reservation.infrastructure.persistence.JpaReservationRepository;
+import table.eat.now.reservation.reservation.domain.repository.ReservationRepository;
 import table.eat.now.reservation.reservation.presentation.dto.response.GetRestaurantInfo;
 import table.eat.now.reservation.reservation.presentation.dto.response.GetRestaurantInfo.Timeslot;
 
@@ -42,7 +42,7 @@ import table.eat.now.reservation.reservation.presentation.dto.response.GetRestau
 @RequiredArgsConstructor
 public class ReservationServiceImpl implements ReservationService {
 
-  private final JpaReservationRepository reservationRepository;
+  private final ReservationRepository reservationRepository;
   private final CouponClient couponClient;
   private final PaymentClient paymentClient;
   private final PromotionClient promotionClient;
@@ -50,7 +50,7 @@ public class ReservationServiceImpl implements ReservationService {
 
   @Override
   @Transactional
-  public CreateReservationInfo createRestaurant(CreateReservationCommand command) {
+  public CreateReservationInfo createReservation(CreateReservationCommand command) {
     // 1. 총 결제 금액 검증
     validateTotalPrice(command);
 
@@ -104,16 +104,19 @@ public class ReservationServiceImpl implements ReservationService {
   }
 
   private void validateTotalPrice(CreateReservationCommand command) {
+    BigDecimal providedTotal = command.totalPrice();
     BigDecimal menuTotalPrice = command.restaurantMenuDetails().price()
         .multiply(BigDecimal.valueOf(command.restaurantMenuDetails().quantity()));
-    BigDecimal expectedTotal = calculateExpectedTotalAmount(command.payments());
-    BigDecimal providedTotal = command.totalPrice();
+    BigDecimal paymentsTotal = calculateExpectedTotalAmount(command.payments());
 
-    boolean isInvalidAmount =
-        !expectedTotal.equals(menuTotalPrice) || !expectedTotal.equals(providedTotal);
+    boolean invalidPaymentDetailsTotalAmount = !providedTotal.equals(paymentsTotal);
+    if (invalidPaymentDetailsTotalAmount) {
+      throw CustomException.from(ReservationErrorCode.INVALID_PAYMENT_DETAILS_TOTAL_AMOUNT);
+    }
 
-    if (isInvalidAmount) {
-      throw CustomException.from(ReservationErrorCode.INVALID_TOTAL_AMOUNT);
+    boolean invalidMenuTotalAmount = !providedTotal.equals(menuTotalPrice);
+    if (invalidMenuTotalAmount) {
+      throw CustomException.from(ReservationErrorCode.INVALID_MENU_TOTAL_AMOUNT);
     }
   }
 
@@ -211,6 +214,9 @@ public class ReservationServiceImpl implements ReservationService {
     DiscountStrategyFactory factory = new DiscountStrategyFactory(couponMap, promotions);
 
     for (PaymentDetail paymentDetail : payments) {
+      if (paymentDetail.type() == PaymentType.PAYMENT) {
+        continue;
+      }
       DiscountStrategy strategy = factory.getStrategy(paymentDetail);
       strategy.validate(totalPrice, paymentDetail, reservationDate);
     }
