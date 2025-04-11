@@ -19,11 +19,14 @@ import table.eat.now.review.application.client.ReservationClient;
 import table.eat.now.review.application.client.RestaurantClient;
 import table.eat.now.review.application.client.WaitingClient;
 import table.eat.now.review.application.service.dto.request.CreateReviewCommand;
+import table.eat.now.review.application.service.dto.request.SearchReviewQuery;
 import table.eat.now.review.application.service.dto.request.UpdateReviewCommand;
 import table.eat.now.review.application.service.dto.response.CreateReviewInfo;
 import table.eat.now.review.application.service.dto.response.GetRestaurantStaffInfo;
 import table.eat.now.review.application.service.dto.response.GetReviewInfo;
 import table.eat.now.review.application.service.dto.response.GetServiceInfo;
+import table.eat.now.review.application.service.dto.response.PaginatedInfo;
+import table.eat.now.review.application.service.dto.response.SearchReviewInfo;
 import table.eat.now.review.domain.entity.Review;
 import table.eat.now.review.domain.entity.ServiceType;
 import table.eat.now.review.domain.repository.ReviewRepository;
@@ -83,9 +86,12 @@ public class ReviewServiceImpl implements ReviewService {
 		if (role != STAFF && role != OWNER) {
 			return false;
 		}
-		GetRestaurantStaffInfo staffInfo = restaurantClient
-				.getRestaurantStaffInfo(review.getReference().getRestaurantId());
+		GetRestaurantStaffInfo staffInfo = getStaffInfo(review.getReference().getRestaurantId());
 		return staffInfo.staffId().equals(currentUserId) || staffInfo.ownerId().equals(currentUserId);
+	}
+
+	private GetRestaurantStaffInfo getStaffInfo(String restaurantId) {
+		return restaurantClient.getRestaurantStaffInfo(restaurantId);
 	}
 
 	@Override
@@ -126,4 +132,22 @@ public class ReviewServiceImpl implements ReviewService {
 		validateModify(command.userInfo(), review);
 		return GetReviewInfo.from(review.update(command.toEntity()));
 	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public PaginatedInfo<SearchReviewInfo> getReviews(SearchReviewQuery query,
+			CurrentUserInfoDto userInfo) {
+		return PaginatedInfo.from(
+				reviewRepository.searchReviews(query.toCriteria(userInfo.userId())));
+	}
+
+//	private String getRestaurantIdForStaff(Long staffId) {
+//		// 더미 구현: 실제로는 RestaurantClient를 통해 직원의 레스토랑 정보를 가져와야 함
+//		try {
+//			GetRestaurantStaffInfo staffInfo = getStaffInfo("dummy");
+//			return staffInfo.restaurantId(); // restaurantId 필드 추가 필요
+//		} catch (Exception e) {
+//			return "";
+//		}
+//	}
 }

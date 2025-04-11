@@ -1,7 +1,9 @@
 package table.eat.now.review.presentation;
 
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +17,12 @@ import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.review.application.service.ReviewService;
 import table.eat.now.review.presentation.dto.request.CreateReviewRequest;
+import table.eat.now.review.presentation.dto.request.SearchReviewRequest;
 import table.eat.now.review.presentation.dto.request.UpdateReviewRequest;
 import table.eat.now.review.presentation.dto.response.CreateReviewResponse;
 import table.eat.now.review.presentation.dto.response.GetReviewResponse;
+import table.eat.now.review.presentation.dto.response.PaginatedResponse;
+import table.eat.now.review.presentation.dto.response.SearchReviewResponse;
 
 @RestController
 @RequestMapping("/api/v1/reviews")
@@ -37,35 +42,46 @@ public class ReviewController {
 
 	@GetMapping("/{reviewId}")
 	public ResponseEntity<GetReviewResponse> getReview(
-			@PathVariable String reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
+			@PathVariable UUID reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
 
 		return ResponseEntity.status(HttpStatus.OK).body(
-				GetReviewResponse.from(reviewService.getReview(reviewId, userInfo)));
+				GetReviewResponse.from(reviewService.getReview(reviewId.toString(), userInfo)));
 	}
 
 	@PatchMapping("/{reviewId}/hide")
 	public ResponseEntity<GetReviewResponse> hideReview(
-			@PathVariable String reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
+			@PathVariable UUID reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
 
 		return ResponseEntity.status(HttpStatus.OK).body(
-				GetReviewResponse.from(reviewService.hideReview(reviewId, userInfo)));
+				GetReviewResponse.from(reviewService.hideReview(reviewId.toString(), userInfo)));
 	}
 
 	@PatchMapping("/{reviewId}/show")
 	public ResponseEntity<GetReviewResponse> showReview(
-			@PathVariable String reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
+			@PathVariable UUID reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
 
 		return ResponseEntity.status(HttpStatus.OK).body(
-				GetReviewResponse.from(reviewService.showReview(reviewId, userInfo)));
+				GetReviewResponse.from(reviewService.showReview(reviewId.toString(), userInfo)));
 	}
 
 	@PatchMapping("/{reviewId}")
 	public ResponseEntity<GetReviewResponse> updateReview(
-			@PathVariable String reviewId,
+			@PathVariable UUID reviewId,
 			@RequestBody @Valid UpdateReviewRequest request,
 			@CurrentUserInfo CurrentUserInfoDto userInfo) {
 
 		return ResponseEntity.status(HttpStatus.OK).body(
-				GetReviewResponse.from(reviewService.updateReview(reviewId, request.toCommand(userInfo))));
+				GetReviewResponse.from(
+						reviewService.updateReview(reviewId.toString(), request.toCommand(userInfo))));
+	}
+
+	@GetMapping
+	public ResponseEntity<PaginatedResponse<SearchReviewResponse>> getReviews(
+			@CurrentUserInfo CurrentUserInfoDto userInfo,
+			@Valid SearchReviewRequest request, Pageable pageable) {
+
+		return ResponseEntity.status(HttpStatus.OK).body(
+				PaginatedResponse.from(
+						reviewService.getReviews(request.toQuery(pageable), userInfo)));
 	}
 }

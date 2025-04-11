@@ -2,10 +2,10 @@ package table.eat.now.review.presentation.dto.response;
 
 import java.time.LocalDateTime;
 import lombok.Builder;
-import table.eat.now.review.application.service.dto.response.GetReviewInfo;
+import table.eat.now.review.application.service.dto.response.SearchReviewInfo;
 
 @Builder
-public record GetReviewResponse(
+public record SearchReviewResponse(
 		String reviewUuid,
 		Long customerId,
 		String restaurantId,
@@ -14,11 +14,14 @@ public record GetReviewResponse(
 		Integer rating,
 		String content,
 		boolean isVisible,
+		Long hiddenBy,
+		String hiddenByRole,
 		LocalDateTime createdAt,
-		LocalDateTime updatedAt) {
+		LocalDateTime updatedAt
+) {
 
-	public static GetReviewResponse from(GetReviewInfo info){
-		return GetReviewResponse.builder()
+	public static SearchReviewResponse from(SearchReviewInfo info) {
+		return SearchReviewResponse.builder()
 				.reviewUuid(info.reviewUuid())
 				.customerId(info.customerId())
 				.restaurantId(info.restaurantId())
@@ -27,8 +30,11 @@ public record GetReviewResponse(
 				.rating(info.rating())
 				.content(info.content())
 				.isVisible(info.isVisible())
+				.hiddenBy(info.hiddenBy())
+				.hiddenByRole(info.hiddenByRole())
 				.createdAt(info.createdAt())
 				.updatedAt(info.updatedAt())
 				.build();
 	}
+
 }

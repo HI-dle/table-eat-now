@@ -6,8 +6,15 @@ import table.eat.now.review.domain.entity.Review;
 
 @Builder
 public record CreateReviewInfo(
-		String reviewUuid, Long customerId, String restaurantId, String serviceId, String serviceType,
-		Integer rating, String content, boolean isVisible, LocalDateTime createdAt) {
+		String reviewUuid,
+		Long customerId,
+		String restaurantId,
+		String serviceId,
+		String serviceType,
+		Integer rating,
+		String content,
+		boolean isVisible,
+		LocalDateTime createdAt) {
 
 	public static CreateReviewInfo from(Review review) {
 		return CreateReviewInfo.builder()
