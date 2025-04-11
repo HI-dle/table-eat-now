@@ -57,7 +57,6 @@ import table.eat.now.review.presentation.dto.request.CreateReviewRequest;
 import table.eat.now.review.presentation.dto.request.UpdateReviewRequest;
 
 @ActiveProfiles("test")
-//@AutoConfigureMockMvc
 @Import({
 		WebConfig.class,
 		CustomPageableArgumentResolver.class,
