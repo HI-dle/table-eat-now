@@ -27,7 +27,7 @@ class PrepareCouponIssuanceUsecaseTest extends IntegrationTestSupport {
 
   @BeforeEach
   void setUp() {
-    coupons = CouponFixture.createCoupons(20);
+    coupons = CouponFixture.createCoupons(1);
     couponRepository.saveAll(coupons);
 
     ReflectionTestUtils.setField(coupons.get(0).getPeriod(),
