@@ -1,0 +1,86 @@
+ ### 1. 리뷰 생성 (사용자 1)
+POST localhost:8087/api/v1/reviews
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+{
+  "serviceType": "RESERVATION",
+  "restaurantId": "123e4567-e89b-12d3-a456-426614174000",
+  "serviceId": "123e4567-e89b-12d3-a456-426614174001",
+  "rating": 4,
+  "content": "리뷰를~~~~공개합니다!11",
+  "isVisible": true
+}
+
+### 2. 비공개 리뷰 생성 (사용자 1)
+POST localhost:8087/api/v1/reviews
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+{
+  "serviceType": "RESERVATION",
+  "restaurantId": "123e4567-e89b-12d3-a456-426614174000",
+  "serviceId": "123e4567-e89b-12d3-a456-426614174002",
+  "rating": 2,
+  "content": "내가쓴비밀일기",
+  "isVisible": false
+}
+
+
+### 3. 다른 사용자의 리뷰 생성 (사용자 2)
+POST localhost:8087/api/v1/reviews
+Content-Type: application/json
+X-User-Id: 2
+X-User-Role: CUSTOMER
+
+{
+  "serviceType": "WAITING",
+  "restaurantId": "123e4567-e89b-12d3-a456-426614174000",
+  "serviceId": "123e4567-e89b-12d3-a456-426614174003",
+  "rating": 5,
+  "content": "절봐주세요",
+  "isVisible": true
+}
+
+### 4. 다른 사용자의 비공개 리뷰 생성 (사용자 2)
+POST localhost:8087/api/v1/reviews
+Content-Type: application/json
+X-User-Id: 2
+X-User-Role: CUSTOMER
+
+{
+  "serviceType": "WAITING",
+  "restaurantId": "123e4567-e89b-12d3-a456-426614174000",
+  "serviceId": "123e4567-e89b-12d3-a456-426614174004",
+  "rating": 1,
+  "content": "제가 보이시나요..?",
+  "isVisible": false
+}
+
+
+### 시나리오 1: 마스터의 검색테스트
+# 결과: 모든 공개, 비공개 리뷰를 조회할 수 있어야 한다
+GET localhost:8087/admin/v1/reviews?restaurantId=123e4567-e89b-12d3-a456-426614174000
+X-User-Id: 1
+X-User-Role: MASTER
+
+### 시나리오 2: 마스터의 검색테스트 (공개리뷰)
+# 결과: 모든 공개리뷰를 조회할 수 있어야 한다
+GET localhost:8087/admin/v1/reviews?isVisible=true
+X-User-Id: 1
+X-User-Role: MASTER
+
+### 시나리오 3: 마스터의 검색테스트 (바공개리뷰)
+# 결과: 모든 비공개리뷰를 조회할 수 있어야 한다
+GET localhost:8087/admin/v1/reviews?isVisible=true
+X-User-Id: 1
+X-User-Role: MASTER
+
+
+### 시나리오 4: 식당 직원의 검색테스트
+# 결과: 모든 공개, 비공개 리뷰를 조회할 수 있어야 한다
+GET localhost:8087/admin/v1/reviews?isVisible=false
+X-User-Id: 1
+X-User-Role: STAFF

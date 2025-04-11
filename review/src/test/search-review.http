@@ -128,27 +128,20 @@ X-User-Id: 1
 X-User-Role: CUSTOMER
 
 
-### 시나리오 13: 마스터의 검색테스트
-# 결과: 모든 공개, 비공개 리뷰를 조회할 수 있어야 한다
-GET localhost:8087/admin/v1/reviews?restaurantId=123e4567-e89b-12d3-a456-426614174000
+### 시나리오 13: 가시성 테스트 (다른 유저에 대한 조회에 가시성필터 적용되는지)
+# 결과 : 아무것도 보이지 않아야 함
+GET localhost:8087/api/v1/reviews?userId=1&isVisible=false
 X-User-Id: 1
-X-User-Role: MASTER
+X-User-Role: CUSTOMER
 
-### 시나리오 13: 마스터의 검색테스트 (공개리뷰)
-# 결과: 모든 공개리뷰를 조회할 수 있어야 한다
-GET localhost:8087/admin/v1/reviews?isVisible=true
+### 시나리오 14: 가시성 테스트 (다른 유저에 대한 조회에 가시성필터 적용되는지)
+# 결과 : 공개리뷰만 보여야함
+GET localhost:8087/api/v1/reviews?userId=2&isVisible=true
 X-User-Id: 1
-X-User-Role: MASTER
+X-User-Role: CUSTOMER
 
-### 시나리오 13: 마스터의 검색테스트 (바공개리뷰)
-# 결과: 모든 비공개리뷰를 조회할 수 있어야 한다
-GET localhost:8087/admin/v1/reviews?isVisible=false
+### 시나리오 15: 가시성 테스트 (다른 유저에 대한 조회에 가시성필터 적용되는지)
+# 결과 : 공개리뷰만 보여야함
+GET localhost:8087/api/v1/reviews?userId=2
 X-User-Id: 1
-X-User-Role: MASTER
-
-
-### 시나리오 14: 식당 직원의 검색테스트
-# 결과: 모든 공개, 비공개 리뷰를 조회할 수 있어야 한다
-GET localhost:8087/admin/v1/reviews?isVisible=false
-X-User-Id: 1
-X-User-Role: STAFF
+X-User-Role: CUSTOMER
