@@ -70,7 +70,7 @@ class ReviewControllerTest {
 	private ReviewService reviewService;
 
 	@Nested
-	class 리뷰_생성시 {
+	class 리뷰_생성_요청시 {
 
 		private UUID restaurantId;
 		private UUID serviceId;
@@ -117,10 +117,10 @@ class ReviewControllerTest {
 			// then
 			actions
 					.andExpect(status().isCreated())
-					.andExpect(jsonPath("$.reviewUuid").value(reviewId))
+					.andExpect(jsonPath("$.reviewUuid").value(reviewId.toString()))
 					.andExpect(jsonPath("$.customerId").value(userInfo.userId()))
-					.andExpect(jsonPath("$.restaurantId").value(restaurantId))
-					.andExpect(jsonPath("$.serviceId").value(serviceId))
+					.andExpect(jsonPath("$.restaurantId").value(restaurantId.toString()))
+					.andExpect(jsonPath("$.serviceId").value(serviceId.toString()))
 					.andExpect(jsonPath("$.serviceType").value("RESERVATION"))
 					.andExpect(jsonPath("$.rating").value(4))
 					.andExpect(jsonPath("$.content").value("맛있는 식당이었습니다."))
@@ -244,10 +244,10 @@ class ReviewControllerTest {
 			// then
 			actions
 					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.reviewUuid").value(reviewId))
+					.andExpect(jsonPath("$.reviewUuid").value(reviewId.toString()))
 					.andExpect(jsonPath("$.customerId").value(userInfo.userId()))
-					.andExpect(jsonPath("$.restaurantId").value(restaurantId))
-					.andExpect(jsonPath("$.serviceId").value(serviceId))
+					.andExpect(jsonPath("$.restaurantId").value(restaurantId.toString()))
+					.andExpect(jsonPath("$.serviceId").value(serviceId.toString()))
 					.andExpect(jsonPath("$.serviceType").value("RESERVATION"))
 					.andExpect(jsonPath("$.rating").value(4))
 					.andExpect(jsonPath("$.content").value("맛있는 식당이었습니다."))
@@ -336,10 +336,10 @@ class ReviewControllerTest {
 
 			// then
 			actions.andExpect(status().isOk())
-					.andExpect(jsonPath("$.reviewUuid").value(reviewId))
+					.andExpect(jsonPath("$.reviewUuid").value(reviewId.toString()))
 					.andExpect(jsonPath("$.customerId").value(userInfo.userId()))
-					.andExpect(jsonPath("$.restaurantId").value(restaurantId))
-					.andExpect(jsonPath("$.serviceId").value(serviceId))
+					.andExpect(jsonPath("$.restaurantId").value(restaurantId.toString()))
+					.andExpect(jsonPath("$.serviceId").value(serviceId.toString()))
 					.andExpect(jsonPath("$.serviceType").value("RESERVATION"))
 					.andExpect(jsonPath("$.rating").value(4))
 					.andExpect(jsonPath("$.content").value("맛있는 식당이었습니다."))
@@ -386,7 +386,7 @@ class ReviewControllerTest {
 	}
 
 	@Nested
-	class 리뷰_공개_시 {
+	class 리뷰_공개_요청_시 {
 
 		private UUID restaurantId;
 		private UUID serviceId;
@@ -431,10 +431,10 @@ class ReviewControllerTest {
 			// then
 			actions
 					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.reviewUuid").value(reviewId))
+					.andExpect(jsonPath("$.reviewUuid").value(reviewId.toString()))
 					.andExpect(jsonPath("$.customerId").value(userInfo.userId()))
-					.andExpect(jsonPath("$.restaurantId").value(restaurantId))
-					.andExpect(jsonPath("$.serviceId").value(serviceId))
+					.andExpect(jsonPath("$.restaurantId").value(restaurantId.toString()))
+					.andExpect(jsonPath("$.serviceId").value(serviceId.toString()))
 					.andExpect(jsonPath("$.serviceType").value("RESERVATION"))
 					.andExpect(jsonPath("$.rating").value(4))
 					.andExpect(jsonPath("$.content").value("맛있는 식당이었습니다."))
@@ -481,7 +481,7 @@ class ReviewControllerTest {
 	}
 
 	@Nested
-	class 리뷰_내용_수정_요청시 {
+	class 리뷰_수정_요청시 {
 
 		private UUID restaurantId;
 		private UUID serviceId;
@@ -529,10 +529,10 @@ class ReviewControllerTest {
 
 			// then
 			actions.andExpect(status().isOk())
-					.andExpect(jsonPath("$.reviewUuid").value(reviewId))
+					.andExpect(jsonPath("$.reviewUuid").value(reviewId.toString()))
 					.andExpect(jsonPath("$.customerId").value(userInfo.userId()))
-					.andExpect(jsonPath("$.restaurantId").value(restaurantId))
-					.andExpect(jsonPath("$.serviceId").value(serviceId))
+					.andExpect(jsonPath("$.restaurantId").value(restaurantId.toString()))
+					.andExpect(jsonPath("$.serviceId").value(serviceId.toString()))
 					.andExpect(jsonPath("$.serviceType").value("RESERVATION"))
 					.andExpect(jsonPath("$.rating").value(3))
 					.andExpect(jsonPath("$.content").value("리뷰 수정합니다요"))
