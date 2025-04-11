@@ -14,10 +14,6 @@ X-User-Role: CUSTOMER
   "isVisible": true
 }
 
-> {%
-  client.global.set("reviewId1", response.body.reviewUuid)
-%}
-
 ### 2. 비공개 리뷰 생성 (사용자 1)
 POST localhost:8087/api/v1/reviews
 Content-Type: application/json
@@ -33,9 +29,6 @@ X-User-Role: CUSTOMER
   "isVisible": false
 }
 
-> {%
-  client.global.set("reviewId2", response.body.reviewUuid)
-%}
 
 ### 3. 다른 사용자의 리뷰 생성 (사용자 2)
 POST localhost:8087/api/v1/reviews
@@ -52,10 +45,6 @@ X-User-Role: CUSTOMER
   "isVisible": true
 }
 
-> {%
-  client.global.set("reviewId3", response.body.reviewUuid)
-%}
-
 ### 4. 다른 사용자의 비공개 리뷰 생성 (사용자 2)
 POST localhost:8087/api/v1/reviews
 Content-Type: application/json
@@ -70,10 +59,6 @@ X-User-Role: CUSTOMER
   "content": "제가 보이시나요..?",
   "isVisible": false
 }
-
-> {%
-  client.global.set("reviewId4", response.body.reviewUuid)
-%}
 
 ### 시나리오 1: 전체 리뷰 조회 (사용자 1로 로그인)
 # 결과: 사용자 1의 모든 리뷰(공개+비공개)와 사용자 2의 공개 리뷰만 보여야 함
