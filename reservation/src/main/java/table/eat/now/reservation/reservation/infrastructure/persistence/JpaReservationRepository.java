@@ -6,9 +6,7 @@ package table.eat.now.reservation.reservation.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
-import table.eat.now.reservation.reservation.domain.repository.ReservationRepository;
 
-public interface JpaReservationRepository extends JpaRepository<Reservation, Long>,
-    ReservationRepository {
+public interface JpaReservationRepository extends JpaRepository<Reservation, Long> {
 
 }

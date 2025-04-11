@@ -4,22 +4,21 @@
  */
 package table.eat.now.reservation.reservation.domain.entity.json;
 
-import lombok.Builder;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class RestaurantTimeSlotDetails {
-  private String availableDate;
-  private String timeslot;
+  private LocalDate availableDate;
+  private LocalTime timeslot;
 
-  @Builder
-  public RestaurantTimeSlotDetails(
-      String availableDate,
-      String timeslot
-  ) {
-    this.availableDate = availableDate;
-    this.timeslot = timeslot;
+  public static RestaurantTimeSlotDetails of(LocalDate availableDate, LocalTime timeslot) {
+    return new RestaurantTimeSlotDetails(availableDate, timeslot);
   }
 }

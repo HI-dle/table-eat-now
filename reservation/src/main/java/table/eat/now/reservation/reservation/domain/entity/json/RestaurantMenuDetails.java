@@ -5,19 +5,20 @@
 package table.eat.now.reservation.reservation.domain.entity.json;
 
 import java.math.BigDecimal;
-import lombok.Builder;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class RestaurantMenuDetails {
   private String name;
   private BigDecimal price;
+  private Integer count;
 
-  @Builder
-  private RestaurantMenuDetails(String name, BigDecimal price) {
-    this.name = name;
-    this.price = price;
+  public static RestaurantMenuDetails of(String name, BigDecimal price, Integer quantity) {
+    return new RestaurantMenuDetails(name, price, quantity);
   }
 }
