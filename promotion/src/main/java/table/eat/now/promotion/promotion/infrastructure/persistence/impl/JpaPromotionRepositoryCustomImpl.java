@@ -1,7 +1,7 @@
 package table.eat.now.promotion.promotion.infrastructure.persistence.impl;
 
 import static table.eat.now.promotion.promotion.domain.entity.QPromotion.promotion;
-import static table.eat.now.promotion.promotionRestaurant.domain.entity.QPromotionRestaurant.promotionRestaurant;
+import static table.eat.now.promotion.promotionrestaurant.domain.entity.QPromotionRestaurant.promotionRestaurant;
 
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
