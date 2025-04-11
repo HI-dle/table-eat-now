@@ -9,8 +9,8 @@ import table.eat.now.promotion.promotion.domain.entity.repository.PromotionRepos
  * @author : hanjihoon
  * @Date : 2025. 04. 08.
  */
-public interface JpaPromotionRepository extends JpaRepository<Promotion, Long>,
-    PromotionRepository {
+public interface JpaPromotionRepositoryRepository extends JpaRepository<Promotion, Long>,
+    PromotionRepository, JpaPromotionRepositoryCustom {
 
   Optional<Promotion> findByPromotionUuidAndDeletedByIsNull(String promotionUuid);
 

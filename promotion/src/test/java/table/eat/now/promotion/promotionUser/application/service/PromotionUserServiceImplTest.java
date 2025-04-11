@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -13,16 +14,25 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
+import table.eat.now.promotion.promotionUser.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotionUser.application.dto.request.CreatePromotionUserCommand;
+import table.eat.now.promotion.promotionUser.application.dto.request.SearchPromotionUserCommand;
 import table.eat.now.promotion.promotionUser.application.dto.request.UpdatePromotionUserCommand;
 import table.eat.now.promotion.promotionUser.application.dto.response.CreatePromotionUserInfo;
+import table.eat.now.promotion.promotionUser.application.dto.response.SearchPromotionUserInfo;
 import table.eat.now.promotion.promotionUser.application.dto.response.UpdatePromotionUserInfo;
 import table.eat.now.promotion.promotionUser.application.exception.PromotionUserErrorCode;
 import table.eat.now.promotion.promotionUser.domain.entity.PromotionUser;
 import table.eat.now.promotion.promotionUser.domain.repository.PromotionUserRepository;
+import table.eat.now.promotion.promotionUser.domain.repository.search.PaginatedResult;
+import table.eat.now.promotion.promotionUser.domain.repository.search.PromotionUserSearchCriteriaQuery;
+
 
 /**
  * @author : hanjihoon
@@ -105,5 +115,93 @@ class PromotionUserServiceImplTest {
 
     verify(promotionUserRepository).findByPromotionUserUuidAndDeletedAtIsNull(promotionUserUuid);
   }
+
+  @DisplayName("유저 아이디와 프로모션 아이디로 프로모션에 참여한 유저 검색 서비스 테스트")
+  @Test
+  void promotion_user_search_service_test() {
+    // given
+    String promotionUuid = UUID.randomUUID().toString();
+
+    SearchPromotionUserCommand command = new SearchPromotionUserCommand(
+        1L,
+        promotionUuid,
+        true,
+        "createdAt",
+        0,
+        10
+    );
+
+    PromotionUserSearchCriteriaQuery query1 = new PromotionUserSearchCriteriaQuery(
+        "promotion-user-uuid-1",  promotionUuid, 1L);
+    PromotionUserSearchCriteriaQuery query2 = new PromotionUserSearchCriteriaQuery(
+        "promotion-user-uuid-2", promotionUuid,1L);
+
+    PaginatedResult<PromotionUserSearchCriteriaQuery> paginatedResult =
+        new PaginatedResult<>(
+            List.of(query1, query2),
+            0,
+            10,
+            2L,
+            1
+        );
+
+    when(promotionUserRepository.searchPromotionUser(command.toCriteria()))
+        .thenReturn(paginatedResult);
+
+    // when
+    PaginatedResultCommand<SearchPromotionUserInfo> result =
+        promotionUserService.searchPromotionUser(command);
+
+    // then
+    assertThat(result.content()).hasSize(2);
+    assertThat(result.content().get(0).promotionUserUuid()).isEqualTo("promotion-user-uuid-1");
+    assertThat(result.page()).isEqualTo(0);
+    assertThat(result.size()).isEqualTo(10);
+    assertThat(result.totalElements()).isEqualTo(2L);
+    assertThat(result.totalPages()).isEqualTo(1);
+
+    verify(promotionUserRepository).searchPromotionUser(any());
+  }
+  @DisplayName("userId로 PromotionUser를 삭제한다.")
+  @Test
+  void delete_promotion_user_success() {
+    // given
+    Long targetUserId = 999L;
+    Long deleterUserId = 1L;
+    CurrentUserInfoDto currentUserInfo = new CurrentUserInfoDto(deleterUserId, UserRole.MASTER);
+
+    PromotionUser promotionUser = Mockito.mock(PromotionUser.class);
+
+    when(promotionUserRepository.findByUserIdAndDeletedAtIsNull(targetUserId))
+        .thenReturn(Optional.of(promotionUser));
+
+    // when
+    promotionUserService.deletePromotionUser(targetUserId, currentUserInfo);
+
+    // then
+    verify(promotionUserRepository).findByUserIdAndDeletedAtIsNull(targetUserId);
+    verify(promotionUser).delete(deleterUserId);
+  }
+
+  @DisplayName("존재하지 않는 userId로 삭제 시 예외가 발생한다.")
+  @Test
+  void delete_promotion_user_invalid_userId_exception() {
+    // given
+    Long targetUserId = 999L;
+    CurrentUserInfoDto currentUserInfo = new CurrentUserInfoDto(1L, UserRole.MASTER);
+
+    when(promotionUserRepository.findByUserIdAndDeletedAtIsNull(targetUserId))
+        .thenReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() ->
+        promotionUserService.deletePromotionUser(targetUserId, currentUserInfo)
+    ).isInstanceOf(CustomException.class)
+        .hasMessage(PromotionUserErrorCode.INVALID_PROMOTION_USER_UUID.getMessage());
+
+    verify(promotionUserRepository).findByUserIdAndDeletedAtIsNull(targetUserId);
+  }
+
+
 
 }

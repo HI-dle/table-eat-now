@@ -1,9 +1,16 @@
 package table.eat.now.promotion.promotion.presentation;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -25,8 +32,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
+import table.eat.now.promotion.promotion.application.dto.response.GetPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 import table.eat.now.promotion.promotion.application.service.PromotionService;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
@@ -52,6 +61,7 @@ class PromotionAdminControllerTest {
 
   @MockitoBean
   private PromotionService promotionService;
+
 
   @DisplayName("프로모션 생성 테스트")
   @Test
@@ -140,6 +150,30 @@ class PromotionAdminControllerTest {
         .andExpect(jsonPath("$.promotionType").value("COUPON"))
         .andDo(print());
   }
+
+  @DisplayName("promotionUuid로 프로모션을 삭제한다.")
+  @Test
+  void promotion_uuid_delete_controller_test() throws Exception {
+    // given
+    String promotionUuid = UUID.randomUUID().toString();
+
+    willDoNothing().given(promotionService)
+        .deletePromotion(eq(promotionUuid), any(CurrentUserInfoDto.class));
+
+    // when
+    ResultActions resultActions = mockMvc.perform(delete(
+        "/admin/v1/promotions/{promotionUuid}", promotionUuid)
+        .header("Authorization", "Bearer {ACCESS_TOKEN}")
+        .header(USER_ID_HEADER, "1")
+        .header(USER_ROLE_HEADER, "MASTER"));
+
+    // then
+    resultActions.andExpect(status().isNoContent())
+        .andDo(print());
+
+    verify(promotionService).deletePromotion(eq(promotionUuid), any());
+  }
+
 }
 
 

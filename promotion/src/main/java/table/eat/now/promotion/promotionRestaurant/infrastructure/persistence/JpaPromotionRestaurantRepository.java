@@ -10,7 +10,11 @@ import table.eat.now.promotion.promotionRestaurant.domain.repository.PromotionRe
  * @Date : 2025. 04. 08.
  */
 public interface JpaPromotionRestaurantRepository extends
-    JpaRepository<PromotionRestaurant, Long>, PromotionRestaurantRepository {
+    JpaRepository<PromotionRestaurant, Long>, PromotionRestaurantRepository,
+    JpaPromotionRestaurantRepositoryCustom{
   Optional<PromotionRestaurant> findByPromotionRestaurantUuidAndDeletedAtIsNull(
       String promotionRestaurantUuid);
+
+  Optional<PromotionRestaurant> findByRestaurantUuidAAndDeletedAtIsNull(
+      String restaurantUuid);
 }

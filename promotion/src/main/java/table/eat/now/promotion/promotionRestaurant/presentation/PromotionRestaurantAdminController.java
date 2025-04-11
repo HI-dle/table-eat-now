@@ -1,8 +1,11 @@
-package table.eat.now.promotion.promotionRestaurant.presentation.dto;
+package table.eat.now.promotion.promotionRestaurant.presentation;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -11,11 +14,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 import table.eat.now.common.aop.annotation.AuthCheck;
+import table.eat.now.common.resolver.annotation.CurrentUserInfo;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.promotion.promotionRestaurant.application.service.PromotionRestaurantService;
+import table.eat.now.promotion.promotionRestaurant.presentation.dto.PaginatedResultResponse;
 import table.eat.now.promotion.promotionRestaurant.presentation.dto.request.CreatePromotionRestaurantRequest;
+import table.eat.now.promotion.promotionRestaurant.presentation.dto.request.SearchPromotionRestaurantRequest;
 import table.eat.now.promotion.promotionRestaurant.presentation.dto.request.UpdatePromotionRestaurantRequest;
 import table.eat.now.promotion.promotionRestaurant.presentation.dto.response.CreatePromotionRestaurantResponse;
+import table.eat.now.promotion.promotionRestaurant.presentation.dto.response.SearchPromotionRestaurantResponse;
 import table.eat.now.promotion.promotionRestaurant.presentation.dto.response.UpdatePromotionRestaurantResponse;
 
 /**
@@ -53,5 +61,25 @@ public class PromotionRestaurantAdminController {
             .updatePromotionRestaurant(request.toApplication(), promotionRestaurantUuid)));
   }
 
+  @GetMapping
+  @AuthCheck(roles = {UserRole.MASTER})
+  public ResponseEntity<PaginatedResultResponse<SearchPromotionRestaurantResponse>>
+  searchPromotionRestaurant(
+      @Valid @ModelAttribute SearchPromotionRestaurantRequest request
+  ) {
+    return ResponseEntity.ok(
+        PaginatedResultResponse.from(
+            promotionRestaurantService.searchPromotionRestaurant(
+                request.toApplication())));
+  }
 
+  @DeleteMapping("/{restaurantUuid}")
+  @AuthCheck(roles = UserRole.MASTER)
+  public ResponseEntity<Void> deletePromotionRestaurant(
+      @PathVariable("restaurantUuid") String restaurantUuid,
+      @CurrentUserInfo CurrentUserInfoDto userInfoDto
+  ) {
+    promotionRestaurantService.deletePromotionRestaurant(restaurantUuid, userInfoDto);
+    return ResponseEntity.noContent().build();
+  }
 }
