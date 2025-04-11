@@ -19,13 +19,16 @@ import table.eat.now.review.application.client.ReservationClient;
 import table.eat.now.review.application.client.RestaurantClient;
 import table.eat.now.review.application.client.WaitingClient;
 import table.eat.now.review.application.service.dto.request.CreateReviewCommand;
+import table.eat.now.review.application.service.dto.request.SearchAdminReviewQuery;
 import table.eat.now.review.application.service.dto.request.SearchReviewQuery;
 import table.eat.now.review.application.service.dto.request.UpdateReviewCommand;
 import table.eat.now.review.application.service.dto.response.CreateReviewInfo;
+import table.eat.now.review.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.review.application.service.dto.response.GetRestaurantStaffInfo;
 import table.eat.now.review.application.service.dto.response.GetReviewInfo;
 import table.eat.now.review.application.service.dto.response.GetServiceInfo;
 import table.eat.now.review.application.service.dto.response.PaginatedInfo;
+import table.eat.now.review.application.service.dto.response.SearchAdminReviewInfo;
 import table.eat.now.review.application.service.dto.response.SearchReviewInfo;
 import table.eat.now.review.domain.entity.Review;
 import table.eat.now.review.domain.entity.ServiceType;
@@ -135,10 +138,30 @@ public class ReviewServiceImpl implements ReviewService {
 
   @Override
   @Transactional(readOnly = true)
-  public PaginatedInfo<SearchReviewInfo> getReviews(SearchReviewQuery query,
-      CurrentUserInfoDto userInfo) {
-    return PaginatedInfo.from(
+  public PaginatedInfo<SearchReviewInfo> searchReviews(
+      SearchReviewQuery query, CurrentUserInfoDto userInfo) {
+
+    return PaginatedInfo.fromResult(
         reviewRepository.searchReviews(query.toCriteria(userInfo.userId())));
+  }
+
+  @Override
+  public PaginatedInfo<SearchAdminReviewInfo> searchAdminReviews(
+      SearchAdminReviewQuery query, CurrentUserInfoDto userInfo) {
+    String accessibleRestaurantId = null;
+    if (userInfo.role() == OWNER || userInfo.role() == STAFF) {
+      accessibleRestaurantId = getRestaurantId(userInfo.userId());
+    }
+    return PaginatedInfo.fromAdminResult(
+        reviewRepository.searchAdminReviews(query.toCriteria(accessibleRestaurantId)));
+  }
+
+  private String getRestaurantId(Long staffId) {
+    return getRestaurantInfo(staffId).restaurantId();
+  }
+
+  private GetRestaurantInfo getRestaurantInfo(Long staffId) {
+    return restaurantClient.getRestaurantInfo(staffId);
   }
 
   @Override

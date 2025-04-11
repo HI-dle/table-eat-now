@@ -714,7 +714,7 @@ class ReviewServiceImplTest {
   }
 
   @Nested
-  class getReviews_는 {
+  class searchReviews_는 {
 
     private String restaurantId;
     private Long customerId;
@@ -769,7 +769,7 @@ class ReviewServiceImplTest {
     @Test
     void 자신의_모든_리뷰와_타인의_공개_리뷰를_반환한다() {
       // when
-      PaginatedInfo<SearchReviewInfo> result = reviewService.getReviews(query, userInfo);
+      PaginatedInfo<SearchReviewInfo> result = reviewService.searchReviews(query, userInfo);
 
       // then
       assertThat(result.content()).hasSize(3);
@@ -795,7 +795,7 @@ class ReviewServiceImplTest {
           .build();
 
       // when
-      PaginatedInfo<SearchReviewInfo> result = reviewService.getReviews(myReviewsQuery, userInfo);
+      PaginatedInfo<SearchReviewInfo> result = reviewService.searchReviews(myReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(2);
@@ -821,7 +821,7 @@ class ReviewServiceImplTest {
 
       // when
       PaginatedInfo<SearchReviewInfo> result =
-          reviewService.getReviews(myPublicReviewsQuery, userInfo);
+          reviewService.searchReviews(myPublicReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(1);
@@ -843,7 +843,7 @@ class ReviewServiceImplTest {
 
       // when
       PaginatedInfo<SearchReviewInfo> result =
-          reviewService.getReviews(myPrivateReviewsQuery, userInfo);
+          reviewService.searchReviews(myPrivateReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(1);
@@ -864,7 +864,7 @@ class ReviewServiceImplTest {
 
       // when
       PaginatedInfo<SearchReviewInfo> result =
-          reviewService.getReviews(otherUserReviewsQuery, userInfo);
+          reviewService.searchReviews(otherUserReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(1);
@@ -885,7 +885,7 @@ class ReviewServiceImplTest {
 
       // when
       PaginatedInfo<SearchReviewInfo> result =
-          reviewService.getReviews(restaurantReviewsQuery, userInfo);
+          reviewService.searchReviews(restaurantReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(3);
@@ -912,7 +912,7 @@ class ReviewServiceImplTest {
 
       // when
       PaginatedInfo<SearchReviewInfo> result =
-          reviewService.getReviews(waitingReviewsQuery, userInfo);
+          reviewService.searchReviews(waitingReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(1);
@@ -934,7 +934,7 @@ class ReviewServiceImplTest {
 
       // when
       PaginatedInfo<SearchReviewInfo> result =
-          reviewService.getReviews(highRatingReviewsQuery, userInfo);
+          reviewService.searchReviews(highRatingReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(2);
@@ -962,7 +962,7 @@ class ReviewServiceImplTest {
           .build();
 
       // when
-      PaginatedInfo<SearchReviewInfo> result = reviewService.getReviews(complexQuery, userInfo);
+      PaginatedInfo<SearchReviewInfo> result = reviewService.searchReviews(complexQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(1);

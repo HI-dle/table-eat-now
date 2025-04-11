@@ -3,10 +3,10 @@ package table.eat.now.review.application.service.dto.request;
 import java.time.LocalDate;
 import lombok.Builder;
 import table.eat.now.review.domain.entity.ServiceType;
-import table.eat.now.review.domain.repository.search.SearchReviewCriteria;
+import table.eat.now.review.domain.repository.search.SearchAdminReviewCriteria;
 
 @Builder
-public record SearchReviewQuery(
+public record SearchAdminReviewQuery(
     String orderBy,
     String sort,
     LocalDate startDate,
@@ -19,8 +19,8 @@ public record SearchReviewQuery(
     Boolean isVisible,
     int page, int size) {
 
-  public SearchReviewCriteria toCriteria(Long currentUserId) {
-    return SearchReviewCriteria.builder()
+  public SearchAdminReviewCriteria toCriteria(String accessibleRestaurantId) {
+    return SearchAdminReviewCriteria.builder()
         .orderBy(orderBy)
         .sort(sort)
         .startDate(startDate)
@@ -31,9 +31,10 @@ public record SearchReviewQuery(
         .restaurantId(restaurantId)
         .userId(userId)
         .isVisible(isVisible)
-        .currentUserId(currentUserId)
+        .accessibleRestaurantId(accessibleRestaurantId)
         .page(page)
         .size(size)
         .build();
   }
+
 }
