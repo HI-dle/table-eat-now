@@ -325,4 +325,49 @@ class ReviewTest {
 			assertThat(exception.getMessage()).contains("이 작업에 대한 권한은 작성자에게만 있습니다.");
 		}
 	}
+
+	@Nested
+	class delete_는 {
+
+		private Long ownerId;
+		private Long otherUserId;
+		private String role;
+		private Review originalReview;
+
+
+		@BeforeEach
+		void setUp() {
+			ownerId = 123L;
+			otherUserId = 456L;
+			role = CUSTOMER.name();
+			String restaurantId = UUID.randomUUID().toString();
+			String serviceId = UUID.randomUUID().toString();
+
+			CreateReviewCommand command = new CreateReviewCommand(
+					restaurantId, serviceId, ownerId, "RESERVATION",
+					"맛있는 식당이었습니다.", 4,
+					false,
+					UserRole.valueOf(role)
+			);
+			originalReview = command.toEntity();
+		}
+
+		@Test
+		void 본인의_리뷰를_삭제할_수_있다() {
+			// when
+			originalReview.delete(ownerId, role);
+
+			// then
+			assertThat(originalReview.getDeletedAt()).isNotNull();
+			assertThat(originalReview.getDeletedBy()).isEqualTo(ownerId);
+		}
+
+		@Test
+		void 일반_유저인_경우_본인의_리뷰가_아니면_IllegalArgumentException_을_던진다() {
+			// when & then
+			IllegalArgumentException exception = assertThrows(
+					IllegalArgumentException.class, () -> originalReview.delete(otherUserId, role));
+			assertThat(exception.getMessage()).contains("이 작업에 대한 권한은 작성자에게만 있습니다.");
+		}
+	}
 }
