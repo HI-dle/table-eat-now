@@ -55,10 +55,10 @@ class WithStockStrategyTest extends IntegrationTestSupport {
   @Test
   void issue() {
     // given
-    withStockStrategy.issue(coupon.getCouponUuid(), 2L);
+    withStockStrategy.requestIssue(coupon.getCouponUuid(), 2L);
 
     // when, then
-    assertThatThrownBy(() -> withStockStrategy.issue(coupon.getCouponUuid(), 2L))
+    assertThatThrownBy(() -> withStockStrategy.requestIssue(coupon.getCouponUuid(), 2L))
         .isInstanceOf(CustomException.class)
         .hasMessage(CouponErrorCode.INSUFFICIENT_STOCK.getMessage());
   }

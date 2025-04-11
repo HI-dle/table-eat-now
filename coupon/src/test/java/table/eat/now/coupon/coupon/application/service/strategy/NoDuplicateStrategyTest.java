@@ -54,10 +54,10 @@ class NoDuplicateStrategyTest extends IntegrationTestSupport {
   @Test
   void issue() {
     // given
-    noDuplicateStrategy.issue(coupon.getCouponUuid(), 2L);
+    noDuplicateStrategy.requestIssue(coupon.getCouponUuid(), 2L);
 
     // when, then
-    assertThatThrownBy(() -> noDuplicateStrategy.issue(coupon.getCouponUuid(), 2L))
+    assertThatThrownBy(() -> noDuplicateStrategy.requestIssue(coupon.getCouponUuid(), 2L))
         .isInstanceOf(CustomException.class)
         .hasMessage(CouponErrorCode.ALREADY_ISSUED.getMessage());
   }

@@ -20,7 +20,7 @@ public class NoDuplicateWithStockStrategy implements CouponIssueStrategy {
   }
 
   @Override
-  public void issue(String couponUuid, Long userId) {
+  public void requestIssue(String couponUuid, Long userId) {
     checkAlreadyIssued(couponUuid, userId);
     try {
       checkStockAndDecrease(couponUuid);

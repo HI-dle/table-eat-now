@@ -59,7 +59,7 @@ class NoDuplicateWithStockStrategyTest extends IntegrationTestSupport {
   @Test
   void issue() {
     // given
-    noDuplicateWithStockStrategy.issue(coupon.getCouponUuid(), 2L);
+    noDuplicateWithStockStrategy.requestIssue(coupon.getCouponUuid(), 2L);
 
     // when, then
     assertThat(couponRepository.isAlreadyIssued(coupon.getCouponUuid(), 2L)).isTrue();
@@ -69,10 +69,10 @@ class NoDuplicateWithStockStrategyTest extends IntegrationTestSupport {
   @Test
   void issueFailedWhenDuplicated() {
     // given
-    noDuplicateWithStockStrategy.issue(coupon.getCouponUuid(), 2L);
+    noDuplicateWithStockStrategy.requestIssue(coupon.getCouponUuid(), 2L);
 
     // when, then
-    assertThatThrownBy(() -> noDuplicateWithStockStrategy.issue(coupon.getCouponUuid(), 2L))
+    assertThatThrownBy(() -> noDuplicateWithStockStrategy.requestIssue(coupon.getCouponUuid(), 2L))
         .isInstanceOf(CustomException.class)
         .hasMessage(CouponErrorCode.ALREADY_ISSUED.getMessage());
   }
@@ -81,11 +81,11 @@ class NoDuplicateWithStockStrategyTest extends IntegrationTestSupport {
   @Test
   void issueFailedWhenSoldOut() {
     // given
-    noDuplicateWithStockStrategy.issue(coupon.getCouponUuid(), 2L);
-    noDuplicateWithStockStrategy.issue(coupon.getCouponUuid(), 3L);
+    noDuplicateWithStockStrategy.requestIssue(coupon.getCouponUuid(), 2L);
+    noDuplicateWithStockStrategy.requestIssue(coupon.getCouponUuid(), 3L);
 
     // when, then
-    assertThatThrownBy(() -> noDuplicateWithStockStrategy.issue(coupon.getCouponUuid(), 4L))
+    assertThatThrownBy(() -> noDuplicateWithStockStrategy.requestIssue(coupon.getCouponUuid(), 4L))
         .isInstanceOf(CustomException.class)
         .hasMessage(CouponErrorCode.INSUFFICIENT_STOCK.getMessage());
   }
@@ -103,7 +103,7 @@ class NoDuplicateWithStockStrategyTest extends IntegrationTestSupport {
     for (int i = 0; i < threadCount; i++) {
       executorService.submit(() -> {
         try {
-          noDuplicateWithStockStrategy.issue(coupon.getCouponUuid(), 2L);
+          noDuplicateWithStockStrategy.requestIssue(coupon.getCouponUuid(), 2L);
         } catch (Exception e) {
           log.error(e.getMessage());
         } finally {

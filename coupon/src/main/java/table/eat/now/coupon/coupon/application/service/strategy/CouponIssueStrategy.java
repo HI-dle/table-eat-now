@@ -4,6 +4,6 @@ import table.eat.now.coupon.coupon.domain.entity.Coupon;
 
 public interface CouponIssueStrategy {
   boolean support(Coupon coupon);
-  void issue(String couponUuid, Long userId);
+  void requestIssue(String couponUuid, Long userId);
 
 }
