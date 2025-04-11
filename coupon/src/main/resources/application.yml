@@ -1,6 +1,6 @@
 spring:
   application:
-    name: coupon-service
+    name: coupon
   config:
     import:
       - optional:file:.env.coupon[.properties]

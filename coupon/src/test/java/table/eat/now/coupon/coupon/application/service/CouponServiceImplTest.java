@@ -2,7 +2,9 @@ package table.eat.now.coupon.coupon.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 
+import jakarta.annotation.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -13,14 +15,19 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
+import table.eat.now.coupon.coupon.application.dto.event.IssueUserCouponEvent;
 import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
 import table.eat.now.coupon.coupon.application.dto.request.SearchCouponsQuery;
 import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
@@ -35,7 +42,9 @@ import table.eat.now.coupon.coupon.domain.entity.Coupon;
 import table.eat.now.coupon.coupon.domain.repository.CouponRepository;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
+import table.eat.now.coupon.user_coupon.application.listener.UserCouponEventListener;
 
+@RecordApplicationEvents
 class CouponServiceImplTest extends IntegrationTestSupport {
 
   @Autowired
@@ -43,6 +52,12 @@ class CouponServiceImplTest extends IntegrationTestSupport {
 
   @Autowired
   private CouponRepository couponRepository;
+
+  @Resource
+  ApplicationEvents applicationEvents;
+
+  @MockitoBean
+  UserCouponEventListener userCouponEventListener;
 
   private List<Coupon> coupons;
 
@@ -174,29 +189,6 @@ class CouponServiceImplTest extends IntegrationTestSupport {
         .isEqualTo(couponUuidsStr);
   }
 
-  @DisplayName("한정 수량 및 중복 발급 제한 쿠폰 발급 요청 - 발급 요청 성공")
-  @Test
-  void requestCouponIssue() {
-    // given
-    Coupon coupon = coupons.get(0);
-    ReflectionTestUtils.setField(coupon.getPeriod(), "startAt", LocalDateTime.now().minusDays(1));
-    couponRepository.save(coupon);
-
-    Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getEndAt())
-        .plusMinutes(10);
-    couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
-    couponRepository.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
-
-    CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(3L, UserRole.CUSTOMER);
-
-    // when
-    couponService.requestCouponIssue(userInfo, coupon.getCouponUuid());
-
-    // then
-    boolean result = couponRepository.isAlreadyIssued(coupon.getCouponUuid(), userInfo.userId());
-    assertThat(result).isTrue();
-  }
-
   @DisplayName("현재 사용가능한 쿠폰 목록 조회 - 조회 성공")
   @Test
   void getAvailableCoupons() {
@@ -223,4 +215,51 @@ class CouponServiceImplTest extends IntegrationTestSupport {
     assertThat(availableCoupons.contents().get(0).couponUuid()).isEqualTo(coupon.getCouponUuid());
   }
 
+  @DisplayName("한정 수량 및 중복 발급 제한 쿠폰 발급 요청 - 발급 요청 성공")
+  @Test
+  void requestCouponIssue() {
+    // given
+    Coupon coupon = coupons.get(0);
+    ReflectionTestUtils.setField(coupon.getPeriod(), "startAt", LocalDateTime.now().minusDays(1));
+    couponRepository.save(coupon);
+
+    Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getEndAt())
+        .plusMinutes(10);
+    couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
+    couponRepository.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
+
+    CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(3L, UserRole.CUSTOMER);
+
+    // when
+    couponService.requestCouponIssue(userInfo, coupon.getCouponUuid());
+
+    // then
+    boolean result = couponRepository.isAlreadyIssued(coupon.getCouponUuid(), userInfo.userId());
+    assertThat(result).isTrue();
+  }
+
+  @DisplayName("쿠폰 발급 요청 - 사용자 쿠폰 발급 이벤트 발행 검증")
+  @Test
+  void requestCouponIssueTriggerEvent() {
+    // given
+    Coupon coupon = coupons.get(0);
+    ReflectionTestUtils.setField(coupon.getPeriod(), "startAt", LocalDateTime.now().minusDays(1));
+    couponRepository.save(coupon);
+
+    Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getEndAt())
+        .plusMinutes(10);
+    couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
+    couponRepository.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
+
+    CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(3L, UserRole.CUSTOMER);
+
+    // when
+    couponService.requestCouponIssue(userInfo, coupon.getCouponUuid());
+
+    // then
+    // 이벤트 발행이 잘 되었는지 확인
+    assertThat(applicationEvents.stream(IssueUserCouponEvent.class).count()).isEqualTo(1);
+    ArgumentCaptor<IssueUserCouponEvent> captor = ArgumentCaptor.forClass(IssueUserCouponEvent.class);
+    verify(userCouponEventListener).listenIssueUserCouponEvent(captor.capture());
+  }
 }

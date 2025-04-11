@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import lombok.Builder;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
+import table.eat.now.coupon.user_coupon.application.dto.request.IssueUserCouponCommand;
 
 @Builder
 public record IssueUserCouponEvent(
@@ -21,6 +22,16 @@ public record IssueUserCouponEvent(
         .userCouponUuid(userCouponUuid)
         .name(coupon.getName())
         .expiresAt(coupon.getPeriod().getEndAt())
+        .build();
+  }
+
+  public IssueUserCouponCommand toCommand() {
+    return IssueUserCouponCommand.builder()
+        .userId(userId)
+        .couponUuid(couponUuid)
+        .userCouponUuid(userCouponUuid)
+        .name(name)
+        .expiresAt(expiresAt)
         .build();
   }
 }
