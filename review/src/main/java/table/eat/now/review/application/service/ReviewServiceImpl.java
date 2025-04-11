@@ -141,13 +141,10 @@ public class ReviewServiceImpl implements ReviewService {
 				reviewRepository.searchReviews(query.toCriteria(userInfo.userId())));
 	}
 
-//	private String getRestaurantIdForStaff(Long staffId) {
-//		// 더미 구현: 실제로는 RestaurantClient를 통해 직원의 레스토랑 정보를 가져와야 함
-//		try {
-//			GetRestaurantStaffInfo staffInfo = getStaffInfo("dummy");
-//			return staffInfo.restaurantId(); // restaurantId 필드 추가 필요
-//		} catch (Exception e) {
-//			return "";
-//		}
-//	}
+	@Override
+	@Transactional
+	public void deleteReview(String reviewId, CurrentUserInfoDto userInfo) {
+		findReview(reviewId)
+				.delete(userInfo.userId(), userInfo.role().name());
+	}
 }

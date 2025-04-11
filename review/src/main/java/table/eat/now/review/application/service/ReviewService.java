@@ -22,4 +22,6 @@ public interface ReviewService {
 	GetReviewInfo updateReview(String reviewId, UpdateReviewCommand command);
 
 	PaginatedInfo<SearchReviewInfo> getReviews(SearchReviewQuery query, CurrentUserInfoDto userInfo);
+
+	void deleteReview(String reviewId, CurrentUserInfoDto userInfo);
 }

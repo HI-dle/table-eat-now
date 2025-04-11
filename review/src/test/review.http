@@ -33,6 +33,12 @@ PATCH localhost:8087/api/v1/reviews/{{reviewId}}/show
 X-User-Id: 1
 X-User-Role: CUSTOMER
 
+
+### 리뷰 삭제
+DELETE localhost:8087/api/v1/reviews/{{reviewId}}
+X-User-Id: 1
+X-User-Role: OWNER
+
 ### 리뷰 수정
 PATCH localhost:8087/api/v1/reviews/{{reviewId}}
 Content-Type: application/json

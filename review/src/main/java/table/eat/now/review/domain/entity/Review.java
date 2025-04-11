@@ -77,6 +77,11 @@ public class Review extends BaseEntity {
 		return this;
 	}
 
+	public void delete(Long deletedBy, String userRole) {
+		validateCustomer(deletedBy, userRole);
+		super.delete(deletedBy);
+	}
+
 	private Review(ReviewReference reference, ReviewContent content, ReviewVisibility visibility) {
 		this.reviewId = UUID.randomUUID().toString();
 		this.reference = reference;
