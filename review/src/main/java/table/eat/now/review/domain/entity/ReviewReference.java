@@ -4,10 +4,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
 @Embeddable
+@EqualsAndHashCode
 public class ReviewReference {
 
   @Column(name = "restaurant_uuid", nullable = false)
@@ -25,12 +27,14 @@ public class ReviewReference {
 
   public static ReviewReference create(
       String restaurantId, String serviceId, Long customerId, ServiceType serviceType) {
+
     validateNull(restaurantId, serviceId, customerId, serviceType);
     return new ReviewReference(restaurantId, serviceId, customerId, serviceType);
   }
 
   private static void validateNull(
       String restaurantId, String serviceId, Long customerId, ServiceType serviceType) {
+
     if (restaurantId == null || serviceId == null || customerId == null || serviceType == null) {
       throw new IllegalArgumentException("null이 될 수 없습니다.");
     }
@@ -38,6 +42,7 @@ public class ReviewReference {
 
   private ReviewReference(
       String restaurantId, String serviceId, Long customerId, ServiceType serviceType) {
+
     this.restaurantId = restaurantId;
     this.serviceId = serviceId;
     this.customerId = customerId;

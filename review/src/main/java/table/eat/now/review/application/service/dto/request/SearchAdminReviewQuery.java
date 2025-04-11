@@ -19,7 +19,7 @@ public record SearchAdminReviewQuery(
     Boolean isVisible,
     int page, int size) {
 
-  public SearchAdminReviewCriteria toCriteria(String accessibleRestaurantId) {
+  public SearchAdminReviewCriteria toCriteria(String accessibleRestaurantId, boolean isMaster) {
     return SearchAdminReviewCriteria.builder()
         .orderBy(orderBy)
         .sort(sort)
@@ -32,6 +32,7 @@ public record SearchAdminReviewQuery(
         .userId(userId)
         .isVisible(isVisible)
         .accessibleRestaurantId(accessibleRestaurantId)
+        .isMaster(isMaster)
         .page(page)
         .size(size)
         .build();

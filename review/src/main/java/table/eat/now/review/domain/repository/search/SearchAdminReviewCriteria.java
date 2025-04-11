@@ -17,6 +17,7 @@ public record SearchAdminReviewCriteria(
     Long userId,
     Boolean isVisible,
     String accessibleRestaurantId,
+    boolean isMaster,
     int page,
     int size
 ) {

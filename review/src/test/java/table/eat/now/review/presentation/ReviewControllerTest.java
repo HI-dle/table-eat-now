@@ -63,7 +63,7 @@ import table.eat.now.review.presentation.dto.request.UpdateReviewRequest;
     AuthCheckAspect.class
 })
 @EnableAspectJAutoProxy(proxyTargetClass = true)
-@WebMvcTest(ReviewController.class)
+@WebMvcTest(ReviewApiController.class)
 class ReviewControllerTest {
 
   @Autowired
@@ -734,7 +734,7 @@ class ReviewControllerTest {
           List.of(myReview, otherReview), 0, 10, 2L, 1);
 
       when(
-          reviewService.getReviews(any(SearchReviewQuery.class),
+          reviewService.searchReviews(any(SearchReviewQuery.class),
               any(CurrentUserInfoDto.class)))
           .thenReturn(paginatedInfo);
 
@@ -776,7 +776,7 @@ class ReviewControllerTest {
           List.of(myReview), 0, 10, 1L, 1);
 
       when(
-          reviewService.getReviews(any(SearchReviewQuery.class),
+          reviewService.searchReviews(any(SearchReviewQuery.class),
               any(CurrentUserInfoDto.class)))
           .thenReturn(paginatedInfo);
 

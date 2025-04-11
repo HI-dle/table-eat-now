@@ -30,7 +30,8 @@ public class ReviewVisibility {
 
   public static ReviewVisibility create(Boolean isVisible, Long hiddenBy, String hiddenByRole) {
     validateVisibility(isVisible);
-    return isVisible ? createVisible() : createHidden(hiddenBy, hiddenByRole);
+    return isVisible ?
+        createVisible() : createHidden(hiddenBy, hiddenByRole);
   }
 
   private static void validateVisibility(Boolean isVisible) {
@@ -55,7 +56,8 @@ public class ReviewVisibility {
   }
 
   public ReviewVisibility hide(Long hiddenBy, String hiddenByRole) {
-    return this.isVisible ? createHidden(hiddenBy, hiddenByRole) : this;
+    return this.isVisible ?
+        createHidden(hiddenBy, hiddenByRole) : this;
   }
 
   public ReviewVisibility show(String hiddenByRole) {

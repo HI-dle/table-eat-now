@@ -5,6 +5,7 @@ import static table.eat.now.review.domain.entity.QReview.review;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,7 +26,6 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
 
   @Override
   public PaginatedResult<SearchReviewResult> searchReviews(SearchReviewCriteria criteria) {
-
     BooleanExpression whereCondition = buildWhereCondition(criteria);
 
     List<SearchReviewResult> content = queryFactory
@@ -49,28 +49,11 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
         .limit(criteria.size())
         .fetch();
 
-    Long totalElements = queryFactory
-        .select(review.count())
-        .from(review)
-        .where(whereCondition)
-        .fetchOne();
-
-    totalElements = totalElements == null ? 0 : totalElements;
-    int totalPages = (int) Math.ceil((double) totalElements / criteria.size());
-
-    return new PaginatedResult<>(
-        content,
-        criteria.page(),
-        criteria.size(),
-        totalElements,
-        totalPages
-    );
+    return createPaginatedResult(content, whereCondition, criteria.page(), criteria.size());
   }
 
   @Override
-  public PaginatedResult<SearchAdminReviewResult> searchAdminReviews(
-      SearchAdminReviewCriteria criteria) {
-
+  public PaginatedResult<SearchAdminReviewResult> searchAdminReviews(SearchAdminReviewCriteria criteria) {
     BooleanExpression whereCondition = buildWhereAdminCondition(criteria);
 
     List<SearchAdminReviewResult> content = queryFactory
@@ -94,22 +77,25 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
         .limit(criteria.size())
         .fetch();
 
-    Long totalElements = queryFactory
+    return createPaginatedResult(content, whereCondition, criteria.page(), criteria.size());
+  }
+
+  private <T> PaginatedResult<T> createPaginatedResult(
+      List<T> content, BooleanExpression whereCondition, int page, int size) {
+
+    Long totalElements = countTotalElements(whereCondition);
+    int totalPages = (int) Math.ceil((double) totalElements / size);
+    return new PaginatedResult<>(content, page, size, totalElements, totalPages);
+  }
+
+  private Long countTotalElements(BooleanExpression whereCondition) {
+    Long count = queryFactory
         .select(review.count())
         .from(review)
         .where(whereCondition)
         .fetchOne();
 
-    totalElements = totalElements == null ? 0 : totalElements;
-    int totalPages = (int) Math.ceil((double) totalElements / criteria.size());
-
-    return new PaginatedResult<>(
-        content,
-        criteria.page(),
-        criteria.size(),
-        totalElements,
-        totalPages
-    );
+    return count != null ? count : 0L;
   }
 
   private BooleanExpression buildWhereCondition(SearchReviewCriteria criteria) {
@@ -134,37 +120,67 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
 
   private BooleanExpression getVisibilityAdminCondition(SearchAdminReviewCriteria criteria) {
     BooleanExpression isVisible = review.visibility.isVisible.isTrue();
+    BooleanExpression isInvisible = review.visibility.isVisible.isFalse();
+    Boolean optionalVisibility = criteria.isVisible();
     String accessibleRestaurantId = criteria.accessibleRestaurantId();
+    boolean isMaster = criteria.isMaster();
 
-    if (accessibleRestaurantId == null) {
-      Boolean visibilityFilter = criteria.isVisible();
-      return visibilityFilter == null ? null :
-          visibilityFilter ? isVisible
-              : review.visibility.isVisible.isFalse();
+    if(isMaster && optionalVisibility != null) {
+      return optionalVisibility ?
+          isVisible : isInvisible;
     }
 
-    return isVisible.or(review.reference.restaurantId.eq(accessibleRestaurantId));
+    if(isMaster) {
+      return null;
+    }
+
+    if(accessibleRestaurantId != null && optionalVisibility != null) {
+      return optionalVisibility ? isVisible
+          : isInvisible.and(filterByAccessibleRestaurantId(accessibleRestaurantId));
+    }
+
+    if(accessibleRestaurantId != null) {
+      return isVisible.or(filterByAccessibleRestaurantId(accessibleRestaurantId));
+    }
+
+    return isVisible;
   }
 
   private BooleanExpression getVisibilityUserCondition(SearchReviewCriteria criteria) {
     BooleanExpression isVisible = review.visibility.isVisible.isTrue();
+    BooleanExpression isInvisible = review.visibility.isVisible.isFalse();
     Long currentUserId = criteria.currentUserId();
     Long targetUserId = criteria.userId();
+    Boolean optionalVisibility = criteria.isVisible();
 
     if (currentUserId == null) {
       return isVisible;
     }
 
-    if (targetUserId != null) {
-      if (currentUserId.equals(targetUserId)) {
-        Boolean visibilityFilter = criteria.isVisible();
-        return visibilityFilter == null
-            ? null : (visibilityFilter ? isVisible : review.visibility.isVisible.isFalse());
-      }
-      return isVisible;
+    if(currentUserId.equals(targetUserId)) {
+      return optionalVisibility == null ? null :
+          optionalVisibility ? isVisible : isInvisible;
     }
 
-    return isVisible.or(review.reference.customerId.eq(currentUserId));
+    if(targetUserId != null) {
+      return optionalVisibility == null ? null :
+          optionalVisibility ? isVisible : Expressions.FALSE;
+    }
+
+    if(optionalVisibility != null) {
+      return optionalVisibility ?
+          isVisible : isInvisible.and(filterByCurrentUser(currentUserId));
+    }
+
+    return isVisible.or(filterByCurrentUser(currentUserId));
+  }
+
+  private BooleanExpression filterByAccessibleRestaurantId(String accessibleRestaurantId) {
+    return restaurantIdEquals(accessibleRestaurantId);
+  }
+
+  private BooleanExpression filterByCurrentUser(Long currentUserId) {
+    return customerIdEquals(currentUserId);
   }
 
   private BooleanExpression customerIdEquals(Long customerId) {
@@ -194,8 +210,8 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
   }
 
   private BooleanExpression createdAtBetween(LocalDate startDate, LocalDate endDate) {
-    LocalDateTime start = getStartDatetime(startDate);
-    LocalDateTime end = getEndDatetime(endDate);
+    LocalDateTime start = startDate != null ? startDate.atStartOfDay() : null;
+    LocalDateTime end = endDate != null ? endDate.atTime(LocalTime.MAX) : null;
 
     if (start == null && end == null) {
       return null;
@@ -209,14 +225,6 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
     return review.createdAt.between(start, end);
   }
 
-  private static LocalDateTime getEndDatetime(LocalDate endDate) {
-    return endDate != null ? endDate.atTime(LocalTime.MAX) : null;
-  }
-
-  private static LocalDateTime getStartDatetime(LocalDate startDate) {
-    return startDate != null ? startDate.atStartOfDay() : null;
-  }
-
   private OrderSpecifier<?> getOrderSpecifier(String sort, String orderBy) {
     boolean isAsc = "asc".equalsIgnoreCase(sort);
     if ("rating".equals(orderBy)) {
@@ -225,4 +233,3 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
     return isAsc ? review.createdAt.asc() : review.createdAt.desc();
   }
 }
-

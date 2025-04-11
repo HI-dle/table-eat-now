@@ -5,6 +5,7 @@ import static table.eat.now.common.resolver.dto.UserRole.MASTER;
 import static table.eat.now.common.resolver.dto.UserRole.OWNER;
 import static table.eat.now.common.resolver.dto.UserRole.STAFF;
 import static table.eat.now.review.application.exception.ReviewErrorCode.MODIFY_PERMISSION_DENIED;
+import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_ALREADY_EXISTS;
 import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_IS_INVISIBLE;
 import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_NOT_FOUND;
 import static table.eat.now.review.application.exception.ReviewErrorCode.SERVICE_USER_MISMATCH;
@@ -23,7 +24,6 @@ import table.eat.now.review.application.service.dto.request.SearchAdminReviewQue
 import table.eat.now.review.application.service.dto.request.SearchReviewQuery;
 import table.eat.now.review.application.service.dto.request.UpdateReviewCommand;
 import table.eat.now.review.application.service.dto.response.CreateReviewInfo;
-import table.eat.now.review.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.review.application.service.dto.response.GetRestaurantStaffInfo;
 import table.eat.now.review.application.service.dto.response.GetReviewInfo;
 import table.eat.now.review.application.service.dto.response.GetServiceInfo;
@@ -31,6 +31,7 @@ import table.eat.now.review.application.service.dto.response.PaginatedInfo;
 import table.eat.now.review.application.service.dto.response.SearchAdminReviewInfo;
 import table.eat.now.review.application.service.dto.response.SearchReviewInfo;
 import table.eat.now.review.domain.entity.Review;
+import table.eat.now.review.domain.entity.ReviewReference;
 import table.eat.now.review.domain.entity.ServiceType;
 import table.eat.now.review.domain.repository.ReviewRepository;
 
@@ -45,15 +46,23 @@ public class ReviewServiceImpl implements ReviewService {
 
   @Override
   public CreateReviewInfo createReview(CreateReviewCommand command) {
-    validateUser(command);
+    validateReference(command.toReviewReference());
     return CreateReviewInfo.from(reviewRepository.save(command.toEntity()));
   }
 
-  private void validateUser(CreateReviewCommand command) {
-    GetServiceInfo serviceInfo = getServiceInfo(ServiceType.from(
-        command.serviceType()), command.serviceId(), command.customerId());
+  private void validateReference(ReviewReference reference) {
+    validateServiceUser(reference);
+    if (reviewRepository.existsByReferenceAndDeletedAtIsNull(reference)) {
+      throw CustomException.from(REVIEW_ALREADY_EXISTS);
+    }
+  }
 
-    if (!serviceInfo.customerId().equals(command.customerId())) {
+  private void validateServiceUser(ReviewReference reference) {
+    GetServiceInfo serviceInfo = getServiceInfo(
+        reference.getServiceType(), reference.getServiceId(), reference.getCustomerId()
+    );
+
+    if (!serviceInfo.customerId().equals(reference.getCustomerId())) {
       throw CustomException.from(SERVICE_USER_MISMATCH);
     }
   }
@@ -80,16 +89,17 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   private void validateAccess(Review review, Long userId, UserRole role) {
-    if (!review.isAccessible(userId, role.name()) && !isRestaurantStaff(review, userId, role)) {
+    if (!review.isAccessible(userId, role.name())
+        && !isRestaurantStaff(review.getRestaurantId(), userId, role)) {
       throw CustomException.from(REVIEW_IS_INVISIBLE);
     }
   }
 
-  private boolean isRestaurantStaff(Review review, Long currentUserId, UserRole role) {
+  private boolean isRestaurantStaff(String restaurantId, Long currentUserId, UserRole role) {
     if (role != STAFF && role != OWNER) {
       return false;
     }
-    GetRestaurantStaffInfo staffInfo = getStaffInfo(review.getReference().getRestaurantId());
+    GetRestaurantStaffInfo staffInfo = getStaffInfo(restaurantId);
     return staffInfo.staffId().equals(currentUserId) || staffInfo.ownerId().equals(currentUserId);
   }
 
@@ -106,7 +116,7 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   private void validateModify(CurrentUserInfoDto userInfo, Review review) {
-    if (!isCustomer(userInfo) && !isAdmin(userInfo, review)) {
+    if (!isCustomer(userInfo) && !isAdmin(userInfo, review.getRestaurantId())) {
       throw CustomException.from(MODIFY_PERMISSION_DENIED);
     }
   }
@@ -115,8 +125,8 @@ public class ReviewServiceImpl implements ReviewService {
     return userInfo.role().equals(CUSTOMER);
   }
 
-  private boolean isAdmin(CurrentUserInfoDto userInfo, Review review) {
-    return isRestaurantStaff(review, userInfo.userId(), userInfo.role())
+  private boolean isAdmin(CurrentUserInfoDto userInfo, String restaurantId) {
+    return isRestaurantStaff(restaurantId, userInfo.userId(), userInfo.role())
         || userInfo.role().equals(MASTER);
   }
 
@@ -146,22 +156,28 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public PaginatedInfo<SearchAdminReviewInfo> searchAdminReviews(
       SearchAdminReviewQuery query, CurrentUserInfoDto userInfo) {
-    String accessibleRestaurantId = null;
-    if (userInfo.role() == OWNER || userInfo.role() == STAFF) {
-      accessibleRestaurantId = getRestaurantId(userInfo.userId());
-    }
+
+    String accessibleRestaurantId =
+        isStaff(userInfo.role()) ? getRestaurantId(userInfo.userId()) : null;
+
     return PaginatedInfo.fromAdminResult(
-        reviewRepository.searchAdminReviews(query.toCriteria(accessibleRestaurantId)));
+        reviewRepository.searchAdminReviews(
+            query.toCriteria(accessibleRestaurantId, isMaster(userInfo.role()))));
+  }
+
+  private boolean isStaff(UserRole role) {
+    return role == OWNER || role == STAFF;
   }
 
   private String getRestaurantId(Long staffId) {
-    return getRestaurantInfo(staffId).restaurantId();
+    return restaurantClient.getRestaurantInfo(staffId).restaurantId();
   }
 
-  private GetRestaurantInfo getRestaurantInfo(Long staffId) {
-    return restaurantClient.getRestaurantInfo(staffId);
+  private boolean isMaster(UserRole role) {
+    return role == MASTER;
   }
 
   @Override
