@@ -10,18 +10,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 public class PaymentViewController {
 
-	@GetMapping("/checkout")
-	public String getPage(@RequestParam UUID idempotencyKey) {
-		return "checkout";
-	}
+  @GetMapping("/checkout")
+  public String getPage(@RequestParam UUID idempotencyKey) {
+    return "checkout";
+  }
 
-	@GetMapping("/success")
-	public String getSuccessPage() {
-		return "success";
-	}
+  @GetMapping("/success")
+  public String getSuccessPage() {
+    return "success";
+  }
 
-	@GetMapping("/fail")
-	public String getFailPage() {
-		return "fail";
-	}
+  @GetMapping("/fail")
+  public String getFailPage() {
+    return "fail";
+  }
 }

@@ -7,8 +7,8 @@ import table.eat.now.review.application.service.dto.response.GetRestaurantStaffI
 @Component
 public class DummyRestaurantClientImpl implements RestaurantClient {
 
-	@Override
-	public GetRestaurantStaffInfo getRestaurantStaffInfo(String restaurantId) {
-		return new GetRestaurantStaffInfo(1L, 2L);
-	}
+  @Override
+  public GetRestaurantStaffInfo getRestaurantStaffInfo(String restaurantId) {
+    return new GetRestaurantStaffInfo(1L, 2L);
+  }
 }

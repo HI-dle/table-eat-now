@@ -15,41 +15,41 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(PaymentViewController.class)
 class PaymentViewControllerTest {
 
-	@Autowired
-	private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-	@Test
-	void 체크아웃_페이지_요청_시_checkout_뷰를_반환한다() throws Exception {
-		// given
-		UUID idempotencyKey = UUID.randomUUID();
+  @Test
+  void 체크아웃_페이지_요청_시_checkout_뷰를_반환한다() throws Exception {
+    // given
+    UUID idempotencyKey = UUID.randomUUID();
 
-		// when & then
-		mockMvc.perform(get("/checkout")
-						.param("idempotencyKey", idempotencyKey.toString()))
-				.andExpect(status().isOk())
-				.andExpect(view().name("checkout"));
-	}
+    // when & then
+    mockMvc.perform(get("/checkout")
+            .param("idempotencyKey", idempotencyKey.toString()))
+        .andExpect(status().isOk())
+        .andExpect(view().name("checkout"));
+  }
 
-	@Test
-	void 성공_페이지_요청_시_success_뷰를_반환한다() throws Exception {
-		// when & then
-		mockMvc.perform(get("/success"))
-				.andExpect(status().isOk())
-				.andExpect(view().name("success"));
-	}
+  @Test
+  void 성공_페이지_요청_시_success_뷰를_반환한다() throws Exception {
+    // when & then
+    mockMvc.perform(get("/success"))
+        .andExpect(status().isOk())
+        .andExpect(view().name("success"));
+  }
 
-	@Test
-	void 실패_페이지_요청_시_fail_뷰를_반환한다() throws Exception {
-		// when & then
-		mockMvc.perform(get("/fail"))
-				.andExpect(status().isOk())
-				.andExpect(view().name("fail"));
-	}
+  @Test
+  void 실패_페이지_요청_시_fail_뷰를_반환한다() throws Exception {
+    // when & then
+    mockMvc.perform(get("/fail"))
+        .andExpect(status().isOk())
+        .andExpect(view().name("fail"));
+  }
 
-	@Test
-	void idempotencyKey_파라미터_누락시_Bad_Request를_반환한다() throws Exception {
-		// when & then
-		mockMvc.perform(get("/checkout"))
-				.andExpect(status().isBadRequest());
-	}
+  @Test
+  void idempotencyKey_파라미터_누락시_Bad_Request를_반환한다() throws Exception {
+    // when & then
+    mockMvc.perform(get("/checkout"))
+        .andExpect(status().isBadRequest());
+  }
 }

@@ -16,18 +16,19 @@ import table.eat.now.payment.payment.presentation.dto.response.GetCheckoutDetail
 @RequiredArgsConstructor
 public class PaymentController {
 
-	@GetMapping("/{idempotencyKey}/checkout-info")
-	public ResponseEntity<GetCheckoutDetailResponse> getCheckoutDetail(@PathVariable UUID idempotencyKey) {
-		GetCheckoutDetailResponse response = new GetCheckoutDetailResponse(
-				idempotencyKey,
-				1L,
-				BigDecimal.valueOf(3000),
-				"테스트 결제입니다.");
-		return ResponseEntity.ok(response);
-	}
+  @GetMapping("/{idempotencyKey}/checkout-info")
+  public ResponseEntity<GetCheckoutDetailResponse> getCheckoutDetail(
+      @PathVariable UUID idempotencyKey) {
+    GetCheckoutDetailResponse response = new GetCheckoutDetailResponse(
+        idempotencyKey,
+        1L,
+        BigDecimal.valueOf(3000),
+        "테스트 결제입니다.");
+    return ResponseEntity.ok(response);
+  }
 
-	@PatchMapping("/{idempotencyKey}/confirm")
-	public ResponseEntity<Void> confirmPayment(@PathVariable UUID idempotencyKey){
-		return ResponseEntity.ok().build();
-	}
+  @PatchMapping("/{idempotencyKey}/confirm")
+  public ResponseEntity<Void> confirmPayment(@PathVariable UUID idempotencyKey) {
+    return ResponseEntity.ok().build();
+  }
 }

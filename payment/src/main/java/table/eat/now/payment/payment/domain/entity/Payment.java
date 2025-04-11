@@ -19,36 +19,36 @@ import table.eat.now.common.domain.BaseEntity;
 @Table(name = "p_payment")
 public class Payment extends BaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-	@Embedded
-	private PaymentReference reference;
+  @Embedded
+  private PaymentReference reference;
 
-	@Embedded
-	private PaymentIdentifier identifier;
+  @Embedded
+  private PaymentIdentifier identifier;
 
-	@Column(nullable = false)
-	@Enumerated(EnumType.STRING)
-	private PaymentStatus paymentStatus;
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private PaymentStatus paymentStatus;
 
-	@Column(unique = true)
-	private String paymentKey;
+  @Column(unique = true)
+  private String paymentKey;
 
-	@Column(nullable = false, precision = 8)
-	private BigDecimal originalAmount;
+  @Column(nullable = false, precision = 8)
+  private BigDecimal originalAmount;
 
-	@Column(precision = 8)
-	private BigDecimal discountAmount;
+  @Column(precision = 8)
+  private BigDecimal discountAmount;
 
-	@Column(precision = 8)
-	private BigDecimal totalAmount;
+  @Column(precision = 8)
+  private BigDecimal totalAmount;
 
-	private LocalDateTime requestedAt;
+  private LocalDateTime requestedAt;
 
-	private LocalDateTime approvedAt;
+  private LocalDateTime approvedAt;
 
-	protected Payment() {
-	}
+  protected Payment() {
+  }
 }

@@ -5,6 +5,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
-	public void doNothing() {
-	}
+  public void doNothing() {
+  }
 }

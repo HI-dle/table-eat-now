@@ -32,68 +32,68 @@ import table.eat.now.review.presentation.dto.response.SearchReviewResponse;
 @RequiredArgsConstructor
 public class ReviewController {
 
-	private final ReviewService reviewService;
+  private final ReviewService reviewService;
 
-	@PostMapping
-	public ResponseEntity<CreateReviewResponse> createReview(
-			@RequestBody @Valid CreateReviewRequest request,
-			@CurrentUserInfo CurrentUserInfoDto userInfo) {
+  @PostMapping
+  public ResponseEntity<CreateReviewResponse> createReview(
+      @RequestBody @Valid CreateReviewRequest request,
+      @CurrentUserInfo CurrentUserInfoDto userInfo) {
 
-		return ResponseEntity.status(HttpStatus.CREATED).body(
-				CreateReviewResponse.from(reviewService.createReview(request.toCommand(userInfo))));
-	}
+    return ResponseEntity.status(HttpStatus.CREATED).body(
+        CreateReviewResponse.from(reviewService.createReview(request.toCommand(userInfo))));
+  }
 
-	@GetMapping("/{reviewId}")
-	public ResponseEntity<GetReviewResponse> getReview(
-			@PathVariable UUID reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
+  @GetMapping("/{reviewId}")
+  public ResponseEntity<GetReviewResponse> getReview(
+      @PathVariable UUID reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
 
-		return ResponseEntity.status(HttpStatus.OK).body(
-				GetReviewResponse.from(reviewService.getReview(reviewId.toString(), userInfo)));
-	}
+    return ResponseEntity.status(HttpStatus.OK).body(
+        GetReviewResponse.from(reviewService.getReview(reviewId.toString(), userInfo)));
+  }
 
-	@PatchMapping("/{reviewId}/hide")
-	public ResponseEntity<GetReviewResponse> hideReview(
-			@PathVariable UUID reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
+  @PatchMapping("/{reviewId}/hide")
+  public ResponseEntity<GetReviewResponse> hideReview(
+      @PathVariable UUID reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
 
-		return ResponseEntity.status(HttpStatus.OK).body(
-				GetReviewResponse.from(reviewService.hideReview(reviewId.toString(), userInfo)));
-	}
+    return ResponseEntity.status(HttpStatus.OK).body(
+        GetReviewResponse.from(reviewService.hideReview(reviewId.toString(), userInfo)));
+  }
 
-	@PatchMapping("/{reviewId}/show")
-	public ResponseEntity<GetReviewResponse> showReview(
-			@PathVariable UUID reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
+  @PatchMapping("/{reviewId}/show")
+  public ResponseEntity<GetReviewResponse> showReview(
+      @PathVariable UUID reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
 
-		return ResponseEntity.status(HttpStatus.OK).body(
-				GetReviewResponse.from(reviewService.showReview(reviewId.toString(), userInfo)));
-	}
+    return ResponseEntity.status(HttpStatus.OK).body(
+        GetReviewResponse.from(reviewService.showReview(reviewId.toString(), userInfo)));
+  }
 
-	@PatchMapping("/{reviewId}")
-	public ResponseEntity<GetReviewResponse> updateReview(
-			@PathVariable UUID reviewId,
-			@RequestBody @Valid UpdateReviewRequest request,
-			@CurrentUserInfo CurrentUserInfoDto userInfo) {
+  @PatchMapping("/{reviewId}")
+  public ResponseEntity<GetReviewResponse> updateReview(
+      @PathVariable UUID reviewId,
+      @RequestBody @Valid UpdateReviewRequest request,
+      @CurrentUserInfo CurrentUserInfoDto userInfo) {
 
-		return ResponseEntity.status(HttpStatus.OK).body(
-				GetReviewResponse.from(
-						reviewService.updateReview(reviewId.toString(), request.toCommand(userInfo))));
-	}
+    return ResponseEntity.status(HttpStatus.OK).body(
+        GetReviewResponse.from(
+            reviewService.updateReview(reviewId.toString(), request.toCommand(userInfo))));
+  }
 
-	@GetMapping
-	public ResponseEntity<PaginatedResponse<SearchReviewResponse>> getReviews(
-			@CurrentUserInfo CurrentUserInfoDto userInfo,
-			@Valid SearchReviewRequest request, Pageable pageable) {
+  @GetMapping
+  public ResponseEntity<PaginatedResponse<SearchReviewResponse>> getReviews(
+      @CurrentUserInfo CurrentUserInfoDto userInfo,
+      @Valid SearchReviewRequest request, Pageable pageable) {
 
-		return ResponseEntity.status(HttpStatus.OK).body(
-				PaginatedResponse.from(
-						reviewService.getReviews(request.toQuery(pageable), userInfo)));
-	}
+    return ResponseEntity.status(HttpStatus.OK).body(
+        PaginatedResponse.from(
+            reviewService.getReviews(request.toQuery(pageable), userInfo)));
+  }
 
-	@DeleteMapping("/{reviewId}")
-	@AuthCheck(roles = {UserRole.MASTER, UserRole.CUSTOMER})
-	public ResponseEntity<Void> deleteReview(
-			@PathVariable UUID reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
+  @DeleteMapping("/{reviewId}")
+  @AuthCheck(roles = {UserRole.MASTER, UserRole.CUSTOMER})
+  public ResponseEntity<Void> deleteReview(
+      @PathVariable UUID reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
 
-		reviewService.deleteReview(reviewId.toString(), userInfo);
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-	}
+    reviewService.deleteReview(reviewId.toString(), userInfo);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
 }

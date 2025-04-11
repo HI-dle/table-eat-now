@@ -11,17 +11,17 @@ import table.eat.now.review.application.service.dto.response.SearchReviewInfo;
 
 public interface ReviewService {
 
-	CreateReviewInfo createReview(CreateReviewCommand command);
+  CreateReviewInfo createReview(CreateReviewCommand command);
 
-	GetReviewInfo getReview(String reviewId, CurrentUserInfoDto userInfo);
+  GetReviewInfo getReview(String reviewId, CurrentUserInfoDto userInfo);
 
-	GetReviewInfo hideReview(String reviewId, CurrentUserInfoDto userInfo);
+  GetReviewInfo hideReview(String reviewId, CurrentUserInfoDto userInfo);
 
-	GetReviewInfo showReview(String reviewId, CurrentUserInfoDto userInfo);
+  GetReviewInfo showReview(String reviewId, CurrentUserInfoDto userInfo);
 
-	GetReviewInfo updateReview(String reviewId, UpdateReviewCommand command);
+  GetReviewInfo updateReview(String reviewId, UpdateReviewCommand command);
 
-	PaginatedInfo<SearchReviewInfo> getReviews(SearchReviewQuery query, CurrentUserInfoDto userInfo);
+  PaginatedInfo<SearchReviewInfo> getReviews(SearchReviewQuery query, CurrentUserInfoDto userInfo);
 
-	void deleteReview(String reviewId, CurrentUserInfoDto userInfo);
+  void deleteReview(String reviewId, CurrentUserInfoDto userInfo);
 }
