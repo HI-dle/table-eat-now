@@ -8,7 +8,6 @@ import java.time.LocalDate;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import table.eat.now.review.application.service.dto.request.SearchAdminReviewQuery;
-import table.eat.now.review.application.service.dto.request.SearchReviewQuery;
 
 public record SearchAdminReviewRequest(
     @Pattern(regexp = "^(WAITING|RESERVATION)$") String serviceType,

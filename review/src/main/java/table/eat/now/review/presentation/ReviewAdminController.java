@@ -36,6 +36,5 @@ public class ReviewAdminController {
     return ResponseEntity.status(HttpStatus.OK).body(
         PaginatedResponse.fromAdminInfo(
             reviewService.searchAdminReviews(request.toQuery(pageable), userInfo)));
-
   }
 }

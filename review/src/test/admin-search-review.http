@@ -62,7 +62,7 @@ X-User-Role: CUSTOMER
 
 ### 시나리오 1: 마스터의 검색테스트
 # 결과: 모든 공개, 비공개 리뷰를 조회할 수 있어야 한다
-GET localhost:8087/admin/v1/reviews?restaurantId=123e4567-e89b-12d3-a456-426614174000
+GET localhost:8087/admin/v1/reviews?restaurantId=123e4567-e89b-12d3-a456-426614174000&size=30
 X-User-Id: 1
 X-User-Role: MASTER
 
@@ -74,13 +74,13 @@ X-User-Role: MASTER
 
 ### 시나리오 3: 마스터의 검색테스트 (바공개리뷰)
 # 결과: 모든 비공개리뷰를 조회할 수 있어야 한다
-GET localhost:8087/admin/v1/reviews?isVisible=true
+GET localhost:8087/admin/v1/reviews?isVisible=false
 X-User-Id: 1
 X-User-Role: MASTER
 
 
 ### 시나리오 4: 식당 직원의 검색테스트
 # 결과: 모든 공개, 비공개 리뷰를 조회할 수 있어야 한다
-GET localhost:8087/admin/v1/reviews?isVisible=false
+GET localhost:8087/admin/v1/reviews?isVisible=true
 X-User-Id: 1
 X-User-Role: STAFF

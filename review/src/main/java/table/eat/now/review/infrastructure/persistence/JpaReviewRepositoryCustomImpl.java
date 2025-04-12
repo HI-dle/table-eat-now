@@ -163,7 +163,7 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
     }
 
     if(targetUserId != null) {
-      return optionalVisibility == null ? null :
+      return optionalVisibility == null ? isVisible :
           optionalVisibility ? isVisible : Expressions.FALSE;
     }
 

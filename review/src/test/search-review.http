@@ -130,7 +130,7 @@ X-User-Role: CUSTOMER
 
 ### 시나리오 13: 가시성 테스트 (다른 유저에 대한 조회에 가시성필터 적용되는지)
 # 결과 : 아무것도 보이지 않아야 함
-GET localhost:8087/api/v1/reviews?userId=1&isVisible=false
+GET localhost:8087/api/v1/reviews?userId=2&isVisible=false
 X-User-Id: 1
 X-User-Role: CUSTOMER
 
