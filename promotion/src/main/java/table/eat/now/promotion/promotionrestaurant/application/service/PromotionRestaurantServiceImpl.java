@@ -12,6 +12,7 @@ import table.eat.now.promotion.promotionrestaurant.application.dto.request.Creat
 import table.eat.now.promotion.promotionrestaurant.application.dto.request.SearchPromotionRestaurantCommand;
 import table.eat.now.promotion.promotionrestaurant.application.dto.request.UpdatePromotionRestaurantCommand;
 import table.eat.now.promotion.promotionrestaurant.application.dto.response.CreatePromotionRestaurantInfo;
+import table.eat.now.promotion.promotionrestaurant.application.dto.response.GetPromotionRestaurantInfo;
 import table.eat.now.promotion.promotionrestaurant.application.dto.response.SearchPromotionRestaurantInfo;
 import table.eat.now.promotion.promotionrestaurant.application.dto.response.UpdatePromotionRestaurantInfo;
 import table.eat.now.promotion.promotionrestaurant.domain.entity.PromotionRestaurant;
@@ -58,10 +59,17 @@ public class PromotionRestaurantServiceImpl implements PromotionRestaurantServic
   @Override
   @Transactional
   public void deletePromotionRestaurant(String restaurantUuid, CurrentUserInfoDto userInfoDto) {
+    //TODO: FeignClient로 promotion에 프로모션이 진행중인지 검사해야함.
     PromotionRestaurant promotionRestaurant =
         findByPromotionRestaurantFromRestaurantId(restaurantUuid);
     promotionRestaurant.delete(userInfoDto.userId());
     log.info("삭제가 완료 되었습니다. 삭제한 userId: {}", promotionRestaurant);
+  }
+
+  @Override
+  public GetPromotionRestaurantInfo findRestaurantsByPromotions(String restaurantUuid) {
+    return GetPromotionRestaurantInfo.from(
+        findByPromotionRestaurantFromRestaurantId(restaurantUuid));
   }
 
   private PromotionRestaurant findByPromotionRestaurant(String promotionRestaurantUuid) {

@@ -1,17 +1,22 @@
 package table.eat.now.promotion.promotion.application.service;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.promotion.promotion.application.client.PromotionClient;
 import table.eat.now.promotion.promotion.application.dto.PaginatedResultCommand;
+import table.eat.now.promotion.promotion.application.dto.client.response.GetPromotionRestaurantInfo;
 import table.eat.now.promotion.promotion.application.dto.request.CreatePromotionCommand;
+import table.eat.now.promotion.promotion.application.dto.request.GetPromotionsFeignCommand;
 import table.eat.now.promotion.promotion.application.dto.request.SearchPromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.GetPromotionInfo;
+import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsFeignInfo;
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
@@ -30,6 +35,7 @@ import table.eat.now.promotion.promotion.domain.entity.repository.PromotionRepos
 public class PromotionServiceImpl implements PromotionService{
 
   private final PromotionRepository promotionRepository;
+  private final PromotionClient promotionClient;
 
   @Override
   @Transactional
@@ -71,8 +77,30 @@ public class PromotionServiceImpl implements PromotionService{
   @Transactional
   public void deletePromotion(String promotionUuid, CurrentUserInfoDto userInfoDto) {
     Promotion promotion = findByPromotion(promotionUuid);
+
+    deleteCheckPromotionStatus(promotion.getPromotionStatus());
+
     promotion.delete(userInfoDto.userId());
     log.info("삭제가 완료 되었습니다. 삭제한 userId: {}", promotion);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public GetPromotionsFeignInfo reservationGetPromotions(GetPromotionsFeignCommand command) {
+
+    GetPromotionRestaurantInfo promotionRestaurantRes =
+        promotionClient.findRestaurantsByPromotions(command.restaurantUuid());
+
+    List<Promotion> promotions = promotionRepository.
+        findAllByPromotionUuidInAndDeletedByIsNull(command.promotionUuids());
+
+    return GetPromotionsFeignInfo.from(promotionRestaurantRes, promotions);
+  }
+
+  private void deleteCheckPromotionStatus(PromotionStatus status) {
+    if (status == PromotionStatus.RUNNING) {
+      throw CustomException.from(PromotionErrorCode.CANNOT_DELETE_RUNNING_PROMOTION);
+    }
   }
 
   private Promotion findByPromotion(String promotionUuid) {

@@ -1,6 +1,7 @@
 package table.eat.now.promotion.promotion.presentation;
 
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -59,10 +60,10 @@ public class PromotionAdminController {
   @DeleteMapping("/{promotionUuid}")
   @AuthCheck(roles = UserRole.MASTER)
   public ResponseEntity<Void> deletePromotion(
-      @PathVariable("promotionUuid") String promotionUuid,
+      @PathVariable("promotionUuid") UUID promotionUuid,
       @CurrentUserInfo CurrentUserInfoDto userInfoDto
   ) {
-    promotionService.deletePromotion(promotionUuid, userInfoDto);
+    promotionService.deletePromotion(promotionUuid.toString(), userInfoDto);
     return ResponseEntity.noContent().build();
   }
 

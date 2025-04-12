@@ -6,6 +6,7 @@ import table.eat.now.promotion.promotionrestaurant.application.dto.request.Creat
 import table.eat.now.promotion.promotionrestaurant.application.dto.request.SearchPromotionRestaurantCommand;
 import table.eat.now.promotion.promotionrestaurant.application.dto.request.UpdatePromotionRestaurantCommand;
 import table.eat.now.promotion.promotionrestaurant.application.dto.response.CreatePromotionRestaurantInfo;
+import table.eat.now.promotion.promotionrestaurant.application.dto.response.GetPromotionRestaurantInfo;
 import table.eat.now.promotion.promotionrestaurant.application.dto.response.SearchPromotionRestaurantInfo;
 import table.eat.now.promotion.promotionrestaurant.application.dto.response.UpdatePromotionRestaurantInfo;
 
@@ -24,4 +25,6 @@ public interface PromotionRestaurantService {
       SearchPromotionRestaurantCommand info);
 
   void deletePromotionRestaurant(String restaurantUuid, CurrentUserInfoDto userInfoDto);
+
+  GetPromotionRestaurantInfo findRestaurantsByPromotions(String restaurantUuid);
 }

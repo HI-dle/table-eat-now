@@ -53,6 +53,7 @@ public class PromotionUserServiceImpl implements PromotionUserService{
   @Override
   @Transactional
   public void deletePromotionUser(Long userId, CurrentUserInfoDto userInfoDto) {
+    //TODO: FeignClient로 promotion에 프로모션이 진행중인지 검사해야함.
     PromotionUser promotionUser = findByPromotionUserFromUserId(userId);
     promotionUser.delete(userInfoDto.userId());
     log.info("삭제가 완료 되었습니다. 삭제한 userId: {}", promotionUser);

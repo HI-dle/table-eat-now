@@ -3,6 +3,7 @@ package table.eat.now.promotion.promotion.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -301,6 +302,31 @@ class PromotionServiceImplTest {
 
     verify(promotionRepository).findByPromotionUuidAndDeletedByIsNull(promotionUuid);
   }
+  @DisplayName("진행 중인 프로모션은 삭제할 수 없다.")
+  @Test
+  void delete_promotion_running_status_exception() {
+    // given
+    String promotionUuid = UUID.randomUUID().toString();
+    CurrentUserInfoDto currentUserInfo = new CurrentUserInfoDto(1L, UserRole.MASTER);
+
+    Promotion promotion = Mockito.mock(Promotion.class);
+
+    when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))
+        .thenReturn(Optional.of(promotion));
+    // 진행 중인 상태
+    when(promotion.getPromotionStatus()).thenReturn(PromotionStatus.RUNNING);
+
+    // when & then
+    assertThatThrownBy(() ->
+        promotionService.deletePromotion(promotionUuid, currentUserInfo)
+    ).isInstanceOf(CustomException.class)
+        .hasMessage(PromotionErrorCode.CANNOT_DELETE_RUNNING_PROMOTION.getMessage());
+
+    verify(promotionRepository).findByPromotionUuidAndDeletedByIsNull(promotionUuid);
+    verify(promotion).getPromotionStatus();
+    verify(promotion, never()).delete(any());
+  }
+
 
 
 }

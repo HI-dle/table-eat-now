@@ -1,6 +1,7 @@
 package table.eat.now.promotion.promotion.presentation;
 
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,10 +30,10 @@ public class PromotionController {
   @GetMapping("/{promotionUuid}")
   @AuthCheck
   public ResponseEntity<GetPromotionResponse> findPromotion(
-      @PathVariable("promotionUuid") String promotionUuid
+      @PathVariable("promotionUuid") UUID promotionUuid
   ) {
     return ResponseEntity.ok(
-        GetPromotionResponse.from(promotionService.findPromotion(promotionUuid)));
+        GetPromotionResponse.from(promotionService.findPromotion(promotionUuid.toString())));
   }
 
   @GetMapping

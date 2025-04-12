@@ -15,6 +15,8 @@ public enum PromotionErrorCode implements ErrorCode {
 
   INVALID_PROMOTION_UUID(
       "존재하지 않는 프로모션 입니다.", HttpStatus.NOT_FOUND),
+  CANNOT_DELETE_RUNNING_PROMOTION(
+      "진행중인 프로모션은 삭제할 수 없습니다.", HttpStatus.BAD_REQUEST),
   ;
 
   private final String message;
