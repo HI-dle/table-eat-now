@@ -66,8 +66,8 @@ class PromotionRestaurantAdminControllerTest {
   void promotion_restaurant_create_test() throws Exception {
       // given
     CreatePromotionRestaurantRequest request = new CreatePromotionRestaurantRequest(
-        UUID.randomUUID().toString(),
-        UUID.randomUUID().toString()
+        UUID.randomUUID(),
+        UUID.randomUUID()
     );
 
     PromotionRestaurant entity = request.toApplication().toEntity();
@@ -92,22 +92,22 @@ class PromotionRestaurantAdminControllerTest {
   @Test
   void update_promotion_restaurant_controller_test() throws Exception {
     // given
-    String promotionRestaurantUuid = UUID.randomUUID().toString();
+    UUID promotionRestaurantUuid = UUID.randomUUID();
 
     UpdatePromotionRestaurantRequest request = new UpdatePromotionRestaurantRequest(
-        "promotion-uuid",
-        "restaurant-uuid"
+        UUID.randomUUID(),
+        UUID.randomUUID()
     );
 
     UpdatePromotionRestaurantInfo info = new UpdatePromotionRestaurantInfo(
-        promotionRestaurantUuid,
-        request.promotionUuid(),
-        request.restaurantUuid()
+        promotionRestaurantUuid.toString(),
+        request.promotionUuid().toString(),
+        request.restaurantUuid().toString()
     );
 
     given(promotionRestaurantService.updatePromotionRestaurant(
         any(UpdatePromotionRestaurantCommand.class),
-        eq(promotionRestaurantUuid)))
+        eq(promotionRestaurantUuid.toString())))
         .willReturn(info);
 
     // when
@@ -123,9 +123,9 @@ class PromotionRestaurantAdminControllerTest {
     // then
     resultActions
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.promotionRestaurantUuid").value(promotionRestaurantUuid))
-        .andExpect(jsonPath("$.promotionUuid").value("promotion-uuid"))
-        .andExpect(jsonPath("$.restaurantUuid").value("restaurant-uuid"))
+        .andExpect(jsonPath("$.promotionRestaurantUuid").value(promotionRestaurantUuid.toString()))
+        .andExpect(jsonPath("$.promotionUuid").value(request.promotionUuid().toString()))
+        .andExpect(jsonPath("$.restaurantUuid").value(request.restaurantUuid().toString()))
         .andDo(print());
   }
 
@@ -133,9 +133,11 @@ class PromotionRestaurantAdminControllerTest {
   @Test
   void search_promotion_restaurant_controller_test() throws Exception {
     // given
+    UUID promotionUuid = UUID.randomUUID();
+    UUID restaurantUuid = UUID.randomUUID();
     SearchPromotionRestaurantRequest request = new SearchPromotionRestaurantRequest(
-        "promotion-uuid",
-        "restaurant-uuid",
+        promotionUuid,
+        restaurantUuid,
         true,
         "createdAt",
         0,
@@ -144,9 +146,9 @@ class PromotionRestaurantAdminControllerTest {
 
     List<SearchPromotionRestaurantInfo> content = List.of(
         new SearchPromotionRestaurantInfo(
-            "pr-uuid-1", "promotion-uuid", "restaurant-uuid"),
+            UUID.randomUUID().toString(), promotionUuid.toString(), restaurantUuid.toString()),
         new SearchPromotionRestaurantInfo(
-            "pr-uuid-2", "promotion-uuid", "restaurant-uuid")
+            UUID.randomUUID().toString(), promotionUuid.toString(), restaurantUuid.toString())
     );
 
     PaginatedResultCommand<SearchPromotionRestaurantInfo> command =
@@ -156,11 +158,16 @@ class PromotionRestaurantAdminControllerTest {
         any(SearchPromotionRestaurantCommand.class)))
         .willReturn(command);
 
+    // Extracting values from content
+    String prUuid1 = content.get(0).promotionRestaurantUuid();
+    String promotionUuid1 = content.get(0).promotionUuid();
+    String restaurantUuid1 = content.get(0).restaurantUuid();
+
     // when
     ResultActions resultActions = mockMvc.perform(
         get("/admin/v1/promotion-restaurants")
-            .param("promotionUuid", "promotion-uuid")
-            .param("restaurantUuid", "restaurant-uuid")
+            .param("promotionUuid", promotionUuid.toString())
+            .param("restaurantUuid", restaurantUuid.toString())
             .param("isAsc", "true")
             .param("sortBy", "createdAt")
             .param("page", "0")
@@ -174,15 +181,16 @@ class PromotionRestaurantAdminControllerTest {
     resultActions
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content[0].promotionRestaurantUuid").value("pr-uuid-1"))
-        .andExpect(jsonPath("$.content[0].promotionUuid").value("promotion-uuid"))
-        .andExpect(jsonPath("$.content[0].restaurantUuid").value("restaurant-uuid"))
+        .andExpect(jsonPath("$.content[0].promotionRestaurantUuid").value(prUuid1))
+        .andExpect(jsonPath("$.content[0].promotionUuid").value(promotionUuid1))
+        .andExpect(jsonPath("$.content[0].restaurantUuid").value(restaurantUuid1))
         .andExpect(jsonPath("$.page").value(0))
         .andExpect(jsonPath("$.size").value(10))
         .andExpect(jsonPath("$.totalElements").value(2))
         .andExpect(jsonPath("$.totalPages").value(1))
         .andDo(print());
   }
+
 
   @DisplayName("restaurantUuid로 참여된 프로모션-레스토랑을 삭제한다.")
   @Test

@@ -67,6 +67,7 @@ public class PromotionRestaurantServiceImpl implements PromotionRestaurantServic
   }
 
   @Override
+  @Transactional(readOnly = true)
   public GetPromotionRestaurantInfo findRestaurantsByPromotions(String restaurantUuid) {
     return GetPromotionRestaurantInfo.from(
         findByPromotionRestaurantFromRestaurantId(restaurantUuid));

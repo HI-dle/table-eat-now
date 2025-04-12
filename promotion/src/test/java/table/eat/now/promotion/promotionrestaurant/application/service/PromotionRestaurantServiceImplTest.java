@@ -26,6 +26,7 @@ import table.eat.now.promotion.promotionrestaurant.application.dto.request.Creat
 import table.eat.now.promotion.promotionrestaurant.application.dto.request.SearchPromotionRestaurantCommand;
 import table.eat.now.promotion.promotionrestaurant.application.dto.request.UpdatePromotionRestaurantCommand;
 import table.eat.now.promotion.promotionrestaurant.application.dto.response.CreatePromotionRestaurantInfo;
+import table.eat.now.promotion.promotionrestaurant.application.dto.response.GetPromotionRestaurantInfo;
 import table.eat.now.promotion.promotionrestaurant.application.dto.response.SearchPromotionRestaurantInfo;
 import table.eat.now.promotion.promotionrestaurant.application.dto.response.UpdatePromotionRestaurantInfo;
 import table.eat.now.promotion.promotionrestaurant.domain.entity.PromotionRestaurant;
@@ -222,6 +223,36 @@ class PromotionRestaurantServiceImplTest {
     verify(promotionRestaurantRepository)
         .findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid);
   }
+
+  @DisplayName("레스토랑 UUID로 프로모션-레스토랑 정보를 조회한다.")
+  @Test
+  void find_promotion_restaurant_service_test() {
+    String restaurantUuid = "restaurant-uuid-123";
+
+    PromotionRestaurant promotionRestaurant = PromotionRestaurant.of(
+        "promotion-uuid-123",
+        restaurantUuid
+    );
+    ReflectionTestUtils.setField(promotionRestaurant, "promotionRestaurantUuid", UUID.randomUUID().toString());
+
+    GetPromotionRestaurantInfo expectedResponse = GetPromotionRestaurantInfo.from(promotionRestaurant);
+
+
+    when(promotionRestaurantRepository.findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid))
+        .thenReturn(Optional.of(promotionRestaurant));
+
+    GetPromotionRestaurantInfo result = promotionRestaurantService.findRestaurantsByPromotions(restaurantUuid);
+
+    assertThat(result).isNotNull();
+    assertThat(result.promotionRestaurantUuid()).isEqualTo(expectedResponse.promotionRestaurantUuid());
+    assertThat(result.promotionUuid()).isEqualTo(expectedResponse.promotionUuid());
+    assertThat(result.restaurantUuid()).isEqualTo(expectedResponse.restaurantUuid());
+
+
+    verify(promotionRestaurantRepository).findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid);
+  }
+
+
 
 
 

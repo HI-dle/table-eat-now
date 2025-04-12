@@ -3,6 +3,7 @@ package table.eat.now.promotion.promotion.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,24 +12,28 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
+import table.eat.now.promotion.promotion.application.client.PromotionClient;
 import table.eat.now.promotion.promotion.application.dto.PaginatedResultCommand;
+import table.eat.now.promotion.promotion.application.dto.client.response.GetPromotionRestaurantInfo;
 import table.eat.now.promotion.promotion.application.dto.request.CreatePromotionCommand;
+import table.eat.now.promotion.promotion.application.dto.request.GetPromotionsFeignCommand;
 import table.eat.now.promotion.promotion.application.dto.request.SearchPromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.GetPromotionInfo;
+import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsFeignInfo;
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
@@ -51,13 +56,16 @@ class PromotionServiceImplTest {
   @Mock
   private PromotionRepository promotionRepository;
 
+  @Mock
+  private PromotionClient promotionClient;
+
   @InjectMocks
   private PromotionServiceImpl promotionService;
 
   @DisplayName("프로모션 서비스 단위 테스트")
   @Test
   void promotion_crate_service_test() {
-      // given
+    // given
     CreatePromotionCommand command = new CreatePromotionCommand(
         "봄맞이 할인 프로모션",
         "전 메뉴 3000원 할인",
@@ -81,10 +89,11 @@ class PromotionServiceImplTest {
 
     verify(promotionRepository).save(any(Promotion.class));
   }
+
   @DisplayName("promotionUuid로 프로모션 내용을 수정한다.")
   @Test
   void promotion_uuid_update_service_test() {
-      // given
+    // given
 
     String promotionUuid = UUID.randomUUID().toString();
 
@@ -107,7 +116,7 @@ class PromotionServiceImplTest {
         PromotionType.valueOf("COUPON")
     );
 
-    promotion.modifyPromotion( command.promotionName(),
+    promotion.modifyPromotion(command.promotionName(),
         command.description(),
         command.startTime(),
         command.endTime(),
@@ -128,6 +137,7 @@ class PromotionServiceImplTest {
 
     verify(promotionRepository).findByPromotionUuidAndDeletedByIsNull(promotionUuid);
   }
+
   @DisplayName("존재하지 않는 promotionUuid로 수정 시 예외가 발생한다.")
   @Test
   void promotion_uuid_update_fail_test() {
@@ -271,7 +281,7 @@ class PromotionServiceImplTest {
     Long deleterUserId = 1L;
     CurrentUserInfoDto currentUserInfo = new CurrentUserInfoDto(deleterUserId, UserRole.MASTER);
 
-    Promotion promotion = Mockito.mock(Promotion.class);
+    Promotion promotion = mock(Promotion.class);
 
     when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))
         .thenReturn(Optional.of(promotion));
@@ -302,6 +312,7 @@ class PromotionServiceImplTest {
 
     verify(promotionRepository).findByPromotionUuidAndDeletedByIsNull(promotionUuid);
   }
+
   @DisplayName("진행 중인 프로모션은 삭제할 수 없다.")
   @Test
   void delete_promotion_running_status_exception() {
@@ -309,7 +320,7 @@ class PromotionServiceImplTest {
     String promotionUuid = UUID.randomUUID().toString();
     CurrentUserInfoDto currentUserInfo = new CurrentUserInfoDto(1L, UserRole.MASTER);
 
-    Promotion promotion = Mockito.mock(Promotion.class);
+    Promotion promotion = mock(Promotion.class);
 
     when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))
         .thenReturn(Optional.of(promotion));
@@ -325,6 +336,60 @@ class PromotionServiceImplTest {
     verify(promotionRepository).findByPromotionUuidAndDeletedByIsNull(promotionUuid);
     verify(promotion).getPromotionStatus();
     verify(promotion, never()).delete(any());
+  }
+
+  @DisplayName("레스토랑 UUID와 프로모션 UUID 리스트로 프로모션 정보를 조회한다.")
+  @Test
+  void reservation_get_promotions_success() {
+    String restaurantUuid = "restaurant-uuid-123";
+    Set<String> promotionUuids = Set.of("promo-uuid-1", "promo-uuid-2");
+
+    GetPromotionsFeignCommand command = new GetPromotionsFeignCommand(promotionUuids,
+        restaurantUuid);
+
+    GetPromotionRestaurantInfo promotionRestaurantInfo1 = new GetPromotionRestaurantInfo(
+        "promo-uuid-1",
+        "promotion-restaurant-uuid-1",
+        restaurantUuid
+    );
+
+    when(promotionClient.findRestaurantsByPromotions(restaurantUuid))
+        .thenReturn(promotionRestaurantInfo1);
+
+    Promotion promo1 = Promotion.of(
+        "봄 프로모션",
+        "할인 설명입니다",
+        LocalDateTime.now(),
+        LocalDateTime.now().plusDays(10),
+        BigDecimal.valueOf(1000),
+        PromotionStatus.RUNNING,
+        PromotionType.RESTAURANT
+    );
+
+    Promotion promo2 = Promotion.of(
+        "여름 프로모션",
+        "여름 한정 할인",
+        LocalDateTime.now(),
+        LocalDateTime.now().plusDays(5),
+        BigDecimal.valueOf(2000),
+        PromotionStatus.RUNNING,
+        PromotionType.RESTAURANT
+    );
+
+    // UUID를 수동으로 지정해야 하면 여기서 직접 넣어줘도 됨
+    ReflectionTestUtils.setField(promo1, "promotionUuid", "promo-uuid-1");
+    ReflectionTestUtils.setField(promo2, "promotionUuid", "promo-uuid-2");
+
+    when(promotionRepository.findAllByPromotionUuidInAndDeletedByIsNull(promotionUuids))
+        .thenReturn(List.of(promo1, promo2));
+
+    GetPromotionsFeignInfo result = promotionService.reservationGetPromotions(command);
+
+    assertThat(result).isNotNull();
+    assertThat(result.reservationRequests()).hasSize(2);
+
+    verify(promotionClient).findRestaurantsByPromotions(restaurantUuid);
+    verify(promotionRepository).findAllByPromotionUuidInAndDeletedByIsNull(promotionUuids);
   }
 
 
