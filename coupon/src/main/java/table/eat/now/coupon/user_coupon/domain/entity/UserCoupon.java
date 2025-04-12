@@ -10,7 +10,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,8 +20,6 @@ import table.eat.now.coupon.user_coupon.domain.exception.UserCouponException;
 @Table(name="p_user_coupon")
 @Getter
 @Entity
-@Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserCoupon extends BaseEntity {
 
@@ -57,6 +54,17 @@ public class UserCoupon extends BaseEntity {
 
   @Column
   private LocalDateTime usedAt;
+
+  @Builder
+  private UserCoupon(String userCouponUuid, String couponUuid, Long userId,
+      String name, LocalDateTime expiresAt, UserCouponStatus status) {
+    this.userCouponUuid = userCouponUuid;
+    this.couponUuid = couponUuid;
+    this.userId = userId;
+    this.name = name;
+    this.expiresAt = expiresAt;
+    this.status = status;
+  }
 
   public static UserCoupon of(String userCouponUuid, String couponUuid, Long userId,
       String name, LocalDateTime expiresAt) {
