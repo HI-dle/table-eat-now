@@ -811,7 +811,8 @@ class ReviewServiceImplTest {
           .build();
 
       // when
-      PaginatedInfo<SearchReviewInfo> result = reviewService.searchReviews(myReviewsQuery, userInfo);
+      PaginatedInfo<SearchReviewInfo> result =
+          reviewService.searchReviews(myReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(2);
@@ -1019,7 +1020,6 @@ class ReviewServiceImplTest {
       otherRestaurantId = UUID.randomUUID().toString();
 
       GetRestaurantInfo restaurantInfo = new GetRestaurantInfo(restaurantId);
-      restaurantInfo = new GetRestaurantInfo(restaurantId);
 
       when(restaurantClient.getRestaurantInfo(ownerId)).thenReturn(restaurantInfo);
       when(restaurantClient.getRestaurantInfo(staffId)).thenReturn(restaurantInfo);
@@ -1059,7 +1059,8 @@ class ReviewServiceImplTest {
     @Test
     void 마스터_권한으로_조회시_모든_리뷰를_반환한다() {
       // when
-      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(query, masterUserInfo);
+      PaginatedInfo<SearchAdminReviewInfo> result =
+          reviewService.searchAdminReviews(query, masterUserInfo);
 
       // then
       assertThat(result.content()).hasSize(4);
@@ -1076,7 +1077,8 @@ class ReviewServiceImplTest {
     @Test
     void 식당_주인_권한으로_조회시_자신의_식당_리뷰와_다른_공개_리뷰를_반환한다() {
       // when
-      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(query, ownerUserInfo);
+      PaginatedInfo<SearchAdminReviewInfo> result =
+          reviewService.searchAdminReviews(query, ownerUserInfo);
 
       // then
       assertThat(result.content()).hasSize(3);
@@ -1095,7 +1097,8 @@ class ReviewServiceImplTest {
     @Test
     void 직원_권한으로_조회시_자신의_식당_리뷰와_다른_공개_리뷰를_반환한다() {
       // when
-      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(query, staffUserInfo);
+      PaginatedInfo<SearchAdminReviewInfo> result =
+          reviewService.searchAdminReviews(query, staffUserInfo);
 
       // then
       assertThat(result.content()).hasSize(3);
@@ -1123,7 +1126,8 @@ class ReviewServiceImplTest {
           .build();
 
       // when
-      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(visibleQuery, masterUserInfo);
+      PaginatedInfo<SearchAdminReviewInfo> result =
+          reviewService.searchAdminReviews(visibleQuery, masterUserInfo);
 
       // then
       assertThat(result.content()).hasSize(2);
@@ -1149,7 +1153,8 @@ class ReviewServiceImplTest {
           .build();
 
       // when
-      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(invisibleQuery, masterUserInfo);
+      PaginatedInfo<SearchAdminReviewInfo> result =
+          reviewService.searchAdminReviews(invisibleQuery, masterUserInfo);
 
       // then
       assertThat(result.content()).hasSize(2);
@@ -1197,7 +1202,8 @@ class ReviewServiceImplTest {
           .build();
 
       // when
-      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(userQuery, masterUserInfo);
+      PaginatedInfo<SearchAdminReviewInfo> result =
+          reviewService.searchAdminReviews(userQuery, masterUserInfo);
 
       // then
       assertThat(result.content()).hasSize(2);
@@ -1214,8 +1220,9 @@ class ReviewServiceImplTest {
     @Test
     void restaurantId로_필터링시_해당_식당의_리뷰만_반환한다() {
       // given
+      String theOtherRestaurantId = UUID.randomUUID().toString();
       SearchAdminReviewQuery restaurantQuery = SearchAdminReviewQuery.builder()
-          .restaurantId(otherRestaurantId)
+          .restaurantId(theOtherRestaurantId)
           .orderBy("createdAt")
           .sort("desc")
           .page(0)
@@ -1225,18 +1232,20 @@ class ReviewServiceImplTest {
       // 다른 식당의 리뷰 추가
       String serviceId = UUID.randomUUID().toString();
       CreateReviewCommand otherRestaurantReview = new CreateReviewCommand(
-          otherRestaurantId, serviceId, customerId, "RESERVATION",
+          theOtherRestaurantId, serviceId, customerId, "RESERVATION",
           "다른 식당 리뷰입니다.", 3, true, CUSTOMER
       );
       Review savedOtherRestaurantReview = reviewRepository.save(otherRestaurantReview.toEntity());
 
       // when
-      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(restaurantQuery, masterUserInfo);
+      PaginatedInfo<SearchAdminReviewInfo> result = reviewService
+          .searchAdminReviews(restaurantQuery, masterUserInfo);
 
       // then
       assertThat(result.content()).hasSize(1);
-      assertThat(result.content().get(0).reviewUuid()).isEqualTo(savedOtherRestaurantReview.getReviewId());
-      assertThat(result.content().get(0).restaurantId()).isEqualTo(otherRestaurantId);
+      assertThat(result.content().get(0).reviewUuid())
+          .isEqualTo(savedOtherRestaurantReview.getReviewId());
+      assertThat(result.content().get(0).restaurantId()).isEqualTo(theOtherRestaurantId);
     }
 
     @Test
@@ -1251,7 +1260,8 @@ class ReviewServiceImplTest {
           .build();
 
       // when
-      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(waitingQuery, masterUserInfo);
+      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(waitingQuery,
+          masterUserInfo);
 
       // then
       assertThat(result.content()).hasSize(2);
@@ -1278,7 +1288,8 @@ class ReviewServiceImplTest {
           .build();
 
       // when
-      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(ratingQuery, masterUserInfo);
+      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(ratingQuery,
+          masterUserInfo);
 
       // then
       assertThat(result.content()).hasSize(2);
@@ -1309,7 +1320,8 @@ class ReviewServiceImplTest {
           .build();
 
       // when
-      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(complexQuery, masterUserInfo);
+      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(complexQuery,
+          masterUserInfo);
 
       // then
       assertThat(result.content()).hasSize(1);
