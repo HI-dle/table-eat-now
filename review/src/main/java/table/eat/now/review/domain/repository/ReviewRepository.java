@@ -17,7 +17,7 @@ public interface ReviewRepository {
 
   PaginatedResult<SearchReviewResult> searchReviews(SearchReviewCriteria criteria);
 
-	PaginatedResult<SearchAdminReviewResult> searchAdminReviews(SearchAdminReviewCriteria criteria);
+  PaginatedResult<SearchAdminReviewResult> searchAdminReviews(SearchAdminReviewCriteria criteria);
 
   boolean existsByReferenceAndDeletedAtIsNull(ReviewReference reference);
 }
