@@ -48,6 +48,9 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
+	// feign Apache HttpClient 5 (hc5) 기반으로 통신
+	implementation 'io.github.openfeign:feign-hc5'
+
 	// lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -55,9 +58,15 @@ dependencies {
 	// postgresql
 	runtimeOnly 'org.postgresql:postgresql'
 
+	// prometheus
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+	implementation 'io.github.openfeign:feign-micrometer'
+
 	// test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testRuntimeOnly 'com.h2database:h2'
 
 	// docs
 	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'

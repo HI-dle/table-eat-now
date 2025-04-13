@@ -11,11 +11,14 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
-import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,11 +40,15 @@ import table.eat.now.reservation.reservation.domain.entity.vo.ReservationPayment
 public class Reservation extends BaseEntity {
 
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", nullable = false)
   private Long id;
 
   @Column(name = "reservation_uuid", nullable = false, unique = true, length = 100)
   private String reservationUuid;
+
+  @Column(name = "reservation_name", nullable = false, length = 100)
+  private String name;
 
   @Column(name = "reserver_id", nullable = false)
   private Long reserverId;
@@ -53,15 +60,15 @@ public class Reservation extends BaseEntity {
   private String restaurantId;
 
   @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "restaurant_timeslot_details", columnDefinition = "jsonb", nullable = false)
+  @Column(name = "restaurant_timeslot_details", columnDefinition = "json", nullable = false)
   private RestaurantTimeSlotDetails restaurantTimeSlotDetails;
 
   @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "restaurant_details", columnDefinition = "jsonb", nullable = false)
+  @Column(name = "restaurant_details", columnDefinition = "json", nullable = false)
   private RestaurantDetails restaurantDetails;
 
   @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "restaurant_menu_details", columnDefinition = "jsonb", nullable = false)
+  @Column(name = "restaurant_menu_details", columnDefinition = "json", nullable = false)
   private RestaurantMenuDetails restaurantMenuDetails;
 
   @Embedded
@@ -87,13 +94,21 @@ public class Reservation extends BaseEntity {
 
   @Builder
   private Reservation(
-      UUID reservationUuid,
       Long reserverId,
-      UUID restaurantTimeSlotUuid,
-      RestaurantTimeSlotDetails restaurantTimeSlotDetails,
-      UUID restaurantId,
-      RestaurantDetails restaurantDetails,
-      RestaurantMenuDetails restaurantMenuDetails,
+      String reservationUuid,
+      String name,
+      String restaurantTimeSlotUuid,
+      LocalDate reservationDate,
+      LocalTime reservationTimeslot,
+      String restaurantId,
+      String restaurantAddress,
+      LocalTime restaurantClosingTime,
+      String restaurantContactNumber,
+      String restaurantName,
+      LocalTime restaurantOpeningTime,
+      String menuName,
+      BigDecimal menuPrice,
+      Integer menuQuantity,
       String reserverName,
       String reserverContact,
       Integer guestCount,
@@ -101,13 +116,22 @@ public class Reservation extends BaseEntity {
       String specialRequest,
       List<ReservationPaymentDetail> details
   ) {
-    this.reservationUuid = reservationUuid.toString();
+    this.reservationUuid = reservationUuid;
     this.reserverId = reserverId;
-    this.restaurantTimeSlotUuid = restaurantTimeSlotUuid.toString();
-    this.restaurantTimeSlotDetails = restaurantTimeSlotDetails;
-    this.restaurantId = restaurantId.toString();
-    this.restaurantDetails = restaurantDetails;
-    this.restaurantMenuDetails = restaurantMenuDetails;
+    this.name = name;
+    this.restaurantTimeSlotUuid = restaurantTimeSlotUuid;
+    this.restaurantTimeSlotDetails =
+        RestaurantTimeSlotDetails.of(reservationDate, reservationTimeslot);
+    this.restaurantId = restaurantId;
+    this.restaurantDetails =
+        RestaurantDetails.of(
+            restaurantName,
+            restaurantAddress,
+            restaurantContactNumber,
+            restaurantOpeningTime,
+            restaurantClosingTime
+        );
+    this.restaurantMenuDetails = RestaurantMenuDetails.of(menuName, menuPrice, menuQuantity);
     this.guestInfo = ReservationGuestInfo.of(reserverName, reserverContact, guestCount);
     this.status = status;
     this.specialRequest = specialRequest;

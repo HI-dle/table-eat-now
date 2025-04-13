@@ -4,31 +4,29 @@
  */
 package table.eat.now.reservation.reservation.domain.entity.json;
 
-import lombok.Builder;
+import java.time.LocalTime;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class RestaurantDetails {
   private String name;
   private String address;
   private String contactNumber;
-  private String openingAt;
-  private String closingAt;
+  private LocalTime openingTime;
+  private LocalTime closingTime;
 
-  @Builder
-  private RestaurantDetails(
-      String address,
-      String closingAt,
-      String contactNumber,
+  public static RestaurantDetails of(
       String name,
-      String openingAt
-  ) {
-    this.address = address;
-    this.closingAt = closingAt;
-    this.contactNumber = contactNumber;
-    this.name = name;
-    this.openingAt = openingAt;
+      String address,
+      String contactNumber,
+      LocalTime openingTime,
+      LocalTime closingTime
+      ) {
+    return new RestaurantDetails(name, address, contactNumber, openingTime, closingTime);
   }
 }
