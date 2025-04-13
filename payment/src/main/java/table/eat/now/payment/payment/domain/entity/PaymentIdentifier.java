@@ -9,11 +9,23 @@ import lombok.Getter;
 @Embeddable
 public class PaymentIdentifier {
 
-  @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-  private UUID paymentUuid;
+  @Column(nullable = false, unique = true)
+  private String paymentUuid;
 
-  @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-  private UUID idempotencyKey;
+  @Column(nullable = false, unique = true)
+  private String idempotencyKey;
+
+  public static PaymentIdentifier create() {
+    return new PaymentIdentifier(
+        UUID.randomUUID().toString(),
+        UUID.randomUUID().toString()
+    );
+  }
+
+  private PaymentIdentifier(String paymentUuid, String idempotencyKey) {
+    this.paymentUuid = paymentUuid;
+    this.idempotencyKey = idempotencyKey;
+  }
 
   protected PaymentIdentifier() {
   }

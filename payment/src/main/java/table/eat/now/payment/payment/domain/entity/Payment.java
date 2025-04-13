@@ -28,26 +28,51 @@ public class Payment extends BaseEntity {
 
   @Embedded
   private PaymentIdentifier identifier;
-
+  
+  @Column(unique = true)
+  private String paymentKey;
   @Column(nullable = false)
+  
   @Enumerated(EnumType.STRING)
   private PaymentStatus paymentStatus;
 
-  @Column(unique = true)
-  private String paymentKey;
-
-  @Column(nullable = false, precision = 8)
-  private BigDecimal originalAmount;
-
-  @Column(precision = 8)
-  private BigDecimal discountAmount;
-
-  @Column(precision = 8)
-  private BigDecimal totalAmount;
-
-  private LocalDateTime requestedAt;
+  @Embedded
+  private PaymentAmount amount;
 
   private LocalDateTime approvedAt;
+
+  public static Payment create(PaymentReference reference, PaymentAmount amount) {
+    validateNull(reference, amount);
+    return new Payment(reference, amount);
+  }
+
+  private static void validateNull(PaymentReference reference, PaymentAmount amount) {
+    if (reference == null || amount == null) {
+      throw new IllegalArgumentException("null일 수 없습니다.");
+    }
+  }
+
+  public void confirm(String paymentKey, BigDecimal discountAmount, BigDecimal totalAmount) {
+    validatePaymentKey(paymentKey);
+
+    this.paymentKey = paymentKey;
+    this.paymentStatus = PaymentStatus.APPROVED;
+    this.amount = amount.confirm(discountAmount, totalAmount);
+    this.approvedAt = LocalDateTime.now();
+  }
+
+  private void validatePaymentKey(String paymentKey) {
+    if (paymentKey == null || paymentKey.isBlank()) {
+      throw new IllegalArgumentException("paymentKey는 null이거나 빈 값일 수 없습니다");
+    }
+  }
+
+  private Payment(PaymentReference reference, PaymentAmount amount) {
+    this.reference = reference;
+    this.identifier = PaymentIdentifier.create();
+    this.paymentStatus = PaymentStatus.CREATED;
+    this.amount = amount;
+  }
 
   protected Payment() {
   }

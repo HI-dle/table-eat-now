@@ -1,0 +1,23 @@
+### 결제 생성
+POST localhost:8088/internal/v1/payments
+Content-Type: application/json
+
+{
+  "reservationUuid": "00000000-0000-0000-0000-000000000001",
+  "restaurantUuid": "00000",
+  "customerId": 123,
+  "reservationName": "하이들하신가",
+  "originalAmount": 45000
+}
+
+### 결제 생성 (검증실패)
+POST localhost:8088/internal/v1/payments
+Content-Type: application/json
+
+{
+  "reservationUuid": "00000000-0000-0000-0000-000000000000",
+  "restaurantUuid": "00000",
+  "customerId": 123,
+  "reservationName": "하이들하신가",
+  "originalAmount": 45000
+}
