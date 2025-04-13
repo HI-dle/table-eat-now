@@ -9,6 +9,8 @@ import static table.eat.now.common.resolver.dto.UserRole.CUSTOMER;
 import static table.eat.now.common.resolver.dto.UserRole.MASTER;
 import static table.eat.now.common.resolver.dto.UserRole.OWNER;
 import static table.eat.now.common.resolver.dto.UserRole.STAFF;
+import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_ALREADY_EXISTS;
+import static table.eat.now.review.application.exception.ReviewErrorCode.SERVICE_USER_MISMATCH;
 
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,13 +27,16 @@ import table.eat.now.review.application.client.ReservationClient;
 import table.eat.now.review.application.client.RestaurantClient;
 import table.eat.now.review.application.client.WaitingClient;
 import table.eat.now.review.application.service.dto.request.CreateReviewCommand;
+import table.eat.now.review.application.service.dto.request.SearchAdminReviewQuery;
 import table.eat.now.review.application.service.dto.request.SearchReviewQuery;
 import table.eat.now.review.application.service.dto.request.UpdateReviewCommand;
 import table.eat.now.review.application.service.dto.response.CreateReviewInfo;
+import table.eat.now.review.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.review.application.service.dto.response.GetRestaurantStaffInfo;
 import table.eat.now.review.application.service.dto.response.GetReviewInfo;
 import table.eat.now.review.application.service.dto.response.GetServiceInfo;
 import table.eat.now.review.application.service.dto.response.PaginatedInfo;
+import table.eat.now.review.application.service.dto.response.SearchAdminReviewInfo;
 import table.eat.now.review.application.service.dto.response.SearchReviewInfo;
 import table.eat.now.review.domain.entity.Review;
 import table.eat.now.review.domain.repository.ReviewRepository;
@@ -120,7 +125,20 @@ class ReviewServiceImplTest {
       CustomException exception = assertThrows(CustomException.class, () ->
           reviewService.createReview(command));
 
-      assertThat(exception.getMessage()).isEqualTo("서비스 정보와 사용자 정보가 일치하지 않습니다.");
+      assertThat(exception.getMessage()).isEqualTo(SERVICE_USER_MISMATCH.getMessage());
+    }
+
+    @Test
+    void 동일한_참조_정보로_리뷰를_작성시_예외를_발생시킨다() {
+      // given
+      when(reservationClient.getReservation(serviceId, customerId)).thenReturn(serviceInfo);
+      reviewRepository.save(command.toEntity());
+
+      // when & then
+      CustomException exception = assertThrows(CustomException.class, () ->
+          reviewService.createReview(command));
+
+      assertThat(exception.getMessage()).isEqualTo(REVIEW_ALREADY_EXISTS.getMessage());
     }
   }
 
@@ -139,7 +157,6 @@ class ReviewServiceImplTest {
     private CurrentUserInfoDto otherUserInfo;
     private CurrentUserInfoDto staffInfo;
     private CurrentUserInfoDto ownerInfo;
-    private Review review;
 
     @BeforeEach
     void setUp() {
@@ -165,7 +182,7 @@ class ReviewServiceImplTest {
       );
 
       when(reservationClient.getReservation(serviceId, customerId)).thenReturn(serviceInfo);
-      review = reviewRepository.save(command.toEntity());
+      Review review = reviewRepository.save(command.toEntity());
       reviewId = review.getReviewId();
     }
 
@@ -421,7 +438,6 @@ class ReviewServiceImplTest {
 
     private String reviewId;
     private String restaurantId;
-    private String serviceId;
     private Long staffId;
     private Long ownerId;
     private CurrentUserInfoDto customerInfo;
@@ -432,7 +448,7 @@ class ReviewServiceImplTest {
 
     @BeforeEach
     void setUp() {
-      serviceId = UUID.randomUUID().toString();
+      String serviceId = UUID.randomUUID().toString();
       Long customerId = 123L;
       Long otherUserId = 456L;
       reviewId = UUID.randomUUID().toString();
@@ -714,7 +730,7 @@ class ReviewServiceImplTest {
   }
 
   @Nested
-  class getReviews_는 {
+  class searchReviews_는 {
 
     private String restaurantId;
     private Long customerId;
@@ -769,7 +785,7 @@ class ReviewServiceImplTest {
     @Test
     void 자신의_모든_리뷰와_타인의_공개_리뷰를_반환한다() {
       // when
-      PaginatedInfo<SearchReviewInfo> result = reviewService.getReviews(query, userInfo);
+      PaginatedInfo<SearchReviewInfo> result = reviewService.searchReviews(query, userInfo);
 
       // then
       assertThat(result.content()).hasSize(3);
@@ -795,7 +811,8 @@ class ReviewServiceImplTest {
           .build();
 
       // when
-      PaginatedInfo<SearchReviewInfo> result = reviewService.getReviews(myReviewsQuery, userInfo);
+      PaginatedInfo<SearchReviewInfo> result =
+          reviewService.searchReviews(myReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(2);
@@ -821,7 +838,7 @@ class ReviewServiceImplTest {
 
       // when
       PaginatedInfo<SearchReviewInfo> result =
-          reviewService.getReviews(myPublicReviewsQuery, userInfo);
+          reviewService.searchReviews(myPublicReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(1);
@@ -843,7 +860,7 @@ class ReviewServiceImplTest {
 
       // when
       PaginatedInfo<SearchReviewInfo> result =
-          reviewService.getReviews(myPrivateReviewsQuery, userInfo);
+          reviewService.searchReviews(myPrivateReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(1);
@@ -864,7 +881,7 @@ class ReviewServiceImplTest {
 
       // when
       PaginatedInfo<SearchReviewInfo> result =
-          reviewService.getReviews(otherUserReviewsQuery, userInfo);
+          reviewService.searchReviews(otherUserReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(1);
@@ -885,7 +902,7 @@ class ReviewServiceImplTest {
 
       // when
       PaginatedInfo<SearchReviewInfo> result =
-          reviewService.getReviews(restaurantReviewsQuery, userInfo);
+          reviewService.searchReviews(restaurantReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(3);
@@ -912,7 +929,7 @@ class ReviewServiceImplTest {
 
       // when
       PaginatedInfo<SearchReviewInfo> result =
-          reviewService.getReviews(waitingReviewsQuery, userInfo);
+          reviewService.searchReviews(waitingReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(1);
@@ -934,7 +951,7 @@ class ReviewServiceImplTest {
 
       // when
       PaginatedInfo<SearchReviewInfo> result =
-          reviewService.getReviews(highRatingReviewsQuery, userInfo);
+          reviewService.searchReviews(highRatingReviewsQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(2);
@@ -962,13 +979,356 @@ class ReviewServiceImplTest {
           .build();
 
       // when
-      PaginatedInfo<SearchReviewInfo> result = reviewService.getReviews(complexQuery, userInfo);
+      PaginatedInfo<SearchReviewInfo> result = reviewService.searchReviews(complexQuery, userInfo);
 
       // then
       assertThat(result.content()).hasSize(1);
       assertThat(result.content().get(0).reviewUuid()).isEqualTo(myPublicReview.getReviewId());
       assertThat(result.content().get(0).serviceType()).isEqualTo("RESERVATION");
       assertThat(result.content().get(0).rating()).isGreaterThanOrEqualTo(3);
+    }
+  }
+
+  @Nested
+  class searchAdminReviews_는 {
+
+    private Long customerId;
+    private Long staffId;
+    private Long ownerId;
+    private CurrentUserInfoDto masterUserInfo;
+    private CurrentUserInfoDto ownerUserInfo;
+    private CurrentUserInfoDto staffUserInfo;
+    private SearchAdminReviewQuery query;
+    private Review myPublicReview;
+    private Review myPrivateReview;
+    private Review otherPublicReview;
+    private Review otherPrivateReview;
+    private String otherRestaurantId;
+
+    @BeforeEach
+    void setUp() {
+      String serviceId = UUID.randomUUID().toString();
+      String restaurantId = UUID.randomUUID().toString();
+      customerId = 123L;
+      Long otherUserId = 456L;
+      staffId = 789L;
+      ownerId = 999L;
+
+      masterUserInfo = new CurrentUserInfoDto(otherUserId, MASTER);
+      ownerUserInfo = new CurrentUserInfoDto(ownerId, OWNER);
+      staffUserInfo = new CurrentUserInfoDto(staffId, STAFF);
+      otherRestaurantId = UUID.randomUUID().toString();
+
+      GetRestaurantInfo restaurantInfo = new GetRestaurantInfo(restaurantId);
+
+      when(restaurantClient.getRestaurantInfo(ownerId)).thenReturn(restaurantInfo);
+      when(restaurantClient.getRestaurantInfo(staffId)).thenReturn(restaurantInfo);
+
+      query = SearchAdminReviewQuery.builder()
+          .orderBy("createdAt")
+          .sort("desc")
+          .page(0)
+          .size(10)
+          .build();
+
+      CreateReviewCommand myPublicCommand = new CreateReviewCommand(
+          restaurantId, serviceId, customerId, "RESERVATION",
+          "맛있는 식당이었습니다.", 4, true, CUSTOMER
+      );
+      myPublicReview = reviewRepository.save(myPublicCommand.toEntity());
+
+      CreateReviewCommand myPrivateCommand = new CreateReviewCommand(
+          restaurantId, serviceId, customerId, "RESERVATION",
+          "서비스가 아쉬웠습니다.", 2, false, CUSTOMER
+      );
+      myPrivateReview = reviewRepository.save(myPrivateCommand.toEntity());
+
+      CreateReviewCommand otherPublicCommand = new CreateReviewCommand(
+          otherRestaurantId, serviceId, otherUserId, "WAITING",
+          "최고의 레스토랑입니다!", 5, true, CUSTOMER
+      );
+      otherPublicReview = reviewRepository.save(otherPublicCommand.toEntity());
+
+      CreateReviewCommand otherPrivateCommand = new CreateReviewCommand(
+          otherRestaurantId, serviceId, otherUserId, "WAITING",
+          "실망스러웠습니다.", 1, false, CUSTOMER
+      );
+      otherPrivateReview = reviewRepository.save(otherPrivateCommand.toEntity());
+    }
+
+    @Test
+    void 마스터_권한으로_조회시_모든_리뷰를_반환한다() {
+      // when
+      PaginatedInfo<SearchAdminReviewInfo> result =
+          reviewService.searchAdminReviews(query, masterUserInfo);
+
+      // then
+      assertThat(result.content()).hasSize(4);
+      assertThat(result.content().stream()
+          .map(SearchAdminReviewInfo::reviewUuid))
+          .contains(
+              myPublicReview.getReviewId(),
+              myPrivateReview.getReviewId(),
+              otherPublicReview.getReviewId(),
+              otherPrivateReview.getReviewId()
+          );
+    }
+
+    @Test
+    void 식당_주인_권한으로_조회시_자신의_식당_리뷰와_다른_공개_리뷰를_반환한다() {
+      // when
+      PaginatedInfo<SearchAdminReviewInfo> result =
+          reviewService.searchAdminReviews(query, ownerUserInfo);
+
+      // then
+      assertThat(result.content()).hasSize(3);
+      assertThat(result.content().stream()
+          .map(SearchAdminReviewInfo::reviewUuid))
+          .contains(
+              myPublicReview.getReviewId(),
+              myPrivateReview.getReviewId(),
+              otherPublicReview.getReviewId()
+          )
+          .doesNotContain(otherPrivateReview.getReviewId());
+
+      verify(restaurantClient).getRestaurantInfo(ownerId);
+    }
+
+    @Test
+    void 직원_권한으로_조회시_자신의_식당_리뷰와_다른_공개_리뷰를_반환한다() {
+      // when
+      PaginatedInfo<SearchAdminReviewInfo> result =
+          reviewService.searchAdminReviews(query, staffUserInfo);
+
+      // then
+      assertThat(result.content()).hasSize(3);
+      assertThat(result.content().stream()
+          .map(SearchAdminReviewInfo::reviewUuid))
+          .contains(
+              myPublicReview.getReviewId(),
+              myPrivateReview.getReviewId(),
+              otherPublicReview.getReviewId()
+          )
+          .doesNotContain(otherPrivateReview.getReviewId());
+
+      verify(restaurantClient).getRestaurantInfo(staffId);
+    }
+
+    @Test
+    void 마스터_권한으로_isVisible_true_필터링시_공개_리뷰만_반환한다() {
+      // given
+      SearchAdminReviewQuery visibleQuery = SearchAdminReviewQuery.builder()
+          .isVisible(true)
+          .orderBy("createdAt")
+          .sort("desc")
+          .page(0)
+          .size(10)
+          .build();
+
+      // when
+      PaginatedInfo<SearchAdminReviewInfo> result =
+          reviewService.searchAdminReviews(visibleQuery, masterUserInfo);
+
+      // then
+      assertThat(result.content()).hasSize(2);
+      assertThat(result.content().stream()
+          .map(SearchAdminReviewInfo::reviewUuid))
+          .containsExactlyInAnyOrder(
+              myPublicReview.getReviewId(),
+              otherPublicReview.getReviewId()
+          );
+      assertThat(result.content().stream()
+          .allMatch(SearchAdminReviewInfo::isVisible)).isTrue();
+    }
+
+    @Test
+    void 마스터_권한으로_isVisible_false_필터링시_비공개_리뷰만_반환한다() {
+      // given
+      SearchAdminReviewQuery invisibleQuery = SearchAdminReviewQuery.builder()
+          .isVisible(false)
+          .orderBy("createdAt")
+          .sort("desc")
+          .page(0)
+          .size(10)
+          .build();
+
+      // when
+      PaginatedInfo<SearchAdminReviewInfo> result =
+          reviewService.searchAdminReviews(invisibleQuery, masterUserInfo);
+
+      // then
+      assertThat(result.content()).hasSize(2);
+      assertThat(result.content().stream()
+          .map(SearchAdminReviewInfo::reviewUuid))
+          .containsExactlyInAnyOrder(
+              myPrivateReview.getReviewId(),
+              otherPrivateReview.getReviewId()
+          );
+      assertThat(result.content().stream()
+          .noneMatch(SearchAdminReviewInfo::isVisible)).isTrue();
+    }
+
+    @Test
+    void 식당_관계자가_isVisible_false_필터링시_해당_식당의_비공개_리뷰만_반환한다() {
+      // given
+      SearchAdminReviewQuery invisibleQuery = SearchAdminReviewQuery.builder()
+          .isVisible(false)
+          .orderBy("createdAt")
+          .sort("desc")
+          .page(0)
+          .size(10)
+          .build();
+
+      // when
+      PaginatedInfo<SearchAdminReviewInfo> result =
+          reviewService.searchAdminReviews(invisibleQuery, ownerUserInfo);
+
+      // then
+      assertThat(result.content()).hasSize(1);
+      assertThat(result.content().get(0).reviewUuid()).isEqualTo(myPrivateReview.getReviewId());
+      assertThat(result.content().get(0).isVisible()).isFalse();
+      verify(restaurantClient).getRestaurantInfo(ownerId);
+    }
+
+    @Test
+    void userId로_필터링시_해당_사용자의_리뷰만_반환한다() {
+      // given
+      SearchAdminReviewQuery userQuery = SearchAdminReviewQuery.builder()
+          .userId(customerId)
+          .orderBy("createdAt")
+          .sort("desc")
+          .page(0)
+          .size(10)
+          .build();
+
+      // when
+      PaginatedInfo<SearchAdminReviewInfo> result =
+          reviewService.searchAdminReviews(userQuery, masterUserInfo);
+
+      // then
+      assertThat(result.content()).hasSize(2);
+      assertThat(result.content().stream()
+          .map(SearchAdminReviewInfo::reviewUuid))
+          .containsExactlyInAnyOrder(
+              myPublicReview.getReviewId(),
+              myPrivateReview.getReviewId()
+          );
+      assertThat(result.content().stream()
+          .allMatch(info -> info.customerId() == customerId)).isTrue();
+    }
+
+    @Test
+    void restaurantId로_필터링시_해당_식당의_리뷰만_반환한다() {
+      // given
+      String theOtherRestaurantId = UUID.randomUUID().toString();
+      SearchAdminReviewQuery restaurantQuery = SearchAdminReviewQuery.builder()
+          .restaurantId(theOtherRestaurantId)
+          .orderBy("createdAt")
+          .sort("desc")
+          .page(0)
+          .size(10)
+          .build();
+
+      // 다른 식당의 리뷰 추가
+      String serviceId = UUID.randomUUID().toString();
+      CreateReviewCommand otherRestaurantReview = new CreateReviewCommand(
+          theOtherRestaurantId, serviceId, customerId, "RESERVATION",
+          "다른 식당 리뷰입니다.", 3, true, CUSTOMER
+      );
+      Review savedOtherRestaurantReview = reviewRepository.save(otherRestaurantReview.toEntity());
+
+      // when
+      PaginatedInfo<SearchAdminReviewInfo> result = reviewService
+          .searchAdminReviews(restaurantQuery, masterUserInfo);
+
+      // then
+      assertThat(result.content()).hasSize(1);
+      assertThat(result.content().get(0).reviewUuid())
+          .isEqualTo(savedOtherRestaurantReview.getReviewId());
+      assertThat(result.content().get(0).restaurantId()).isEqualTo(theOtherRestaurantId);
+    }
+
+    @Test
+    void serviceType으로_필터링시_해당_타입의_리뷰만_반환한다() {
+      // given
+      SearchAdminReviewQuery waitingQuery = SearchAdminReviewQuery.builder()
+          .serviceType("WAITING")
+          .orderBy("createdAt")
+          .sort("desc")
+          .page(0)
+          .size(10)
+          .build();
+
+      // when
+      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(waitingQuery,
+          masterUserInfo);
+
+      // then
+      assertThat(result.content()).hasSize(2);
+      assertThat(result.content().stream()
+          .map(SearchAdminReviewInfo::reviewUuid))
+          .containsExactlyInAnyOrder(
+              otherPublicReview.getReviewId(),
+              otherPrivateReview.getReviewId()
+          );
+      assertThat(result.content().stream()
+          .allMatch(info -> "WAITING".equals(info.serviceType()))).isTrue();
+    }
+
+    @Test
+    void 평점_범위로_필터링시_해당_평점_범위의_리뷰만_반환한다() {
+      // given
+      SearchAdminReviewQuery ratingQuery = SearchAdminReviewQuery.builder()
+          .minRating(4)
+          .maxRating(5)
+          .orderBy("rating")
+          .sort("desc")
+          .page(0)
+          .size(10)
+          .build();
+
+      // when
+      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(ratingQuery,
+          masterUserInfo);
+
+      // then
+      assertThat(result.content()).hasSize(2);
+      assertThat(result.content().stream()
+          .map(SearchAdminReviewInfo::reviewUuid))
+          .containsExactlyInAnyOrder(
+              myPublicReview.getReviewId(),
+              otherPublicReview.getReviewId()
+          );
+      assertThat(result.content().stream()
+          .allMatch(info -> info.rating() >= 4 && info.rating() <= 5)).isTrue();
+      assertThat(result.content().get(0).rating())
+          .isGreaterThanOrEqualTo(result.content().get(1).rating());
+    }
+
+    @Test
+    void 여러_조건으로_필터링시_모든_조건을_만족하는_리뷰만_반환한다() {
+      // given
+      SearchAdminReviewQuery complexQuery = SearchAdminReviewQuery.builder()
+          .serviceType("RESERVATION")
+          .minRating(3)
+          .maxRating(5)
+          .isVisible(true)
+          .orderBy("rating")
+          .sort("desc")
+          .page(0)
+          .size(10)
+          .build();
+
+      // when
+      PaginatedInfo<SearchAdminReviewInfo> result = reviewService.searchAdminReviews(complexQuery,
+          masterUserInfo);
+
+      // then
+      assertThat(result.content()).hasSize(1);
+      assertThat(result.content().get(0).reviewUuid()).isEqualTo(myPublicReview.getReviewId());
+      assertThat(result.content().get(0).serviceType()).isEqualTo("RESERVATION");
+      assertThat(result.content().get(0).rating()).isGreaterThanOrEqualTo(3);
+      assertThat(result.content().get(0).isVisible()).isTrue();
     }
   }
 

@@ -5,6 +5,7 @@ import static table.eat.now.review.domain.entity.QReview.review;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +14,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import table.eat.now.review.domain.entity.ServiceType;
 import table.eat.now.review.domain.repository.search.PaginatedResult;
+import table.eat.now.review.domain.repository.search.SearchAdminReviewCriteria;
+import table.eat.now.review.domain.repository.search.SearchAdminReviewResult;
 import table.eat.now.review.domain.repository.search.SearchReviewCriteria;
 import table.eat.now.review.domain.repository.search.SearchReviewResult;
 
@@ -23,7 +26,6 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
 
   @Override
   public PaginatedResult<SearchReviewResult> searchReviews(SearchReviewCriteria criteria) {
-
     BooleanExpression whereCondition = buildWhereCondition(criteria);
 
     List<SearchReviewResult> content = queryFactory
@@ -42,27 +44,58 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
             review.updatedAt))
         .from(review)
         .where(whereCondition)
-        .orderBy(getOrderSpecifier(criteria))
+        .orderBy(getOrderSpecifier(criteria.sort(), criteria.orderBy()))
         .offset(criteria.page())
         .limit(criteria.size())
         .fetch();
 
-    Long totalElements = queryFactory
+    return createPaginatedResult(content, whereCondition, criteria.page(), criteria.size());
+  }
+
+  @Override
+  public PaginatedResult<SearchAdminReviewResult> searchAdminReviews(SearchAdminReviewCriteria criteria) {
+    BooleanExpression whereCondition = buildWhereAdminCondition(criteria);
+
+    List<SearchAdminReviewResult> content = queryFactory
+        .select(Projections.constructor(SearchAdminReviewResult.class,
+            review.reviewId,
+            review.reference.customerId,
+            review.reference.restaurantId,
+            review.reference.serviceId,
+            review.reference.serviceType.stringValue(),
+            review.content.rating,
+            review.content.content,
+            review.visibility.isVisible,
+            review.visibility.hiddenBy,
+            review.visibility.hiddenByRole.stringValue(),
+            review.createdAt,
+            review.updatedAt))
+        .from(review)
+        .where(whereCondition)
+        .orderBy(getOrderSpecifier(criteria.sort(), criteria.orderBy()))
+        .offset(criteria.page())
+        .limit(criteria.size())
+        .fetch();
+
+    return createPaginatedResult(content, whereCondition, criteria.page(), criteria.size());
+  }
+
+  private <T> PaginatedResult<T> createPaginatedResult(
+      List<T> content, BooleanExpression whereCondition, int page, int size) {
+
+    Long totalElements = countTotalElements(whereCondition);
+    int totalPages = (int) Math.ceil((double) totalElements / size);
+    return new PaginatedResult<>(content, page, size, totalElements, totalPages);
+  }
+
+  private Long countTotalElements(BooleanExpression whereCondition) {
+    Long count = queryFactory
         .select(review.count())
         .from(review)
         .where(whereCondition)
         .fetchOne();
 
-    totalElements = totalElements == null ? 0 : totalElements;
-    int totalPages = (int) Math.ceil((double) totalElements / criteria.size());
-
-    return new PaginatedResult<>(
-        content,
-        criteria.page(),
-        criteria.size(),
-        totalElements,
-        totalPages
-    );
+    return count != null ? count : 0L;
   }
 
   private BooleanExpression buildWhereCondition(SearchReviewCriteria criteria) {
@@ -72,38 +105,82 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
         .and(serviceTypeEquals(criteria.serviceType()))
         .and(ratingBetween(criteria.minRating(), criteria.maxRating()))
         .and(createdAtBetween(criteria.startDate(), criteria.endDate()))
-        .and(getVisibilityCondition(criteria));
+        .and(getVisibilityUserCondition(criteria));
   }
 
-  private BooleanExpression getVisibilityCondition(SearchReviewCriteria criteria) {
+  private BooleanExpression buildWhereAdminCondition(SearchAdminReviewCriteria criteria) {
+    return review.deletedAt.isNull()
+        .and(customerIdEquals(criteria.userId()))
+        .and(restaurantIdEquals(criteria.restaurantId()))
+        .and(serviceTypeEquals(criteria.serviceType()))
+        .and(ratingBetween(criteria.minRating(), criteria.maxRating()))
+        .and(createdAtBetween(criteria.startDate(), criteria.endDate()))
+        .and(getVisibilityAdminCondition(criteria));
+  }
+
+  private BooleanExpression getVisibilityAdminCondition(SearchAdminReviewCriteria criteria) {
     BooleanExpression isVisible = review.visibility.isVisible.isTrue();
+    BooleanExpression isInvisible = review.visibility.isVisible.isFalse();
+    Boolean optionalVisibility = criteria.isVisible();
+    String accessibleRestaurantId = criteria.accessibleRestaurantId();
+    boolean isMaster = criteria.isMaster();
+
+    if(isMaster && optionalVisibility != null) {
+      return optionalVisibility ?
+          isVisible : isInvisible;
+    }
+
+    if(isMaster) {
+      return null;
+    }
+
+    if(accessibleRestaurantId != null && optionalVisibility != null) {
+      return optionalVisibility ? isVisible
+          : isInvisible.and(filterByAccessibleRestaurantId(accessibleRestaurantId));
+    }
+
+    if(accessibleRestaurantId != null) {
+      return isVisible.or(filterByAccessibleRestaurantId(accessibleRestaurantId));
+    }
+
+    return isVisible;
+  }
+
+  private BooleanExpression getVisibilityUserCondition(SearchReviewCriteria criteria) {
+    BooleanExpression isVisible = review.visibility.isVisible.isTrue();
+    BooleanExpression isInvisible = review.visibility.isVisible.isFalse();
     Long currentUserId = criteria.currentUserId();
     Long targetUserId = criteria.userId();
+    Boolean optionalVisibility = criteria.isVisible();
 
     if (currentUserId == null) {
       return isVisible;
     }
 
-    //특정 유저의 리뷰에 접근 시
-    if (targetUserId != null) {
-      //현재 로그인 한 유저와 같다면 (내 리뷰에 접근한다면)
-      if (currentUserId.equals(targetUserId)) {
-        //필터에 적용된 공개 여부를 따릅니다. (isVisible : true - 공개 , false - 비공개)
-        Boolean visibilityFilter = criteria.isVisible();
-
-        //유저가 해당 필터를 설정하지 않았다면
-        return visibilityFilter == null
-            ? null // 전체를 반환하고
-            // 아니면 필터값을 따릅니다.
-            : (visibilityFilter ? isVisible : review.visibility.isVisible.isFalse());
-      }
-      //다른 유저의 리뷰에 접근한다면, 공개상태의 리뷰만 반환합니다.
-      return isVisible;
+    if(currentUserId.equals(targetUserId)) {
+      return optionalVisibility == null ? null :
+          optionalVisibility ? isVisible : isInvisible;
     }
 
-    //특정 유저에 대한 접근이 아닌, 전체 접근인 경우에는
-    //공개된 다른 유저의 리뷰 + 내 전체 리뷰를 반환합니다.
-    return isVisible.or(review.reference.customerId.eq(currentUserId));
+    if(targetUserId != null) {
+      return optionalVisibility == null ? isVisible :
+          optionalVisibility ? isVisible : Expressions.FALSE;
+    }
+
+    if(optionalVisibility != null) {
+      return optionalVisibility ?
+          isVisible : isInvisible.and(filterByCurrentUser(currentUserId));
+    }
+
+    return isVisible.or(filterByCurrentUser(currentUserId));
+  }
+
+  private BooleanExpression filterByAccessibleRestaurantId(String accessibleRestaurantId) {
+    return restaurantIdEquals(accessibleRestaurantId);
+  }
+
+  private BooleanExpression filterByCurrentUser(Long currentUserId) {
+    return customerIdEquals(currentUserId);
   }
 
   private BooleanExpression customerIdEquals(Long customerId) {
@@ -133,8 +210,8 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
   }
 
   private BooleanExpression createdAtBetween(LocalDate startDate, LocalDate endDate) {
-    LocalDateTime start = getStartDatetime(startDate);
-    LocalDateTime end = getEndDatetime(endDate);
+    LocalDateTime start = startDate != null ? startDate.atStartOfDay() : null;
+    LocalDateTime end = endDate != null ? endDate.atTime(LocalTime.MAX) : null;
 
     if (start == null && end == null) {
       return null;
@@ -148,20 +225,11 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
     return review.createdAt.between(start, end);
   }
 
-  private static LocalDateTime getEndDatetime(LocalDate endDate) {
-    return endDate != null ? endDate.atTime(LocalTime.MAX) : null;
-  }
-
-  private static LocalDateTime getStartDatetime(LocalDate startDate) {
-    return startDate != null ? startDate.atStartOfDay() : null;
-  }
-
-  private OrderSpecifier<?> getOrderSpecifier(SearchReviewCriteria criteria) {
-    boolean isAsc = "asc".equalsIgnoreCase(criteria.sort());
-    if ("rating".equals(criteria.orderBy())) {
+  private OrderSpecifier<?> getOrderSpecifier(String sort, String orderBy) {
+    boolean isAsc = "asc".equalsIgnoreCase(sort);
+    if ("rating".equals(orderBy)) {
       return isAsc ? review.content.rating.asc() : review.content.rating.desc();
     }
     return isAsc ? review.createdAt.asc() : review.createdAt.desc();
   }
 }
-

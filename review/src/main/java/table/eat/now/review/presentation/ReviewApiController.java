@@ -1,5 +1,8 @@
 package table.eat.now.review.presentation;
 
+import static table.eat.now.common.resolver.dto.UserRole.CUSTOMER;
+import static table.eat.now.common.resolver.dto.UserRole.MASTER;
+
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
-import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.review.application.service.ReviewService;
 import table.eat.now.review.presentation.dto.request.CreateReviewRequest;
 import table.eat.now.review.presentation.dto.request.SearchReviewRequest;
@@ -30,7 +32,7 @@ import table.eat.now.review.presentation.dto.response.SearchReviewResponse;
 @RestController
 @RequestMapping("/api/v1/reviews")
 @RequiredArgsConstructor
-public class ReviewController {
+public class ReviewApiController {
 
   private final ReviewService reviewService;
 
@@ -79,17 +81,17 @@ public class ReviewController {
   }
 
   @GetMapping
-  public ResponseEntity<PaginatedResponse<SearchReviewResponse>> getReviews(
+  public ResponseEntity<PaginatedResponse<SearchReviewResponse>> searchReviews(
       @CurrentUserInfo CurrentUserInfoDto userInfo,
       @Valid SearchReviewRequest request, Pageable pageable) {
 
     return ResponseEntity.status(HttpStatus.OK).body(
-        PaginatedResponse.from(
-            reviewService.getReviews(request.toQuery(pageable), userInfo)));
+        PaginatedResponse.fromInfo(
+            reviewService.searchReviews(request.toQuery(pageable), userInfo)));
   }
 
   @DeleteMapping("/{reviewId}")
-  @AuthCheck(roles = {UserRole.MASTER, UserRole.CUSTOMER})
+  @AuthCheck(roles = {MASTER,CUSTOMER})
   public ResponseEntity<Void> deleteReview(
       @PathVariable UUID reviewId, @CurrentUserInfo CurrentUserInfoDto userInfo) {
 

@@ -14,8 +14,22 @@ public record CreateReviewCommand(
 
   public Review toEntity() {
     return Review.create(
-        ReviewReference.create(restaurantId, serviceId, customerId, ServiceType.from(serviceType)),
-        ReviewContent.create(content, rating),
-        ReviewVisibility.create(isVisible, customerId, role.name()));
+        this.toReviewReference(),
+        this.toReviewContent(),
+        this.toReviewVisibility()
+    );
+  }
+
+  public ReviewReference toReviewReference() {
+    return ReviewReference
+        .create(restaurantId, serviceId, customerId, ServiceType.from(serviceType));
+  }
+
+  public ReviewContent toReviewContent() {
+    return ReviewContent.create(content, rating);
+  }
+
+  public ReviewVisibility toReviewVisibility() {
+    return ReviewVisibility.create(isVisible, customerId, role.name());
   }
 }

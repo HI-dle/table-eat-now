@@ -82,6 +82,10 @@ public class Review extends BaseEntity {
     super.delete(deletedBy);
   }
 
+  public String getRestaurantId(){
+    return this.getReference().getRestaurantId();
+  }
+
   private Review(ReviewReference reference, ReviewContent content, ReviewVisibility visibility) {
     this.reviewId = UUID.randomUUID().toString();
     this.reference = reference;

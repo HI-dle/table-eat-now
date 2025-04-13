@@ -11,6 +11,7 @@ public enum ReviewErrorCode implements ErrorCode {
   SERVICE_USER_MISMATCH("서비스 정보와 사용자 정보가 일치하지 않습니다.", HttpStatus.FORBIDDEN),
   REVIEW_IS_INVISIBLE("비공개 처리된 리뷰입니다.", HttpStatus.FORBIDDEN),
   MODIFY_PERMISSION_DENIED("수정 요청에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN),
+  REVIEW_ALREADY_EXISTS("이미 해당 서비스에 대한 리뷰가 존재합니다.", HttpStatus.CONFLICT)
   ;
 
   private final String message;
