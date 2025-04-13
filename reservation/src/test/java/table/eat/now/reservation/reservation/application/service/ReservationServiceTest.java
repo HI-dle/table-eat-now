@@ -38,10 +38,10 @@ import table.eat.now.reservation.reservation.application.service.dto.request.Cre
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.RestaurantDetails;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.RestaurantMenuDetails;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.RestaurantTimeSlotDetails;
+import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
 import table.eat.now.reservation.reservation.domain.entity.Reservation.ReservationStatus;
 import table.eat.now.reservation.reservation.domain.repository.ReservationRepository;
-import table.eat.now.reservation.reservation.presentation.dto.response.GetRestaurantInfo;
 
 class ReservationServiceTest extends IntegrationTestSupport {
 
@@ -126,7 +126,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
         int couponDiscountAmount,
         int paymentPrice,
         int menuPrice,
-        int MenuQuantity
+        int menuQuantity
     ) {
       return CreateReservationCommand.builder()
           .reserverId(1L)
@@ -141,7 +141,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .restaurantMenuDetails(RestaurantMenuDetails.builder()
               .name("비빔밥")
               .price(BigDecimal.valueOf(menuPrice))
-              .quantity(MenuQuantity)
+              .quantity(menuQuantity)
               .build())
           .restaurantDetails(RestaurantDetails.builder()
               .name("맛있는 식당")

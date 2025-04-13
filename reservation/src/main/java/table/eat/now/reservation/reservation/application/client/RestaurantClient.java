@@ -5,7 +5,7 @@
 package table.eat.now.reservation.reservation.application.client;
 
 import table.eat.now.reservation.reservation.application.client.dto.response.ModifyRestaurantCurTotalGuestCountInfo;
-import table.eat.now.reservation.reservation.presentation.dto.response.GetRestaurantInfo;
+import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
 
 public interface RestaurantClient {
 

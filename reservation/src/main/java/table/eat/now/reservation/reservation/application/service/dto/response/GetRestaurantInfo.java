@@ -2,7 +2,7 @@
  * @author : jieun(je-pa)
  * @Date : 2025. 04. 11.
  */
-package table.eat.now.reservation.reservation.presentation.dto.response;
+package table.eat.now.reservation.reservation.application.service.dto.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

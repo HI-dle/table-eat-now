@@ -33,10 +33,10 @@ import table.eat.now.reservation.reservation.application.service.dto.request.Cre
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
 import table.eat.now.reservation.reservation.application.service.dto.response.CreateReservationInfo;
+import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
+import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo.Timeslot;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
 import table.eat.now.reservation.reservation.domain.repository.ReservationRepository;
-import table.eat.now.reservation.reservation.presentation.dto.response.GetRestaurantInfo;
-import table.eat.now.reservation.reservation.presentation.dto.response.GetRestaurantInfo.Timeslot;
 
 @Service
 @RequiredArgsConstructor

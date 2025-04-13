@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import table.eat.now.reservation.reservation.presentation.dto.response.GetRestaurantInfo;
+import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
 
 public record GetRestaurantResponse(
     Long id,

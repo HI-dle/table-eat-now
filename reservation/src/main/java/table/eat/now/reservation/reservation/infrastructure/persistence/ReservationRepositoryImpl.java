@@ -1,3 +1,7 @@
+/**
+ * @author : jieun(je-pa)
+ * @Date : 2025. 04. 14.
+ */
 package table.eat.now.reservation.reservation.infrastructure.persistence;
 
 import java.util.List;

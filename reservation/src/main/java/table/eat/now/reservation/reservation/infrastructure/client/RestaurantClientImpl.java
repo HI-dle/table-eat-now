@@ -8,10 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import table.eat.now.reservation.reservation.application.client.RestaurantClient;
 import table.eat.now.reservation.reservation.application.client.dto.response.ModifyRestaurantCurTotalGuestCountInfo;
+import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.reservation.reservation.infrastructure.client.feign.RestaurantFeignClient;
 import table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response.GetRestaurantResponse;
 import table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response.ModifyRestaurantCurTotalGuestCountResponse;
-import table.eat.now.reservation.reservation.presentation.dto.response.GetRestaurantInfo;
 
 @Component
 @RequiredArgsConstructor
