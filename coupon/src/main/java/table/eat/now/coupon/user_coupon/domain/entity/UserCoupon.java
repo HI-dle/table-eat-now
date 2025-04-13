@@ -15,6 +15,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import table.eat.now.common.domain.BaseEntity;
+import table.eat.now.coupon.user_coupon.domain.exception.UserCouponDomainErrorCode;
+import table.eat.now.coupon.user_coupon.domain.exception.UserCouponException;
 
 @Table(name="p_user_coupon")
 @Getter
@@ -40,14 +42,14 @@ public class UserCoupon extends BaseEntity {
   @Column(length = 100)
   private String reservationUuid;
 
-  @Column(length = 200)
+  @Column(length = 200, nullable = false)
   private String name;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private UserCouponStatus status;
 
-  @Column
+  @Column(nullable = false)
   private LocalDateTime expiresAt;
 
   @Column
@@ -67,5 +69,40 @@ public class UserCoupon extends BaseEntity {
         .expiresAt(expiresAt)
         .status(UserCouponStatus.ISSUED)
         .build();
+  }
+
+  public void isOwnedBy(Long userId) {
+    if (!this.userId.equals(userId)) {
+      throw UserCouponException.from(UserCouponDomainErrorCode.UNAUTH_USER_COUPON);
+    }
+  }
+
+  public void isValidToPreempt(String reservationUuid) {
+    if (this.expiresAt.isBefore(LocalDateTime.now())) {
+      throw UserCouponException.from(UserCouponDomainErrorCode.EXPIRED_USER_COUPON);
+    }
+    if (this.usedAt != null) {
+      throw UserCouponException.from(UserCouponDomainErrorCode.ALREADY_USED_USER_COUPON);
+    }
+    if (this.preemptAt != null && !this.reservationUuid.equals(reservationUuid)) {
+      throw UserCouponException.from(UserCouponDomainErrorCode.PREEMPT_USER_COUPON);
+    }
+  }
+
+  public void preempt(String reservationUuid) {
+    this.status = UserCouponStatus.PREEMPT;
+    this.reservationUuid = reservationUuid;
+    this.preemptAt = LocalDateTime.now();
+  }
+
+  public void use() {
+    this.status = UserCouponStatus.COMMIT;
+    this.usedAt = LocalDateTime.now();
+  }
+
+  public void release() {
+    this.status = UserCouponStatus.ROLLBACK;
+    this.reservationUuid = null;
+    this.preemptAt = null;
   }
 }
