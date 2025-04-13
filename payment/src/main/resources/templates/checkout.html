@@ -40,7 +40,7 @@
     const tossPayments = TossPayments(clientKey);
 
     // 회원 결제 - API에서 받은 customerId 사용
-    const customerKey = paymentData.customerId;
+    const customerKey = paymentData.customerKey;
     const widgets = tossPayments.widgets({
       customerKey,
     });
