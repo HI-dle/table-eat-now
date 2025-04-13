@@ -64,7 +64,7 @@ import table.eat.now.review.presentation.dto.request.UpdateReviewRequest;
 })
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @WebMvcTest(ReviewApiController.class)
-class ReviewControllerTest {
+class ReviewApiControllerTest {
 
   @Autowired
   private MockMvc mockMvc;

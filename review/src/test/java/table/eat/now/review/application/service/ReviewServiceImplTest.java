@@ -157,7 +157,6 @@ class ReviewServiceImplTest {
     private CurrentUserInfoDto otherUserInfo;
     private CurrentUserInfoDto staffInfo;
     private CurrentUserInfoDto ownerInfo;
-    private Review review;
 
     @BeforeEach
     void setUp() {
@@ -183,7 +182,7 @@ class ReviewServiceImplTest {
       );
 
       when(reservationClient.getReservation(serviceId, customerId)).thenReturn(serviceInfo);
-      review = reviewRepository.save(command.toEntity());
+      Review review = reviewRepository.save(command.toEntity());
       reviewId = review.getReviewId();
     }
 
@@ -439,7 +438,6 @@ class ReviewServiceImplTest {
 
     private String reviewId;
     private String restaurantId;
-    private String serviceId;
     private Long staffId;
     private Long ownerId;
     private CurrentUserInfoDto customerInfo;
@@ -450,7 +448,7 @@ class ReviewServiceImplTest {
 
     @BeforeEach
     void setUp() {
-      serviceId = UUID.randomUUID().toString();
+      String serviceId = UUID.randomUUID().toString();
       Long customerId = 123L;
       Long otherUserId = 456L;
       reviewId = UUID.randomUUID().toString();
@@ -993,14 +991,10 @@ class ReviewServiceImplTest {
   @Nested
   class searchAdminReviews_는 {
 
-    private String restaurantId;
-    private String otherRestaurantId;
     private Long customerId;
-    private Long otherUserId;
     private Long staffId;
     private Long ownerId;
     private CurrentUserInfoDto masterUserInfo;
-    private CurrentUserInfoDto customerUserInfo;
     private CurrentUserInfoDto ownerUserInfo;
     private CurrentUserInfoDto staffUserInfo;
     private SearchAdminReviewQuery query;
@@ -1008,24 +1002,23 @@ class ReviewServiceImplTest {
     private Review myPrivateReview;
     private Review otherPublicReview;
     private Review otherPrivateReview;
-    private GetRestaurantInfo restaurantInfo;
+    private String otherRestaurantId;
 
     @BeforeEach
     void setUp() {
       String serviceId = UUID.randomUUID().toString();
-      restaurantId = UUID.randomUUID().toString();
-      otherRestaurantId = UUID.randomUUID().toString();
+      String restaurantId = UUID.randomUUID().toString();
       customerId = 123L;
-      otherUserId = 456L;
+      Long otherUserId = 456L;
       staffId = 789L;
       ownerId = 999L;
 
       masterUserInfo = new CurrentUserInfoDto(otherUserId, MASTER);
-      customerUserInfo = new CurrentUserInfoDto(customerId, CUSTOMER);
       ownerUserInfo = new CurrentUserInfoDto(ownerId, OWNER);
       staffUserInfo = new CurrentUserInfoDto(staffId, STAFF);
+      otherRestaurantId = UUID.randomUUID().toString();
 
-      restaurantInfo = new GetRestaurantInfo(restaurantId);
+      GetRestaurantInfo restaurantInfo = new GetRestaurantInfo(restaurantId);
       restaurantInfo = new GetRestaurantInfo(restaurantId);
 
       when(restaurantClient.getRestaurantInfo(ownerId)).thenReturn(restaurantInfo);
@@ -1221,7 +1214,6 @@ class ReviewServiceImplTest {
     @Test
     void restaurantId로_필터링시_해당_식당의_리뷰만_반환한다() {
       // given
-      String otherRestaurantId = UUID.randomUUID().toString();
       SearchAdminReviewQuery restaurantQuery = SearchAdminReviewQuery.builder()
           .restaurantId(otherRestaurantId)
           .orderBy("createdAt")
