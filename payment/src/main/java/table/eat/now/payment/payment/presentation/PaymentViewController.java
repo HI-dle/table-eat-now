@@ -1,6 +1,5 @@
 package table.eat.now.payment.payment.presentation;
 
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class PaymentViewController {
 
   @GetMapping("/checkout")
-  public String getPage(@RequestParam UUID idempotencyKey) {
+  public String getPage(@RequestParam String idempotencyKey) {
     return "checkout";
   }
 

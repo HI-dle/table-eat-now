@@ -20,8 +20,8 @@ public class PaymentController {
   public ResponseEntity<GetCheckoutDetailResponse> getCheckoutDetail(
       @PathVariable UUID idempotencyKey) {
     GetCheckoutDetailResponse response = new GetCheckoutDetailResponse(
-        idempotencyKey,
-        1L,
+        idempotencyKey.toString(),
+        idempotencyKey.toString(),
         BigDecimal.valueOf(3000),
         "테스트 결제입니다.");
     return ResponseEntity.ok(response);
