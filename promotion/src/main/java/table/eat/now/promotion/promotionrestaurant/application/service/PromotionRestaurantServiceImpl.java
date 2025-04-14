@@ -67,9 +67,11 @@ public class PromotionRestaurantServiceImpl implements PromotionRestaurantServic
 
   @Override
   @Transactional(readOnly = true)
-  public GetPromotionRestaurantInfo findRestaurantsByPromotions(String restaurantUuid) {
+  public GetPromotionRestaurantInfo findRestaurantsByPromotions(
+      String restaurantUuid,
+      String promotionUuid) {
     return GetPromotionRestaurantInfo.from(
-        findByPromotionRestaurantFromRestaurantId(restaurantUuid));
+        findByRestaurantUuidAndPromotionUuidAndDeletedAtIsNull(restaurantUuid,promotionUuid));
   }
 
   private PromotionRestaurant findByPromotionRestaurant(String promotionRestaurantUuid) {
@@ -78,10 +80,18 @@ public class PromotionRestaurantServiceImpl implements PromotionRestaurantServic
         CustomException.from(PromotionRestaurantErrorCode.INVALID_PROMOTION_RESTAURANT_UUID));
   }
   private PromotionRestaurant findByPromotionRestaurantFromRestaurantId(String restaurantUuid) {
-    return promotionRestaurantRepository.findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid)
+    return promotionRestaurantRepository.findByRestaurantUuidAndDeletedAtIsNull(restaurantUuid)
         .orElseThrow(() ->
             CustomException.from(PromotionRestaurantErrorCode.INVALID_PROMOTION_RESTAURANT_UUID));
   }
+  private PromotionRestaurant findByRestaurantUuidAndPromotionUuidAndDeletedAtIsNull(
+      String restaurantUuid, String promotionUuid) {
+    return promotionRestaurantRepository.findByRestaurantUuidAndPromotionUuidAndDeletedAtIsNull(
+        restaurantUuid, promotionUuid)
+        .orElseThrow(() ->
+            CustomException.from(PromotionRestaurantErrorCode.INVALID_PROMOTION_RESTAURANT_UUID));
+  }
+
 
 
 }

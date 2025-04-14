@@ -88,13 +88,20 @@ public class PromotionServiceImpl implements PromotionService{
   @Transactional(readOnly = true)
   public GetPromotionsClientInfo reservationGetPromotions(GetPromotionsFeignCommand command) {
 
-    GetPromotionRestaurantInfo promotionRestaurantRes =
-        promotionClient.findRestaurantsByPromotions(command.restaurantUuid());
+
+    List<GetPromotionRestaurantInfo> promotionRestaurantResList = command.promotionUuids().stream()
+        .map(promotionUuid ->
+            promotionClient.findRestaurantsByPromotions(
+                command.restaurantUuid(),
+                promotionUuid
+            )
+        )
+        .toList();
 
     List<Promotion> promotions = promotionRepository.
         findAllByPromotionUuidInAndDeletedByIsNull(command.promotionUuids());
 
-    return GetPromotionsClientInfo.from(promotionRestaurantRes, promotions);
+    return GetPromotionsClientInfo.from(promotionRestaurantResList, promotions);
   }
 
   private void deleteCheckPromotionStatus(PromotionStatus status) {

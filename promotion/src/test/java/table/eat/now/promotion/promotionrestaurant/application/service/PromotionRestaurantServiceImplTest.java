@@ -192,7 +192,7 @@ class PromotionRestaurantServiceImplTest {
 
     PromotionRestaurant promotionRestaurant = Mockito.mock(PromotionRestaurant.class);
 
-    when(promotionRestaurantRepository.findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid))
+    when(promotionRestaurantRepository.findByRestaurantUuidAndDeletedAtIsNull(restaurantUuid))
         .thenReturn(Optional.of(promotionRestaurant));
 
     // when
@@ -200,7 +200,7 @@ class PromotionRestaurantServiceImplTest {
 
     // then
     verify(promotionRestaurantRepository)
-        .findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid);
+        .findByRestaurantUuidAndDeletedAtIsNull(restaurantUuid);
     verify(promotionRestaurant).delete(deleterUserId);
   }
 
@@ -211,7 +211,7 @@ class PromotionRestaurantServiceImplTest {
     String restaurantUuid = UUID.randomUUID().toString();
     CurrentUserInfoDto currentUserInfo = new CurrentUserInfoDto(1L, UserRole.MASTER);
 
-    when(promotionRestaurantRepository.findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid))
+    when(promotionRestaurantRepository.findByRestaurantUuidAndDeletedAtIsNull(restaurantUuid))
         .thenReturn(Optional.empty());
 
     // when & then
@@ -221,16 +221,17 @@ class PromotionRestaurantServiceImplTest {
         .hasMessage(PromotionRestaurantErrorCode.INVALID_PROMOTION_RESTAURANT_UUID.getMessage());
 
     verify(promotionRestaurantRepository)
-        .findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid);
+        .findByRestaurantUuidAndDeletedAtIsNull(restaurantUuid);
   }
 
-  @DisplayName("레스토랑 UUID로 프로모션-레스토랑 정보를 조회한다.")
+  @DisplayName("레스토랑 UUID와 promotion UUID로 프로모션에 참여중인 레스토랑 정보를 조회한다.")
   @Test
   void find_promotion_restaurant_service_test() {
     String restaurantUuid = "restaurant-uuid-123";
+    String promotionUuid = "promotion-uuid-123";
 
     PromotionRestaurant promotionRestaurant = PromotionRestaurant.of(
-        "promotion-uuid-123",
+        promotionUuid,
         restaurantUuid
     );
     ReflectionTestUtils.setField(promotionRestaurant, "promotionRestaurantUuid", UUID.randomUUID().toString());
@@ -238,10 +239,12 @@ class PromotionRestaurantServiceImplTest {
     GetPromotionRestaurantInfo expectedResponse = GetPromotionRestaurantInfo.from(promotionRestaurant);
 
 
-    when(promotionRestaurantRepository.findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid))
+    when(promotionRestaurantRepository.findByRestaurantUuidAndPromotionUuidAndDeletedAtIsNull(
+        restaurantUuid,promotionUuid))
         .thenReturn(Optional.of(promotionRestaurant));
 
-    GetPromotionRestaurantInfo result = promotionRestaurantService.findRestaurantsByPromotions(restaurantUuid);
+    GetPromotionRestaurantInfo result = promotionRestaurantService.findRestaurantsByPromotions(
+        restaurantUuid,promotionUuid);
 
     assertThat(result).isNotNull();
     assertThat(result.promotionRestaurantUuid()).isEqualTo(expectedResponse.promotionRestaurantUuid());
@@ -249,7 +252,8 @@ class PromotionRestaurantServiceImplTest {
     assertThat(result.restaurantUuid()).isEqualTo(expectedResponse.restaurantUuid());
 
 
-    verify(promotionRestaurantRepository).findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid);
+    verify(promotionRestaurantRepository).findByRestaurantUuidAndPromotionUuidAndDeletedAtIsNull(
+        restaurantUuid, promotionUuid);
   }
 
 

@@ -21,9 +21,10 @@ public class PromotionRestaurantClientImpl implements PromotionClient {
 
   private final PromotionRestaurantFeignClient promotionRestaurantFeignClient;
   @Override
-  public GetPromotionRestaurantInfo findRestaurantsByPromotions(String restaurantUuid) {
+  public GetPromotionRestaurantInfo findRestaurantsByPromotions(String restaurantUuid,
+      String promotionUuid) {
     try {
-      return promotionRestaurantFeignClient.findRestaurantsByPromotions(restaurantUuid);
+      return promotionRestaurantFeignClient.findRestaurantsByPromotions(restaurantUuid, promotionUuid);
     } catch (FeignException.NotFound e) {
       log.info("프로모션에 참여하는 레스토랑 정보가 없습니다.: {}", restaurantUuid);
       return null;

@@ -10,6 +10,7 @@ import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,20 +45,23 @@ class PromotionRestaurantInternalControllerTest {
   @Test
   void promotion_restaurant_find_by_restaurant_uuid_test() throws Exception {
     // given
-    String restaurantUuid = "restaurant-uuid-123";
+    UUID restaurantUuid = UUID.randomUUID();
+    UUID promotionUuid = UUID.randomUUID();
 
     GetPromotionRestaurantInfo responseDto = new GetPromotionRestaurantInfo(
         "promotion-restaurant-uuid-1",
-        "promotion-uuid-1",
-        restaurantUuid
+        promotionUuid.toString(),
+        restaurantUuid.toString()
     );
 
-    given(promotionRestaurantService.findRestaurantsByPromotions(restaurantUuid))
+    given(promotionRestaurantService.findRestaurantsByPromotions(restaurantUuid.toString(),
+        promotionUuid.toString()))
         .willReturn(responseDto);
 
     // when
     ResultActions resultActions = mockMvc.perform(
-        get("/internal/v1/promotion-restaurants/{restaurantUuid}", restaurantUuid)
+        get("/internal/v1/promotion-restaurants/{restaurantUuid}/promotion/{promotionUuid}",
+            restaurantUuid, promotionUuid)
         .header("Authorization", "Bearer {ACCESS_TOKEN}")
         .header(USER_ID_HEADER, "1")
         .header(USER_ROLE_HEADER, "MASTER")
@@ -66,8 +70,8 @@ class PromotionRestaurantInternalControllerTest {
     // then
     resultActions.andExpect(status().isOk())
         .andExpect(jsonPath("$.promotionRestaurantUuid").value("promotion-restaurant-uuid-1"))
-        .andExpect(jsonPath("$.promotionUuid").value("promotion-uuid-1"))
-        .andExpect(jsonPath("$.restaurantUuid").value("restaurant-uuid-123"))
+        .andExpect(jsonPath("$.promotionUuid").value(promotionUuid.toString()))
+        .andExpect(jsonPath("$.restaurantUuid").value(restaurantUuid.toString()))
         .andDo(print());
   }
 

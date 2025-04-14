@@ -4,7 +4,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
+import table.eat.now.common.exception.CustomException;
 import table.eat.now.promotion.promotion.application.dto.client.response.GetPromotionRestaurantInfo;
+import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
 
 /**
@@ -29,26 +31,36 @@ public record GetPromotionsClientInfo(List<ReservationInfo> reservationRequests)
   }
 
   public static GetPromotionsClientInfo from(
-      GetPromotionRestaurantInfo restaurantInfo,
+      List<GetPromotionRestaurantInfo> restaurantInfos,
       List<Promotion> promotions
   ) {
     List<ReservationInfo> reservationInfos = promotions.stream()
-        .map(promotion -> ReservationInfo.builder()
-            .promotionId(promotion.getId())
-            .promotionUuid(promotion.getPromotionUuid())
-            .promotionName(promotion.getDetails().getPromotionName())
-            .description(promotion.getDetails().getDescription())
-            .startTime(promotion.getPeriod().getStartTime())
-            .endTime(promotion.getPeriod().getEndTime())
-            .discountPrice(promotion.getDiscountPrice().getDiscountAmount())
-            .promotionStatus(promotion.getPromotionStatus().name())
-            .promotionType(promotion.getPromotionType().name())
-            .promotionRestaurantUuid(restaurantInfo.promotionRestaurantUuid())
-            .restaurantUuid(restaurantInfo.restaurantUuid())
-            .build()
-        ).toList();
+        .map(promotion -> {
+          GetPromotionRestaurantInfo matchedInfo = restaurantInfos.stream()
+              .filter(info -> info.promotionUuid().equals(promotion.getPromotionUuid()))
+              .findFirst()
+              .orElseThrow(() ->
+                  CustomException.from(
+                      PromotionErrorCode.INVALID_PROMOTION_PARTICIPATION_RESTAURANT));
+
+          return ReservationInfo.builder()
+              .promotionId(promotion.getId())
+              .promotionUuid(promotion.getPromotionUuid())
+              .promotionName(promotion.getDetails().getPromotionName())
+              .description(promotion.getDetails().getDescription())
+              .startTime(promotion.getPeriod().getStartTime())
+              .endTime(promotion.getPeriod().getEndTime())
+              .discountPrice(promotion.getDiscountPrice().getDiscountAmount())
+              .promotionStatus(promotion.getPromotionStatus().name())
+              .promotionType(promotion.getPromotionType().name())
+              .promotionRestaurantUuid(matchedInfo.promotionRestaurantUuid())
+              .restaurantUuid(matchedInfo.restaurantUuid())
+              .build();
+        })
+        .toList();
 
     return new GetPromotionsClientInfo(reservationInfos);
   }
+
 
 }

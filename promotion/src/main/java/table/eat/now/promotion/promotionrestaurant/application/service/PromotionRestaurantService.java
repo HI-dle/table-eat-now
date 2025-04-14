@@ -26,5 +26,6 @@ public interface PromotionRestaurantService {
 
   void deletePromotionRestaurant(String restaurantUuid, CurrentUserInfoDto userInfoDto);
 
-  GetPromotionRestaurantInfo findRestaurantsByPromotions(String restaurantUuid);
+  GetPromotionRestaurantInfo findRestaurantsByPromotions(
+      String restaurantUuid, String promotionUuid);
 }

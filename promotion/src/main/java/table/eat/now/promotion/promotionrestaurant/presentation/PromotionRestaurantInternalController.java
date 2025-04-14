@@ -1,5 +1,6 @@
 package table.eat.now.promotion.promotionrestaurant.presentation;
 
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,9 +20,13 @@ public class PromotionRestaurantInternalController {
 
   private final PromotionRestaurantService promotionRestaurantService;
 
-  @GetMapping("/{restaurantUuid}")
-  GetPromotionRestaurantResponse findRestaurantsByPromotions(@PathVariable String restaurantUuid) {
+  @GetMapping("/{restaurantUuid}/promotion/{promotionUuid}")
+  GetPromotionRestaurantResponse findRestaurantsByPromotions(
+      @PathVariable("restaurantUuid") UUID restaurantUuid,
+      @PathVariable("promotionUuid") UUID promotionUuid) {
     return GetPromotionRestaurantResponse.from(
-        promotionRestaurantService.findRestaurantsByPromotions(restaurantUuid));
+        promotionRestaurantService.findRestaurantsByPromotions(
+            restaurantUuid.toString(),
+            promotionUuid.toString()));
   }
 }

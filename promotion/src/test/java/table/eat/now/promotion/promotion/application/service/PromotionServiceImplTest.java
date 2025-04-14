@@ -344,21 +344,22 @@ class PromotionServiceImplTest {
     String restaurantUuid = "restaurant-uuid-123";
     Set<String> promotionUuids = Set.of("promo-uuid-1", "promo-uuid-2");
 
-    GetPromotionsFeignCommand command = new GetPromotionsFeignCommand(promotionUuids,
-        restaurantUuid);
+    GetPromotionsFeignCommand command = new GetPromotionsFeignCommand(promotionUuids, restaurantUuid);
 
     GetPromotionRestaurantInfo promotionRestaurantInfo1 = new GetPromotionRestaurantInfo(
-        "promo-uuid-1",
-        "promotion-restaurant-uuid-1",
-        restaurantUuid
-    );
+        "promo-uuid-1", "promotion-restaurant-uuid-1", restaurantUuid);
 
-    when(promotionClient.findRestaurantsByPromotions(restaurantUuid))
+    GetPromotionRestaurantInfo promotionRestaurantInfo2 = new GetPromotionRestaurantInfo(
+        "promo-uuid-2", "promotion-restaurant-uuid-2", restaurantUuid);
+
+    when(promotionClient.findRestaurantsByPromotions(restaurantUuid, "promo-uuid-1"))
         .thenReturn(promotionRestaurantInfo1);
 
+    when(promotionClient.findRestaurantsByPromotions(restaurantUuid, "promo-uuid-2"))
+        .thenReturn(promotionRestaurantInfo2);
+
     Promotion promo1 = Promotion.of(
-        "봄 프로모션",
-        "할인 설명입니다",
+        "봄 프로모션", "할인 설명입니다",
         LocalDateTime.now(),
         LocalDateTime.now().plusDays(10),
         BigDecimal.valueOf(1000),
@@ -367,8 +368,7 @@ class PromotionServiceImplTest {
     );
 
     Promotion promo2 = Promotion.of(
-        "여름 프로모션",
-        "여름 한정 할인",
+        "여름 프로모션", "여름 한정 할인",
         LocalDateTime.now(),
         LocalDateTime.now().plusDays(5),
         BigDecimal.valueOf(2000),
@@ -376,7 +376,6 @@ class PromotionServiceImplTest {
         PromotionType.RESTAURANT
     );
 
-    // UUID를 수동으로 지정해야 하면 여기서 직접 넣어줘도 됨
     ReflectionTestUtils.setField(promo1, "promotionUuid", "promo-uuid-1");
     ReflectionTestUtils.setField(promo2, "promotionUuid", "promo-uuid-2");
 
@@ -388,9 +387,11 @@ class PromotionServiceImplTest {
     assertThat(result).isNotNull();
     assertThat(result.reservationRequests()).hasSize(2);
 
-    verify(promotionClient).findRestaurantsByPromotions(restaurantUuid);
+    verify(promotionClient).findRestaurantsByPromotions(restaurantUuid, "promo-uuid-1");
+    verify(promotionClient).findRestaurantsByPromotions(restaurantUuid, "promo-uuid-2");
     verify(promotionRepository).findAllByPromotionUuidInAndDeletedByIsNull(promotionUuids);
   }
+
 
 
 

@@ -12,6 +12,8 @@ import table.eat.now.promotion.promotion.application.dto.client.response.GetProm
 
 @FeignClient(name = "promotion")
 public interface PromotionRestaurantFeignClient {
-  @GetMapping("/internal/v1/promotion-restaurants/{restaurantUuid}")
-  GetPromotionRestaurantInfo findRestaurantsByPromotions(@PathVariable String restaurantUuid);
+  @GetMapping("/internal/v1/promotion-restaurants/{restaurantUuid}/promotion/{promotionUuid}")
+  GetPromotionRestaurantInfo findRestaurantsByPromotions(
+      @PathVariable("restaurantUuid") String restaurantUuid,
+      @PathVariable("promotionUuid") String promotionUuid);
 }

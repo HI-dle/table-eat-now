@@ -8,5 +8,5 @@ import table.eat.now.promotion.promotion.application.dto.client.response.GetProm
  */
 public interface PromotionClient {
 
-  GetPromotionRestaurantInfo findRestaurantsByPromotions(String restaurantUuid);
+  GetPromotionRestaurantInfo findRestaurantsByPromotions(String restaurantUuid, String promotionUuid);
 }
