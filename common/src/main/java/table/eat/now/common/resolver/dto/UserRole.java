@@ -12,4 +12,16 @@ public enum UserRole {
   CUSTOMER("고객");
 
   private final String description;
+
+  public boolean isRestaurantStaff() {
+    return this == STAFF || this == OWNER;
+  }
+
+  public boolean isOwner() {
+    return this == OWNER;
+  }
+
+  public boolean isStaff() {
+    return this == STAFF;
+  }
 }
