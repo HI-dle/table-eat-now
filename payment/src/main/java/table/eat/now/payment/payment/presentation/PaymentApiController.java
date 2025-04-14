@@ -1,5 +1,6 @@
 package table.eat.now.payment.payment.presentation;
 
+import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,8 @@ public class PaymentApiController {
 
   @PatchMapping("/confirm")
   public ResponseEntity<ConfirmPaymentResponse> confirmPayment(
-      @RequestParam UUID reservationUuid, @RequestBody ConfirmPaymentRequest request) {
+      @RequestParam UUID reservationUuid,
+      @RequestBody @Valid ConfirmPaymentRequest request) {
 
     return ResponseEntity.ok(ConfirmPaymentResponse.from(
         paymentService.confirmPayment(

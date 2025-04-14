@@ -3,7 +3,7 @@ POST localhost:8088/internal/v1/payments
 Content-Type: application/json
 
 {
-  "reservationUuid": "00000000-0000-0000-0000-000000000003",
+  "reservationUuid": "00000000-0000-0000-0000-000000000008",
   "restaurantUuid": "00000",
   "customerId": 123,
   "reservationName": "하이들하신가",

@@ -19,7 +19,6 @@ import table.eat.now.payment.payment.infrastructure.client.pg.TossPaymentClient;
 public class PgClientImpl implements PgClient {
 
   private final TossPaymentClient tossPaymentClient;
-  private final ObjectMapper objectMapper;
 
   @Override
   public ConfirmPgPaymentInfo confirm(ConfirmPaymentCommand command, String idempotencyKey) {

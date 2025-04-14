@@ -56,11 +56,9 @@ public class Payment extends BaseEntity {
 
   public void confirm(ConfirmPayment confirmPayment) {
     validatePaymentKey(confirmPayment.paymentKey());
-
     this.paymentKey = confirmPayment.paymentKey();
     this.paymentStatus = validateStatus(PaymentStatus.APPROVED);
     this.amount = amount.confirm(confirmPayment.discountAmount(), confirmPayment.totalAmount());
-    //LocalDAteTime.now()
     this.approvedAt = confirmPayment.approvedAt();
   }
 

@@ -3,12 +3,13 @@ package table.eat.now.payment.payment.infrastructure.client.dto.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDateTime;
+import java.util.List;
 import table.eat.now.payment.payment.application.dto.response.CancelPgPaymentInfo;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CancelTossPayResponse(
     String paymentKey,
-    Cancel cancel
+    List<Cancel> cancels
 ) {
   @JsonIgnoreProperties(ignoreUnknown = true)
   public record Cancel(
@@ -19,10 +20,11 @@ public record CancelTossPayResponse(
   }
 
   public CancelPgPaymentInfo toInfo(){
+    Cancel latestCancel = cancels.get(0);
     return new CancelPgPaymentInfo(
         paymentKey,
-        cancel.cancelReason,
-        cancel.canceledAt
+        latestCancel.cancelReason,
+        latestCancel.canceledAt
     );
   }
 }

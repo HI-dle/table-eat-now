@@ -61,7 +61,7 @@ public class TossPaymentClient {
 
   public CancelTossPayResponse cancelPayment(
       CancelTossPayRequest request, String idempotencyKey, String paymentKey) {
-
+    log.info("cancelPayment({}, {}, {})", request, idempotencyKey, paymentKey);
     return withCustomException(()->
         restClient.post()
         .uri("/payments/{paymentKey}/cancel", paymentKey)
@@ -77,6 +77,9 @@ public class TossPaymentClient {
     } catch (HttpClientErrorException e) {
       HttpStatus status = HttpStatus.valueOf(e.getStatusCode().value());
       throw CustomException.of(status, extractErrorMessage(e));
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+      throw CustomException.of(HttpStatus.INTERNAL_SERVER_ERROR, DEFAULT_ERROR_MESSAGE);
     }
   }
 
