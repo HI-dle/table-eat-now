@@ -27,6 +27,5 @@ X-User-Id: 3
 X-User-Role: STAFF
 
 {
-  "restaurantUuid":"00000000-0000-0000-0000-000000000001",
-  "dailyWaitingUuid":"00000000-0000-0000-0000-000000000001"
+  "restaurantUuid":"00000000-0000-0000-0000-000000000001"
 }

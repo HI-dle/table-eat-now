@@ -1,6 +1,5 @@
 package table.eat.now.waiting.waiting_request.presentation;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.helper.ControllerTestSupport;
 import table.eat.now.waiting.waiting_request.application.service.WaitingRequestService;
 import table.eat.now.waiting.waiting_request.presentation.dto.request.CreateWaitingRequestRequest;
@@ -33,6 +33,7 @@ class WaitingRequestApiControllerTest extends ControllerTestSupport {
   @Test
   void createWaitingRequest() throws Exception {
     // given
+    var userInfo = CurrentUserInfoDto.of(2L, UserRole.CUSTOMER);
     var request = CreateWaitingRequestRequest.builder()
         .dailyWaitingUuid(UUID.randomUUID())
         .phone("01000000000")
@@ -41,8 +42,7 @@ class WaitingRequestApiControllerTest extends ControllerTestSupport {
         .build();
     var waitingRequestUuid = UUID.randomUUID().toString();
 
-    given(waitingRequestService.createWaitingRequest(
-        any(CurrentUserInfoDto.class), eq(request.toCommand())))
+    given(waitingRequestService.createWaitingRequest(eq(userInfo), eq(request.toCommand())))
         .willReturn(waitingRequestUuid);
 
     // when

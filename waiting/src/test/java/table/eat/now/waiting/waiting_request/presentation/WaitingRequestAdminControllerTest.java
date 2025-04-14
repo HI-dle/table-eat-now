@@ -11,30 +11,14 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
-import table.eat.now.common.aop.AuthCheckAspect;
-import table.eat.now.common.config.WebConfig;
-import table.eat.now.common.exception.GlobalErrorHandler;
-import table.eat.now.common.resolver.CurrentUserInfoResolver;
-import table.eat.now.common.resolver.CustomPageableArgumentResolver;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.helper.ControllerTestSupport;
 import table.eat.now.waiting.waiting_request.application.service.WaitingRequestService;
-import table.eat.now.waiting.waiting_request.presentation.dto.request.EnterWaitingRequestRequest;
 
-@Import({
-    WebConfig.class,
-    CustomPageableArgumentResolver.class,
-    CurrentUserInfoResolver.class,
-    GlobalErrorHandler.class,
-    AuthCheckAspect.class
-})
-@EnableAspectJAutoProxy
 @WebMvcTest(WaitingRequestAdminController.class)
 class WaitingRequestAdminControllerTest extends ControllerTestSupport {
 
@@ -46,14 +30,10 @@ class WaitingRequestAdminControllerTest extends ControllerTestSupport {
   void processWaitingRequestEntrance() throws Exception {
     // given
     var waitingRequestUuid = UUID.randomUUID().toString();
-    CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(2L, UserRole.STAFF);
-    var request = EnterWaitingRequestRequest.builder()
-        .restaurantUuid(UUID.randomUUID())
-        .dailyWaitingUuid(UUID.randomUUID())
-        .build();
+    var userInfo = CurrentUserInfoDto.of(2L, UserRole.STAFF);
 
     doNothing().when(waitingRequestService)
-        .processWaitingRequestEntrance(userInfo, waitingRequestUuid, request.toCommand());
+        .processWaitingRequestEntrance(userInfo, waitingRequestUuid);
 
     // when
     ResultActions resultActions = mockMvc.perform(
@@ -61,7 +41,6 @@ class WaitingRequestAdminControllerTest extends ControllerTestSupport {
         .header("Authorization", "Bearer {ACCESS_TOKEN}")
         .header(USER_ID_HEADER, userInfo.userId())
         .header(USER_ROLE_HEADER, userInfo.role())
-        .content(objectMapper.writeValueAsString(request))
         .contentType(MediaType.APPLICATION_JSON));
 
     // then
