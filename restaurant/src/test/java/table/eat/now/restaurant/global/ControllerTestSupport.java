@@ -18,9 +18,13 @@ import table.eat.now.common.resolver.CurrentUserInfoResolver;
 import table.eat.now.common.resolver.CustomPageableArgumentResolver;
 import table.eat.now.restaurant.restaurant.application.service.RestaurantService;
 import table.eat.now.restaurant.restaurant.presentation.RestaurantAdminController;
+import table.eat.now.restaurant.restaurant.presentation.RestaurantApiController;
+import table.eat.now.restaurant.restaurant.presentation.RestaurantInternalController;
 
 @WebMvcTest(controllers = {
-    RestaurantAdminController.class
+    RestaurantAdminController.class,
+    RestaurantApiController.class,
+    RestaurantInternalController.class
 })
 @Import({
     WebConfig.class,

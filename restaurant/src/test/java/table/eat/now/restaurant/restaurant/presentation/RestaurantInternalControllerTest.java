@@ -86,7 +86,7 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
           .willReturn(response);
 
       // when & then
-      mockMvc.perform(get("/admin/v1/restaurants/{restaurantUuid}", restaurantUuid)
+      mockMvc.perform(get("/internal/v1/restaurants/{restaurantUuid}", restaurantUuid)
               .header(USER_ID_HEADER, userId)
               .header(USER_ROLE_HEADER, role)
               .contentType(MediaType.APPLICATION_JSON))
