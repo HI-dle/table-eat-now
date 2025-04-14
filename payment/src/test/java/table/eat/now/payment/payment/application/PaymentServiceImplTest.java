@@ -46,7 +46,7 @@ import table.eat.now.payment.payment.domain.repository.PaymentRepository;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@Transactional
 class PaymentServiceImplTest {
 
   @Autowired
