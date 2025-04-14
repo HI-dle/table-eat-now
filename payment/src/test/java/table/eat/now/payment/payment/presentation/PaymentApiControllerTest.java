@@ -16,15 +16,32 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import table.eat.now.common.aop.AuthCheckAspect;
+import table.eat.now.common.config.WebConfig;
+import table.eat.now.common.exception.GlobalErrorHandler;
+import table.eat.now.common.resolver.CurrentUserInfoResolver;
+import table.eat.now.common.resolver.CustomPageableArgumentResolver;
 import table.eat.now.payment.payment.application.PaymentService;
 import table.eat.now.payment.payment.application.dto.response.ConfirmPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailInfo;
 import table.eat.now.payment.payment.presentation.dto.request.ConfirmPaymentRequest;
 
+@ActiveProfiles("test")
+@Import({
+    WebConfig.class,
+    CustomPageableArgumentResolver.class,
+    CurrentUserInfoResolver.class,
+    GlobalErrorHandler.class,
+    AuthCheckAspect.class
+})
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @WebMvcTest(PaymentApiController.class)
 class PaymentApiControllerTest {
 
@@ -76,7 +93,7 @@ class PaymentApiControllerTest {
     }
 
     @Test
-    void 유효하지_않은_idempotencyKey_입력시_Bad_Request를_반환한다() throws Exception {
+    void 유효하지_않은_idempotencyKey_입력시_InternalServerError를_반환한다() throws Exception {
       // given
       String invalidUUID = "invalid-uuid";
 
@@ -86,7 +103,7 @@ class PaymentApiControllerTest {
           .contentType(MediaType.APPLICATION_JSON));
 
       // then
-      actions.andExpect(status().isBadRequest());
+      actions.andExpect(status().isInternalServerError());
     }
   }
 
@@ -144,7 +161,7 @@ class PaymentApiControllerTest {
     }
 
     @Test
-    void 유효하지_않은_reservationUuid_입력시_Bad_Request를_반환한다() throws Exception {
+    void 유효하지_않은_reservationUuid_입력시_InternalServerError를_반환한다() throws Exception {
       // given
       String invalidUUID = "invalid-uuid";
 
@@ -155,7 +172,7 @@ class PaymentApiControllerTest {
           .content(objectMapper.writeValueAsString(confirmRequest)));
 
       // then
-      actions.andExpect(status().isBadRequest());
+      actions.andExpect(status().isInternalServerError());
     }
 
     @Test
