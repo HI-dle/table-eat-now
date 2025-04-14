@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8" />
+  <script src="https://js.tosspayments.com/v2/standard"></script>
 </head>
 <body>
 <h2>결제 성공</h2>
@@ -20,11 +21,10 @@
   async function confirm() {
     const requestData = {
       paymentKey: paymentKey,
-      amount: amount,
+      totalAmount: parseInt(amount) // 문자열에서 숫자로 변환
     };
 
-    //Todo : api 구현 (tosspay 연동)
-    const response = await fetch(`/api/v1/payments/${orderId}/confirm`, {
+    const response = await fetch(`/api/v1/payments/confirm?reservationUuid=${orderId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

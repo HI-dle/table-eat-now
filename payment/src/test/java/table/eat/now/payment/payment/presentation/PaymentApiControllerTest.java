@@ -12,8 +12,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(PaymentController.class)
-class PaymentControllerTest {
+@WebMvcTest(PaymentApiController.class)
+class PaymentApiControllerTest {
 
   @Autowired
   private MockMvc mockMvc;

@@ -16,7 +16,7 @@ public record CreatePaymentCommand(
 
   public PaymentReference toReference() {
     return PaymentReference.create(
-        reservationUuid, restaurantUuid, customerId, reservationName);
+        restaurantUuid, reservationUuid, customerId, reservationName);
   }
 
   public Payment toEntity() {

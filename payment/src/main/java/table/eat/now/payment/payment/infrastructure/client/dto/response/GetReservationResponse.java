@@ -1,4 +1,4 @@
-package table.eat.now.payment.payment.infrastructure.client.dto;
+package table.eat.now.payment.payment.infrastructure.client.dto.response;
 
 import table.eat.now.payment.payment.application.dto.response.GetReservationInfo;
 
