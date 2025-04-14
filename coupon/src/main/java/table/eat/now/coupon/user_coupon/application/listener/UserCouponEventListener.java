@@ -14,7 +14,7 @@ import table.eat.now.coupon.user_coupon.application.service.UserCouponService;
 public class UserCouponEventListener {
   private final UserCouponService userCouponService;
 
-  @Async
+  @Async("async-listener")
   @EventListener
   public void listenIssueUserCouponEvent(IssueUserCouponEvent event) {
 
