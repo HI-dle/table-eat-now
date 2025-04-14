@@ -1,9 +1,9 @@
 package table.eat.now.notification.application.Strategy;
 
+import jakarta.annotation.PostConstruct;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import org.eclipse.sisu.PostConstruct;
 import org.springframework.stereotype.Component;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.notification.application.exception.NotificationErrorCode;

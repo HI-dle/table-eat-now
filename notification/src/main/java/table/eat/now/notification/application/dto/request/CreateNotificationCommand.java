@@ -13,7 +13,9 @@ import table.eat.now.notification.domain.entity.NotificationType;
 
 public record CreateNotificationCommand(Long userId,
                                         String notificationType,
-                                        String message,
+                                        String customerName,
+                                        LocalDateTime reservationTime,
+                                        String restaurantName,
                                         String status,
                                         String notificationMethod,
                                         LocalDateTime scheduledTime) {
@@ -22,7 +24,9 @@ public record CreateNotificationCommand(Long userId,
     return Notification.of(
         userId,
         NotificationType.valueOf(notificationType),
-        message,
+        customerName,
+        reservationTime,
+        restaurantName,
         NotificationStatus.valueOf(status),
         NotificationMethod.valueOf(notificationMethod),
         scheduledTime

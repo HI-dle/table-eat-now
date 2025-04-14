@@ -12,7 +12,9 @@ import table.eat.now.notification.domain.repository.search.NotificationSearchCri
 public record NotificationSearchInfo(String notificationUuid,
                                      Long userId,
                                      String notificationType,
-                                     String message,
+                                     String customerName,
+                                     LocalDateTime reservationTime,
+                                     String restaurantName,
                                      String status,
                                      String notificationMethod,
                                      LocalDateTime scheduledTime) {
@@ -21,7 +23,9 @@ public record NotificationSearchInfo(String notificationUuid,
         .notificationUuid(criteriaResponse.notificationUuid())
         .userId(criteriaResponse.userId())
         .notificationType(criteriaResponse.notificationType())
-        .message(criteriaResponse.message())
+        .customerName(criteriaResponse.customerName())
+        .reservationTime(criteriaResponse.reservationTime())
+        .restaurantName(criteriaResponse.restaurantName())
         .status(criteriaResponse.status())
         .notificationMethod(criteriaResponse.notificationMethod())
         .scheduledTime(criteriaResponse.scheduledTime())

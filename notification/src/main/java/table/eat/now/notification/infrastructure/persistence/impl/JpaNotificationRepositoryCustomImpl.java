@@ -32,7 +32,6 @@ public class JpaNotificationRepositoryCustomImpl implements JpaNotificationRepos
         equalNotificationType(searchCriteria.notificationType()),
         equalStatus(searchCriteria.status()),
         equalNotificationMethod(searchCriteria.notificationMethod()),
-        containsMessage(searchCriteria.message()),
         equalUserId(searchCriteria.userId())
     };
 
@@ -74,9 +73,6 @@ public class JpaNotificationRepositoryCustomImpl implements JpaNotificationRepos
   private BooleanExpression equalNotificationMethod(String notificationMethod) {
     return notificationMethod == null ? null : notification.notificationMethod.eq(
         NotificationMethod.valueOf(notificationMethod));
-  }
-  private BooleanExpression containsMessage(String message) {
-    return message == null ? null : notification.message.containsIgnoreCase(message);
   }
   private BooleanExpression equalUserId(Long userId) {
     return userId == null ? null : notification.userId.eq(userId);

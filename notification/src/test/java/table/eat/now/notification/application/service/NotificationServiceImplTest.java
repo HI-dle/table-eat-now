@@ -58,7 +58,9 @@ class NotificationServiceImplTest {
     CreateNotificationCommand command = new CreateNotificationCommand(
         1L,
         "CONFIRM_OWNER",
-        "예약이 확정되었습니다.",
+        "고객명",
+        LocalDateTime.now(),
+        "레스토랑명",
         "PENDING",
         "SLACK",
         LocalDateTime.now().plusHours(1)
@@ -74,7 +76,6 @@ class NotificationServiceImplTest {
 
     // then
     assertThat(result.userId()).isEqualTo(command.userId());
-    assertThat(result.message()).isEqualTo(command.message());
 
     verify(notificationRepository).save(any(Notification.class));
   }
@@ -87,7 +88,9 @@ class NotificationServiceImplTest {
     Notification existingNotification = Notification.of(
         1L,
         NotificationType.CONFIRM_OWNER,
-        "기존 메시지",
+        "고객명",
+        LocalDateTime.now(),
+        "레스토랑명",
         NotificationStatus.PENDING,
         NotificationMethod.SLACK,
         LocalDateTime.now().plusHours(1)
@@ -101,7 +104,9 @@ class NotificationServiceImplTest {
     UpdateNotificationCommand command = new UpdateNotificationCommand(
         1L,
         "CONFIRM_OWNER",
-        "수정된 메시지",
+        "고객명",
+        LocalDateTime.now(),
+        "레스토랑명",
         "SENT",
         "EMAIL",
         LocalDateTime.now().plusHours(2)
@@ -115,7 +120,6 @@ class NotificationServiceImplTest {
 
     // then
     assertThat(result.notificationUuid()).isEqualTo(notificationUuid);
-    assertThat(result.message()).isEqualTo("수정된 메시지");
     assertThat(result.status()).isEqualTo("SENT");
     assertThat(result.notificationMethod()).isEqualTo("EMAIL");
 
@@ -130,7 +134,9 @@ class NotificationServiceImplTest {
     UpdateNotificationCommand command = new UpdateNotificationCommand(
         1L,
         "CONFIRM_OWNER",
-        "수정된 메시지",
+        "고객명",
+        LocalDateTime.now(),
+        "레스토랑명",
         "SENT",
         "EMAIL",
         LocalDateTime.now().plusHours(2)
@@ -158,7 +164,9 @@ class NotificationServiceImplTest {
     Notification existingNotification = Notification.of(
         1L,
         NotificationType.CONFIRM_OWNER,
-        "조회 테스트 메시지",
+        "고객명",
+        LocalDateTime.now(),
+        "레스토랑명",
         NotificationStatus.PENDING,
         NotificationMethod.EMAIL,
         LocalDateTime.now().plusHours(1)
@@ -177,7 +185,6 @@ class NotificationServiceImplTest {
     assertThat(result.notificationUuid()).isEqualTo(notificationUuid);
     assertThat(result.userId()).isEqualTo(1L);
     assertThat(result.notificationType()).isEqualTo("CONFIRM_OWNER");
-    assertThat(result.message()).isEqualTo("조회 테스트 메시지");
     assertThat(result.status()).isEqualTo("PENDING");
     assertThat(result.notificationMethod()).isEqualTo("EMAIL");
     assertThat(result.scheduledTime()).isEqualTo(existingNotification.getScheduledTime());
@@ -191,7 +198,6 @@ class NotificationServiceImplTest {
     NotificationSearchCommand command = new NotificationSearchCommand(
         1L,
         "CONFIRM_OWNER",
-        "테스트 메시지",
         "PENDING",
         "EMAIL",
         true,
@@ -206,7 +212,9 @@ class NotificationServiceImplTest {
         UUID.randomUUID().toString(),
         1L,
         "CONFIRM_OWNER",
-        "테스트 메시지1",
+        "고객명",
+        LocalDateTime.now(),
+        "레스토랑명",
         "PENDING",
         "EMAIL",
         LocalDateTime.now().plusHours(1)
@@ -216,7 +224,9 @@ class NotificationServiceImplTest {
         UUID.randomUUID().toString(),
         1L,
         "CONFIRM_OWNER",
-        "테스트 메시지2",
+        "고객명",
+        LocalDateTime.now(),
+        "레스토랑명",
         "PENDING",
         "EMAIL",
         LocalDateTime.now().plusHours(2)
@@ -226,7 +236,9 @@ class NotificationServiceImplTest {
         UUID.randomUUID().toString(),
         1L,
         "CONFIRM_OWNER",
-        "테스트 메시지3",
+        "고객명",
+        LocalDateTime.now(),
+        "레스토랑명",
         "PENDING",
         "EMAIL",
         LocalDateTime.now().plusHours(3)
@@ -251,8 +263,6 @@ class NotificationServiceImplTest {
     assertThat(result.size()).isEqualTo(2);
     assertThat(result.totalElements()).isEqualTo(3L);
     assertThat(result.totalPages()).isEqualTo(2);
-    assertThat(result.content().get(0).message()).isEqualTo("테스트 메시지1");
-    assertThat(result.content().get(1).message()).isEqualTo("테스트 메시지2");
 
     verify(notificationRepository).searchNotification(criteria);
   }
@@ -267,7 +277,9 @@ class NotificationServiceImplTest {
     Notification notification = Notification.of(
         userId,
         NotificationType.CONFIRM_OWNER,
-        "삭제 테스트 메시지",
+        "고객명",
+        LocalDateTime.now(),
+        "레스토랑명",
         NotificationStatus.PENDING,
         NotificationMethod.EMAIL,
         LocalDateTime.now().plusHours(1)

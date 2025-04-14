@@ -45,7 +45,9 @@ public class NotificationServiceImpl implements NotificationService{
     notification.modifyNotification(
         command.userId(),
         command.notificationType(),
-        command.message(),
+        command.customerName(),
+        command.reservationTime(),
+        command.restaurantName(),
         command.status(),
         command.notificationMethod(),
         command.scheduledTime()

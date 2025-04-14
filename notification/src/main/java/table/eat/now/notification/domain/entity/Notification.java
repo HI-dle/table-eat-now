@@ -56,7 +56,7 @@ public class Notification extends BaseEntity{
   private LocalDateTime scheduledTime;
 
   private Notification(Long userId, NotificationType notificationType,
-      String customerName, String reservationTime, String restaurantName,
+      String customerName, LocalDateTime reservationTime, String restaurantName,
       NotificationStatus status, NotificationMethod notificationMethod,
       LocalDateTime scheduledTime) {
     this.notificationUuid = UUID.randomUUID().toString();
@@ -69,7 +69,7 @@ public class Notification extends BaseEntity{
   }
 
   public static Notification of(Long userId, NotificationType notificationType,
-      String customerName, String reservationTime, String restaurantName,
+      String customerName, LocalDateTime reservationTime, String restaurantName,
       NotificationStatus status, NotificationMethod notificationMethod,
       LocalDateTime scheduledTime) {
     return new Notification(
@@ -78,7 +78,7 @@ public class Notification extends BaseEntity{
   }
 
   public void modifyNotification(Long userId, String notificationType,
-      String customerName, String reservationTime, String restaurantName,
+      String customerName, LocalDateTime reservationTime, String restaurantName,
       String status, String notificationMethod,
       LocalDateTime scheduledTime) {
     this.userId = userId;

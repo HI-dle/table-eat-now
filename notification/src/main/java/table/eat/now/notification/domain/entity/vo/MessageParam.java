@@ -1,6 +1,7 @@
 package table.eat.now.notification.domain.entity.vo;
 
 import jakarta.persistence.Embeddable;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -19,11 +20,11 @@ import lombok.NoArgsConstructor;
 public class MessageParam {
 
   private String customerName;
-  private String reservationTime;
+  private LocalDateTime reservationTime;
   private String restaurantName;
 
   public static MessageParam of(
-      String customerName, String reservationTime, String restaurantName) {
+      String customerName, LocalDateTime reservationTime, String restaurantName) {
     return new MessageParam(customerName,reservationTime,restaurantName);
   }
 
