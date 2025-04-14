@@ -122,7 +122,8 @@ class PaymentServiceImplTest {
       // then
       assertThat(result).isNotNull();
       assertThat(result.paymentUuid()).isEqualTo(savedPayment.getIdentifier().getPaymentUuid());
-      assertThat(result.idempotencyKey()).isEqualTo(savedPayment.getIdentifier().getIdempotencyKey());
+      assertThat(result.idempotencyKey()).isEqualTo(
+          savedPayment.getIdentifier().getIdempotencyKey());
       assertThat(result.paymentStatus()).isEqualTo(PaymentStatus.CREATED.name());
       assertThat(result.originalAmount()).isEqualTo(originalAmount);
 
@@ -217,7 +218,7 @@ class PaymentServiceImplTest {
     }
 
     @Test
-    void 유효한_요청으로_결제를_확인하면_확인된_결제_정보를_반환한다() {
+    void 유효한_요청으로_결제를_확인하면_확인된_결제_정보를_반환하고_이벤트를_발송한다() {
       // given
       doNothing().when(paymentEventPublisher).publish(any(PaymentSuccessEvent.class));
 
@@ -267,13 +268,18 @@ class PaymentServiceImplTest {
           LocalDateTime.now()
       );
 
+      ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
+
       when(pgClient.cancel(any(CancelPaymentCommand.class), anyString()))
           .thenReturn(cancelPgPaymentInfo);
 
       // when
       paymentService.confirmPayment(command, userInfo);
       // then
+      verify(transactionalHelper).doInNewTransaction(runnableCaptor.capture());
       verify(transactionalHelper).doInNewTransaction(any(Runnable.class));
+      runnableCaptor.getValue().run();
+      verify(pgClient).cancel(any(CancelPaymentCommand.class), anyString());
     }
   }
 
@@ -373,7 +379,8 @@ class PaymentServiceImplTest {
       paymentServiceImpl.cancelPayment(command, cancelReason, payment);
 
       // then
-      ArgumentCaptor<CancelPaymentCommand> commandCaptor = ArgumentCaptor.forClass(CancelPaymentCommand.class);
+      ArgumentCaptor<CancelPaymentCommand> commandCaptor = ArgumentCaptor.forClass(
+          CancelPaymentCommand.class);
       verify(pgClient).cancel(commandCaptor.capture(), eq(idempotencyKey));
 
       CancelPaymentCommand capturedCommand = commandCaptor.getValue();
@@ -481,7 +488,8 @@ class PaymentServiceImplTest {
       assertThat(exception.getMessage()).isEqualTo(PAYMENT_NOT_FOUND.getMessage());
 
       // 메서드 호출 검증
-      verify(paymentRepository).findByIdentifier_PaymentUuidAndDeletedAtNull(nonExistentPaymentUuid);
+      verify(paymentRepository).findByIdentifier_PaymentUuidAndDeletedAtNull(
+          nonExistentPaymentUuid);
     }
   }
 }
