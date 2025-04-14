@@ -5,8 +5,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.waiting.waiting_request.application.client.RestaurantClient;
 import table.eat.now.waiting.waiting_request.application.dto.event.SendCreatedWaitingRequestEvent;
 import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaitingRequestCommand;
+import table.eat.now.waiting.waiting_request.application.dto.request.EnterWaitingRequestCommand;
+import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
 import table.eat.now.waiting.waiting_request.application.exception.WaitingRequestErrorCode;
 import table.eat.now.waiting.waiting_request.application.utils.TimeProvider;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
@@ -16,6 +19,7 @@ import table.eat.now.waiting.waiting_request.domain.repository.WaitingRequestRep
 @Service
 public class WaitingRequestServiceImpl implements WaitingRequestService {
   private final WaitingRequestRepository waitingRequestRepository;
+  private final RestaurantClient restaurantClient;
 
   @Override
   public String createWaitingRequest(
@@ -37,6 +41,33 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
     sendWaitingRequestConfirmedInfoMessage(command, sequence, rank, estimatedWaitingTime);
 
     return waitingRequestUuid;
+  }
+
+  @Override
+  public void processWaitingRequestEntrance(
+      CurrentUserInfoDto userInfo, String waitingRequestsUuid, EnterWaitingRequestCommand command) {
+
+    WaitingRequest waitingRequest = waitingRequestRepository.findByWaitingRequestUuidAndDeletedAtIsNull(
+            waitingRequestsUuid)
+        .orElseThrow(
+            () -> CustomException.from(WaitingRequestErrorCode.INVALID_WAITING_REQUEST_UUID));
+
+    validateRequestByUserRole(userInfo, command);
+    dequeueWaitingRequest(command.dailyWaitingUuid(), waitingRequestsUuid);
+
+    // todo 메세지 전송 필요
+    sendWaitingRequestEntranceInfoMessage(waitingRequest);
+  }
+
+  private void sendWaitingRequestEntranceInfoMessage(WaitingRequest waitingRequest) {
+  }
+
+  private void dequeueWaitingRequest(String dailyWaitingUuid, String waitingRequestsUuid) {
+    boolean result =
+        waitingRequestRepository.dequeueWaitingRequest(dailyWaitingUuid, waitingRequestsUuid);
+    if (!result) {
+      throw CustomException.from(WaitingRequestErrorCode.INVALID_WAITING_REQUEST_UUID);
+    }
   }
 
   private void sendWaitingRequestConfirmedInfoMessage(
@@ -67,5 +98,25 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
     if (existsBy) {
       throw CustomException.from(WaitingRequestErrorCode.ALREADY_EXISTS_WAITING);
     }
+  }
+
+  private void validateRequestByUserRole(CurrentUserInfoDto userInfo, EnterWaitingRequestCommand command) {
+
+    if (userInfo.role().isRestaurantStaff()) {
+      GetRestaurantInfo restaurantInfo = restaurantClient.getRestaurantInfo(command.restaurantUuid());
+
+      if (!isOwnerOfRestaurant(userInfo, restaurantInfo.ownerId())
+          && !isStaffOfRestaurant(userInfo, restaurantInfo.staffId())) {
+        throw CustomException.from(WaitingRequestErrorCode.UNAUTH_REQUEST);
+      }
+    }
+  }
+
+  private boolean isStaffOfRestaurant(CurrentUserInfoDto userInfo, Long staffId) {
+    return userInfo.role().isStaff() && staffId.equals(userInfo.userId());
+  }
+
+  private boolean isOwnerOfRestaurant(CurrentUserInfoDto userInfo, Long ownerId) {
+    return userInfo.role().isOwner() && ownerId.equals(userInfo.userId());
   }
 }

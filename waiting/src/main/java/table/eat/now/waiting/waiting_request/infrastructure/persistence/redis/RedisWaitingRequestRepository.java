@@ -9,4 +9,6 @@ public interface RedisWaitingRequestRepository {
   Integer getSequence(String dailyWaitingUuid);
 
   Long getRank(String dailyWaitingUuid, String waitingRequestUuid);
+
+  boolean removeWaitingRequest(String dailyWaitingUuid, String waitingRequestUuid);
 }
