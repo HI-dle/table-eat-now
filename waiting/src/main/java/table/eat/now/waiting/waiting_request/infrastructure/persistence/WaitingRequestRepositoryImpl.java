@@ -1,5 +1,6 @@
 package table.eat.now.waiting.waiting_request.infrastructure.persistence;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
@@ -36,7 +37,7 @@ public class WaitingRequestRepositoryImpl implements WaitingRequestRepository {
   }
 
   @Override
-  public WaitingRequest findByWaitingRequestUuidAndDeletedAtIsNull(String waitingRequestUuid) {
+  public Optional<WaitingRequest> findByWaitingRequestUuidAndDeletedAtIsNull(String waitingRequestUuid) {
     return jpaRepository.findByWaitingRequestUuidAndDeletedAtIsNull(waitingRequestUuid);
   }
 
@@ -48,5 +49,10 @@ public class WaitingRequestRepositoryImpl implements WaitingRequestRepository {
   @Override
   public Long getRank(String dailyWaitingUuid, String waitingRequestUuid) {
     return redisRepository.getRank(dailyWaitingUuid, waitingRequestUuid);
+  }
+
+  @Override
+  public boolean dequeueWaitingRequest(String dailyWaitingUuid, String waitingRequestUuid) {
+    return redisRepository.removeWaitingRequest(dailyWaitingUuid, waitingRequestUuid);
   }
 }

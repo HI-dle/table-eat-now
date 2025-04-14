@@ -33,4 +33,10 @@ public class RedisWaitingRequestRepositoryImpl implements RedisWaitingRequestRep
   public Long getRank(String dailyWaitingUuid, String waitingRequestUuid) {
     return redisTemplate.opsForZSet().rank(WAITING_ZSET_PREFIX + dailyWaitingUuid, waitingRequestUuid);
   }
+
+  @Override
+  public boolean removeWaitingRequest(String dailyWaitingUuid, String waitingRequestUuid) {
+    Long count = redisTemplate.opsForZSet().remove(WAITING_ZSET_PREFIX + dailyWaitingUuid, waitingRequestUuid);
+    return count != null && count > 0;
+  }
 }

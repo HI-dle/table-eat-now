@@ -1,5 +1,6 @@
 package table.eat.now.waiting.waiting_request.infrastructure.persistence.jpa;
 
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
@@ -13,5 +14,5 @@ public interface JpaWaitingRequestRepository
   boolean existsByConditionAndStatusIsWaitingAndDeletedAtIsNull(
       String dailyWaitingUuid, String phone);
 
-  WaitingRequest findByWaitingRequestUuidAndDeletedAtIsNull(String waitingRequestUuid);
+  Optional<WaitingRequest> findByWaitingRequestUuidAndDeletedAtIsNull(String waitingRequestUuid);
 }
