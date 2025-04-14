@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,8 +45,8 @@ import table.eat.now.payment.payment.domain.entity.PaymentStatus;
 import table.eat.now.payment.payment.domain.repository.PaymentRepository;
 
 @SpringBootTest
-@Transactional
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class PaymentServiceImplTest {
 
   @Autowired
@@ -255,8 +256,7 @@ class PaymentServiceImplTest {
           .thenReturn(cancelPgPaymentInfo);
 
       // when
-      ConfirmPaymentInfo result = paymentService.confirmPayment(command);
-
+      paymentService.confirmPayment(command);
       // then
       verify(transactionalHelper).doInNewTransaction(any(Runnable.class));
     }
