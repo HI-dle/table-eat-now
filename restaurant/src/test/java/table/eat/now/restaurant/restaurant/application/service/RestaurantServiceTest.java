@@ -7,6 +7,7 @@ package table.eat.now.restaurant.restaurant.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.restaurant.global.IntegrationTestSupport;
@@ -241,6 +243,155 @@ class RestaurantServiceTest extends IntegrationTestSupport {
               RestaurantErrorCode.RESTAURANT_NOT_FOUND.getMessage());
     }
   }
+
+  @DisplayName("soft delete 된 식당 단건 조회 서비스")
+  @Nested
+  class getDeletedRestaurant {
+
+    // 식당 1
+    // menus
+    int restaurant1InactiveMenuSize = 3;
+    int restaurant1ActiveMenuSize = 3;
+    Set<RestaurantMenu> menus = Stream.concat(
+            RestaurantMenuFixture.createRandomsByStatus(
+                MenuStatus.INACTIVE, restaurant1InactiveMenuSize).stream(),
+            RestaurantMenuFixture.createRandomsByStatus(
+                MenuStatus.ACTIVE, restaurant1ActiveMenuSize).stream())
+        .collect(Collectors.toSet());
+    // timeslot
+    Set<RestaurantTimeSlot> timeSlots = RestaurantTimeSlotFixture.createRandoms(5);
+    Restaurant inactiveRestaurant1 = RestaurantFixture.createRandomByStatusAndMenusAndTimeSlots(
+        RestaurantStatus.INACTIVE, menus, timeSlots);
+    // 식당 2
+    // menus
+    Set<RestaurantMenu> menus2 = Stream.concat(
+            RestaurantMenuFixture.createRandomsByStatus(MenuStatus.INACTIVE, 3).stream(),
+            RestaurantMenuFixture.createRandomsByStatus(MenuStatus.ACTIVE, 3).stream())
+        .collect(Collectors.toSet());
+    // timeslot
+    Set<RestaurantTimeSlot> timeSlots2 = RestaurantTimeSlotFixture.createRandoms(5);
+
+    Restaurant openedRestaurant2 = RestaurantFixture.createRandomByStatusAndMenusAndTimeSlots(
+        RestaurantStatus.OPENED, menus2, timeSlots2);
+
+
+    @DisplayName("MASTER는 soft delete 된 식당도 볼 수 있다.")
+    @Test
+    void success_master() {
+      ReflectionTestUtils.setField(inactiveRestaurant1, "deletedAt", LocalDateTime.now());
+      ReflectionTestUtils.setField(inactiveRestaurant1, "deletedBy", 1L);
+      // given
+      restaurantRepository.saveAll(List.of(inactiveRestaurant1, openedRestaurant2));
+      GetRestaurantCriteria criteria = GetRestaurantCriteria.from(
+          inactiveRestaurant1.getRestaurantUuid(),
+          UserRole.MASTER, 1L);
+
+      // when
+      GetRestaurantInfo result = restaurantService.getRestaurant(criteria);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result)
+          .extracting(
+              GetRestaurantInfo::name,
+              GetRestaurantInfo::address,
+              GetRestaurantInfo::status
+          )
+          .containsExactly(
+              inactiveRestaurant1.getName(),
+              inactiveRestaurant1.getContactInfo().getAddress(),
+              inactiveRestaurant1.getStatus().toString()
+          );
+      assertThat(result.menus()).hasSize(menus.size());
+    }
+
+    @DisplayName("식당의 OWNER는 해당 식당의 사장이면 soft delete 된  식당도 볼 수 있다.")
+    @Test
+    void success_owner() {
+      // given
+      ReflectionTestUtils.setField(inactiveRestaurant1, "deletedAt", LocalDateTime.now());
+      ReflectionTestUtils.setField(inactiveRestaurant1, "deletedBy", 1L);
+      restaurantRepository.saveAll(List.of(inactiveRestaurant1, openedRestaurant2));
+      GetRestaurantCriteria criteria = GetRestaurantCriteria.from(
+          inactiveRestaurant1.getRestaurantUuid(),
+          UserRole.OWNER, inactiveRestaurant1.getOwnerId());
+
+      // when
+      GetRestaurantInfo result = restaurantService.getRestaurant(criteria);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result)
+          .extracting(
+              GetRestaurantInfo::name,
+              GetRestaurantInfo::address,
+              GetRestaurantInfo::status
+          )
+          .containsExactly(
+              inactiveRestaurant1.getName(),
+              inactiveRestaurant1.getContactInfo().getAddress(),
+              inactiveRestaurant1.getStatus().toString()
+          );
+      assertThat(result.menus()).hasSize(menus.size());
+    }
+
+    @DisplayName("식당의 STAFF는 해당 식당의 소속이어도 soft delete 된 식당은 볼 수 없어서 예외가 발생한다.")
+    @Test
+    void fail_staff() {
+      // given
+      ReflectionTestUtils.setField(inactiveRestaurant1, "deletedAt", LocalDateTime.now());
+      ReflectionTestUtils.setField(inactiveRestaurant1, "deletedBy", 1L);
+      restaurantRepository.saveAll(List.of(inactiveRestaurant1, openedRestaurant2));
+      GetRestaurantCriteria criteria = GetRestaurantCriteria.from(
+          inactiveRestaurant1.getRestaurantUuid(),
+          UserRole.STAFF, inactiveRestaurant1.getStaffId());
+
+      // when & then
+      assertThatThrownBy(() -> restaurantService.getRestaurant(criteria))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(
+              RestaurantErrorCode.RESTAURANT_NOT_FOUND.getMessage());
+    }
+
+    @DisplayName("CUSTOMER는 soft delete 된 식당은 볼 수 없어서 예외가 발생한다.")
+    @Test
+    void fail_customer() {
+      // given
+      ReflectionTestUtils.setField(inactiveRestaurant1, "deletedAt", LocalDateTime.now());
+      ReflectionTestUtils.setField(inactiveRestaurant1, "deletedBy", 1L);
+      restaurantRepository.saveAll(List.of(inactiveRestaurant1, openedRestaurant2));
+      GetRestaurantCriteria criteria = GetRestaurantCriteria.from(
+          inactiveRestaurant1.getRestaurantUuid(),
+          UserRole.CUSTOMER, 2L);
+
+      // when & then
+      assertThatThrownBy(() -> restaurantService.getRestaurant(criteria))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(
+              RestaurantErrorCode.RESTAURANT_NOT_FOUND.getMessage());
+    }
+
+    @DisplayName("OWNER는 본인의 식당이 아닌 soft delete 된 식당은 볼 수 없어 조회 시 예외가 발생한다.")
+    @Test
+    void fail_owner() {
+      // given
+      ReflectionTestUtils.setField(inactiveRestaurant1, "deletedAt", LocalDateTime.now());
+      ReflectionTestUtils.setField(inactiveRestaurant1, "deletedBy", 1L);
+      restaurantRepository.saveAll(List.of(inactiveRestaurant1, openedRestaurant2));
+      GetRestaurantCriteria criteria = GetRestaurantCriteria.from(
+          inactiveRestaurant1.getRestaurantUuid(),
+          UserRole.OWNER,
+          inactiveRestaurant1.getOwnerId() + 1);
+
+      // when & then
+      assertThatThrownBy(() -> restaurantService.getRestaurant(criteria))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(
+              RestaurantErrorCode.RESTAURANT_NOT_FOUND.getMessage());
+    }
+
+  }
+
   @DisplayName("활성화 상태의 식당 단건 조회 서비스")
   @Nested
   class getActiveRestaurantWithInactiveMenus {
