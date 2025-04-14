@@ -59,7 +59,6 @@ public class PromotionRestaurantServiceImpl implements PromotionRestaurantServic
   @Override
   @Transactional
   public void deletePromotionRestaurant(String restaurantUuid, CurrentUserInfoDto userInfoDto) {
-    //TODO: FeignClient로 promotion에 프로모션이 진행중인지 검사해야함.
     PromotionRestaurant promotionRestaurant =
         findByPromotionRestaurantFromRestaurantId(restaurantUuid);
     promotionRestaurant.delete(userInfoDto.userId());

@@ -8,7 +8,7 @@ import table.eat.now.promotion.promotion.application.dto.request.SearchPromotion
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.GetPromotionInfo;
-import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsFeignInfo;
+import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsClientInfo;
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 
@@ -27,5 +27,5 @@ public interface PromotionService {
 
   void deletePromotion(String promotionUuid, CurrentUserInfoDto userInfoDto);
 
-  GetPromotionsFeignInfo reservationGetPromotions(GetPromotionsFeignCommand command);
+  GetPromotionsClientInfo reservationGetPromotions(GetPromotionsFeignCommand command);
 }

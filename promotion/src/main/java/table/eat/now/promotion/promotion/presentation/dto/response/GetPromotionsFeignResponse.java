@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
-import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsFeignInfo;
-import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsFeignInfo.ReservationInfo;
+import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsClientInfo;
+import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsClientInfo.ReservationInfo;
 
 /**
  * @author : hanjihoon
@@ -44,7 +44,7 @@ public record GetPromotionsFeignResponse(List<ReservationRequest> reservationReq
           .build();
     }
   }
-  public static GetPromotionsFeignResponse from(GetPromotionsFeignInfo info) {
+  public static GetPromotionsFeignResponse from(GetPromotionsClientInfo info) {
     List<ReservationRequest> requests = info.reservationRequests().stream()
         .map(ReservationRequest::from)
         .toList();

@@ -21,7 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsFeignInfo;
+import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsClientInfo;
 import table.eat.now.promotion.promotion.application.service.PromotionService;
 import table.eat.now.promotion.promotion.presentation.dto.request.GetPromotionsFeignRequest;
 
@@ -53,9 +53,9 @@ class PromotionInternalControllerTest {
         "restaurant-uuid-123"
     );
 
-    GetPromotionsFeignInfo mockResponse = GetPromotionsFeignInfo.builder()
+    GetPromotionsClientInfo mockResponse = GetPromotionsClientInfo.builder()
         .reservationRequests(List.of(
-            GetPromotionsFeignInfo.ReservationInfo.builder()
+            GetPromotionsClientInfo.ReservationInfo.builder()
                 .promotionId(1L)
                 .promotionUuid("promo-uuid-1")
                 .promotionName("봄맞이 할인 프로모션")

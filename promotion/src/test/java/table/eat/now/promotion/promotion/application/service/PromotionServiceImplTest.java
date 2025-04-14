@@ -33,7 +33,7 @@ import table.eat.now.promotion.promotion.application.dto.request.SearchPromotion
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.GetPromotionInfo;
-import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsFeignInfo;
+import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsClientInfo;
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
@@ -383,7 +383,7 @@ class PromotionServiceImplTest {
     when(promotionRepository.findAllByPromotionUuidInAndDeletedByIsNull(promotionUuids))
         .thenReturn(List.of(promo1, promo2));
 
-    GetPromotionsFeignInfo result = promotionService.reservationGetPromotions(command);
+    GetPromotionsClientInfo result = promotionService.reservationGetPromotions(command);
 
     assertThat(result).isNotNull();
     assertThat(result.reservationRequests()).hasSize(2);

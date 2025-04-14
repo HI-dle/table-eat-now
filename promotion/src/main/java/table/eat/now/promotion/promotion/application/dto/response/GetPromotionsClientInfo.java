@@ -12,7 +12,7 @@ import table.eat.now.promotion.promotion.domain.entity.Promotion;
  * @Date : 2025. 04. 13.
  */
 @Builder
-public record GetPromotionsFeignInfo(List<ReservationInfo> reservationRequests) {
+public record GetPromotionsClientInfo(List<ReservationInfo> reservationRequests) {
 
   @Builder
   public record ReservationInfo(Long promotionId,
@@ -28,7 +28,7 @@ public record GetPromotionsFeignInfo(List<ReservationInfo> reservationRequests) 
                                 String restaurantUuid) {
   }
 
-  public static GetPromotionsFeignInfo from(
+  public static GetPromotionsClientInfo from(
       GetPromotionRestaurantInfo restaurantInfo,
       List<Promotion> promotions
   ) {
@@ -48,7 +48,7 @@ public record GetPromotionsFeignInfo(List<ReservationInfo> reservationRequests) 
             .build()
         ).toList();
 
-    return new GetPromotionsFeignInfo(reservationInfos);
+    return new GetPromotionsClientInfo(reservationInfos);
   }
 
 }

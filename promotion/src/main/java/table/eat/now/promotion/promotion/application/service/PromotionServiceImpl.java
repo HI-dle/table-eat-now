@@ -16,7 +16,7 @@ import table.eat.now.promotion.promotion.application.dto.request.SearchPromotion
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.GetPromotionInfo;
-import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsFeignInfo;
+import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsClientInfo;
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
@@ -86,7 +86,7 @@ public class PromotionServiceImpl implements PromotionService{
 
   @Override
   @Transactional(readOnly = true)
-  public GetPromotionsFeignInfo reservationGetPromotions(GetPromotionsFeignCommand command) {
+  public GetPromotionsClientInfo reservationGetPromotions(GetPromotionsFeignCommand command) {
 
     GetPromotionRestaurantInfo promotionRestaurantRes =
         promotionClient.findRestaurantsByPromotions(command.restaurantUuid());
@@ -94,7 +94,7 @@ public class PromotionServiceImpl implements PromotionService{
     List<Promotion> promotions = promotionRepository.
         findAllByPromotionUuidInAndDeletedByIsNull(command.promotionUuids());
 
-    return GetPromotionsFeignInfo.from(promotionRestaurantRes, promotions);
+    return GetPromotionsClientInfo.from(promotionRestaurantRes, promotions);
   }
 
   private void deleteCheckPromotionStatus(PromotionStatus status) {
