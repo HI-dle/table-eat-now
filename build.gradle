@@ -42,7 +42,8 @@ ext {
         "**/command/**",
         "**/common/**",
         "**/domain/**",
-        "**/gateway/**"
+        "**/gateway/**",
+        "**/util*/**"
     ]
 
     def Qdomains = []
