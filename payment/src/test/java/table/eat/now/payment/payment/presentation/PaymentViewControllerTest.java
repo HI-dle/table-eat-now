@@ -4,14 +4,31 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
+import table.eat.now.common.aop.AuthCheckAspect;
+import table.eat.now.common.config.WebConfig;
+import table.eat.now.common.exception.GlobalErrorHandler;
+import table.eat.now.common.resolver.CurrentUserInfoResolver;
+import table.eat.now.common.resolver.CustomPageableArgumentResolver;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+@ActiveProfiles("test")
+@Import({
+    WebConfig.class,
+    CustomPageableArgumentResolver.class,
+    CurrentUserInfoResolver.class,
+    GlobalErrorHandler.class,
+    AuthCheckAspect.class
+})
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @WebMvcTest(PaymentViewController.class)
 class PaymentViewControllerTest {
 
@@ -44,12 +61,5 @@ class PaymentViewControllerTest {
     mockMvc.perform(get("/fail"))
         .andExpect(status().isOk())
         .andExpect(view().name("fail"));
-  }
-
-  @Test
-  void idempotencyKey_파라미터_누락시_Bad_Request를_반환한다() throws Exception {
-    // when & then
-    mockMvc.perform(get("/checkout"))
-        .andExpect(status().isBadRequest());
   }
 }

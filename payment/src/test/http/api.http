@@ -1,0 +1,32 @@
+### 결제 생성
+POST localhost:8088/internal/v1/payments
+Content-Type: application/json
+
+{
+  "reservationUuid": "00000000-0000-0000-0000-000000000013",
+  "restaurantUuid": "9882a539-0380-4a5d-bec4-da49d37f06e5",
+  "customerId": 123,
+  "reservationName": "하이들하신가",
+  "originalAmount": 45000
+}
+> {%
+  client.global.set("idempotencyKey", response.body.idempotencyKey)
+%}
+
+### Checkout 상세 조회
+GET http://localhost:8088/api/v1/payments/checkout-info?idempotencyKey={{idempotencyKey}}
+Content-Type: application/json
+
+### 결제 확정 요청 (클라이언트에서 내부적으로 수행됩니다)
+PATCH http://localhost:8088/api/v1/payments/confirm?reservationUuid=00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+
+{
+  "paymentKey": "tosspay-123-abc-xyz",
+  "totalAmount": 45000
+}
+
+###
+GET https://api.tosspayments.com/v1/payments/orders/00000000-0000-0000-0000-000000000011
+Authorization: Basic dGVzdF9za19BTG5RdkRkMlZKR2s0eUdLR1E5TnJNajdYNDFtOg
+Content-Type: application/json

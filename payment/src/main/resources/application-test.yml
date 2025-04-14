@@ -27,3 +27,7 @@ spring:
 eureka:
   client:
     enabled: false
+payment:
+  toss:
+    secret-key: secretsecret
+    api-url: secret secret

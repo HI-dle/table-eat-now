@@ -9,7 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import table.eat.now.common.domain.BaseEntity;
@@ -41,6 +40,8 @@ public class Payment extends BaseEntity {
 
   private LocalDateTime approvedAt;
 
+  private LocalDateTime cancelledAt;
+
   public static Payment create(PaymentReference reference, PaymentAmount amount) {
     validateNull(reference, amount);
     return new Payment(reference, amount);
@@ -52,19 +53,36 @@ public class Payment extends BaseEntity {
     }
   }
 
-  public void confirm(String paymentKey, BigDecimal discountAmount, BigDecimal totalAmount) {
-    validatePaymentKey(paymentKey);
-
-    this.paymentKey = paymentKey;
-    this.paymentStatus = PaymentStatus.APPROVED;
-    this.amount = amount.confirm(discountAmount, totalAmount);
-    this.approvedAt = LocalDateTime.now();
+  public void confirm(ConfirmPayment confirmPayment) {
+    validatePaymentKey(confirmPayment.paymentKey());
+    this.paymentKey = confirmPayment.paymentKey();
+    this.paymentStatus = validateStatus(PaymentStatus.APPROVED);
+    this.amount = amount.confirm(confirmPayment.discountAmount(), confirmPayment.totalAmount());
+    this.approvedAt = confirmPayment.approvedAt();
   }
 
   private void validatePaymentKey(String paymentKey) {
     if (paymentKey == null || paymentKey.isBlank()) {
       throw new IllegalArgumentException("paymentKey는 null이거나 빈 값일 수 없습니다");
     }
+  }
+
+  private PaymentStatus validateStatus(PaymentStatus nextStatus) {
+    if(this.paymentStatus.canChangeTo(nextStatus)){
+      return nextStatus;
+    }
+    throw new IllegalArgumentException("해당 상태로 변경할 수 없습니다.");
+  }
+
+  public void cancel(CancelPayment cancelPayment) {
+    validatePaymentKey(cancelPayment.paymentKey());
+
+    this.paymentStatus = validateStatus(PaymentStatus.CANCELED);
+    this.cancelledAt = cancelPayment.cancelledAt();
+  }
+
+  public String getIdempotencyKey() {
+    return this.identifier.getIdempotencyKey();
   }
 
   private Payment(PaymentReference reference, PaymentAmount amount) {
