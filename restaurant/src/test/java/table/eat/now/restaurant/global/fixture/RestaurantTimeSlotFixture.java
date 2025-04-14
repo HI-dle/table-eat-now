@@ -29,7 +29,7 @@ public class RestaurantTimeSlotFixture {
     return RestaurantTimeSlotFixture.create(
         UUID.randomUUID().toString(),
         null,
-        LocalDate.of(2025, num.intValue()%12+1, num.intValue()%29+1),
+        LocalDate.of(2025, num.intValue()%12+1, num.intValue()%28+1),
         LocalTime.of(num.intValue()%23+1, 0),
         num.intValue(),
         0
