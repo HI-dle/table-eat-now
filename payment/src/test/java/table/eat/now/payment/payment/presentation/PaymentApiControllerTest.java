@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.aop.AuthCheckAspect;
 import table.eat.now.common.config.WebConfig;
 import table.eat.now.common.exception.GlobalErrorHandler;
+import table.eat.now.common.exception.type.ApiErrorCode;
 import table.eat.now.common.resolver.CurrentUserInfoResolver;
 import table.eat.now.common.resolver.CustomPageableArgumentResolver;
 import table.eat.now.payment.payment.application.PaymentService;
@@ -93,7 +94,7 @@ class PaymentApiControllerTest {
     }
 
     @Test
-    void 유효하지_않은_idempotencyKey_입력시_InternalServerError를_반환한다() throws Exception {
+    void 유효하지_않은_idempotencyKey_입력시_400상태코드와_메시지를_반환한다() throws Exception {
       // given
       String invalidUUID = "invalid-uuid";
 
@@ -103,7 +104,10 @@ class PaymentApiControllerTest {
           .contentType(MediaType.APPLICATION_JSON));
 
       // then
-      actions.andExpect(status().isInternalServerError());
+      actions
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.message")
+              .value(ApiErrorCode.TYPE_MISMATCH.getMessage()));
     }
   }
 
@@ -161,7 +165,7 @@ class PaymentApiControllerTest {
     }
 
     @Test
-    void 유효하지_않은_reservationUuid_입력시_InternalServerError를_반환한다() throws Exception {
+    void 유효하지_않은_reservationUuid_입력시_400_상태코드와_메시지를_반환한다() throws Exception {
       // given
       String invalidUUID = "invalid-uuid";
 
@@ -172,7 +176,10 @@ class PaymentApiControllerTest {
           .content(objectMapper.writeValueAsString(confirmRequest)));
 
       // then
-      actions.andExpect(status().isInternalServerError());
+      actions
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.message")
+              .value(ApiErrorCode.TYPE_MISMATCH.getMessage()));
     }
 
     @Test
