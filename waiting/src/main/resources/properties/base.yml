@@ -1,0 +1,28 @@
+# local 환경
+spring:
+  config.activate.on-profile: local
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+server:
+  port: 8086
+
+---
+# test 환경
+spring:
+  config.activate.on-profile: test
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+server:
+  port: 8086
+
+---
+# dev 환경
+spring:
+  config.activate.on-profile: develop
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+server:
+  port: 8086

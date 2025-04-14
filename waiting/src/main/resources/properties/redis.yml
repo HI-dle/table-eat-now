@@ -1,0 +1,31 @@
+# local 환경
+spring:
+  config.activate.on-profile: local
+  data:
+    redis:
+      host: localhost
+      port: 6380
+      username: default
+#      password: systempass
+
+---
+# develop 환경
+spring:
+  config.activate.on-profile: develop
+  data:
+    redis:
+      host: ${DEV_REDIS_HOST}
+      port: ${DEV_REDIS_PORT}
+      username: ${DEV_REDIS_USERNAME}
+#      password: ${DEV_REDIS_PASSWORD}
+
+---
+# test 환경
+spring:
+  config.activate.on-profile: test
+  data:
+    redis:
+      host:
+      port:
+      username:
+#      password: systempass
