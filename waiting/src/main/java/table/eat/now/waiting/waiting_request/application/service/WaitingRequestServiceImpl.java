@@ -9,6 +9,7 @@ import table.eat.now.waiting.waiting_request.application.client.RestaurantClient
 import table.eat.now.waiting.waiting_request.application.dto.event.WaitingRequestCreatedEvent;
 import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaitingRequestCommand;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
+import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
 import table.eat.now.waiting.waiting_request.application.exception.WaitingRequestErrorCode;
 import table.eat.now.waiting.waiting_request.application.utils.TimeProvider;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
@@ -24,7 +25,7 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
   public String createWaitingRequest(
       CurrentUserInfoDto userInfo, CreateWaitingRequestCommand command) {
 
-    // todo. 현재 가게가 대기 가능한지 검증
+    // todo. 현재 가게가 대기 가능한지 검증 및 대기 관련 정보 조회
     String restaurantName = ""; // 임시
     String restaurantUuid = UUID.randomUUID().toString(); // 임시
     long avgWaitingSec = 600L; // 임시
@@ -51,12 +52,44 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
 
     WaitingRequest waitingRequest = getWaitingRequestBy(waitingRequestsUuid);
     GetRestaurantInfo restaurantInfo = restaurantClient.getRestaurantInfo(waitingRequest.getRestaurantUuid());
-
     validateRestaurantAuthority(userInfo, restaurantInfo);
+
     dequeueWaitingRequest(waitingRequest.getDailyWaitingUuid(), waitingRequestsUuid);
 
     // todo 메세지 전송 필요
     sendWaitingRequestEntranceMessage(waitingRequest, restaurantInfo.name());
+  }
+
+  @Override
+  public GetWaitingRequestInfo getWaitingRequest(
+      CurrentUserInfoDto userInfo, String waitingRequestUuid, String phone) {
+
+    WaitingRequest waitingRequest = getWaitingRequestBy(waitingRequestUuid);
+    validateUserPhoneNumber(phone, waitingRequest.getPhone());
+
+    // todo. 가게 이름 및 평균 대기 시간 조회
+    String restaurantName = ""; // 임시
+    long avgWaitingSec = 600L; // 임시
+    Long rank = waitingRequestRepository.getRank(waitingRequest.getDailyWaitingUuid(), waitingRequestUuid);
+    long estimatedWaitingSec = avgWaitingSec * (rank + 1L);
+
+    return GetWaitingRequestInfo.from(waitingRequest, restaurantName, rank, estimatedWaitingSec);
+  }
+
+  @Override
+  public GetWaitingRequestInfo getWaitingRequestAdmin(CurrentUserInfoDto userInfo, String waitingRequestUuid) {
+
+    WaitingRequest waitingRequest = getWaitingRequestBy(waitingRequestUuid);
+    GetRestaurantInfo restaurantInfo = restaurantClient.getRestaurantInfo(waitingRequest.getRestaurantUuid());
+    validateRestaurantAuthority(userInfo, restaurantInfo);
+
+    // todo. 가게 이름 및 평균 대기 시간 조회
+    String restaurantName = ""; // 임시
+    long avgWaitingSec = 600L; // 임시
+    Long rank = waitingRequestRepository.getRank(waitingRequest.getDailyWaitingUuid(), waitingRequestUuid);
+    long estimatedWaitingSec = avgWaitingSec * (rank + 1L);
+
+    return GetWaitingRequestInfo.from(waitingRequest, restaurantName, rank, estimatedWaitingSec);
   }
 
   private void sendWaitingRequestCreatedMessage(
@@ -123,5 +156,11 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
 
   private boolean isOwnerOfRestaurant(CurrentUserInfoDto userInfo, Long ownerId) {
     return userInfo.role().isOwner() && ownerId.equals(userInfo.userId());
+  }
+
+  private static void validateUserPhoneNumber(String phone, String savedPhone) {
+    if (!savedPhone.equals(phone)) {
+      throw CustomException.from(WaitingRequestErrorCode.UNAUTH_REQUEST);
+    }
   }
 }
