@@ -10,4 +10,6 @@ public interface JpaPaymentRepository extends JpaRepository<Payment, Long>, Paym
   Optional<Payment> findByIdentifier_IdempotencyKeyAndDeletedAtNull(String idempotencyKey);
 
   Optional<Payment> findByReference_ReservationIdAndDeletedAtNull(String reservationId);
+
+  Optional<Payment> findByIdentifier_PaymentUuidAndDeletedAtNull(String paymentUuid);
 }
