@@ -19,7 +19,7 @@ import table.eat.now.notification.domain.entity.NotificationMethod;
 @Slf4j
 public class SlackSender implements NotificationSenderStrategy {
 
-  private final WebClient webClient = WebClient.create();
+  private final WebClient webClient;
 
   @Value("${slack.webhook-url}")
   private String webhookUrl;
@@ -39,9 +39,14 @@ public class SlackSender implements NotificationSenderStrategy {
         .retrieve()
         .bodyToMono(String.class)
         .onErrorResume(e -> {
-          log.error("Slack 메시지 전송 실패: " + e.getMessage());
+          slackError(e);
           return Mono.empty();
         })
+        .doOnTerminate(() -> log.info("Slack 메시지 전송 완료"))
         .subscribe();
+  }
+
+  public void slackError(Throwable e) {
+    log.error("Slack 메시지 전송 실패: " + e.getMessage());
   }
 }

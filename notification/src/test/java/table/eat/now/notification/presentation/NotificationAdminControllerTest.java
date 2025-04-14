@@ -4,6 +4,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -271,6 +274,30 @@ class NotificationAdminControllerTest {
         .andDo(print());
   }
 
+  @DisplayName("알림 전송 테스트용 컨트롤러 입니다.")
+  @Test
+  void send_notification_test() throws Exception {
+    // given
+    String notificationsUuid = UUID.randomUUID().toString();
+
+
+    doNothing().when(notificationService).sendNotification(notificationsUuid);
+
+    // when
+    ResultActions resultActions = mockMvc.perform(get(
+        "/admin/v1/notifications/test/{notificationsUuid}", notificationsUuid)
+        .header("Authorization", "Bearer {ACCESS_TOKEN}")
+        .header(USER_ID_HEADER, "1")
+        .header(USER_ROLE_HEADER, "MASTER")
+        .contentType(MediaType.APPLICATION_JSON));
+
+    // then
+    resultActions.andExpect(status().isNoContent())
+        .andDo(print());
+
+    // verify sendNotification 호출 여부 확인
+    verify(notificationService, times(1)).sendNotification(notificationsUuid);
+  }
 
 
 
