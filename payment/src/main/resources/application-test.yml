@@ -29,5 +29,5 @@ eureka:
     enabled: false
 payment:
   toss:
-    secret-key: ${TOSS_SECRET_KEY}
-    api-url: ${TOSS_API_URL}
+    secret-key: secretsecret
+    api-url: secret secret
