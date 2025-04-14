@@ -1,19 +1,17 @@
-### 결제 생성
+### 결제 생성 (현재 예약ID를 랜덤값으로 주고있지 않아서, 이미처리된 결제ID라는 알림이 올 수 있습니다! 끝수 +1해주세요!)
 POST localhost:8088/internal/v1/payments
 Content-Type: application/json
 
 {
-  "reservationUuid": "00000000-0000-0000-0000-000000000008",
-  "restaurantUuid": "00000",
+  "reservationUuid": "00000000-0000-0000-0000-000000000017",
+  "restaurantUuid": "9882a539-0380-4a5d-bec4-da49d37f06e5",
   "customerId": 123,
   "reservationName": "하이들하신가",
   "originalAmount": 45000
 }
-
 > {%
   client.global.set("idempotencyKey", response.body.idempotencyKey)
 %}
 
-
-### 브라우저에서 해보시면 됩니다!
+### 브라우저에서 해보시면 됩니다! (최상단의 GET요청 url을 복사붙여넣기하시면 됩니다.)
 GET http://localhost:8088/checkout?idempotencyKey={{idempotencyKey}}

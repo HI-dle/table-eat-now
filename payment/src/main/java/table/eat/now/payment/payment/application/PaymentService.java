@@ -14,7 +14,7 @@ public interface PaymentService {
 
   GetCheckoutDetailInfo getCheckoutDetail(String idempotencyKey);
 
-  ConfirmPaymentInfo confirmPayment(ConfirmPaymentCommand command);
+  ConfirmPaymentInfo confirmPayment(ConfirmPaymentCommand command, CurrentUserInfoDto userInfo);
 
   GetPaymentInfo getPayment(String paymentUuid, CurrentUserInfoDto userInfo);
 }

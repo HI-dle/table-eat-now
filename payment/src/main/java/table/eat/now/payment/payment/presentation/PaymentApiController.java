@@ -41,10 +41,11 @@ public class PaymentApiController {
   @PatchMapping("/confirm")
   public ResponseEntity<ConfirmPaymentResponse> confirmPayment(
       @RequestParam UUID reservationUuid,
-      @RequestBody @Valid ConfirmPaymentRequest request) {
+      @RequestBody @Valid ConfirmPaymentRequest request,
+      @CurrentUserInfo CurrentUserInfoDto userInfo) {
 
     return ResponseEntity.ok(ConfirmPaymentResponse.from(
-        paymentService.confirmPayment(request.toCommand(reservationUuid.toString()))));
+        paymentService.confirmPayment(request.toCommand(reservationUuid.toString()), userInfo)));
   }
 
   @AuthCheck(roles = {CUSTOMER, MASTER})

@@ -24,6 +24,9 @@ import table.eat.now.payment.payment.application.dto.response.CreatePaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
+import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
+import table.eat.now.payment.payment.application.event.PaymentSuccessEvent;
+import table.eat.now.payment.payment.application.event.PaymentSuccessPayload;
 import table.eat.now.payment.payment.application.helper.TransactionalHelper;
 import table.eat.now.payment.payment.domain.entity.Payment;
 import table.eat.now.payment.payment.domain.repository.PaymentRepository;
@@ -36,6 +39,7 @@ public class PaymentServiceImpl implements PaymentService {
   private final PaymentRepository paymentRepository;
   private final ReservationClient reservationClient;
   private final TransactionalHelper transactionalHelper;
+  private final PaymentEventPublisher paymentEventPublisher;
   private final PgClient pgClient;
 
   @Override
@@ -73,7 +77,9 @@ public class PaymentServiceImpl implements PaymentService {
 
   @Override
   @Transactional
-  public ConfirmPaymentInfo confirmPayment(ConfirmPaymentCommand command) {
+  public ConfirmPaymentInfo confirmPayment(
+      ConfirmPaymentCommand command, CurrentUserInfoDto userInfo) {
+
     Payment payment = getPaymentByReservationId(command.reservationId());
     ConfirmPgPaymentInfo confirmedInfo =
         pgClient.confirm(command, payment.getIdempotencyKey());
@@ -81,10 +87,12 @@ public class PaymentServiceImpl implements PaymentService {
 
     try {
       payment.confirm(confirmedInfo.toConfirm());
+      paymentEventPublisher.publish(PaymentSuccessEvent
+          .of(PaymentSuccessPayload.from(payment), userInfo));
     } catch (IllegalArgumentException e) {
       log.error("Confirm payment failed", e);
-      transactionalHelper.doInNewTransaction(()->
-        cancelPayment(command, e.getMessage(), payment)
+      transactionalHelper.doInNewTransaction(
+          () -> cancelPayment(command, e.getMessage(), payment)
       );
     }
     return ConfirmPaymentInfo.from(payment);
@@ -96,7 +104,6 @@ public class PaymentServiceImpl implements PaymentService {
         .orElseThrow(() -> CustomException.from(PAYMENT_NOT_FOUND));
   }
 
-  @Transactional
   public void cancelPayment(ConfirmPaymentCommand command, String cancelReason, Payment payment) {
     CancelPgPaymentInfo cancelledInfo =
         pgClient.cancel(CancelPaymentCommand.
@@ -115,8 +122,8 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   private static void validateAccess(CurrentUserInfoDto userInfo, Payment payment) {
-    if(userInfo.role() != MASTER &&
-        !payment.getReference().getCustomerId().equals(userInfo.userId())){
+    if (userInfo.role() != MASTER &&
+        !payment.getReference().getCustomerId().equals(userInfo.userId())) {
       throw CustomException.from(PAYMENT_ACCESS_DENIED);
     }
   }

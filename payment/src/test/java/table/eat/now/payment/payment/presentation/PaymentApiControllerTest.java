@@ -153,7 +153,7 @@ class PaymentApiControllerTest {
     @Test
     void 유효한_요청으로_결제_확인시_200_상태코드와_결제_정보를_반환한다() throws Exception {
       // given
-      when(paymentService.confirmPayment(any())).thenReturn(confirmPaymentInfo);
+      when(paymentService.confirmPayment(any(), any())).thenReturn(confirmPaymentInfo);
 
       // when
       ResultActions actions = mockMvc.perform(patch("/api/v1/payments/confirm")

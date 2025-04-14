@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,15 +33,17 @@ import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.payment.payment.application.client.PgClient;
 import table.eat.now.payment.payment.application.client.ReservationClient;
+import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentInfo;
+import table.eat.now.payment.payment.application.client.dto.ConfirmPgPaymentInfo;
+import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
 import table.eat.now.payment.payment.application.dto.request.CancelPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.ConfirmPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.CreatePaymentCommand;
-import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.ConfirmPaymentInfo;
-import table.eat.now.payment.payment.application.client.dto.ConfirmPgPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.CreatePaymentInfo;
-import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
+import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
+import table.eat.now.payment.payment.application.event.PaymentSuccessEvent;
 import table.eat.now.payment.payment.application.helper.TransactionalHelper;
 import table.eat.now.payment.payment.domain.entity.Payment;
 import table.eat.now.payment.payment.domain.entity.PaymentAmount;
@@ -67,6 +70,9 @@ class PaymentServiceImplTest {
 
   @MockitoBean
   private TransactionalHelper transactionalHelper;
+
+  @MockitoBean
+  private PaymentEventPublisher paymentEventPublisher;
 
   @Nested
   class createPayment_는 {
@@ -172,7 +178,7 @@ class PaymentServiceImplTest {
     private BigDecimal totalAmount;
     private ConfirmPaymentCommand command;
     private Payment payment;
-    private ConfirmPgPaymentInfo confirmPgPaymentInfo;
+    private CurrentUserInfoDto userInfo;
 
     @BeforeEach
     void setUp() {
@@ -183,6 +189,7 @@ class PaymentServiceImplTest {
       paymentKey = "payment_key_123456";
       totalAmount = BigDecimal.valueOf(50000);
       BigDecimal discountAmount = BigDecimal.ZERO;
+      userInfo = CurrentUserInfoDto.of(1L, MASTER);
 
       command = new ConfirmPaymentCommand(reservationUuid, paymentKey, totalAmount);
 
@@ -196,7 +203,7 @@ class PaymentServiceImplTest {
       payment = Payment.create(reference, amount);
 
       LocalDateTime approvedAt = LocalDateTime.now();
-      confirmPgPaymentInfo = new ConfirmPgPaymentInfo(
+      ConfirmPgPaymentInfo confirmPgPaymentInfo = new ConfirmPgPaymentInfo(
           paymentKey,
           discountAmount,
           totalAmount,
@@ -211,13 +218,17 @@ class PaymentServiceImplTest {
 
     @Test
     void 유효한_요청으로_결제를_확인하면_확인된_결제_정보를_반환한다() {
+      // given
+      doNothing().when(paymentEventPublisher).publish(any(PaymentSuccessEvent.class));
+
       // when
-      ConfirmPaymentInfo result = paymentService.confirmPayment(command);
+      ConfirmPaymentInfo result = paymentService.confirmPayment(command, userInfo);
 
       // then
       assertThat(result).isNotNull();
       verify(paymentRepository).findByReference_ReservationIdAndDeletedAtNull(reservationUuid);
       verify(pgClient).confirm(eq(command), anyString());
+      verify(paymentEventPublisher).publish(any(PaymentSuccessEvent.class));
     }
 
     @Test
@@ -228,7 +239,7 @@ class PaymentServiceImplTest {
 
       // when & then
       CustomException exception = assertThrows(CustomException.class, () ->
-          paymentService.confirmPayment(command));
+          paymentService.confirmPayment(command, userInfo));
 
       assertThat(exception.getMessage()).isEqualTo(PAYMENT_NOT_FOUND.getMessage());
       verify(pgClient, never()).confirm(any(), anyString());
@@ -260,7 +271,7 @@ class PaymentServiceImplTest {
           .thenReturn(cancelPgPaymentInfo);
 
       // when
-      paymentService.confirmPayment(command);
+      paymentService.confirmPayment(command, userInfo);
       // then
       verify(transactionalHelper).doInNewTransaction(any(Runnable.class));
     }
@@ -270,7 +281,6 @@ class PaymentServiceImplTest {
   class getCheckoutDetail_은 {
 
     private String idempotencyKey;
-    private Payment payment;
 
     @BeforeEach
     void setUp() {
@@ -287,7 +297,7 @@ class PaymentServiceImplTest {
           reservationName
       );
       PaymentAmount amount = PaymentAmount.create(originalAmount);
-      payment = Payment.create(reference, amount);
+      Payment payment = Payment.create(reference, amount);
       idempotencyKey = payment.getIdempotencyKey();
 
       when(paymentRepository.findByIdentifier_IdempotencyKeyAndDeletedAtNull(idempotencyKey))

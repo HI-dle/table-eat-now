@@ -68,7 +68,7 @@ services:
       ALLOW_ANONYMOUS_LOGIN: "yes"
 
   kafka:
-    image: bitnami/kafka:latest
+    image: bitnami/kafka:3.8.1
     platform: linux/amd64
     ports:
       - "9092:9092"
@@ -85,7 +85,7 @@ services:
     image: provectuslabs/kafka-ui:latest
     platform: linux/amd64
     ports:
-      - "8079:8079"
+      - "8079:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
