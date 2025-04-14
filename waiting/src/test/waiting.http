@@ -1,0 +1,32 @@
+### 대기 요청 생성
+POST localhost:8086/api/v1/waiting-requests
+Content-Type: application/json
+X-User-Id: 2
+X-User-Role: CUSTOMER
+
+{
+  "dailyWaitingUuid":"00000000-0000-0000-0000-000000000001",
+  "phone":"01000000000",
+  "slackId":"slackId@example.com",
+  "seatSize": 4
+}
+
+> {%
+  const location = response.headers.valueOf("Location")
+  const match = location.match(/[0-9a-fA-F\-]{36}$/)
+
+  if (match) {
+    client.global.set("waitingRequestUuid", match[0]);
+  }
+%}
+
+### 대기 입장 요청  # 임시
+POST localhost:8086/admin/v1/waiting-requests/{{waitingRequestUuid}}/entrance
+Content-Type: application/json
+X-User-Id: 3
+X-User-Role: STAFF
+
+{
+  "restaurantUuid":"00000000-0000-0000-0000-000000000001",
+  "dailyWaitingUuid":"00000000-0000-0000-0000-000000000001"
+}

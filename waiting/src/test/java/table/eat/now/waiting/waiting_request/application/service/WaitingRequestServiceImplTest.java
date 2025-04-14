@@ -1,7 +1,9 @@
 package table.eat.now.waiting.waiting_request.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,12 +11,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.helper.IntegrationTestSupport;
+import table.eat.now.waiting.waiting_request.application.client.RestaurantClient;
 import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaitingRequestCommand;
+import table.eat.now.waiting.waiting_request.application.dto.request.EnterWaitingRequestCommand;
+import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
 import table.eat.now.waiting.waiting_request.application.exception.WaitingRequestErrorCode;
+import table.eat.now.waiting.waiting_request.application.utils.TimeProvider;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
 import table.eat.now.waiting.waiting_request.domain.repository.WaitingRequestRepository;
 import table.eat.now.waiting.waiting_request.fixture.WaitingRequestFixture;
@@ -27,12 +34,19 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
   @Autowired
   private WaitingRequestRepository waitingRequestRepository;
 
+  @MockitoBean
+  private RestaurantClient restaurantClient;
+
   private WaitingRequest waitingRequest;
 
   @BeforeEach
   void setUp() {
     waitingRequest = WaitingRequestFixture.create(UUID.randomUUID().toString(), "01012345678", 1);
     waitingRequestRepository.save(waitingRequest);
+    waitingRequestRepository.enqueueWaitingRequest(
+        waitingRequest.getDailyWaitingUuid(),
+        waitingRequest.getWaitingRequestUuid(),
+        TimeProvider.currentTimeMillis());
   }
 
   @DisplayName("대기 요청 생성 검증")
@@ -56,7 +70,8 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
 
       // then
       WaitingRequest waitingRequest =
-          waitingRequestRepository.findByWaitingRequestUuidAndDeletedAtIsNull(waitingRequestUuid);
+          waitingRequestRepository.findByWaitingRequestUuidAndDeletedAtIsNull(waitingRequestUuid)
+              .orElseThrow(() -> CustomException.from(WaitingRequestErrorCode.INVALID_WAITING_REQUEST_UUID));
       Integer sequence = waitingRequestRepository.getLastWaitingSequence(command.dailyWaitingUuid());
 
       assertThat(waitingRequest.getDailyWaitingUuid()).isEqualTo(command.dailyWaitingUuid());
@@ -80,6 +95,74 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
       assertThatThrownBy(() -> waitingRequestService.createWaitingRequest(userInfo, command))
           .isInstanceOf(CustomException.class)
           .hasMessage(WaitingRequestErrorCode.ALREADY_EXISTS_WAITING.getMessage());
+    }
+  }
+
+  @DisplayName("대기 요청 입장 요청 처리 검증")
+  @Nested
+  class processWaitingRequestEntrance {
+
+    private String restaurantUuid;
+
+    @BeforeEach
+    void setUp() {
+      restaurantUuid = UUID.randomUUID().toString();
+      GetRestaurantInfo restaurantInfo = GetRestaurantInfo.builder()
+          .restaurantUuid(restaurantUuid)
+          .ownerId(3L)
+          .staffId(4L)
+          .build();
+
+      given(restaurantClient.getRestaurantInfo(restaurantUuid)).willReturn(restaurantInfo);
+    }
+
+    @DisplayName("입장 처리 성공")
+    @Test
+    void success() {
+      // given
+      CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(4L, UserRole.STAFF);
+      EnterWaitingRequestCommand command = EnterWaitingRequestCommand.builder()
+          .restaurantUuid(restaurantUuid)
+          .dailyWaitingUuid(waitingRequest.getDailyWaitingUuid())
+          .build();
+
+      // when, then
+      assertThatNoException().isThrownBy(() -> waitingRequestService.processWaitingRequestEntrance(
+          userInfo, waitingRequest.getWaitingRequestUuid(), command));
+    }
+
+    @DisplayName("해당 레스토랑의 직원이 아닌 경우 실패")
+    @Test
+    void failWithUnauthorizedOwner() {
+      // given
+      CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(6L, UserRole.OWNER);
+      EnterWaitingRequestCommand command = EnterWaitingRequestCommand.builder()
+          .restaurantUuid(restaurantUuid)
+          .dailyWaitingUuid(waitingRequest.getDailyWaitingUuid())
+          .build();
+
+      // when, then
+      assertThatThrownBy(() -> waitingRequestService.processWaitingRequestEntrance(
+          userInfo, waitingRequest.getWaitingRequestUuid(), command))
+          .isInstanceOf(CustomException.class)
+          .hasMessage(WaitingRequestErrorCode.UNAUTH_REQUEST.getMessage());
+    }
+
+    @DisplayName("등록되지 않은 대기 요청인 경우 처리 실패")
+    @Test
+    void failToProcessWaitingRequestForInvalidUuid() {
+      // given
+      CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(4L, UserRole.STAFF);
+      EnterWaitingRequestCommand command = EnterWaitingRequestCommand.builder()
+          .restaurantUuid(restaurantUuid)
+          .dailyWaitingUuid(waitingRequest.getDailyWaitingUuid())
+          .build();
+
+      // when, then
+      assertThatThrownBy(() -> waitingRequestService.processWaitingRequestEntrance(
+          userInfo, UUID.randomUUID().toString(), command))
+          .isInstanceOf(CustomException.class)
+          .hasMessage(WaitingRequestErrorCode.INVALID_WAITING_REQUEST_UUID.getMessage());
     }
   }
 }
