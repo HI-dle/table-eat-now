@@ -23,23 +23,29 @@ Content-Type: application/json
 %}
 
 ###
-POST http://localhost:8080/admin/v1/notifications
+POST http://localhost:8089/admin/v1/notifications
 Content-Type: application/json
 Authorization: {{access_token}}
+X-User-Id: 1
+X-User-Role: MASTER
 
 {
   "userId": 1,
   "notificationType": "CONFIRM_OWNER",
-  "message": "예약이 확정되었습니다.",
+  "customerName": "홍길동",
+  "reservationTime": "2025-04-16T15:00:00",
+  "restaurantName": "맛집",
   "status": "PENDING",
-  "notificationMethod": "SLACK",
-  "scheduledTime": "2025-04-10T17:00:00"
+  "notificationMethod": "EMAIL",
+  "scheduledTime": "2025-04-20T17:00:00"
+}
 }
 
 ### 수정
 PUT http://localhost:8089/admin/v1/notifications
 Content-Type: application/json
-Authorization: {{access_token}}
+X-User-Id: 1
+X-User-Role: MASTER
 
 {
   "userId": 2,
@@ -53,3 +59,8 @@ Authorization: {{access_token}}
 ###
 GET http://localhost:8080/admin/v1/notifications?userId=1&status=PENDING&notificationMethod=SLACK&isAsc=true&sortBy=scheduledTime&page=0&size=2
 Authorization: {{access_token}}
+
+###
+GET http://localhost:8089/admin/v1/notifications/test/f42e7a8d-c2e5-4045-ae16-d909296c9854
+X-User-Id: 1
+X-User-Role: MASTER

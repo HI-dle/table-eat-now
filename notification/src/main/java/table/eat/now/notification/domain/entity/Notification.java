@@ -89,4 +89,7 @@ public class Notification extends BaseEntity{
     this.scheduledTime = scheduledTime;
   }
 
+  public void modifyNotificationStatus() {
+    this.status = NotificationStatus.SENT;
+  }
 }

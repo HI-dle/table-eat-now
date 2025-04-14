@@ -1,11 +1,19 @@
 package table.eat.now.notification.application.service;
 
 
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.notification.application.Strategy.NotificationFormatterStrategy;
+import table.eat.now.notification.application.Strategy.NotificationFormatterStrategySelector;
+import table.eat.now.notification.application.Strategy.NotificationParamExtractor;
+import table.eat.now.notification.application.Strategy.NotificationTemplate;
+import table.eat.now.notification.application.Strategy.send.NotificationSenderStrategy;
+import table.eat.now.notification.application.Strategy.send.NotificationSenderStrategySelector;
 import table.eat.now.notification.application.dto.PaginatedResultCommand;
 import table.eat.now.notification.application.dto.request.CreateNotificationCommand;
 import table.eat.now.notification.application.dto.request.NotificationSearchCommand;
@@ -27,6 +35,11 @@ import table.eat.now.notification.domain.repository.NotificationRepository;
 public class NotificationServiceImpl implements NotificationService{
 
   private final NotificationRepository notificationRepository;
+  private final NotificationFormatterStrategySelector formatterSelector;
+  private final NotificationSenderStrategySelector sendSelector;
+  private final NotificationParamExtractor paramExtractor;
+  private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
 
   @Override
   @Transactional
@@ -77,6 +90,26 @@ public class NotificationServiceImpl implements NotificationService{
     Notification notification = findByNotification(notificationsUuid);
     notification.delete(userInfo.userId());
   }
+
+  @Override
+  @Transactional
+  public void sendNotification(String notificationUuid) {
+
+    Notification notification = findByNotification(notificationUuid);
+
+    NotificationFormatterStrategy strategy = formatterSelector.select(notification.getNotificationType());
+    Map<String, String> params = paramExtractor.extract(notification);
+    NotificationTemplate formattedMessage = strategy.format(params);
+
+    NotificationSenderStrategy senderStrategy = sendSelector.select(
+        notification.getNotificationMethod());
+
+    senderStrategy.send(notification.getUserId(), formattedMessage);
+
+    notification.modifyNotificationStatus();
+  }
+
+
 
   private Notification findByNotification(String notificationUuid) {
     return notificationRepository.findByNotificationUuidAndDeletedByIsNull(notificationUuid)

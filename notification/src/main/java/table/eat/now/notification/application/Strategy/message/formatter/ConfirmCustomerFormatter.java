@@ -1,4 +1,4 @@
-package table.eat.now.notification.application.Strategy.formatter;
+package table.eat.now.notification.application.Strategy.message.formatter;
 
 import java.util.Map;
 import org.springframework.stereotype.Component;
@@ -11,19 +11,20 @@ import table.eat.now.notification.domain.entity.NotificationType;
  * @Date : 2025. 04. 14.
  */
 @Component
-public class Reminder1HrFormatter implements NotificationFormatterStrategy {
+public class ConfirmCustomerFormatter implements NotificationFormatterStrategy {
 
   @Override
   public NotificationType getType() {
-    return NotificationType.REMINDER_1HR;
+    return NotificationType.CONFIRM_CUSTOMER;
   }
 
+  //사용자측 예약 확인 알림
   @Override
   public NotificationTemplate format(Map<String, String> params) {
     return new NotificationTemplate(
-        "예약 1시간 전 알림입니다!",
-        String.format("%s에 %s 예약시간 1시간 전 입니다. 늦지 않게 도착해주세요!",
-            params.get("restaurantName"), params.get("reservationTime"))
+        "예약이 확정 되었습니다.",
+        String.format("%s에 예약이 확정 되었습니다. %s에 방문 해주세요!",
+            params.get("restaurantName"),params.get("reservationTime"))
     );
   }
 }
