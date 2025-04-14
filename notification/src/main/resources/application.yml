@@ -3,7 +3,7 @@ server:
 
 spring:
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:.env.notification[.properties]
   application:
     name: notification
   datasource:

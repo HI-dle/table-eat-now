@@ -15,6 +15,8 @@ public enum NotificationErrorCode implements ErrorCode {
 
   INVALID_NOTIFICATION_UUID(
       "존재하지 않는 알림입니다.", HttpStatus.NOT_FOUND),
+  INVALID_NOTIFICATION_TYPE(
+      "존재하지 않는 알림 타입 입니다.", HttpStatus.NOT_FOUND),
   ;
 
   private final String message;

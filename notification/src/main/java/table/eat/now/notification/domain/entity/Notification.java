@@ -1,6 +1,7 @@
 package table.eat.now.notification.domain.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -14,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import table.eat.now.common.domain.BaseEntity;
+import table.eat.now.notification.domain.entity.vo.MessageParam;
 
 /**
  * @author : hanjihoon
@@ -38,8 +40,9 @@ public class Notification extends BaseEntity{
   @Column(nullable = false, name = "notification_type")
   private NotificationType notificationType;
 
-  @Column(nullable = false, columnDefinition = "TEXT")
-  private String message;
+
+  @Embedded
+  private MessageParam messageParam;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
@@ -53,31 +56,34 @@ public class Notification extends BaseEntity{
   private LocalDateTime scheduledTime;
 
   private Notification(Long userId, NotificationType notificationType,
-      String message, NotificationStatus status, NotificationMethod notificationMethod,
+      String customerName, String reservationTime, String restaurantName,
+      NotificationStatus status, NotificationMethod notificationMethod,
       LocalDateTime scheduledTime) {
     this.notificationUuid = UUID.randomUUID().toString();
     this.userId = userId;
     this.notificationType = notificationType;
-    this.message = message;
+    this.messageParam = MessageParam.of(customerName, reservationTime, restaurantName);
     this.status = status;
     this.notificationMethod = notificationMethod;
     this.scheduledTime = scheduledTime;
   }
 
   public static Notification of(Long userId, NotificationType notificationType,
-      String message, NotificationStatus status, NotificationMethod notificationMethod,
+      String customerName, String reservationTime, String restaurantName,
+      NotificationStatus status, NotificationMethod notificationMethod,
       LocalDateTime scheduledTime) {
     return new Notification(
-        userId, notificationType, message, status,
+        userId, notificationType, customerName,reservationTime, restaurantName, status,
         notificationMethod, scheduledTime);
   }
 
   public void modifyNotification(Long userId, String notificationType,
-      String message, String status, String notificationMethod,
+      String customerName, String reservationTime, String restaurantName,
+      String status, String notificationMethod,
       LocalDateTime scheduledTime) {
     this.userId = userId;
     this.notificationType = NotificationType.valueOf(notificationType);
-    this.message = message;
+    this.messageParam = MessageParam.of(customerName, reservationTime, restaurantName);
     this.status = NotificationStatus.valueOf(status);
     this.notificationMethod = NotificationMethod.valueOf(notificationMethod);
     this.scheduledTime = scheduledTime;
