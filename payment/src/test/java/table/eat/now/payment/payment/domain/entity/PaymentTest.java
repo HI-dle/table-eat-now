@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -75,9 +76,11 @@ class PaymentTest {
       String paymentKey = "payment_key_123456";
       BigDecimal discountAmount = BigDecimal.valueOf(1000);
       BigDecimal totalAmount = BigDecimal.valueOf(9000);
+      ConfirmPayment confirmCommand =
+          new ConfirmPayment(paymentKey, discountAmount, totalAmount, LocalDateTime.now());
 
       //when
-      assertDoesNotThrow(() -> payment.confirm(paymentKey, discountAmount, totalAmount));
+      assertDoesNotThrow(() -> payment.confirm(confirmCommand));
 
       //then
       assertThat(payment.getPaymentKey()).isEqualTo(paymentKey);
@@ -91,11 +94,13 @@ class PaymentTest {
       Payment payment = createValidPayment();
       BigDecimal discountAmount = BigDecimal.valueOf(1000);
       BigDecimal totalAmount = BigDecimal.valueOf(9000);
+      ConfirmPayment confirmCommand =
+          new ConfirmPayment(null, discountAmount, totalAmount, LocalDateTime.now());
 
       //when & then
       IllegalArgumentException exception = assertThrows(
           IllegalArgumentException.class, () ->
-              payment.confirm(null, discountAmount, totalAmount));
+              payment.confirm(confirmCommand));
 
       assertThat(exception.getMessage()).contains("null이거나 빈 값일 수 없습니다");
     }
@@ -106,11 +111,13 @@ class PaymentTest {
       Payment payment = createValidPayment();
       BigDecimal discountAmount = BigDecimal.valueOf(1000);
       BigDecimal totalAmount = BigDecimal.valueOf(9000);
+      ConfirmPayment confirmCommand =
+          new ConfirmPayment("", discountAmount, totalAmount, LocalDateTime.now());
 
       //when & then
       IllegalArgumentException exception = assertThrows(
           IllegalArgumentException.class, () ->
-              payment.confirm("", discountAmount, totalAmount));
+              payment.confirm(confirmCommand));
 
       assertThat(exception.getMessage()).contains("null이거나 빈 값일 수 없습니다");
     }
@@ -122,11 +129,13 @@ class PaymentTest {
       String paymentKey = "payment_key_123456";
       BigDecimal discountAmount = BigDecimal.valueOf(1000);
       BigDecimal totalAmount = BigDecimal.valueOf(8000);
+      ConfirmPayment confirmCommand =
+          new ConfirmPayment(paymentKey, discountAmount, totalAmount, LocalDateTime.now());
 
       //when & then
       IllegalArgumentException exception = assertThrows(
           IllegalArgumentException.class, () ->
-              payment.confirm(paymentKey, discountAmount, totalAmount));
+              payment.confirm(confirmCommand));
 
       assertThat(exception.getMessage()).contains("총 금액이 일치하지 않습니다.");
     }
