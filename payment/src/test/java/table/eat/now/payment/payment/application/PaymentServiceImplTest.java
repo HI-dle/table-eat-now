@@ -8,6 +8,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static table.eat.now.common.resolver.dto.UserRole.CUSTOMER;
+import static table.eat.now.common.resolver.dto.UserRole.MASTER;
+import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_ACCESS_DENIED;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_NOT_FOUND;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.RESERVATION_NOT_PENDING;
@@ -26,16 +29,18 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.payment.payment.application.client.PgClient;
 import table.eat.now.payment.payment.application.client.ReservationClient;
 import table.eat.now.payment.payment.application.dto.request.CancelPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.ConfirmPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.CreatePaymentCommand;
-import table.eat.now.payment.payment.application.dto.response.CancelPgPaymentInfo;
+import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.ConfirmPaymentInfo;
-import table.eat.now.payment.payment.application.dto.response.ConfirmPgPaymentInfo;
+import table.eat.now.payment.payment.application.client.dto.ConfirmPgPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.CreatePaymentInfo;
-import table.eat.now.payment.payment.application.dto.response.GetReservationInfo;
+import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
+import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.helper.TransactionalHelper;
 import table.eat.now.payment.payment.domain.entity.Payment;
 import table.eat.now.payment.payment.domain.entity.PaymentAmount;
@@ -230,7 +235,7 @@ class PaymentServiceImplTest {
     }
 
     @Test
-    void 결제_확인_중_예외가_발생하면_취소_처리를_한다() {
+    void 결제_확인_중_paymentKey가_존재하지_않으면_취소_처리를_한다() {
       // given
       when(paymentRepository.findByReference_ReservationIdAndDeletedAtNull(reservationUuid))
           .thenReturn(Optional.of(payment));
@@ -318,7 +323,6 @@ class PaymentServiceImplTest {
     private ConfirmPaymentCommand command;
     private String cancelReason;
     private Payment payment;
-    private CancelPgPaymentInfo cancelPgPaymentInfo;
 
     @BeforeEach
     void setUp() {
@@ -341,7 +345,7 @@ class PaymentServiceImplTest {
       PaymentAmount amount = PaymentAmount.create(totalAmount);
       payment = Payment.create(reference, amount);
 
-      cancelPgPaymentInfo = new CancelPgPaymentInfo(
+      CancelPgPaymentInfo cancelPgPaymentInfo = new CancelPgPaymentInfo(
           paymentKey,
           cancelReason,
           LocalDateTime.now()
@@ -365,6 +369,109 @@ class PaymentServiceImplTest {
       CancelPaymentCommand capturedCommand = commandCaptor.getValue();
       assertThat(capturedCommand.paymentKey()).isEqualTo(command.paymentKey());
       assertThat(capturedCommand.cancelReason()).isEqualTo(cancelReason);
+    }
+  }
+
+  @Nested
+  class getPayment_는 {
+
+    private String paymentUuid;
+    private Payment payment;
+    private CurrentUserInfoDto userInfo;
+    private CurrentUserInfoDto otherUserInfo;
+    private CurrentUserInfoDto masterUserInfo;
+
+    @BeforeEach
+    void setUp() {
+      // 필요한 데이터 준비
+      paymentUuid = UUID.randomUUID().toString();
+      String reservationUuid = UUID.randomUUID().toString();
+      String restaurantUuid = UUID.randomUUID().toString();
+      Long customerId = 123L;
+      String reservationName = "테스트 예약";
+      BigDecimal originalAmount = BigDecimal.valueOf(15000);
+
+      // User Info 설정
+      userInfo = new CurrentUserInfoDto(customerId, CUSTOMER);
+      otherUserInfo = new CurrentUserInfoDto(456L, CUSTOMER);
+      masterUserInfo = new CurrentUserInfoDto(789L, MASTER);
+
+      // 결제 객체 생성
+      PaymentReference reference = PaymentReference.create(
+          reservationUuid,
+          restaurantUuid,
+          customerId,
+          reservationName
+      );
+      PaymentAmount amount = PaymentAmount.create(originalAmount);
+      payment = Payment.create(reference, amount);
+
+      // 레포지토리 모킹
+      when(paymentRepository.findByIdentifier_PaymentUuidAndDeletedAtNull(paymentUuid))
+          .thenReturn(Optional.of(payment));
+    }
+
+    @Test
+    void 결제_소유자가_조회하면_결제_정보를_반환한다() {
+      // when
+      GetPaymentInfo result = paymentService.getPayment(paymentUuid, userInfo);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result.paymentUuid()).isEqualTo(payment.getIdentifier().getPaymentUuid());
+      assertThat(result.customerId()).isEqualTo(payment.getReference().getCustomerId());
+      assertThat(result.reservationId()).isEqualTo(payment.getReference().getReservationId());
+      assertThat(result.restaurantId()).isEqualTo(payment.getReference().getRestaurantId());
+      assertThat(result.reservationName()).isEqualTo(payment.getReference().getReservationName());
+      assertThat(result.paymentStatus()).isEqualTo(payment.getPaymentStatus().name());
+      assertThat(result.originalAmount()).isEqualTo(payment.getAmount().getOriginalAmount());
+
+      // 메서드 호출 검증
+      verify(paymentRepository).findByIdentifier_PaymentUuidAndDeletedAtNull(paymentUuid);
+    }
+
+    @Test
+    void 마스터_권한으로_조회하면_결제_정보를_반환한다() {
+      // when
+      GetPaymentInfo result = paymentService.getPayment(paymentUuid, masterUserInfo);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result.paymentUuid()).isEqualTo(payment.getIdentifier().getPaymentUuid());
+      // 필요한 필드 검증
+      assertThat(result.customerId()).isEqualTo(payment.getReference().getCustomerId());
+
+      // 메서드 호출 검증
+      verify(paymentRepository).findByIdentifier_PaymentUuidAndDeletedAtNull(paymentUuid);
+    }
+
+    @Test
+    void 다른_사용자가_조회하면_접근_거부_예외를_발생시킨다() {
+      // when & then
+      CustomException exception = assertThrows(CustomException.class, () ->
+          paymentService.getPayment(paymentUuid, otherUserInfo));
+
+      assertThat(exception.getMessage()).isEqualTo(PAYMENT_ACCESS_DENIED.getMessage());
+
+      // 메서드 호출 검증
+      verify(paymentRepository).findByIdentifier_PaymentUuidAndDeletedAtNull(paymentUuid);
+    }
+
+    @Test
+    void 존재하지_않는_결제를_조회하면_예외를_발생시킨다() {
+      // given
+      String nonExistentPaymentUuid = UUID.randomUUID().toString();
+      when(paymentRepository.findByIdentifier_PaymentUuidAndDeletedAtNull(nonExistentPaymentUuid))
+          .thenReturn(Optional.empty());
+
+      // when & then
+      CustomException exception = assertThrows(CustomException.class, () ->
+          paymentService.getPayment(nonExistentPaymentUuid, userInfo));
+
+      assertThat(exception.getMessage()).isEqualTo(PAYMENT_NOT_FOUND.getMessage());
+
+      // 메서드 호출 검증
+      verify(paymentRepository).findByIdentifier_PaymentUuidAndDeletedAtNull(nonExistentPaymentUuid);
     }
   }
 }

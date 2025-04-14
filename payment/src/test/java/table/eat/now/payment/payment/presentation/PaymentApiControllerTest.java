@@ -1,11 +1,15 @@
 package table.eat.now.payment.payment.presentation;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
+import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
+import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_ACCESS_DENIED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -25,13 +29,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.aop.AuthCheckAspect;
 import table.eat.now.common.config.WebConfig;
+import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.exception.GlobalErrorHandler;
 import table.eat.now.common.exception.type.ApiErrorCode;
 import table.eat.now.common.resolver.CurrentUserInfoResolver;
 import table.eat.now.common.resolver.CustomPageableArgumentResolver;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.payment.payment.application.PaymentService;
 import table.eat.now.payment.payment.application.dto.response.ConfirmPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailInfo;
+import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.presentation.dto.request.ConfirmPaymentRequest;
 
 @ActiveProfiles("test")
@@ -76,7 +84,8 @@ class PaymentApiControllerTest {
     @Test
     void 유효한_idempotencyKey로_요청하면_200_상태코드와_체크아웃_정보를_반환한다() throws Exception {
       // given
-      given(paymentService.getCheckoutDetail(idempotencyKey.toString())).willReturn(checkoutDetailInfo);
+      when(paymentService.getCheckoutDetail(idempotencyKey.toString()))
+          .thenReturn(checkoutDetailInfo);
 
       // when
       ResultActions actions = mockMvc.perform(get("/api/v1/payments/checkout-info")
@@ -144,7 +153,7 @@ class PaymentApiControllerTest {
     @Test
     void 유효한_요청으로_결제_확인시_200_상태코드와_결제_정보를_반환한다() throws Exception {
       // given
-      given(paymentService.confirmPayment(any())).willReturn(confirmPaymentInfo);
+      when(paymentService.confirmPayment(any())).thenReturn(confirmPaymentInfo);
 
       // when
       ResultActions actions = mockMvc.perform(patch("/api/v1/payments/confirm")
@@ -160,7 +169,8 @@ class PaymentApiControllerTest {
           .andExpect(jsonPath("$.reservationId").value(confirmPaymentInfo.reservationId()))
           .andExpect(jsonPath("$.reservationName").value(confirmPaymentInfo.reservationName()))
           .andExpect(jsonPath("$.paymentStatus").value(confirmPaymentInfo.paymentStatus()))
-          .andExpect(jsonPath("$.originalAmount").value(confirmPaymentInfo.originalAmount().intValue()))
+          .andExpect(
+              jsonPath("$.originalAmount").value(confirmPaymentInfo.originalAmount().intValue()))
           .andExpect(jsonPath("$.totalAmount").value(confirmPaymentInfo.totalAmount().intValue()));
     }
 
@@ -195,6 +205,113 @@ class PaymentApiControllerTest {
 
       // then
       actions.andExpect(status().isBadRequest());
+    }
+  }
+
+  @Nested
+  class 결제_단일_조회_시 {
+
+    private UUID paymentUuid;
+    private GetPaymentInfo paymentInfo;
+    private CurrentUserInfoDto userInfo;
+
+    @BeforeEach
+    void setUp() {
+      paymentUuid = UUID.randomUUID();
+      userInfo = new CurrentUserInfoDto(123L, UserRole.CUSTOMER);
+
+      paymentInfo = GetPaymentInfo.builder()
+          .paymentUuid(paymentUuid.toString())
+          .customerId(123L)
+          .reservationId("reservation123")
+          .restaurantId("restaurant123")
+          .reservationName("맛있는 식당 예약")
+          .paymentStatus("APPROVED")
+          .originalAmount(BigDecimal.valueOf(15000))
+          .discountAmount(BigDecimal.valueOf(2000))
+          .totalAmount(BigDecimal.valueOf(13000))
+          .createdAt(LocalDateTime.now())
+          .approvedAt(LocalDateTime.now().plusMinutes(10))
+          .cancelledAt(null)
+          .build();
+    }
+
+    @Test
+    void 유효한_paymentUuid로_요청하면_200_상태코드와_결제_정보를_반환한다() throws Exception {
+      // given
+      when(paymentService.getPayment(paymentUuid.toString(), userInfo))
+          .thenReturn(paymentInfo);
+
+      // when
+      ResultActions actions =
+          mockMvc.perform(get("/api/v1/payments/{paymentUuid}", paymentUuid)
+          .header(USER_ID_HEADER, userInfo.userId())
+          .header(USER_ROLE_HEADER, userInfo.role())
+          .contentType(MediaType.APPLICATION_JSON));
+
+      // then
+      actions
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.paymentUuid").value(paymentUuid.toString()))
+          .andExpect(jsonPath("$.customerId").value(123L))
+          .andExpect(jsonPath("$.reservationId").value("reservation123"))
+          .andExpect(jsonPath("$.restaurantId").value("restaurant123"))
+          .andExpect(jsonPath("$.reservationName").value("맛있는 식당 예약"))
+          .andExpect(jsonPath("$.paymentStatus").value("APPROVED"))
+          .andExpect(jsonPath("$.originalAmount").value(15000))
+          .andExpect(jsonPath("$.discountAmount").value(2000))
+          .andExpect(jsonPath("$.totalAmount").value(13000));
+    }
+
+    @Test
+    void 유효하지_않은_paymentUuid_입력시_400_상태코드와_메시지를_반환한다() throws Exception {
+      // given
+      String invalidUUID = "invalid-uuid";
+
+      // when
+      ResultActions actions =
+          mockMvc.perform(get("/api/v1/payments/{paymentUuid}", invalidUUID)
+          .header(USER_ID_HEADER, userInfo.userId())
+          .header(USER_ROLE_HEADER, userInfo.role())
+          .contentType(MediaType.APPLICATION_JSON));
+
+      // then
+      actions
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.message")
+              .value(ApiErrorCode.TYPE_MISMATCH.getMessage()));
+    }
+
+    @Test
+    void 사용자_인증_정보가_없을때_401_상태코드를_반환한다() throws Exception {
+      // when
+      ResultActions actions =
+          mockMvc.perform(get("/api/v1/payments/{paymentUuid}", paymentUuid)
+          .contentType(MediaType.APPLICATION_JSON));
+
+      // then
+      actions
+          .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void 다른_사용자의_결제_정보_요청시_403_상태코드를_반환한다() throws Exception {
+      // given
+      when(paymentService.getPayment(anyString(), any(CurrentUserInfoDto.class)))
+          .thenThrow(CustomException.from(PAYMENT_ACCESS_DENIED));
+
+      // when
+      ResultActions actions =
+          mockMvc.perform(get("/api/v1/payments/{paymentUuid}", paymentUuid)
+          .header(USER_ID_HEADER, 456L)
+          .header(USER_ROLE_HEADER, UserRole.CUSTOMER)
+          .contentType(MediaType.APPLICATION_JSON));
+
+      // then
+      actions
+          .andExpect(status().isForbidden())
+          .andExpect(jsonPath("$.message")
+              .value(PAYMENT_ACCESS_DENIED.getMessage()));
     }
   }
 }
