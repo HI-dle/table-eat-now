@@ -20,6 +20,7 @@ import table.eat.now.waiting.helper.IntegrationTestSupport;
 import table.eat.now.waiting.waiting_request.application.client.RestaurantClient;
 import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaitingRequestCommand;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
+import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
 import table.eat.now.waiting.waiting_request.application.exception.WaitingRequestErrorCode;
 import table.eat.now.waiting.waiting_request.application.utils.TimeProvider;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
@@ -150,6 +151,51 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
           userInfo, UUID.randomUUID().toString()))
           .isInstanceOf(CustomException.class)
           .hasMessage(WaitingRequestErrorCode.INVALID_WAITING_REQUEST_UUID.getMessage());
+    }
+  }
+
+  @DisplayName("대기 요청 단건 조회")
+  @Nested
+  class getWaitingRequest {
+
+    @BeforeEach
+    void setUp() {
+      GetRestaurantInfo restaurantInfo = GetRestaurantInfo.builder()
+          .restaurantUuid(UUID.randomUUID().toString())
+          .ownerId(3L)
+          .staffId(4L)
+          .build();
+
+      given(restaurantClient.getRestaurantInfo(any())).willReturn(restaurantInfo);
+    }
+
+    @DisplayName("조회 성공")
+    @Test
+    void success() {
+      // given
+
+      // when
+      GetWaitingRequestInfo info = waitingRequestService.getWaitingRequest(
+          null, waitingRequest.getWaitingRequestUuid(), waitingRequest.getPhone());
+
+      // then
+      assertThat(info.restaurantUuid()).isEqualTo(waitingRequest.getRestaurantUuid());
+      assertThat(info.rank()).isEqualTo(0);
+    }
+
+    @DisplayName("admin 조회 성공")
+    @Test
+    void successAdmin() {
+      // given
+      CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(4L, UserRole.STAFF);
+
+      // when
+      GetWaitingRequestInfo info = waitingRequestService.getWaitingRequestAdmin(
+          userInfo, waitingRequest.getWaitingRequestUuid());
+
+      // then
+      assertThat(info.restaurantUuid()).isEqualTo(waitingRequest.getRestaurantUuid());
+      assertThat(info.rank()).isEqualTo(0);
     }
   }
 }
