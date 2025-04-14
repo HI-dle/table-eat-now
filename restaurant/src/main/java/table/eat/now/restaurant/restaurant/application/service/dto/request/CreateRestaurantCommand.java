@@ -7,6 +7,8 @@ package table.eat.now.restaurant.restaurant.application.service.dto.request;
 import java.time.LocalTime;
 import lombok.Builder;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant;
+import table.eat.now.restaurant.restaurant.domain.entity.Restaurant.RestaurantStatus;
+import table.eat.now.restaurant.restaurant.domain.entity.Restaurant.WaitingStatus;
 
 @Builder
 public record CreateRestaurantCommand (
@@ -20,7 +22,7 @@ public record CreateRestaurantCommand (
     LocalTime closingAt
 ){
   public Restaurant toEntity(){
-    return Restaurant.inactiveRestaurantBuilder()
+    return Restaurant.fullBuilder()
         .ownerId(ownerId)
         .name(name)
         .info(info)
@@ -29,6 +31,8 @@ public record CreateRestaurantCommand (
         .address(address)
         .openingAt(openingAt)
         .closingAt(closingAt)
+        .waitingStatus(WaitingStatus.INACTIVE)
+        .status(RestaurantStatus.INACTIVE)
         .build();
   }
 }
