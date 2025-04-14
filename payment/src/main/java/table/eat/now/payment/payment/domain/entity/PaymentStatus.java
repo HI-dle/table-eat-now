@@ -9,7 +9,7 @@ public enum PaymentStatus {
 
   public boolean canChangeTo(PaymentStatus nextStatus) {
     return switch (this) {
-      case CREATED -> nextStatus == APPROVED;
+      case CREATED -> nextStatus == APPROVED || nextStatus == CANCELED;
       case APPROVED -> nextStatus == CANCELED || nextStatus == REFUNDED;
       case CANCELED, REFUNDED -> false;
     };

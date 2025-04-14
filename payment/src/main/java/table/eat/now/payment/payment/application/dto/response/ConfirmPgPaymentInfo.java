@@ -10,7 +10,7 @@ public record ConfirmPgPaymentInfo(
     BigDecimal totalAmount,
     LocalDateTime approvedAt
 ) {
-  //커맨드 객체의 네이밍 고민..
+
   public ConfirmPayment toConfirm() {
     return new ConfirmPayment(paymentKey, discountAmount, totalAmount, approvedAt);
   }

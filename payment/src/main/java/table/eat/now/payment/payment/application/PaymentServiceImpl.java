@@ -73,9 +73,11 @@ public class PaymentServiceImpl implements PaymentService {
     Payment payment = getPaymentByReservationId(command.reservationId());
     ConfirmPgPaymentInfo confirmedInfo =
         pgClient.confirm(command, payment.getIdempotencyKey());
+    log.info("Confirm payment {}", confirmedInfo);
     try {
       payment.confirm(confirmedInfo.toConfirm());
     } catch (IllegalArgumentException e) {
+      log.error("Confirm payment failed", e);
       transactionalHelper.doInNewTransaction(()->
         cancelPayment(command, e.getMessage(), payment)
       );
@@ -94,6 +96,7 @@ public class PaymentServiceImpl implements PaymentService {
     CancelPgPaymentInfo cancelledInfo =
         pgClient.cancel(CancelPaymentCommand.
             of(command.paymentKey(), cancelReason), payment.getIdempotencyKey());
+    log.info("Cancel payment {}", cancelledInfo);
     payment.cancel(cancelledInfo.toCancel());
   }
 }
