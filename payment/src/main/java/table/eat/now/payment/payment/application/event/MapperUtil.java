@@ -11,6 +11,10 @@ import java.math.BigDecimal;
 
 public class MapperUtil {
 
+  private MapperUtil() {
+    throw new AssertionError("Utility class should not be instantiated");
+  }
+
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
       .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
@@ -21,7 +25,8 @@ public class MapperUtil {
     try {
       return objectMapper.valueToTree(payload);
     } catch (IllegalArgumentException e) {
-      throw new RuntimeException("Failed to convert object to JsonNode", e);
+      throw new IllegalArgumentException(
+          "Failed to convert object to JsonNode: " + e.getMessage(), e);
     }
   }
 }

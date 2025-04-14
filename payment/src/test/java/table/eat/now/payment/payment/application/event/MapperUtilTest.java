@@ -1,8 +1,10 @@
 package table.eat.now.payment.payment.application.event;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.math.BigDecimal;
@@ -42,21 +44,14 @@ class MapperUtilTest {
   @Test
   void toJsonNode_는_변환할수없는객체에_예외를던진다() {
     // given
-    Object invalidObject = new Object() {
-      private final Object circular = this;
-
-      @Override
-      public String toString() {
-        return "This object has a circular reference that cannot be serialized to JSON";
-      }
-    };
+    Object invalidObject = new Object();
 
     // when & then
-    RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+    Exception exception = assertThrows(RuntimeException.class, () -> {
       MapperUtil.toJsonNode(invalidObject);
     });
 
-    assertEquals("Failed to convert object to JsonNode", exception.getMessage());
+    assertThat(exception.getMessage()).contains("Failed to convert object to JsonNode");
   }
 
   static class TestPayload {
