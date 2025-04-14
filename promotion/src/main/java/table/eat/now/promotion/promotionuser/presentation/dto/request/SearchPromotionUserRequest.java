@@ -1,5 +1,6 @@
 package table.eat.now.promotion.promotionuser.presentation.dto.request;
 
+import java.util.UUID;
 import table.eat.now.promotion.promotionuser.application.dto.request.SearchPromotionUserCommand;
 
 /**
@@ -7,7 +8,7 @@ import table.eat.now.promotion.promotionuser.application.dto.request.SearchPromo
  * @Date : 2025. 04. 08.
  */
 public record SearchPromotionUserRequest(Long userId,
-                                         String promotionUuid,
+                                         UUID promotionUuid,
                                          Boolean isAsc,
                                          String sortBy,
                                          int page,
@@ -16,7 +17,7 @@ public record SearchPromotionUserRequest(Long userId,
   public SearchPromotionUserCommand toApplication() {
     return new SearchPromotionUserCommand(
         userId,
-        promotionUuid,
+        promotionUuid.toString(),
         isAsc,
         sortBy,
         page,

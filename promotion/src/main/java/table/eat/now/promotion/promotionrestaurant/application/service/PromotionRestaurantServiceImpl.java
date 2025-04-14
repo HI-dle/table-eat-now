@@ -12,6 +12,7 @@ import table.eat.now.promotion.promotionrestaurant.application.dto.request.Creat
 import table.eat.now.promotion.promotionrestaurant.application.dto.request.SearchPromotionRestaurantCommand;
 import table.eat.now.promotion.promotionrestaurant.application.dto.request.UpdatePromotionRestaurantCommand;
 import table.eat.now.promotion.promotionrestaurant.application.dto.response.CreatePromotionRestaurantInfo;
+import table.eat.now.promotion.promotionrestaurant.application.dto.response.GetPromotionRestaurantInfo;
 import table.eat.now.promotion.promotionrestaurant.application.dto.response.SearchPromotionRestaurantInfo;
 import table.eat.now.promotion.promotionrestaurant.application.dto.response.UpdatePromotionRestaurantInfo;
 import table.eat.now.promotion.promotionrestaurant.domain.entity.PromotionRestaurant;
@@ -64,16 +65,33 @@ public class PromotionRestaurantServiceImpl implements PromotionRestaurantServic
     log.info("삭제가 완료 되었습니다. 삭제한 userId: {}", promotionRestaurant);
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public GetPromotionRestaurantInfo findRestaurantsByPromotions(
+      String restaurantUuid,
+      String promotionUuid) {
+    return GetPromotionRestaurantInfo.from(
+        findByRestaurantUuidAndPromotionUuidAndDeletedAtIsNull(restaurantUuid,promotionUuid));
+  }
+
   private PromotionRestaurant findByPromotionRestaurant(String promotionRestaurantUuid) {
     return promotionRestaurantRepository.findByPromotionRestaurantUuidAndDeletedAtIsNull(
         promotionRestaurantUuid).orElseThrow(() ->
         CustomException.from(PromotionRestaurantErrorCode.INVALID_PROMOTION_RESTAURANT_UUID));
   }
   private PromotionRestaurant findByPromotionRestaurantFromRestaurantId(String restaurantUuid) {
-    return promotionRestaurantRepository.findByRestaurantUuidAAndDeletedAtIsNull(restaurantUuid)
+    return promotionRestaurantRepository.findByRestaurantUuidAndDeletedAtIsNull(restaurantUuid)
         .orElseThrow(() ->
             CustomException.from(PromotionRestaurantErrorCode.INVALID_PROMOTION_RESTAURANT_UUID));
   }
+  private PromotionRestaurant findByRestaurantUuidAndPromotionUuidAndDeletedAtIsNull(
+      String restaurantUuid, String promotionUuid) {
+    return promotionRestaurantRepository.findByRestaurantUuidAndPromotionUuidAndDeletedAtIsNull(
+        restaurantUuid, promotionUuid)
+        .orElseThrow(() ->
+            CustomException.from(PromotionRestaurantErrorCode.INVALID_PROMOTION_RESTAURANT_UUID));
+  }
+
 
 
 }

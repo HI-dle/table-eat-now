@@ -18,6 +18,9 @@ public interface PromotionRestaurantRepository {
 
   PaginatedResult<PromotionRestaurantSearchCriteriaQuery> searchPromotionRestaurant(
       PromotionRestaurantSearchCriteria criteria);
-  Optional<PromotionRestaurant> findByRestaurantUuidAAndDeletedAtIsNull(
+  Optional<PromotionRestaurant> findByRestaurantUuidAndDeletedAtIsNull(
       String restaurantUuid);
+
+  Optional<PromotionRestaurant> findByRestaurantUuidAndPromotionUuidAndDeletedAtIsNull(
+      String restaurantUuid, String promotionUuid);
 }

@@ -1,6 +1,7 @@
 package table.eat.now.promotion.promotionrestaurant.presentation.dto.request;
 
 import jakarta.validation.constraints.NotNull;
+import java.util.UUID;
 import table.eat.now.promotion.promotionrestaurant.application.dto.request.UpdatePromotionRestaurantCommand;
 
 /**
@@ -8,14 +9,14 @@ import table.eat.now.promotion.promotionrestaurant.application.dto.request.Updat
  * @Date : 2025. 04. 08.
  */
 public record UpdatePromotionRestaurantRequest(@NotNull
-                                               String promotionUuid,
+                                               UUID promotionUuid,
                                                @NotNull
-                                               String restaurantUuid) {
+                                               UUID restaurantUuid) {
 
   public UpdatePromotionRestaurantCommand toApplication() {
     return new UpdatePromotionRestaurantCommand(
-        promotionUuid,
-        restaurantUuid
+        promotionUuid.toString(),
+        restaurantUuid.toString()
     );
   }
 

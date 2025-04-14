@@ -57,14 +57,14 @@ class PromotionUserAdminControllerTest {
   @Test
   void promotion_user_update_controller_test() throws Exception {
     // given
-    String promotionUserUuid = UUID.randomUUID().toString();
-    String promotionUuid = UUID.randomUUID().toString();
-    UpdatePromotionUserRequest request = new UpdatePromotionUserRequest(1L,promotionUuid);
+    UUID promotionUserUuid = UUID.randomUUID();
+    UUID promotionUuid = UUID.randomUUID();
+    UpdatePromotionUserRequest request = new UpdatePromotionUserRequest(1L, promotionUuid);
 
     UpdatePromotionUserInfo info = new UpdatePromotionUserInfo(
-        promotionUserUuid, 1L, promotionUuid);
+        promotionUserUuid.toString(), 1L, promotionUuid.toString());
 
-    given(promotionUserService.updatePromotionUser(request.toApplication(), promotionUserUuid))
+    given(promotionUserService.updatePromotionUser(request.toApplication(), promotionUserUuid.toString()))
         .willReturn(info);
 
     // when
@@ -78,17 +78,18 @@ class PromotionUserAdminControllerTest {
 
     // then
     resultActions.andExpect(status().isOk())
-        .andExpect(jsonPath("$.promotionUserUuid").value(promotionUserUuid))
+        .andExpect(jsonPath("$.promotionUserUuid").value(promotionUserUuid.toString()))  // Using toString() for UUID
         .andExpect(jsonPath("$.userId").value(1))
-        .andExpect(jsonPath("$.promotionUuid").value(promotionUuid))
+        .andExpect(jsonPath("$.promotionUuid").value(promotionUuid.toString()))  // Using toString() for UUID
         .andDo(print());
   }
+
 
   @DisplayName("유저 아이디와 프로모션 아이디로 프로모션에 참여한 유저 정보를 검색한다.")
   @Test
   void promotion_user_search_controller_test() throws Exception {
     // given
-    String promotionUuid = UUID.randomUUID().toString();
+    UUID promotionUuid = UUID.randomUUID();
 
     SearchPromotionUserRequest request = new SearchPromotionUserRequest(
         1L,
@@ -100,9 +101,9 @@ class PromotionUserAdminControllerTest {
     );
 
     SearchPromotionUserInfo info1 = new SearchPromotionUserInfo(
-        "promotion-user-uuid-1", promotionUuid, 1L);
+        "promotion-user-uuid-1", promotionUuid.toString(), 1L);
     SearchPromotionUserInfo info2 = new SearchPromotionUserInfo(
-        "promotion-user-uuid-2", promotionUuid, 1L);
+        "promotion-user-uuid-2", promotionUuid.toString(), 1L);
 
     PaginatedResultCommand<SearchPromotionUserInfo> result = new PaginatedResultCommand<>(
         List.of(info1, info2),
@@ -115,6 +116,11 @@ class PromotionUserAdminControllerTest {
     given(promotionUserService.searchPromotionUser(request.toApplication()))
         .willReturn(result);
 
+    // Extracting values from content
+    String promotionUserUuid1 = info1.promotionUserUuid();
+    String promotionUserUuid2 = info2.promotionUserUuid();
+    Long userId = info1.userId(); // Assuming userId is the same for both
+
     // when
     ResultActions resultActions = mockMvc.perform(
         get("/admin/v1/promotion-users")
@@ -122,7 +128,7 @@ class PromotionUserAdminControllerTest {
             .header(USER_ID_HEADER, "1")
             .header(USER_ROLE_HEADER, "MASTER")
             .queryParam("userId", "1")
-            .queryParam("promotionUuid", promotionUuid)
+            .queryParam("promotionUuid", promotionUuid.toString())
             .queryParam("isAsc", "true")
             .queryParam("sortBy", "createdAt")
             .queryParam("page", "0")
@@ -132,18 +138,19 @@ class PromotionUserAdminControllerTest {
 
     // then
     resultActions.andExpect(status().isOk())
-        .andExpect(jsonPath("$.content[0].promotionUserUuid").value("promotion-user-uuid-1"))
-        .andExpect(jsonPath("$.content[0].userId").value(1))
-        .andExpect(jsonPath("$.content[0].promotionUuid").value(promotionUuid))
-        .andExpect(jsonPath("$.content[1].promotionUserUuid").value("promotion-user-uuid-2"))
-        .andExpect(jsonPath("$.content[1].userId").value(1))
-        .andExpect(jsonPath("$.content[1].promotionUuid").value(promotionUuid))
+        .andExpect(jsonPath("$.content[0].promotionUserUuid").value(promotionUserUuid1))
+        .andExpect(jsonPath("$.content[0].userId").value(userId))
+        .andExpect(jsonPath("$.content[0].promotionUuid").value(promotionUuid.toString()))
+        .andExpect(jsonPath("$.content[1].promotionUserUuid").value(promotionUserUuid2))
+        .andExpect(jsonPath("$.content[1].userId").value(userId))
+        .andExpect(jsonPath("$.content[1].promotionUuid").value(promotionUuid.toString()))
         .andExpect(jsonPath("$.page").value(0))
         .andExpect(jsonPath("$.size").value(10))
         .andExpect(jsonPath("$.totalElements").value(2))
         .andExpect(jsonPath("$.totalPages").value(1))
         .andDo(print());
   }
+
 
   @DisplayName("userId로 프로모션 유저 정보를 삭제한다.")
   @Test

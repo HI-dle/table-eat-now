@@ -1,6 +1,7 @@
 package table.eat.now.promotion.promotionuser.presentation.dto.request;
 
 import jakarta.validation.constraints.NotNull;
+import java.util.UUID;
 import table.eat.now.promotion.promotionuser.application.dto.request.CreatePromotionUserCommand;
 
 /**
@@ -10,9 +11,9 @@ import table.eat.now.promotion.promotionuser.application.dto.request.CreatePromo
 public record CreatePromotionUserRequest(@NotNull
                                          Long userId,
                                          @NotNull
-                                         String promotionUuid) {
+                                         UUID promotionUuid) {
 
   public CreatePromotionUserCommand toApplication() {
-    return new CreatePromotionUserCommand(userId, promotionUuid);
+    return new CreatePromotionUserCommand(userId, promotionUuid.toString());
   }
 }

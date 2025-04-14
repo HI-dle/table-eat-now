@@ -15,8 +15,8 @@ public record SearchPromotionRestaurantInfo(String promotionRestaurantUuid,
   public static SearchPromotionRestaurantInfo from(PromotionRestaurantSearchCriteriaQuery query) {
     return SearchPromotionRestaurantInfo.builder()
         .promotionRestaurantUuid(query.promotionRestaurantUuid())
-        .promotionUuid(query.promotionRestaurantUuid())
-        .restaurantUuid(query.promotionRestaurantUuid())
+        .promotionUuid(query.promotionUuid())
+        .restaurantUuid(query.restaurantUuid())
         .build();
   }
 
