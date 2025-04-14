@@ -1,14 +1,13 @@
 package table.eat.now.payment.payment.infrastructure.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import table.eat.now.payment.payment.application.client.PgClient;
 import table.eat.now.payment.payment.application.dto.request.CancelPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.ConfirmPaymentCommand;
-import table.eat.now.payment.payment.application.dto.response.CancelPgPaymentInfo;
-import table.eat.now.payment.payment.application.dto.response.ConfirmPgPaymentInfo;
+import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentInfo;
+import table.eat.now.payment.payment.application.client.dto.ConfirmPgPaymentInfo;
 import table.eat.now.payment.payment.infrastructure.client.dto.request.CancelTossPayRequest;
 import table.eat.now.payment.payment.infrastructure.client.dto.request.ConfirmTossPayRequest;
 import table.eat.now.payment.payment.infrastructure.client.pg.TossPaymentClient;
