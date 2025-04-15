@@ -1,9 +1,14 @@
 package table.eat.now.promotion.promotion.infrastructure.redis;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Repository;
-import table.eat.now.promotion.promotion.infrastructure.dto.request.PromotionUserQuery;
+import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipant;
+import table.eat.now.promotion.promotion.infrastructure.dto.request.PromotionUserCommand;
 
 /**
  * @author : hanjihoon
@@ -14,23 +19,43 @@ import table.eat.now.promotion.promotion.infrastructure.dto.request.PromotionUse
 public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
 
   private final RedisTemplate<String, Object> redisTemplate;
-  private static final String PROMOTION_KEY_PRE_FIX = "promotion:";
+  private final ObjectMapper objectMapper;
+  private final PromotionLuaScriptProvider luaScriptProvider;
+
+  private static final String PROMOTION_KEY_PREFIX = "promotion:";
 
   @Override
-  public void addUserToPromotion(String promotionName, PromotionUserQuery promotionUserQuery) {
+  public boolean addUserToPromotion(
+      String promotionName,  PromotionParticipant participant, int maxCount) {
+    PromotionUserCommand command = PromotionUserCommand.from(participant);
 
-    // 스코어는 현재 시간을 기준으로 설정
-    double score = System.currentTimeMillis();
+    String key = buildKey(promotionName);
+    long now = System.currentTimeMillis();
 
-    // ZSET에 PromotionUserInfo 객체 저장
-    redisTemplate.opsForZSet().add(
-        PROMOTION_KEY_PRE_FIX + promotionName, promotionUserQuery, score);
+    DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+    script.setScriptText(luaScriptProvider.getAddUserScript());
+    script.setResultType(Long.class);
+
+    Long result = redisTemplate.execute(
+        script,
+        Collections.singletonList(key),
+        String.valueOf(maxCount),
+        String.valueOf(now),
+        serialize(command)
+    );
+
+    return result != null && result == 1L;
   }
 
+  private String buildKey(String promotionName) {
+    return PROMOTION_KEY_PREFIX + promotionName;
+  }
 
-  @Override
-  public void removeUserFromPromotion(String promotionName, Long userId) {
-    redisTemplate.opsForZSet().removeRangeByScore(
-        PROMOTION_KEY_PRE_FIX + promotionName, userId, userId);
+  private String serialize(PromotionUserCommand command) {
+    try {
+      return objectMapper.writeValueAsString(command);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException("Failed to serialize PromotionUserQuery", e);
+    }
   }
 }
