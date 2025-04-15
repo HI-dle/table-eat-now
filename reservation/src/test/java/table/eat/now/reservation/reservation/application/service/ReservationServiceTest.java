@@ -1314,7 +1314,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .extracting(
               table.eat.now.reservation.reservation.domain.entity.json.RestaurantMenuDetails::getName,
               table.eat.now.reservation.reservation.domain.entity.json.RestaurantMenuDetails::getPrice,
-              table.eat.now.reservation.reservation.domain.entity.json.RestaurantMenuDetails::getCount
+              table.eat.now.reservation.reservation.domain.entity.json.RestaurantMenuDetails::getQuantity
           )
           .containsExactly(
               command.restaurantMenuDetails().name(),
@@ -1493,7 +1493,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .extracting(
               table.eat.now.reservation.reservation.domain.entity.json.RestaurantMenuDetails::getName,
               table.eat.now.reservation.reservation.domain.entity.json.RestaurantMenuDetails::getPrice,
-              table.eat.now.reservation.reservation.domain.entity.json.RestaurantMenuDetails::getCount
+              table.eat.now.reservation.reservation.domain.entity.json.RestaurantMenuDetails::getQuantity
           )
           .containsExactly(
               command.restaurantMenuDetails().name(),
@@ -1665,7 +1665,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .extracting(
               table.eat.now.reservation.reservation.domain.entity.json.RestaurantMenuDetails::getName,
               table.eat.now.reservation.reservation.domain.entity.json.RestaurantMenuDetails::getPrice,
-              table.eat.now.reservation.reservation.domain.entity.json.RestaurantMenuDetails::getCount
+              table.eat.now.reservation.reservation.domain.entity.json.RestaurantMenuDetails::getQuantity
           )
           .containsExactly(
               command.restaurantMenuDetails().name(),
