@@ -71,6 +71,9 @@ public class RestaurantTimeSlot extends BaseEntity {
   }
 
   public void modifyCurTotalGuestCount(int newCount) {
+    if(maxCapacity < newCount) {
+      throw new IllegalArgumentException("curTotalGuestCount 는 maxCapacity 보다 클 수 없습니다.");
+    }
     this.curTotalGuestCount = newCount;
   }
 }
