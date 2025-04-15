@@ -23,7 +23,7 @@ import table.eat.now.reservation.reservation.presentation.dto.response.CreateRes
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/reservations")
-public class ReservationController {
+public class ReservationApiController {
 
   private final ReservationService reservationService;
 

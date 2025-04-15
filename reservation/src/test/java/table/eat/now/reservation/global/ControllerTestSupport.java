@@ -10,10 +10,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import table.eat.now.reservation.reservation.application.service.ReservationService;
-import table.eat.now.reservation.reservation.presentation.ReservationController;
+import table.eat.now.reservation.reservation.presentation.ReservationApiController;
 
 @WebMvcTest(controllers = {
-    ReservationController.class
+    ReservationApiController.class
 })
 public abstract class ControllerTestSupport {
   @Autowired
