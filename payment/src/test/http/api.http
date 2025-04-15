@@ -1,9 +1,33 @@
+###
+POST http://localhost:8081/api/v1/users/signup
+Content-Type: application/json
+
+{
+  "username": "test",
+  "email": "test@test",
+  "phone": "123",
+  "password": "1234",
+  "role": "MASTER"
+}
+
+###
+POST http://localhost:8080/api/v1/users/login
+Content-Type: application/json
+
+{
+"username": "test",
+"password": "1234"
+}
+> {%
+  client.global.set("access_token", response.headers.valueOf("Authorization"))
+%}
+
 ### 결제 생성
 POST localhost:8088/internal/v1/payments
 Content-Type: application/json
 
 {
-  "reservationUuid": "00000000-0000-0000-0000-000000000018",
+  "reservationUuid": "00000000-0000-0000-0000-000000000026",
   "restaurantUuid": "9882a539-0380-4a5d-bec4-da49d37f06e5",
   "customerId": 123,
   "reservationName": "하이들하신가",
@@ -13,6 +37,9 @@ Content-Type: application/json
   client.global.set("idempotencyKey", response.body.idempotencyKey)
   client.global.set("paymentUuid", response.body.paymentUuid)
 %}
+
+### 브라우저에서 해보시면 됩니다! (최상단의 GET요청 url을 복사붙여넣기하시면 됩니다.)
+GET http://localhost:8088/checkout?idempotencyKey={{idempotencyKey}}
 
 ### Checkout 상세 조회
 GET http://localhost:8088/api/v1/payments/checkout-info?idempotencyKey={{idempotencyKey}}
@@ -34,6 +61,6 @@ X-User-Id: 123
 X-User-Role: CUSTOMER
 
 ### 토스페이 거래내역 상세조회
-GET https://api.tosspayments.com/v1/payments/orders/00000000-0000-0000-0000-000000000011
+GET https://api.tosspayments.com/v1/payments/orders/00000000-0000-0000-0000-000000000020
 Authorization: Basic dGVzdF9za19BTG5RdkRkMlZKR2s0eUdLR1E5TnJNajdYNDFtOg
 Content-Type: application/json
