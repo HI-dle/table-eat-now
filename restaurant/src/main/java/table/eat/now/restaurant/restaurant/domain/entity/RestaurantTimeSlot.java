@@ -7,6 +7,8 @@ package table.eat.now.restaurant.restaurant.domain.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -27,14 +29,15 @@ import table.eat.now.common.domain.BaseEntity;
 public class RestaurantTimeSlot extends BaseEntity {
 
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "restaurant_id", nullable = false)
   private Restaurant restaurant;
 
-  @Column(name = "restaurant_timeslot_uuid", nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
-  private UUID restaurantTimeslotUuid;
+  @Column(name = "restaurant_timeslot_uuid", nullable = false, unique = true)
+  private String restaurantTimeslotUuid;
 
   @Column(name = "available_date", nullable = false)
   private LocalDate availableDate;
@@ -53,13 +56,12 @@ public class RestaurantTimeSlot extends BaseEntity {
       LocalDate availableDate,
       Integer maxCapacity,
       Restaurant restaurant,
-      UUID restaurantTimeslotUuid,
       LocalTime timeslot
   ) {
     this.availableDate = availableDate;
     this.maxCapacity = maxCapacity;
     this.restaurant = restaurant;
-    this.restaurantTimeslotUuid = restaurantTimeslotUuid;
+    this.restaurantTimeslotUuid = UUID.randomUUID().toString();
     this.timeslot = timeslot;
     this.curTotalGuestCount = 0;
   }
