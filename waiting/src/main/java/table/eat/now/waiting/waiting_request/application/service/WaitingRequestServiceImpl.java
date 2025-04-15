@@ -6,10 +6,10 @@ import org.springframework.stereotype.Service;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.waiting.waiting_request.application.client.RestaurantClient;
-import table.eat.now.waiting.waiting_request.application.dto.event.SendCreatedWaitingRequestEvent;
+import table.eat.now.waiting.waiting_request.application.dto.event.WaitingRequestCreatedEvent;
 import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaitingRequestCommand;
-import table.eat.now.waiting.waiting_request.application.dto.request.EnterWaitingRequestCommand;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
+import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
 import table.eat.now.waiting.waiting_request.application.exception.WaitingRequestErrorCode;
 import table.eat.now.waiting.waiting_request.application.utils.TimeProvider;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
@@ -25,41 +25,81 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
   public String createWaitingRequest(
       CurrentUserInfoDto userInfo, CreateWaitingRequestCommand command) {
 
-    // todo. 현재 가게가 대기 가능한지 검증
+    // todo. 현재 가게가 대기 가능한지 검증 및 대기 관련 정보 조회
+    String restaurantName = ""; // 임시
+    String restaurantUuid = UUID.randomUUID().toString(); // 임시
+    long avgWaitingSec = 600L; // 임시
 
     validateNoDuplicateWaitingRequest(command);
 
     String waitingRequestUuid = UUID.randomUUID().toString();
     Long sequence = generateSequence(command.dailyWaitingUuid());
     Long rank = enqueueWaitingRequestAndGetRank(command.dailyWaitingUuid(), waitingRequestUuid);
-    long estimatedWaitingTime = 0L * rank; // todo
+    long estimatedWaitingSec = avgWaitingSec * (rank + 1L);
 
-    WaitingRequest waitingRequest = command.toEntity(waitingRequestUuid, userInfo.userId(), sequence);
+    WaitingRequest waitingRequest = command.toEntity(waitingRequestUuid, restaurantUuid, userInfo.userId(), sequence);
     waitingRequestRepository.save(waitingRequest);
 
     // todo. 대기 결과 안내 문자 발송
-    sendWaitingRequestConfirmedInfoMessage(command, sequence, rank, estimatedWaitingTime);
+    sendWaitingRequestCreatedMessage(command, restaurantName, sequence, rank, estimatedWaitingSec);
 
     return waitingRequestUuid;
   }
 
   @Override
   public void processWaitingRequestEntrance(
-      CurrentUserInfoDto userInfo, String waitingRequestsUuid, EnterWaitingRequestCommand command) {
+      CurrentUserInfoDto userInfo, String waitingRequestsUuid) {
 
-    WaitingRequest waitingRequest = waitingRequestRepository.findByWaitingRequestUuidAndDeletedAtIsNull(
-            waitingRequestsUuid)
-        .orElseThrow(
-            () -> CustomException.from(WaitingRequestErrorCode.INVALID_WAITING_REQUEST_UUID));
+    WaitingRequest waitingRequest = getWaitingRequestBy(waitingRequestsUuid);
+    GetRestaurantInfo restaurantInfo = restaurantClient.getRestaurantInfo(waitingRequest.getRestaurantUuid());
+    validateRestaurantAuthority(userInfo, restaurantInfo);
 
-    validateRequestByUserRole(userInfo, command);
-    dequeueWaitingRequest(command.dailyWaitingUuid(), waitingRequestsUuid);
+    dequeueWaitingRequest(waitingRequest.getDailyWaitingUuid(), waitingRequestsUuid);
 
     // todo 메세지 전송 필요
-    sendWaitingRequestEntranceInfoMessage(waitingRequest);
+    sendWaitingRequestEntranceMessage(waitingRequest, restaurantInfo.name());
   }
 
-  private void sendWaitingRequestEntranceInfoMessage(WaitingRequest waitingRequest) {
+  @Override
+  public GetWaitingRequestInfo getWaitingRequest(
+      CurrentUserInfoDto userInfo, String waitingRequestUuid, String phone) {
+
+    WaitingRequest waitingRequest = getWaitingRequestBy(waitingRequestUuid);
+    validateUserPhoneNumber(phone, waitingRequest.getPhone());
+
+    // todo. 가게 이름 및 평균 대기 시간 조회
+    String restaurantName = ""; // 임시
+    long avgWaitingSec = 600L; // 임시
+    Long rank = waitingRequestRepository.getRank(waitingRequest.getDailyWaitingUuid(), waitingRequestUuid);
+    long estimatedWaitingSec = avgWaitingSec * (rank + 1L);
+
+    return GetWaitingRequestInfo.from(waitingRequest, restaurantName, rank, estimatedWaitingSec);
+  }
+
+  @Override
+  public GetWaitingRequestInfo getWaitingRequestAdmin(CurrentUserInfoDto userInfo, String waitingRequestUuid) {
+
+    WaitingRequest waitingRequest = getWaitingRequestBy(waitingRequestUuid);
+    GetRestaurantInfo restaurantInfo = restaurantClient.getRestaurantInfo(waitingRequest.getRestaurantUuid());
+    validateRestaurantAuthority(userInfo, restaurantInfo);
+
+    // todo. 가게 이름 및 평균 대기 시간 조회
+    String restaurantName = ""; // 임시
+    long avgWaitingSec = 600L; // 임시
+    Long rank = waitingRequestRepository.getRank(waitingRequest.getDailyWaitingUuid(), waitingRequestUuid);
+    long estimatedWaitingSec = avgWaitingSec * (rank + 1L);
+
+    return GetWaitingRequestInfo.from(waitingRequest, restaurantName, rank, estimatedWaitingSec);
+  }
+
+  private void sendWaitingRequestCreatedMessage(
+      CreateWaitingRequestCommand command, String restaurantName, Long sequence, Long rank, long estimatedWaitingSec) {
+
+    WaitingRequestCreatedEvent event = WaitingRequestCreatedEvent.of(
+        command.phone(), command.slackId(), restaurantName, sequence, rank, estimatedWaitingSec);
+  }
+
+  private void sendWaitingRequestEntranceMessage(WaitingRequest waitingRequest, String restaurantName) {
   }
 
   private void dequeueWaitingRequest(String dailyWaitingUuid, String waitingRequestsUuid) {
@@ -68,13 +108,6 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
     if (!result) {
       throw CustomException.from(WaitingRequestErrorCode.INVALID_WAITING_REQUEST_UUID);
     }
-  }
-
-  private void sendWaitingRequestConfirmedInfoMessage(
-      CreateWaitingRequestCommand command, Long sequence, Long rank, long estimatedWaitingTime) {
-
-    SendCreatedWaitingRequestEvent event = SendCreatedWaitingRequestEvent.of(
-        command.phone(), command.slackId(), sequence, rank, estimatedWaitingTime);
   }
 
   private Long enqueueWaitingRequestAndGetRank(String dailyWaitingUuid, String waitingRequestUuid) {
@@ -92,6 +125,12 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
     return waitingRequestRepository.generateNextSequence(dailyWaitingUuid);
   }
 
+  private WaitingRequest getWaitingRequestBy(String waitingRequestsUuid) {
+    return waitingRequestRepository.findByWaitingRequestUuidAndDeletedAtIsNull(waitingRequestsUuid)
+        .orElseThrow(
+            () -> CustomException.from(WaitingRequestErrorCode.INVALID_WAITING_REQUEST_UUID));
+  }
+
   private void validateNoDuplicateWaitingRequest(CreateWaitingRequestCommand command) {
     boolean existsBy = waitingRequestRepository.existsByConditionAndStatusIsWaitingAndDeletedAtIsNull(
         command.dailyWaitingUuid(), command.phone());
@@ -100,15 +139,14 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
     }
   }
 
-  private void validateRequestByUserRole(CurrentUserInfoDto userInfo, EnterWaitingRequestCommand command) {
+  private void validateRestaurantAuthority(CurrentUserInfoDto userInfo, GetRestaurantInfo restaurantInfo) {
 
-    if (userInfo.role().isRestaurantStaff()) {
-      GetRestaurantInfo restaurantInfo = restaurantClient.getRestaurantInfo(command.restaurantUuid());
-
-      if (!isOwnerOfRestaurant(userInfo, restaurantInfo.ownerId())
-          && !isStaffOfRestaurant(userInfo, restaurantInfo.staffId())) {
-        throw CustomException.from(WaitingRequestErrorCode.UNAUTH_REQUEST);
-      }
+    if (userInfo.role().isMaster()) {
+      return;
+    }
+    if (!isOwnerOfRestaurant(userInfo, restaurantInfo.ownerId())
+        && !isStaffOfRestaurant(userInfo, restaurantInfo.staffId())) {
+      throw CustomException.from(WaitingRequestErrorCode.UNAUTH_REQUEST);
     }
   }
 
@@ -118,5 +156,11 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
 
   private boolean isOwnerOfRestaurant(CurrentUserInfoDto userInfo, Long ownerId) {
     return userInfo.role().isOwner() && ownerId.equals(userInfo.userId());
+  }
+
+  private static void validateUserPhoneNumber(String phone, String savedPhone) {
+    if (!savedPhone.equals(phone)) {
+      throw CustomException.from(WaitingRequestErrorCode.UNAUTH_REQUEST);
+    }
   }
 }
