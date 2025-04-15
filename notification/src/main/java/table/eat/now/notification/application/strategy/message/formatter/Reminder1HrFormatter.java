@@ -1,9 +1,9 @@
-package table.eat.now.notification.application.Strategy.message.formatter;
+package table.eat.now.notification.application.strategy.message.formatter;
 
 import java.util.Map;
 import org.springframework.stereotype.Component;
-import table.eat.now.notification.application.Strategy.NotificationFormatterStrategy;
-import table.eat.now.notification.application.Strategy.NotificationTemplate;
+import table.eat.now.notification.application.strategy.NotificationFormatterStrategy;
+import table.eat.now.notification.application.strategy.NotificationTemplate;
 import table.eat.now.notification.domain.entity.NotificationType;
 
 /**

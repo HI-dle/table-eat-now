@@ -1,4 +1,4 @@
-package table.eat.now.notification.application.Strategy;
+package table.eat.now.notification.application.strategy;
 
 import jakarta.annotation.PostConstruct;
 import java.util.EnumMap;

@@ -1,4 +1,4 @@
-package table.eat.now.notification.application.Strategy;
+package table.eat.now.notification.application.strategy;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Map;

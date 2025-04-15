@@ -1,4 +1,4 @@
-package table.eat.now.notification.application.Strategy;
+package table.eat.now.notification.application.strategy;
 
 import java.util.Map;
 import table.eat.now.notification.domain.entity.NotificationType;

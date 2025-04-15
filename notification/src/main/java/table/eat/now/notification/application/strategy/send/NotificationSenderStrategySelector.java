@@ -1,4 +1,4 @@
-package table.eat.now.notification.application.Strategy.send;
+package table.eat.now.notification.application.strategy.send;
 
 import java.util.List;
 import java.util.Map;
