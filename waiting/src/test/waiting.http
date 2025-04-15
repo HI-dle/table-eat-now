@@ -1,3 +1,7 @@
+### 대기 정보 조회
+GET localhost:8086/internal/v1/waitings/00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+
 ### 대기 요청 생성
 POST localhost:8086/api/v1/waiting-requests
 Content-Type: application/json
