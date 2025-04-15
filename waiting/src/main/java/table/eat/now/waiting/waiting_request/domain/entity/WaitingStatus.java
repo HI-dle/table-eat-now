@@ -8,10 +8,10 @@ public enum WaitingStatus {
 
   WAITING("대기중"),
   POSTPONED("입장연기"),
-  SEATED("착석"),
   CANCELED("취소"),
-  LEAVED("식사종료"),
   NO_SHOW("노쇼"),
+  SEATED("착석"),
+  LEAVED("식사종료"),
   ;
 
   private final String description;

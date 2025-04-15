@@ -6,8 +6,10 @@ import org.springframework.stereotype.Service;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.waiting.waiting_request.application.client.RestaurantClient;
+import table.eat.now.waiting.waiting_request.application.client.WaitingClient;
 import table.eat.now.waiting.waiting_request.application.dto.event.WaitingRequestCreatedEvent;
 import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaitingRequestCommand;
+import table.eat.now.waiting.waiting_request.application.dto.response.GetDailyWaitingInfo;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
 import table.eat.now.waiting.waiting_request.application.exception.WaitingRequestErrorCode;
@@ -20,30 +22,37 @@ import table.eat.now.waiting.waiting_request.domain.repository.WaitingRequestRep
 public class WaitingRequestServiceImpl implements WaitingRequestService {
   private final WaitingRequestRepository waitingRequestRepository;
   private final RestaurantClient restaurantClient;
+  private final WaitingClient waitingClient;
 
   @Override
   public String createWaitingRequest(
       CurrentUserInfoDto userInfo, CreateWaitingRequestCommand command) {
 
-    // todo. 현재 가게가 대기 가능한지 검증 및 대기 관련 정보 조회
-    String restaurantName = ""; // 임시
-    String restaurantUuid = UUID.randomUUID().toString(); // 임시
-    long avgWaitingSec = 600L; // 임시
+    GetDailyWaitingInfo dailyWaitingInfo = waitingClient.getDailyWaitingInfo(
+        command.dailyWaitingUuid());
 
+    validateWaitingAvailable(dailyWaitingInfo);
     validateNoDuplicateWaitingRequest(command);
 
     String waitingRequestUuid = UUID.randomUUID().toString();
     Long sequence = generateSequence(command.dailyWaitingUuid());
     Long rank = enqueueWaitingRequestAndGetRank(command.dailyWaitingUuid(), waitingRequestUuid);
-    long estimatedWaitingSec = avgWaitingSec * (rank + 1L);
+    long estimatedWaitingSec = dailyWaitingInfo.avgWaitingSec() * (rank + 1L);
 
-    WaitingRequest waitingRequest = command.toEntity(waitingRequestUuid, restaurantUuid, userInfo.userId(), sequence);
+    WaitingRequest waitingRequest = command.toEntity(
+        waitingRequestUuid, dailyWaitingInfo.restaurantUuid(), userInfo.userId(), sequence);
     waitingRequestRepository.save(waitingRequest);
 
     // todo. 대기 결과 안내 문자 발송
-    sendWaitingRequestCreatedMessage(command, restaurantName, sequence, rank, estimatedWaitingSec);
+    sendWaitingRequestCreatedMessage(command, dailyWaitingInfo.restaurantName(), sequence, rank, estimatedWaitingSec);
 
     return waitingRequestUuid;
+  }
+
+  private void validateWaitingAvailable(GetDailyWaitingInfo dailyWaitingInfo) {
+    if (!dailyWaitingInfo.isAvailable()) {
+      throw CustomException.from(WaitingRequestErrorCode.UNAVAILABLE_WAITING);
+    }
   }
 
   @Override
@@ -67,13 +76,13 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
     WaitingRequest waitingRequest = getWaitingRequestBy(waitingRequestUuid);
     validateUserPhoneNumber(phone, waitingRequest.getPhone());
 
-    // todo. 가게 이름 및 평균 대기 시간 조회
-    String restaurantName = ""; // 임시
-    long avgWaitingSec = 600L; // 임시
-    Long rank = waitingRequestRepository.getRank(waitingRequest.getDailyWaitingUuid(), waitingRequestUuid);
-    long estimatedWaitingSec = avgWaitingSec * (rank + 1L);
+    GetDailyWaitingInfo dailyWaitingInfo = waitingClient.getDailyWaitingInfo(
+        waitingRequest.getDailyWaitingUuid());
 
-    return GetWaitingRequestInfo.from(waitingRequest, restaurantName, rank, estimatedWaitingSec);
+    Long rank = waitingRequestRepository.getRank(waitingRequest.getDailyWaitingUuid(), waitingRequestUuid);
+    long estimatedWaitingSec = dailyWaitingInfo.avgWaitingSec() * (rank + 1L);
+
+    return GetWaitingRequestInfo.from(waitingRequest, dailyWaitingInfo.restaurantName(), rank, estimatedWaitingSec);
   }
 
   @Override
@@ -83,13 +92,12 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
     GetRestaurantInfo restaurantInfo = restaurantClient.getRestaurantInfo(waitingRequest.getRestaurantUuid());
     validateRestaurantAuthority(userInfo, restaurantInfo);
 
-    // todo. 가게 이름 및 평균 대기 시간 조회
-    String restaurantName = ""; // 임시
-    long avgWaitingSec = 600L; // 임시
+    GetDailyWaitingInfo dailyWaitingInfo = waitingClient.getDailyWaitingInfo(
+        waitingRequest.getDailyWaitingUuid());
     Long rank = waitingRequestRepository.getRank(waitingRequest.getDailyWaitingUuid(), waitingRequestUuid);
-    long estimatedWaitingSec = avgWaitingSec * (rank + 1L);
+    long estimatedWaitingSec = dailyWaitingInfo.avgWaitingSec() * (rank + 1L);
 
-    return GetWaitingRequestInfo.from(waitingRequest, restaurantName, rank, estimatedWaitingSec);
+    return GetWaitingRequestInfo.from(waitingRequest, dailyWaitingInfo.restaurantName(), rank, estimatedWaitingSec);
   }
 
   private void sendWaitingRequestCreatedMessage(
