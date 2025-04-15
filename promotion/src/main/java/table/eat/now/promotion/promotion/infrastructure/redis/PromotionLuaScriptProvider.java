@@ -23,8 +23,10 @@ public class PromotionLuaScriptProvider {
     if currentCount >= maxCount then
     return 0
     end
+    
+    local uniqueScore = now * 1000 + userId
 
-    redis.call('ZADD', key, now, userInfo)
+    redis.call('ZADD', key, uniqueScore, userInfo)
     return 1
 
     """;
