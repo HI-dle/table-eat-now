@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+import java.time.LocalDate;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +19,9 @@ import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.helper.IntegrationTestSupport;
 import table.eat.now.waiting.waiting_request.application.client.RestaurantClient;
+import table.eat.now.waiting.waiting_request.application.client.WaitingClient;
 import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaitingRequestCommand;
+import table.eat.now.waiting.waiting_request.application.dto.response.GetDailyWaitingInfo;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
 import table.eat.now.waiting.waiting_request.application.exception.WaitingRequestErrorCode;
@@ -38,6 +41,9 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
   @MockitoBean
   private RestaurantClient restaurantClient;
 
+  @MockitoBean
+  private WaitingClient waitingClient;
+
   private WaitingRequest waitingRequest;
 
   @BeforeEach
@@ -56,17 +62,29 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
   @Nested
   class createWaitingRequest {
 
+    @BeforeEach
+    void setUp() {
+    }
+
     @DisplayName("생성 성공")
     @Test
     void createWaitingRequest() {
       // given
-      CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(2L, UserRole.CUSTOMER);
-      CreateWaitingRequestCommand command = CreateWaitingRequestCommand.builder()
+      var userInfo = CurrentUserInfoDto.of(2L, UserRole.CUSTOMER);
+      var command = CreateWaitingRequestCommand.builder()
           .dailyWaitingUuid(UUID.randomUUID().toString())
           .phone("01000000000")
           .slackId("slack@slack.com")
           .seatSize(3)
           .build();
+      var dailyWaitingInfo = GetDailyWaitingInfo.builder()
+          .dailyWaitingUuid(command.dailyWaitingUuid())
+          .restaurantUuid(UUID.randomUUID().toString())
+          .waitingDate(LocalDate.now())
+          .avgWaitingSec(600L)
+          .status("AVAILABLE")
+          .build();
+      given(waitingClient.getDailyWaitingInfo(command.dailyWaitingUuid())).willReturn(dailyWaitingInfo);
 
       // when
       String waitingRequestUuid = waitingRequestService.createWaitingRequest(userInfo, command);
@@ -79,6 +97,7 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
 
       assertThat(waitingRequest.getDailyWaitingUuid()).isEqualTo(command.dailyWaitingUuid());
       assertThat(waitingRequest.getWaitingRequestUuid()).isEqualTo(waitingRequestUuid);
+      assertThat(waitingRequest.getRestaurantUuid()).isEqualTo(dailyWaitingInfo.restaurantUuid());
       assertThat(waitingRequest.getSequence()).isEqualTo(sequence);
     }
 
@@ -86,18 +105,54 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
     @Test
     void failCreateWaitingRequestForDuplicatePhone() {
       // given
-      CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(2L, UserRole.CUSTOMER);
-      CreateWaitingRequestCommand command = CreateWaitingRequestCommand.builder()
+      var userInfo = CurrentUserInfoDto.of(2L, UserRole.CUSTOMER);
+      var command = CreateWaitingRequestCommand.builder()
           .dailyWaitingUuid(waitingRequest.getDailyWaitingUuid())
           .phone("01012345678")
           .slackId("slack@slack.com")
           .seatSize(3)
           .build();
 
+      var dailyWaitingInfo = GetDailyWaitingInfo.builder()
+          .dailyWaitingUuid(waitingRequest.getDailyWaitingUuid())
+          .restaurantUuid(waitingRequest.getRestaurantUuid())
+          .waitingDate(LocalDate.now())
+          .avgWaitingSec(600L)
+          .status("AVAILABLE")
+          .build();
+      given(waitingClient.getDailyWaitingInfo(command.dailyWaitingUuid())).willReturn(dailyWaitingInfo);
+
       // when, then
       assertThatThrownBy(() -> waitingRequestService.createWaitingRequest(userInfo, command))
           .isInstanceOf(CustomException.class)
           .hasMessage(WaitingRequestErrorCode.ALREADY_EXISTS_WAITING.getMessage());
+    }
+
+    @DisplayName("식당이 대기 불가능한 경우 생성 실패")
+    @Test
+    void failCreateWaitingRequestForUnavailableRestaurant() {
+      // given
+      var userInfo = CurrentUserInfoDto.of(2L, UserRole.CUSTOMER);
+      var command = CreateWaitingRequestCommand.builder()
+          .dailyWaitingUuid(UUID.randomUUID().toString())
+          .phone("01012345678")
+          .slackId("slack@slack.com")
+          .seatSize(3)
+          .build();
+
+      var dailyWaitingInfo = GetDailyWaitingInfo.builder()
+          .dailyWaitingUuid(command.dailyWaitingUuid())
+          .restaurantUuid(UUID.randomUUID().toString())
+          .waitingDate(LocalDate.now())
+          .avgWaitingSec(600L)
+          .status("UNAVAILABLE")
+          .build();
+      given(waitingClient.getDailyWaitingInfo(command.dailyWaitingUuid())).willReturn(dailyWaitingInfo);
+
+      // when, then
+      assertThatThrownBy(() -> waitingRequestService.createWaitingRequest(userInfo, command))
+          .isInstanceOf(CustomException.class)
+          .hasMessage(WaitingRequestErrorCode.UNAVAILABLE_WAITING.getMessage());
     }
   }
 
@@ -158,6 +213,8 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
   @Nested
   class getWaitingRequest {
 
+    private GetDailyWaitingInfo dailyWaitingInfo;
+
     @BeforeEach
     void setUp() {
       GetRestaurantInfo restaurantInfo = GetRestaurantInfo.builder()
@@ -165,15 +222,22 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
           .ownerId(3L)
           .staffId(4L)
           .build();
-
       given(restaurantClient.getRestaurantInfo(any())).willReturn(restaurantInfo);
+
+      dailyWaitingInfo = GetDailyWaitingInfo.builder()
+          .dailyWaitingUuid(waitingRequest.getDailyWaitingUuid())
+          .restaurantUuid(waitingRequest.getRestaurantUuid())
+          .waitingDate(LocalDate.now())
+          .avgWaitingSec(600L)
+          .status("AVAILABLE")
+          .build();
+      given(waitingClient.getDailyWaitingInfo(waitingRequest.getDailyWaitingUuid())).willReturn(dailyWaitingInfo);
     }
 
     @DisplayName("조회 성공")
     @Test
     void success() {
       // given
-
       // when
       GetWaitingRequestInfo info = waitingRequestService.getWaitingRequest(
           null, waitingRequest.getWaitingRequestUuid(), waitingRequest.getPhone());
@@ -181,6 +245,8 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
       // then
       assertThat(info.restaurantUuid()).isEqualTo(waitingRequest.getRestaurantUuid());
       assertThat(info.rank()).isEqualTo(0);
+      assertThat(info.restaurantName()).isEqualTo(dailyWaitingInfo.restaurantName());
+      assertThat(info.estimatedWaitingMin()).isEqualTo((info.rank() + 1L) * dailyWaitingInfo.avgWaitingSec() / 60L);
     }
 
     @DisplayName("admin 조회 성공")
@@ -196,6 +262,8 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
       // then
       assertThat(info.restaurantUuid()).isEqualTo(waitingRequest.getRestaurantUuid());
       assertThat(info.rank()).isEqualTo(0);
+      assertThat(info.restaurantName()).isEqualTo(dailyWaitingInfo.restaurantName());
+      assertThat(info.estimatedWaitingMin()).isEqualTo((info.rank() + 1L) * dailyWaitingInfo.avgWaitingSec() / 60L);
     }
   }
 }

@@ -36,7 +36,11 @@ spring:
         - id: waiting
           uri: lb://waiting
           predicates:
-            - Path=/api/v1/waitings/**,/admin/v1/waitings/**,/api/v1/waiting-requests/**,/admin/v1/waiting-requests
+            - Path=/api/v1/waitings/**,/admin/v1/waitings/**
+        - id: waiting-request
+          uri: lb://waiting
+          predicates:
+            - Path=/api/v1/waiting-requests/**,/admin/v1/waiting-requests/**
         - id: coupon
           uri: lb://coupon
           predicates:
