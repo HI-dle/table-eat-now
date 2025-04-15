@@ -5,8 +5,12 @@
 package table.eat.now.restaurant.restaurant.presentation;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
@@ -21,17 +25,22 @@ import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.restaurant.global.ControllerTestSupport;
+import table.eat.now.restaurant.restaurant.application.exception.RestaurantTimeSlotErrorCode;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantCriteria;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantInfo;
 
 class RestaurantInternalControllerTest extends ControllerTestSupport {
 
-  @DisplayName("식당 단건 조회 admin 컨트롤러")
+  private final String baseUrl = "/internal/v1/restaurants";
+
+  @DisplayName("식당 단건 조회 internal 컨트롤러")
   @Nested
   class getOne{
 
@@ -39,7 +48,8 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
       return Stream.of(
           Arguments.of(UserRole.MASTER),
           Arguments.of(UserRole.OWNER),
-          Arguments.of(UserRole.STAFF)
+          Arguments.of(UserRole.STAFF),
+          Arguments.of(UserRole.CUSTOMER)
       );
     }
 
@@ -86,7 +96,7 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
           .willReturn(response);
 
       // when & then
-      mockMvc.perform(get("/internal/v1/restaurants/{restaurantUuid}", restaurantUuid)
+      mockMvc.perform(get(baseUrl+ "/{restaurantUuid}", restaurantUuid)
               .header(USER_ID_HEADER, userId)
               .header(USER_ROLE_HEADER, role)
               .contentType(MediaType.APPLICATION_JSON))
@@ -109,6 +119,46 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
           .andExpect(jsonPath("$.timeSlots[0].timeslot").value("18:00:00"))
           .andExpect(jsonPath("$.timeSlots[0].maxCapacity").value(20))
           .andExpect(jsonPath("$.timeSlots[0].curTotalGuestCount").value(5));
+    }
+  }
+
+  @DisplayName("식당 타임슬롯 현재 인원 수 수정 컨트롤러")
+  @Nested
+  class modifyGuestCount{
+    @Test
+    @DisplayName("타임슬롯 인원 수정 요청이 성공적으로 처리된다.")
+    void modifyGuestCount_success() throws Exception {
+      // given
+      String restaurantUuid = UUID.randomUUID().toString();
+      String timeSlotUuid = UUID.randomUUID().toString();
+      int delta = 1;
+
+      // restaurantService 호출이 정상 수행되도록 설정
+      doNothing().when(restaurantService)
+          .increaseOrDecreaseTimeSlotGuestCount(eq(timeSlotUuid), eq(delta));
+
+      // when & then
+      mockMvc.perform(patch(baseUrl + "/{restaurantUuid}/timeslot/{timeSlotUuid}/cur-total-guest-count", restaurantUuid, timeSlotUuid)
+              .param("delta", String.valueOf(delta)))
+          .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("타임슬롯 인원 수정 시 예외가 발생하면 400을 반환한다.")
+    void modifyGuestCount_failure_customException() throws Exception {
+      // given
+      String restaurantUuid = UUID.randomUUID().toString();
+      String timeSlotUuid = UUID.randomUUID().toString();
+      int delta = 100; // maxCapacity 초과를 유도
+
+      doThrow(new CustomException(RestaurantTimeSlotErrorCode.EXCEEDS_CAPACITY))
+          .when(restaurantService)
+          .increaseOrDecreaseTimeSlotGuestCount(eq(timeSlotUuid), eq(delta));
+
+      // when & then
+      mockMvc.perform(patch(baseUrl + "/{restaurantUuid}/timeslot/{timeSlotUuid}/cur-total-guest-count", restaurantUuid, timeSlotUuid)
+              .param("delta", String.valueOf(delta)))
+          .andExpect(status().isBadRequest());
     }
   }
 }
