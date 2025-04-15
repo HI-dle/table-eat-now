@@ -1,3 +1,7 @@
+/**
+ * @author : jieun(je-pa)
+ * @Date : 2025. 04. 15.
+ */
 package table.eat.now.restaurant.restaurant.infrastructure.persistence;
 
 import jakarta.persistence.LockModeType;
