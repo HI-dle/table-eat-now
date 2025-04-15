@@ -24,12 +24,14 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:8080/admin/v1/promotion-restaurants
+POST http://localhost:8084/admin/v1/promotion-restaurants
 Content-Type: application/json
-Authorization: {{access_token}}
+X-User-Role: MASTER
+X-User-Id: 1
+#Authorization: {{access_token}}
 
 {
-  "promotionUuid": "7bde88ba-ec55-4d5c-92d9-4de6f8cb14c9",
+  "promotionUuid": "30f6689c-fee0-44b7-a057-5193c54fdb1c",
   "restaurantUuid": "a03e77a7-4f26-4d4f-8412-bb68b2dd1b88"
 }
 
@@ -42,3 +44,11 @@ Authorization: {{access_token}}
   "promotionUuid": "7bde88ba-ec55-4d5c-92d9-4nj2jk2kj7",
   "restaurantUuid": "a03e77a7-4f26-4d4f-8412-4n4j12n442"
 }
+
+###
+GET http://localhost:8080/admin/v1/promotion-restaurants?promotionUuid=7bde88ba-ec55-4d5c-92d9-4nj2jk2kj7&restaurantUuid=a03e77a7-4f26-4d4f-8412-4n4j12n442&isAsc=true&sortBy=startTime&page=0&size=2
+Authorization: {{access_token}}
+
+###
+DELETE http://localhost:8080/admin/v1/promotion-restaurants/a03e77a7-4f26-4d4f-8412-4n4j12n442
+Authorization: {{access_token}}

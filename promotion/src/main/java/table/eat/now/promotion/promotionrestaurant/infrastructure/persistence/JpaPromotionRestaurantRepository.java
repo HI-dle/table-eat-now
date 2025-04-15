@@ -15,6 +15,9 @@ public interface JpaPromotionRestaurantRepository extends
   Optional<PromotionRestaurant> findByPromotionRestaurantUuidAndDeletedAtIsNull(
       String promotionRestaurantUuid);
 
-  Optional<PromotionRestaurant> findByRestaurantUuidAAndDeletedAtIsNull(
+  Optional<PromotionRestaurant> findByRestaurantUuidAndDeletedAtIsNull(
       String restaurantUuid);
+
+  Optional<PromotionRestaurant> findByRestaurantUuidAndPromotionUuidAndDeletedAtIsNull(
+      String restaurantUuid, String promotionUuid);
 }

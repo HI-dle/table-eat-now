@@ -32,6 +32,9 @@ public class WaitingRequest extends BaseEntity {
   @Column(nullable = false, length = 100)
   private String dailyWaitingUuid;
 
+  @Column(nullable = false, length = 100)
+  private String restaurantUuid;
+
   @Column
   private Long userId;
 
@@ -55,11 +58,12 @@ public class WaitingRequest extends BaseEntity {
   private List<WaitingRequestHistory> histories;
 
   @Builder
-  private WaitingRequest(String waitingRequestUuid, String dailyWaitingUuid, Long userId,
-      Integer sequence, String phone, String slackId, Integer seatSize) {
+  private WaitingRequest(String waitingRequestUuid, String dailyWaitingUuid, String restaurantUuid,
+      Long userId, Integer sequence, String phone, String slackId, Integer seatSize) {
 
     this.waitingRequestUuid = waitingRequestUuid;
     this.dailyWaitingUuid = dailyWaitingUuid;
+    this.restaurantUuid = restaurantUuid;
     this.userId = userId;
     this.sequence = sequence;
     this.phone = phone;
@@ -69,9 +73,10 @@ public class WaitingRequest extends BaseEntity {
     this.histories = new ArrayList<>();
   }
 
-  public static WaitingRequest of(String waitingRequestUuid, String dailyWaitingUuid, Long userId,
-      Integer sequence, String phone, String slackId, Integer seatSize) {
-    return new WaitingRequest(waitingRequestUuid, dailyWaitingUuid, userId, sequence, phone, slackId, seatSize);
+  public static WaitingRequest of(String waitingRequestUuid, String dailyWaitingUuid, String restaurantUuid,
+      Long userId, Integer sequence, String phone, String slackId, Integer seatSize) {
+    return new WaitingRequest(waitingRequestUuid, dailyWaitingUuid, restaurantUuid,
+        userId, sequence, phone, slackId, seatSize);
   }
 
   public void addHistory(WaitingRequestHistory history) {

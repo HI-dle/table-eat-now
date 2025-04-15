@@ -12,14 +12,14 @@ public record CreateWaitingRequestCommand(
     int seatSize
 ) {
 
-  public WaitingRequest toEntity(String waitingRequestUuid, Long userId, Long sequence) {
+  public WaitingRequest toEntity(String waitingRequestUuid, String restaurantUuid, Long userId, Long sequence) {
     if (sequence < Integer.MIN_VALUE || sequence > Integer.MAX_VALUE) {
       throw new IllegalArgumentException("시퀀스 값이 범위를 초과합니다.");
     }
 
     WaitingRequest waitingRequest = WaitingRequest.of(
-        waitingRequestUuid, dailyWaitingUuid, userId, sequence.intValue(), phone, slackId,
-        seatSize);
+        waitingRequestUuid, dailyWaitingUuid, restaurantUuid,
+        userId, sequence.intValue(), phone, slackId, seatSize);
     WaitingRequestHistory history = WaitingRequestHistory.create();
     waitingRequest.addHistory(history);
     return waitingRequest;

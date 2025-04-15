@@ -19,8 +19,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -86,62 +86,52 @@ public class Restaurant extends BaseEntity {
   private OperatingTime operatingTime;
 
   @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<RestaurantMenu> menus = new ArrayList<>();
+  private Set<RestaurantMenu> menus;
 
   @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<RestaurantTimeSlot> timeSlots = new ArrayList<>();
+  private Set<RestaurantTimeSlot> timeSlots;
 
-  @Builder(builderMethodName = "inactiveRestaurantBuilder")
+  @Builder(builderMethodName = "fullBuilder")
   private Restaurant(
       Long ownerId,
+      Long staffId,
       String name,
+      BigDecimal reviewRatingAvg,
       String info,
       Integer maxReservationGuestCountPerTeamOnline,
+      WaitingStatus waitingStatus,
+      RestaurantStatus status,
       String contactNumber,
       String address,
       LocalTime openingAt,
-      LocalTime closingAt
+      LocalTime closingAt,
+      Set<RestaurantMenu> menus,
+      Set<RestaurantTimeSlot> timeSlots
   ) {
     this.restaurantUuid = UUID.randomUUID().toString();
     this.ownerId = ownerId;
+    this.staffId = staffId;
     this.name = name;
+    this.reviewRatingAvg = reviewRatingAvg;
     this.info = info;
     this.maxReservationGuestCountPerTeamOnline = maxReservationGuestCountPerTeamOnline;
+    this.waitingStatus = waitingStatus;
+    this.status = status;
     this.contactInfo = ContactInfo.of(contactNumber, address);
     this.operatingTime = OperatingTime.of(openingAt, closingAt);
-    this.status = RestaurantStatus.INACTIVE;
-    this.waitingStatus = WaitingStatus.INACTIVE;
+    this.menus = new HashSet<>();
+    this.timeSlots = new HashSet<>();
   }
 
-  @Builder(builderMethodName = "fullBuilder")
-  private Restaurant(ContactInfo contactInfo, Long id, String info,
-      Integer maxReservationGuestCountPerTeamOnline, List<RestaurantMenu> menus, String name,
-      OperatingTime operatingTime, Long ownerId, String restaurantUuid, BigDecimal reviewRatingAvg,
-      Long staffId, RestaurantStatus status, List<RestaurantTimeSlot> timeSlots,
-      WaitingStatus waitingStatus) {
-    this.contactInfo = contactInfo;
-    this.id = id;
-    this.info = info;
-    this.maxReservationGuestCountPerTeamOnline = maxReservationGuestCountPerTeamOnline;
-    this.menus = menus;
-    this.name = name;
-    this.operatingTime = operatingTime;
-    this.ownerId = ownerId;
-    this.restaurantUuid = restaurantUuid;
-    this.reviewRatingAvg = reviewRatingAvg;
-    this.staffId = staffId;
-    this.status = status;
-    this.timeSlots = timeSlots;
-    this.waitingStatus = waitingStatus;
-  }
-
-  public void addMenus(List<RestaurantMenu> menus) {
+  public void addMenus(Iterable<RestaurantMenu> menus) {
+    if(menus == null) return;
     for (RestaurantMenu menu : menus) {
       addMenu(menu);
     }
   }
 
-  public void addTimeSlots(List<RestaurantTimeSlot> timeSlots) {
+  public void addTimeSlots(Iterable<RestaurantTimeSlot> timeSlots) {
+    if(timeSlots == null) return;
     for (RestaurantTimeSlot timeSlot : timeSlots) {
       addTimeSlot(timeSlot);
     }

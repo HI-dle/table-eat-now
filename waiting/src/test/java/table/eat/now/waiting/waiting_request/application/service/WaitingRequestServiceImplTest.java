@@ -3,6 +3,7 @@ package table.eat.now.waiting.waiting_request.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 import java.util.UUID;
@@ -18,8 +19,8 @@ import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.helper.IntegrationTestSupport;
 import table.eat.now.waiting.waiting_request.application.client.RestaurantClient;
 import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaitingRequestCommand;
-import table.eat.now.waiting.waiting_request.application.dto.request.EnterWaitingRequestCommand;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
+import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
 import table.eat.now.waiting.waiting_request.application.exception.WaitingRequestErrorCode;
 import table.eat.now.waiting.waiting_request.application.utils.TimeProvider;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
@@ -41,7 +42,9 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
 
   @BeforeEach
   void setUp() {
-    waitingRequest = WaitingRequestFixture.create(UUID.randomUUID().toString(), "01012345678", 1);
+    var restaurantUuid = UUID.randomUUID().toString();
+    waitingRequest = WaitingRequestFixture.create(UUID.randomUUID().toString(), restaurantUuid,
+        "01012345678", 1);
     waitingRequestRepository.save(waitingRequest);
     waitingRequestRepository.enqueueWaitingRequest(
         waitingRequest.getDailyWaitingUuid(),
@@ -102,18 +105,15 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
   @Nested
   class processWaitingRequestEntrance {
 
-    private String restaurantUuid;
-
     @BeforeEach
     void setUp() {
-      restaurantUuid = UUID.randomUUID().toString();
       GetRestaurantInfo restaurantInfo = GetRestaurantInfo.builder()
-          .restaurantUuid(restaurantUuid)
+          .restaurantUuid(UUID.randomUUID().toString())
           .ownerId(3L)
           .staffId(4L)
           .build();
 
-      given(restaurantClient.getRestaurantInfo(restaurantUuid)).willReturn(restaurantInfo);
+      given(restaurantClient.getRestaurantInfo(any())).willReturn(restaurantInfo);
     }
 
     @DisplayName("입장 처리 성공")
@@ -121,14 +121,10 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
     void success() {
       // given
       CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(4L, UserRole.STAFF);
-      EnterWaitingRequestCommand command = EnterWaitingRequestCommand.builder()
-          .restaurantUuid(restaurantUuid)
-          .dailyWaitingUuid(waitingRequest.getDailyWaitingUuid())
-          .build();
 
       // when, then
       assertThatNoException().isThrownBy(() -> waitingRequestService.processWaitingRequestEntrance(
-          userInfo, waitingRequest.getWaitingRequestUuid(), command));
+          userInfo, waitingRequest.getWaitingRequestUuid()));
     }
 
     @DisplayName("해당 레스토랑의 직원이 아닌 경우 실패")
@@ -136,14 +132,10 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
     void failWithUnauthorizedOwner() {
       // given
       CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(6L, UserRole.OWNER);
-      EnterWaitingRequestCommand command = EnterWaitingRequestCommand.builder()
-          .restaurantUuid(restaurantUuid)
-          .dailyWaitingUuid(waitingRequest.getDailyWaitingUuid())
-          .build();
 
       // when, then
       assertThatThrownBy(() -> waitingRequestService.processWaitingRequestEntrance(
-          userInfo, waitingRequest.getWaitingRequestUuid(), command))
+          userInfo, waitingRequest.getWaitingRequestUuid()))
           .isInstanceOf(CustomException.class)
           .hasMessage(WaitingRequestErrorCode.UNAUTH_REQUEST.getMessage());
     }
@@ -153,16 +145,57 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
     void failToProcessWaitingRequestForInvalidUuid() {
       // given
       CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(4L, UserRole.STAFF);
-      EnterWaitingRequestCommand command = EnterWaitingRequestCommand.builder()
-          .restaurantUuid(restaurantUuid)
-          .dailyWaitingUuid(waitingRequest.getDailyWaitingUuid())
-          .build();
 
       // when, then
       assertThatThrownBy(() -> waitingRequestService.processWaitingRequestEntrance(
-          userInfo, UUID.randomUUID().toString(), command))
+          userInfo, UUID.randomUUID().toString()))
           .isInstanceOf(CustomException.class)
           .hasMessage(WaitingRequestErrorCode.INVALID_WAITING_REQUEST_UUID.getMessage());
+    }
+  }
+
+  @DisplayName("대기 요청 단건 조회")
+  @Nested
+  class getWaitingRequest {
+
+    @BeforeEach
+    void setUp() {
+      GetRestaurantInfo restaurantInfo = GetRestaurantInfo.builder()
+          .restaurantUuid(UUID.randomUUID().toString())
+          .ownerId(3L)
+          .staffId(4L)
+          .build();
+
+      given(restaurantClient.getRestaurantInfo(any())).willReturn(restaurantInfo);
+    }
+
+    @DisplayName("조회 성공")
+    @Test
+    void success() {
+      // given
+
+      // when
+      GetWaitingRequestInfo info = waitingRequestService.getWaitingRequest(
+          null, waitingRequest.getWaitingRequestUuid(), waitingRequest.getPhone());
+
+      // then
+      assertThat(info.restaurantUuid()).isEqualTo(waitingRequest.getRestaurantUuid());
+      assertThat(info.rank()).isEqualTo(0);
+    }
+
+    @DisplayName("admin 조회 성공")
+    @Test
+    void successAdmin() {
+      // given
+      CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(4L, UserRole.STAFF);
+
+      // when
+      GetWaitingRequestInfo info = waitingRequestService.getWaitingRequestAdmin(
+          userInfo, waitingRequest.getWaitingRequestUuid());
+
+      // then
+      assertThat(info.restaurantUuid()).isEqualTo(waitingRequest.getRestaurantUuid());
+      assertThat(info.rank()).isEqualTo(0);
     }
   }
 }

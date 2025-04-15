@@ -47,7 +47,7 @@ class PromotionUserControllerTest {
   @Test
   void promotion_user_create_test() throws Exception {
     // given
-    String promotionUuid = UUID.randomUUID().toString();
+    UUID promotionUuid = UUID.randomUUID();
     CreatePromotionUserRequest request = new CreatePromotionUserRequest(1L,promotionUuid);
 
     PromotionUser entity = request.toApplication().toEntity();

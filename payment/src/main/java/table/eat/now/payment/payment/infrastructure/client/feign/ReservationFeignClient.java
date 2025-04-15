@@ -4,7 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import table.eat.now.payment.payment.infrastructure.client.config.FeignConfig;
-import table.eat.now.payment.payment.infrastructure.client.dto.GetReservationResponse;
+import table.eat.now.payment.payment.infrastructure.client.dto.response.GetReservationResponse;
 
 @FeignClient(name = "reservation", configuration = FeignConfig.class)
 public interface ReservationFeignClient {

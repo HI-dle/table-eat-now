@@ -30,7 +30,7 @@ public record CreatePromotionRequest(@NotBlank
                                      @DecimalMin(value = "0.0", inclusive = false, message = "할인 금액은 0 이상이어야 합니다.")
                                      BigDecimal discountAmount,
                                      @NotBlank(message = "프로모션 상태는 필수입니다.")
-                                     @Pattern(regexp = "READY|RUNNING|CLOSED", message = "유효하지 않은 프로모션 상태입니다.")
+                                     @Pattern(regexp = "READY", message = "유효하지 않은 프로모션 상태입니다.")
                                      String promotionStatus,
                                      @NotBlank(message = "프로모션 타입은 필수입니다.")
                                      @Pattern(regexp = "COUPON|RESTAURANT", message = "유효하지 않은 프로모션 타입입니다.")

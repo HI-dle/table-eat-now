@@ -5,14 +5,26 @@
   <script src="https://js.tosspayments.com/v2/standard"></script>
 </head>
 <body>
-<!-- 결제 UI -->
-<div id="payment-method"></div>
-<!-- 이용약관 UI -->
-<div id="agreement"></div>
-<!-- 결제하기 버튼 -->
-<button class="button" id="payment-button" style="margin-top: 30px">결제하기</button>
-
+<!-- 주문서 영역 -->
+<div class="wrapper">
+  <div class="box_section"
+       style="padding: 40px 30px 50px 30px; margin-top: 30px; margin-bottom: 50px">
+    <h1>일반 결제</h1>
+    <!-- 결제 UI -->
+    <div id="payment-method" style="display: flex">
+      <button id="CARD" class="button2" onclick="selectPaymentMethod('CARD')">카드</button>
+      <button id="VIRTUAL_ACCOUNT" class="button2" onclick="selectPaymentMethod('VIRTUAL_ACCOUNT')">
+        가상계좌
+      </button>
+    </div>
+    <!-- 결제하기 버튼 -->
+    <div id="agreement"></div>
+    <!-- 결제하기 버튼 -->
+    <button class="button" id="payment-button" style="margin-top: 30px">결제하기</button>
+  </div>
+</div>
 <script>
+  let selectedPaymentMethod = null;
   main();
 
   async function main() {
@@ -24,7 +36,7 @@
     // API에서 결제 데이터 가져오기
     let paymentData;
     try {
-      const response = await fetch(`/api/v1/payments/${idempotencyKey}/checkout-info`);
+      const response = await fetch(`/api/v1/payments/checkout-info?idempotencyKey=${idempotencyKey}`);
       if (!response.ok) {
         throw new Error('결제 정보를 가져오는 데 실패했습니다.');
       }
@@ -36,44 +48,76 @@
     }
 
     // 결제위젯 초기화
-    const clientKey = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
+    const clientKey = "test_ck_yZqmkKeP8gN945PZpxKKrbQRxB9l";
     const tossPayments = TossPayments(clientKey);
 
     // 회원 결제 - API에서 받은 customerId 사용
     const customerKey = paymentData.customerKey;
-    const widgets = tossPayments.widgets({
+    const payment = tossPayments.payment({
       customerKey,
     });
 
     // 주문의 결제 금액 설정 - API에서 받은 amount 사용
-    await widgets.setAmount({
+    const amount = {
       currency: "KRW",
-      value: parseInt(paymentData.amount)
-    });
-
-    await Promise.all([
-      // 결제 UI 렌더링
-      widgets.renderPaymentMethods({
-        selector: "#payment-method",
-        variantKey: "DEFAULT",
-      }),
-      // 이용약관 UI 렌더링
-      widgets.renderAgreement({
-        selector: "#agreement",
-        variantKey: "AGREEMENT"
-      }),
-    ]);
+      value: parseInt(paymentData.originalAmount),
+    };
 
     // '결제하기' 버튼 누르면 결제창 띄우기
     const button = document.getElementById("payment-button");
     button.addEventListener("click", async function () {
-      await widgets.requestPayment({
-        orderId: paymentData.idempotencyKey,
-        orderName: paymentData.orderName,
-        successUrl: window.location.origin + "/success",
-        failUrl: window.location.origin + "/fail"
-      });
+      switch (selectedPaymentMethod) {
+        case "CARD":
+          await payment.requestPayment({
+                method: "CARD", // 카드 및 간편결제
+                amount,
+                orderId: paymentData.reservationId,
+                orderName: paymentData.reservationName,
+                successUrl: window.location.origin + "/success" ,
+                failUrl: window.location.origin + "/fail",
+                card: {
+                  useEscrow: false,
+                  flowMode:
+                      "DEFAULT",
+                  useCardPoint:
+                      false,
+                  useAppCardOnly:
+                      false,
+                }
+              }
+          );
+          break;
+        case "VIRTUAL_ACCOUNT":
+          await payment.requestPayment({
+            method: "VIRTUAL_ACCOUNT", // 가상계좌 결제
+            amount,
+            orderId: paymentData.reservationId,
+            orderName: paymentData.reservationName,
+            successUrl: window.location.origin + "/success" ,
+            failUrl: window.location.origin + "/fail",
+            virtualAccount: {
+              cashReceipt: {
+                type: "소득공제",
+              },
+              useEscrow: false,
+              validHours: 24,
+            },
+          });
+          break;
+        default:
+          alert("유효하지 않은 결제 수단입니다.");
+      }
+
     });
+  }
+  function selectPaymentMethod(method) {
+    if (selectedPaymentMethod != null) {
+      document.getElementById(selectedPaymentMethod).style.backgroundColor = "#ffffff";
+    }
+
+    selectedPaymentMethod = method;
+
+    document.getElementById(selectedPaymentMethod).style.backgroundColor = "rgb(229 239 255)";
   }
 </script>
 </body>

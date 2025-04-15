@@ -24,4 +24,8 @@ public enum UserRole {
   public boolean isStaff() {
     return this == STAFF;
   }
+
+  public boolean isMaster() {
+    return this == MASTER;
+  }
 }

@@ -2,6 +2,8 @@ package table.eat.now.common.exception;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static table.eat.now.common.constant.ErrorMessageConstant.TYPE_MISMATCH_FORMAT;
+import static table.eat.now.common.constant.ErrorMessageConstant.UNSPECIFIED_TYPE;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import table.eat.now.common.exception.type.ApiErrorCode;
 
 @Slf4j
@@ -52,6 +55,24 @@ public class GlobalErrorHandler {
     return ResponseEntity
         .badRequest()
         .body(ErrorResponse.of(ApiErrorCode.INVALID_REQUEST.getMessage(), errorFields));
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
+      MethodArgumentTypeMismatchException e,
+      HttpServletRequest request) {
+
+    List<ErrorResponse.ErrorField> errorFields = List.of(
+        new ErrorResponse.ErrorField(
+            e.getName(), String.format(TYPE_MISMATCH_FORMAT,
+            e.getValue(),
+            e.getRequiredType() != null ?
+                e.getRequiredType().getSimpleName() : UNSPECIFIED_TYPE)));
+
+    log(e, request, HttpStatus.BAD_REQUEST);
+    return ResponseEntity
+        .badRequest()
+        .body(ErrorResponse.of(ApiErrorCode.TYPE_MISMATCH.getMessage(), errorFields));
   }
 
   @ExceptionHandler(HandlerMethodValidationException.class)

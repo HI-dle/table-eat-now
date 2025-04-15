@@ -9,6 +9,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -29,6 +31,7 @@ import table.eat.now.common.domain.BaseEntity;
 public class RestaurantMenu extends BaseEntity {
 
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -52,13 +55,12 @@ public class RestaurantMenu extends BaseEntity {
   private RestaurantMenu(
       String name,
       BigDecimal price,
-      Restaurant restaurant,
-      UUID restaurantMenuUuid
+      Restaurant restaurant
   ) {
     this.name = name;
     this.price = price;
     this.restaurant = restaurant;
-    this.restaurantMenuUuid = restaurantMenuUuid.toString();
+    this.restaurantMenuUuid = UUID.randomUUID().toString();
     this.status = MenuStatus.INACTIVE;
   }
 
