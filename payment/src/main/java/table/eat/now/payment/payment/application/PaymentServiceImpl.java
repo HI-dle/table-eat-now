@@ -25,6 +25,8 @@ import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailI
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
 import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
+import table.eat.now.payment.payment.application.event.PaymentFailedEvent;
+import table.eat.now.payment.payment.application.event.PaymentFailedPayload;
 import table.eat.now.payment.payment.application.event.PaymentSuccessEvent;
 import table.eat.now.payment.payment.application.event.PaymentSuccessPayload;
 import table.eat.now.payment.payment.application.helper.TransactionalHelper;
@@ -81,19 +83,12 @@ public class PaymentServiceImpl implements PaymentService {
       ConfirmPaymentCommand command, CurrentUserInfoDto userInfo) {
 
     Payment payment = getPaymentByReservationId(command.reservationId());
-    ConfirmPgPaymentInfo confirmedInfo =
-        pgClient.confirm(command, payment.getIdempotencyKey());
-    log.info("Confirm payment {}", confirmedInfo);
-
+    ConfirmPgPaymentInfo confirmedInfo = confirm(command, payment);
     try {
-      payment.confirm(confirmedInfo.toConfirm());
-      paymentEventPublisher.publish(PaymentSuccessEvent
-          .of(PaymentSuccessPayload.from(payment), userInfo));
+      completePayment(userInfo, payment, confirmedInfo);
     } catch (IllegalArgumentException e) {
-      log.error("Confirm payment failed", e);
-      transactionalHelper.doInNewTransaction(
-          () -> cancelPayment(command, e.getMessage(), payment)
-      );
+      transactionalHelper
+          .doInNewTransaction(() -> rollbackPayment(command, userInfo, e, payment));
     }
     return ConfirmPaymentInfo.from(payment);
   }
@@ -104,12 +99,32 @@ public class PaymentServiceImpl implements PaymentService {
         .orElseThrow(() -> CustomException.from(PAYMENT_NOT_FOUND));
   }
 
-  public void cancelPayment(ConfirmPaymentCommand command, String cancelReason, Payment payment) {
-    CancelPgPaymentInfo cancelledInfo =
-        pgClient.cancel(CancelPaymentCommand.
-            of(command.paymentKey(), cancelReason), payment.getIdempotencyKey());
-    log.info("Cancel payment {}", cancelledInfo);
+  private ConfirmPgPaymentInfo confirm(ConfirmPaymentCommand command, Payment payment) {
+    ConfirmPgPaymentInfo confirmedInfo = pgClient.confirm(command, payment.getIdempotencyKey());
+    log.info("Confirm payment {}", confirmedInfo);
+    return confirmedInfo;
+  }
 
+  private void completePayment(
+      CurrentUserInfoDto userInfo, Payment payment, ConfirmPgPaymentInfo confirmedInfo) {
+    payment.confirm(confirmedInfo.toConfirm());
+    paymentEventPublisher
+        .publish(PaymentSuccessEvent.of(PaymentSuccessPayload.from(payment), userInfo));
+  }
+
+  private void rollbackPayment(ConfirmPaymentCommand command, CurrentUserInfoDto userInfo,
+      IllegalArgumentException e, Payment payment) {
+    String cancelReason = e.getMessage();
+    cancel(command, cancelReason, payment);
+    paymentEventPublisher.publish(PaymentFailedEvent.of(
+        PaymentFailedPayload.from(payment, cancelReason), userInfo
+    ));
+  }
+
+  private void cancel(ConfirmPaymentCommand command, String cancelReason, Payment payment) {
+    CancelPgPaymentInfo cancelledInfo = pgClient.cancel(
+        CancelPaymentCommand.of(command.paymentKey(), cancelReason), payment.getIdempotencyKey());
+    log.info("Cancel payment {}", cancelledInfo);
     payment.cancel(cancelledInfo.toCancel());
   }
 
