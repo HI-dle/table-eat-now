@@ -7,8 +7,10 @@ package table.eat.now.restaurant.restaurant.presentation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
@@ -29,5 +31,15 @@ public class RestaurantInternalController {
         .body(GetRestaurantResponse.from(
             restaurantService.getRestaurant(
                 GetRestaurantCriteria.from(restaurantUuid, userInfo.role(), userInfo.userId()))));
+  }
+
+  @PatchMapping("/{restaurantUuid}/timeslot/{restaurantTimeSlotUuid}/cur-total-guest-count")
+  public ResponseEntity<Void> updateGuestCount(
+      @PathVariable String restaurantUuid,
+      @PathVariable String restaurantTimeSlotUuid,
+      @RequestParam int delta
+  ) {
+    restaurantService.modifyTimeSlotGuestCount(restaurantTimeSlotUuid, delta);
+    return ResponseEntity.ok().build();
   }
 }

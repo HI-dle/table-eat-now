@@ -69,4 +69,8 @@ public class RestaurantTimeSlot extends BaseEntity {
   public void modifyRestaurant(Restaurant restaurant) {
     this.restaurant = restaurant;
   }
+
+  public void modifyCurTotalGuestCount(int newCount) {
+    this.curTotalGuestCount = newCount;
+  }
 }
