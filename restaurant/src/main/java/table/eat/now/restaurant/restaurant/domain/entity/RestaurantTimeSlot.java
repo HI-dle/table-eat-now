@@ -36,7 +36,7 @@ public class RestaurantTimeSlot extends BaseEntity {
   @JoinColumn(name = "restaurant_id", nullable = false)
   private Restaurant restaurant;
 
-  @Column(name = "restaurant_timeslot_uuid", nullable = false, unique = true, columnDefinition = "VARCHAR(100)")
+  @Column(name = "restaurant_timeslot_uuid", nullable = false, unique = true)
   private String restaurantTimeslotUuid;
 
   @Column(name = "available_date", nullable = false)
