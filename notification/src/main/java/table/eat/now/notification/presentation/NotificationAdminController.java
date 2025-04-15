@@ -92,4 +92,10 @@ public class NotificationAdminController {
     notificationService.deleteNotification(notificationsUuid, userInfo);
     return ResponseEntity.noContent().build();
   }
+
+  @GetMapping("/test/{notificationsUuid}")
+  public ResponseEntity<Void> sendNotification(@PathVariable("notificationsUuid") String notificationsUuid) {
+    notificationService.sendNotification(notificationsUuid);
+    return ResponseEntity.noContent().build();
+  }
 }

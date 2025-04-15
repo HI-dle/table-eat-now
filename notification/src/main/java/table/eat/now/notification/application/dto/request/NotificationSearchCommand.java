@@ -8,7 +8,6 @@ import table.eat.now.notification.domain.repository.search.NotificationSearchCri
  */
 public record NotificationSearchCommand(Long userId,
                                         String notificationType,
-                                        String message,
                                         String status,
                                         String notificationMethod,
                                         Boolean isAsc,
@@ -19,7 +18,6 @@ public record NotificationSearchCommand(Long userId,
     return new NotificationSearchCriteria(
         userId,
         notificationType,
-        message,
         status,
         notificationMethod,
         isAsc,

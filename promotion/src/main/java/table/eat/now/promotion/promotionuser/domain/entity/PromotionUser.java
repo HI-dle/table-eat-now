@@ -29,7 +29,7 @@ public class PromotionUser extends BaseEntity {
   @Column(nullable = false, unique = true, length = 100, name = "promotion_user_uuid")
   private String promotionUserUuid;
 
-  @Column(nullable = false, columnDefinition = "VARCHAR(100)")
+  @Column(nullable = false, length = 100, name = "promotion_uuid")
   private String promotionUuid;
 
   @Column(nullable = false)

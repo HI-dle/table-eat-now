@@ -12,7 +12,9 @@ import table.eat.now.notification.application.dto.response.NotificationSearchInf
 public record NotificationSearchResponse(String notificationUuid,
                                          Long userId,
                                          String notificationType,
-                                         String message,
+                                         String customerName,
+                                         LocalDateTime reservationTime,
+                                         String restaurantName,
                                          String status,
                                          String notificationMethod,
                                          LocalDateTime scheduledTime) {
@@ -22,7 +24,9 @@ public record NotificationSearchResponse(String notificationUuid,
         .notificationUuid(info.notificationUuid())
         .userId(info.userId())
         .notificationType(info.notificationType())
-        .message(info.message())
+        .customerName(info.customerName())
+        .reservationTime(info.reservationTime())
+        .restaurantName(info.restaurantName())
         .status(info.status())
         .notificationMethod(info.notificationMethod())
         .scheduledTime(info.scheduledTime())

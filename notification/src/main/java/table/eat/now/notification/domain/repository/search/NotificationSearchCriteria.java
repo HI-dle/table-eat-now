@@ -6,7 +6,6 @@ package table.eat.now.notification.domain.repository.search;
  */
 public record NotificationSearchCriteria(Long userId,
                                          String notificationType,
-                                         String message,
                                          String status,
                                          String notificationMethod,
                                          Boolean isAsc,

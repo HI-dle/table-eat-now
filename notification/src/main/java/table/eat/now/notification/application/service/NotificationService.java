@@ -28,4 +28,6 @@ public interface NotificationService {
   PaginatedResultCommand<NotificationSearchInfo> searchNotification(NotificationSearchCommand command);
 
   void deleteNotification(String notificationsUuid, CurrentUserInfoDto userInfo);
+
+  void sendNotification(String notificationUuid);
 }

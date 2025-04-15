@@ -4,8 +4,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -68,7 +71,9 @@ class NotificationAdminControllerTest {
     CreateNotificationRequest request = new CreateNotificationRequest(
         1L,
         "CONFIRM_OWNER",
-        "예약이 확정되었습니다.",
+        "고객명",
+        LocalDateTime.now(),
+        "레스토랑명",
         "PENDING",
         "SLACK",
         LocalDateTime.now().plusHours(1)
@@ -104,7 +109,9 @@ class NotificationAdminControllerTest {
     UpdateNotificationRequest request = new UpdateNotificationRequest(
         1L,
         "CONFIRM_OWNER",
-        "예약이 확정되었습니다.",
+        "고객명",
+        LocalDateTime.now(),
+        "레스토랑명",
         "SENT",
         "EMAIL",
         LocalDateTime.now().plusHours(2)
@@ -114,7 +121,9 @@ class NotificationAdminControllerTest {
         .notificationUuid(notificationUuid)
         .userId(request.userId())
         .notificationType(request.notificationType())
-        .message(request.message())
+        .customerName(request.customerName())
+        .reservationTime(request.reservationTime())
+        .restaurantName(request.restaurantName())
         .status(request.status())
         .notificationMethod(request.notificationMethod())
         .scheduledTime(request.scheduledTime())
@@ -146,7 +155,9 @@ class NotificationAdminControllerTest {
         .notificationUuid(notificationUuid)
         .userId(1L)
         .notificationType("CONFIRM_OWNER")
-        .message("예약이 확정되었습니다.")
+        .customerName("고객명")
+        .reservationTime(LocalDateTime.now())
+        .restaurantName("레스토랑명")
         .status("SENT")
         .notificationMethod("EMAIL")
         .scheduledTime(LocalDateTime.now().plusHours(2))
@@ -175,7 +186,6 @@ class NotificationAdminControllerTest {
     NotificationSearchCondition condition = new NotificationSearchCondition(
         1L,
         "REMINDER_9AM",
-        "테스트 메시지",
         "PENDING",
         "SLACK",
         true,
@@ -189,7 +199,9 @@ class NotificationAdminControllerTest {
         UUID.randomUUID().toString(),
         condition.userId(),
         condition.notificationType(),
-        condition.message(),
+        "고객명",
+        LocalDateTime.now(),
+        "레스토랑명",
         condition.status(),
         condition.notificationMethod(),
         LocalDateTime.now().plusHours(1)
@@ -198,7 +210,9 @@ class NotificationAdminControllerTest {
         UUID.randomUUID().toString(),
         condition.userId(),
         condition.notificationType(),
-        condition.message(),
+        "고객명",
+        LocalDateTime.now(),
+        "레스토랑명",
         condition.status(),
         condition.notificationMethod(),
         LocalDateTime.now().plusHours(2)
@@ -219,7 +233,6 @@ class NotificationAdminControllerTest {
     mockMvc.perform(get("/admin/v1/notifications")
             .param("userId", condition.userId().toString())
             .param("notificationType", condition.notificationType())
-            .param("message", condition.message())
             .param("status", condition.status())
             .param("notificationMethod", condition.notificationMethod())
             .param("isAsc", condition.isAsc().toString())
@@ -236,8 +249,6 @@ class NotificationAdminControllerTest {
         .andExpect(jsonPath("$.size").value(condition.size()))
         .andExpect(jsonPath("$.totalElements").value(2))
         .andExpect(jsonPath("$.totalPages").value(1))
-        .andExpect(jsonPath("$.content[0].message").value(condition.message()))
-        .andExpect(jsonPath("$.content[1].message").value(condition.message()))
         .andDo(print());
   }
 
@@ -263,6 +274,30 @@ class NotificationAdminControllerTest {
         .andDo(print());
   }
 
+  @DisplayName("알림 전송 테스트용 컨트롤러 입니다.")
+  @Test
+  void send_notification_test() throws Exception {
+    // given
+    String notificationsUuid = UUID.randomUUID().toString();
+
+
+    doNothing().when(notificationService).sendNotification(notificationsUuid);
+
+    // when
+    ResultActions resultActions = mockMvc.perform(get(
+        "/admin/v1/notifications/test/{notificationsUuid}", notificationsUuid)
+        .header("Authorization", "Bearer {ACCESS_TOKEN}")
+        .header(USER_ID_HEADER, "1")
+        .header(USER_ROLE_HEADER, "MASTER")
+        .contentType(MediaType.APPLICATION_JSON));
+
+    // then
+    resultActions.andExpect(status().isNoContent())
+        .andDo(print());
+
+    // verify sendNotification 호출 여부 확인
+    verify(notificationService, times(1)).sendNotification(notificationsUuid);
+  }
 
 
 

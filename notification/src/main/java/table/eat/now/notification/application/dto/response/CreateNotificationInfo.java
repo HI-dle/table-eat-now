@@ -12,7 +12,9 @@ import table.eat.now.notification.domain.entity.Notification;
 public record CreateNotificationInfo(String notificationUuid,
                                      Long userId,
                                      String notificationType,
-                                     String message,
+                                     String customerName,
+                                     LocalDateTime reservationTime,
+                                     String restaurantName,
                                      String status,
                                      String notificationMethod,
                                      LocalDateTime scheduledTime) {
@@ -22,7 +24,9 @@ public record CreateNotificationInfo(String notificationUuid,
         .notificationUuid(notification.getNotificationUuid())
         .userId(notification.getUserId())
         .notificationType(notification.getNotificationType().toString())
-        .message(notification.getMessage())
+        .customerName(notification.getMessageParam().getCustomerName())
+        .reservationTime(notification.getMessageParam().getReservationTime())
+        .restaurantName(notification.getMessageParam().getRestaurantName())
         .status(notification.getStatus().toString())
         .notificationMethod(notification.getNotificationMethod().toString())
         .scheduledTime(notification.getScheduledTime())

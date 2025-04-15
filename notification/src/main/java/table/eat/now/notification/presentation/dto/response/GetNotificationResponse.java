@@ -12,7 +12,9 @@ import table.eat.now.notification.application.dto.response.GetNotificationInfo;
 public record GetNotificationResponse(String notificationUuid,
                                       Long userId,
                                       String notificationType,
-                                      String message,
+                                      String customerName,
+                                      LocalDateTime reservationTime,
+                                      String restaurantName,
                                       String status,
                                       String notificationMethod,
                                       LocalDateTime scheduledTime) {
@@ -22,7 +24,9 @@ public record GetNotificationResponse(String notificationUuid,
         .notificationUuid(getNotificationInfo.notificationUuid())
         .userId(getNotificationInfo.userId())
         .notificationType(getNotificationInfo.notificationType())
-        .message(getNotificationInfo.message())
+        .customerName(getNotificationInfo.customerName())
+        .reservationTime(getNotificationInfo.reservationTime())
+        .restaurantName(getNotificationInfo.restaurantName())
         .status(getNotificationInfo.status())
         .notificationMethod(getNotificationInfo.notificationMethod())
         .scheduledTime(getNotificationInfo.scheduledTime())

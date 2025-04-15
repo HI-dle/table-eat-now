@@ -19,6 +19,12 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
 
+  data:
+    redis:
+      host: ${DEV_REDIS_HOST}
+      port: ${DEV_REDIS_PORT}
+      username: ${DEV_REDIS_USERNAME}
+
 eureka:
   client:
     register-with-eureka: true  # Eureka Server에 등록

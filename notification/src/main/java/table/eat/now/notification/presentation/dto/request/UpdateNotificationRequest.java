@@ -18,8 +18,9 @@ public record UpdateNotificationRequest(@NotNull
                                             + "REMINDER_9AM|REMINDER_1HR|COMPLETION|NO_SHOW",
                                             message = "유효하지 않은 프로모션 상태입니다.")
                                         String notificationType,
-                                        @NotBlank(message = "메시지는 필수입니다.")
-                                        String message,
+                                        String customerName,
+                                        LocalDateTime reservationTime,
+                                        String restaurantName,
                                         @NotBlank(message = "알림 상태는 필수입니다.")
                                         @Pattern(regexp = "PENDING|SENT|FAILED",
                                             message = "유효하지 않은 알림 상태입니다.")
@@ -34,7 +35,9 @@ public record UpdateNotificationRequest(@NotNull
     return new UpdateNotificationCommand(
         userId,
         notificationType,
-        message,
+        customerName,
+        reservationTime,
+        restaurantName,
         status,
         notificationMethod,
         scheduledTime

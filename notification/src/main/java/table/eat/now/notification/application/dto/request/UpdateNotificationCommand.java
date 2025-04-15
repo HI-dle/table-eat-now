@@ -8,7 +8,9 @@ import java.time.LocalDateTime;
  */
 public record UpdateNotificationCommand(Long userId,
                                         String notificationType,
-                                        String message,
+                                        String customerName,
+                                        LocalDateTime reservationTime,
+                                        String restaurantName,
                                         String status,
                                         String notificationMethod,
                                         LocalDateTime scheduledTime) {

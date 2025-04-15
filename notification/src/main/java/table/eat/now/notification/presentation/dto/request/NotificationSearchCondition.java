@@ -12,7 +12,6 @@ public record NotificationSearchCondition(Long userId,
                                               + "REMINDER_9AM|REMINDER_1HR|COMPLETION|NO_SHOW",
                                               message = "유효하지 않은 알림 유형입니다.")
                                           String notificationType,
-                                          String message,
                                           @Pattern(regexp = "PENDING|SENT|FAILED",
                                               message = "유효하지 않은 알림 상태입니다.")
                                           String status,
@@ -27,7 +26,6 @@ public record NotificationSearchCondition(Long userId,
     return new NotificationSearchCommand(
         userId,
         notificationType,
-        message,
         status,
         notificationMethod,
         isAsc,
