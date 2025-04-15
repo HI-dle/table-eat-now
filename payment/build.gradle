@@ -60,6 +60,9 @@ dependencies {
 //	implementation 'org.springframework.cloud:spring-cloud-starter-config'
 //	implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    //KAFKA
+    implementation 'org.springframework.kafka:spring-kafka'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
 }
 
 def querydslSrcDir = 'src/main/generated'

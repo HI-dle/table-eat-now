@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import table.eat.now.payment.payment.application.dto.response.ConfirmPgPaymentInfo;
+import table.eat.now.payment.payment.application.client.dto.ConfirmPgPaymentInfo;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ConfirmTossPayResponse(

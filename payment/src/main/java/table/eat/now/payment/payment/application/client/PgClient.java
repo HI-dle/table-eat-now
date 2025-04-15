@@ -2,8 +2,8 @@ package table.eat.now.payment.payment.application.client;
 
 import table.eat.now.payment.payment.application.dto.request.CancelPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.ConfirmPaymentCommand;
-import table.eat.now.payment.payment.application.dto.response.CancelPgPaymentInfo;
-import table.eat.now.payment.payment.application.dto.response.ConfirmPgPaymentInfo;
+import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentInfo;
+import table.eat.now.payment.payment.application.client.dto.ConfirmPgPaymentInfo;
 
 public interface PgClient {
 

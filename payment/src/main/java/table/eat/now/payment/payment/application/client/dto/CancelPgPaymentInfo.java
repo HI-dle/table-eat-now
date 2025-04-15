@@ -1,4 +1,4 @@
-package table.eat.now.payment.payment.application.dto.response;
+package table.eat.now.payment.payment.application.client.dto;
 
 import java.time.LocalDateTime;
 import table.eat.now.payment.payment.domain.entity.CancelPayment;

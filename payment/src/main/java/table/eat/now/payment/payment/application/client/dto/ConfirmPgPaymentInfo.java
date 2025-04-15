@@ -1,4 +1,4 @@
-package table.eat.now.payment.payment.application.dto.response;
+package table.eat.now.payment.payment.application.client.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

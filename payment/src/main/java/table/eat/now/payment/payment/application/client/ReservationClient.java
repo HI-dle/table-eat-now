@@ -1,6 +1,6 @@
 package table.eat.now.payment.payment.application.client;
 
-import table.eat.now.payment.payment.application.dto.response.GetReservationInfo;
+import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
 
 public interface ReservationClient {
 

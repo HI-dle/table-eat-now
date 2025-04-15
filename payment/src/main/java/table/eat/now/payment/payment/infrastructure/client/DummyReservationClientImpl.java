@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.payment.payment.application.client.ReservationClient;
-import table.eat.now.payment.payment.application.dto.response.GetReservationInfo;
+import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
 
 @Primary
 @Component
