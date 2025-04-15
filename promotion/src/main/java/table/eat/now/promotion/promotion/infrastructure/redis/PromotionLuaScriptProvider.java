@@ -11,18 +11,22 @@ public class PromotionLuaScriptProvider {
 
   public String getAddUserScript() {
     return """
-      local key = KEYS[1]
-      local maxCount = tonumber(ARGV[1])
-      local now = tonumber(ARGV[2])
-      local userInfo = ARGV[3]
+    local key = KEYS[1]
+    local maxCount = tonumber(ARGV[1])
+    local now = tonumber(ARGV[2])
+    local userId = ARGV[3]
+    local promotionUuid = ARGV[4]
 
-      local currentCount = redis.call('ZCARD', key)
-      if currentCount >= maxCount then
-        return 0
-      end
+    local userInfo = userId .. ":" .. promotionUuid
 
-      redis.call('ZADD', key, now, userInfo)
-      return 1
+    local currentCount = redis.call('ZCARD', key)
+    if currentCount >= maxCount then
+    return 0
+    end
+
+    redis.call('ZADD', key, now, userInfo)
+    return 1
+
     """;
   }
 }

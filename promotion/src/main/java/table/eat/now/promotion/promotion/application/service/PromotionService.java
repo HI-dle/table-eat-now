@@ -4,6 +4,7 @@ import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.promotion.promotion.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotion.application.dto.request.CreatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.request.GetPromotionsFeignCommand;
+import table.eat.now.promotion.promotion.application.dto.request.ParticipatePromotionUserInfo;
 import table.eat.now.promotion.promotion.application.dto.request.SearchPromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
@@ -28,4 +29,6 @@ public interface PromotionService {
   void deletePromotion(String promotionUuid, CurrentUserInfoDto userInfoDto);
 
   GetPromotionsClientInfo reservationGetPromotions(GetPromotionsFeignCommand command);
+
+  boolean participate(ParticipatePromotionUserInfo info);
 }

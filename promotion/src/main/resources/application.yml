@@ -21,7 +21,7 @@ spring:
 
   data:
     redis:
-      host: ${DEV_REDIS_HOST}
+      host: localhost
       port: ${DEV_REDIS_PORT}
       username: ${DEV_REDIS_USERNAME}
 

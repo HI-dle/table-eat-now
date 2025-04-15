@@ -22,6 +22,6 @@ public interface PromotionRepository {
 
   List<Promotion> findAllByPromotionUuidInAndDeletedByIsNull(Set<String> promotionUuids);
 
-  boolean addUserToPromotion(String promotionName, PromotionParticipant participant, int maxCount);
+  boolean addUserToPromotion(PromotionParticipant participant, int maxCount);
 
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Repository;
@@ -16,35 +17,47 @@ import table.eat.now.promotion.promotion.infrastructure.dto.request.PromotionUse
  */
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
 
-  private final RedisTemplate<String, Object> redisTemplate;
+
+  private final RedisTemplate<String, String> redisTemplate;
   private final ObjectMapper objectMapper;
   private final PromotionLuaScriptProvider luaScriptProvider;
 
   private static final String PROMOTION_KEY_PREFIX = "promotion:";
 
   @Override
-  public boolean addUserToPromotion(
-      String promotionName,  PromotionParticipant participant, int maxCount) {
+  public boolean addUserToPromotion(PromotionParticipant participant, int maxCount) {
     PromotionUserCommand command = PromotionUserCommand.from(participant);
 
-    String key = buildKey(promotionName);
+    String key = buildKey(command.promotionName());
     long now = System.currentTimeMillis();
 
     DefaultRedisScript<Long> script = new DefaultRedisScript<>();
     script.setScriptText(luaScriptProvider.getAddUserScript());
     script.setResultType(Long.class);
 
-    Long result = redisTemplate.execute(
-        script,
-        Collections.singletonList(key),
-        String.valueOf(maxCount),
-        String.valueOf(now),
-        serialize(command)
-    );
+    try {
+      Long result = redisTemplate.execute(
+          script,
+          Collections.singletonList(key),
+          String.valueOf(maxCount),
+          String.valueOf(now),
+          String.valueOf(command.userId()),
+          command.promotionUuid()
 
-    return result != null && result == 1L;
+      );
+      log.info("Lua Script Key: {}", key);
+      log.info("Max Count: {}", maxCount);
+      log.info("Now: {}", now);
+      log.info("Serialized Command: {}", serialize(command));
+
+      return result != null && result == 1L;
+    } catch (Exception e) {
+      log.error("Redis Lua Script Error", e);
+      throw e;
+    }
   }
 
   private String buildKey(String promotionName) {

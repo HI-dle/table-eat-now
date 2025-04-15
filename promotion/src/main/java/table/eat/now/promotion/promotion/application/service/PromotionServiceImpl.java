@@ -12,6 +12,7 @@ import table.eat.now.promotion.promotion.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotion.application.dto.client.response.GetPromotionRestaurantInfo;
 import table.eat.now.promotion.promotion.application.dto.request.CreatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.request.GetPromotionsFeignCommand;
+import table.eat.now.promotion.promotion.application.dto.request.ParticipatePromotionUserInfo;
 import table.eat.now.promotion.promotion.application.dto.request.SearchPromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
@@ -20,6 +21,7 @@ import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsC
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
+import table.eat.now.promotion.promotion.application.service.util.MaxParticipate;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
 import table.eat.now.promotion.promotion.domain.entity.PromotionStatus;
 import table.eat.now.promotion.promotion.domain.entity.PromotionType;
@@ -102,6 +104,14 @@ public class PromotionServiceImpl implements PromotionService{
         findAllByPromotionUuidInAndDeletedByIsNull(command.promotionUuids());
 
     return GetPromotionsClientInfo.from(promotionRestaurantResList, promotions);
+  }
+
+  @Override
+  public boolean participate(ParticipatePromotionUserInfo info) {
+
+    // Redis에 참여 시도
+    return promotionRepository.addUserToPromotion(
+        info.toDomain(), MaxParticipate.PARTICIPATE_10000_MAX);
   }
 
   private void deleteCheckPromotionStatus(PromotionStatus status) {

@@ -47,8 +47,8 @@ public class PromotionRepositoryImpl implements PromotionRepository {
   }
 
   @Override
-  public boolean addUserToPromotion(String promotionName, PromotionParticipant participant,
+  public boolean addUserToPromotion(PromotionParticipant participant,
       int maxCount) {
-    return promotionRedisRepository.addUserToPromotion(promotionName, participant, maxCount);
+    return promotionRedisRepository.addUserToPromotion(participant, maxCount);
   }
 }

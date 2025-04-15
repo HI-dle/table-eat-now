@@ -8,5 +8,5 @@ import table.eat.now.promotion.promotion.domain.entity.repository.event.Promotio
  */
 public interface PromotionRedisRepository {
 
-  boolean addUserToPromotion(String promotionName, PromotionParticipant participant, int maxCount);
+  boolean addUserToPromotion(PromotionParticipant participant, int maxCount);
 }
