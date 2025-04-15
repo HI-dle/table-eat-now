@@ -1,11 +1,10 @@
 package table.eat.now.payment.payment.infrastructure.kafka;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-import table.eat.now.payment.payment.application.event.EventType;
+import table.eat.now.payment.payment.application.event.PaymentCanceledEvent;
 import table.eat.now.payment.payment.application.event.PaymentEvent;
 import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
 import table.eat.now.payment.payment.application.event.PaymentFailedEvent;
@@ -21,18 +20,23 @@ public class KafkaPaymentProducer implements PaymentEventPublisher {
 
   @Override
   public void publish(PaymentSuccessEvent successEvent) {
-    kafkaTemplate.send(paymentTopic, successEvent.paymentUuid(), successEvent);
-    logEvent(successEvent.payload(), successEvent.eventType());
+    kafkaTemplate.send(paymentTopic, successEvent.paymentUuid() ,successEvent);
+    logEvent(successEvent);
   }
 
   @Override
   public void publish(PaymentFailedEvent failedEvent) {
-    kafkaTemplate.send(paymentTopic, failedEvent.paymentUuid(), failedEvent);
-    logEvent(failedEvent.payload(), failedEvent.eventType());
+    kafkaTemplate.send(paymentTopic, failedEvent.paymentUuid() ,failedEvent);
+    logEvent(failedEvent);
   }
 
-  private static void logEvent(JsonNode payload, EventType eventType) {
-    log.info("payload is {} ", payload.toString());
-    log.info("Published payment event {}", eventType);
+  @Override
+  public void publish(PaymentCanceledEvent canceledEvent) {
+    kafkaTemplate.send(paymentTopic, canceledEvent.paymentUuid() , canceledEvent);
+    logEvent(canceledEvent);
+  }
+
+  private static void logEvent(PaymentEvent paymentEvent) {
+    log.info("Published payment event {}", paymentEvent.eventType().name());
   }
 }
