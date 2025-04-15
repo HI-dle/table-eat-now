@@ -34,12 +34,12 @@ public class RestaurantInternalController {
   }
 
   @PatchMapping("/{restaurantUuid}/timeslot/{restaurantTimeSlotUuid}/cur-total-guest-count")
-  public ResponseEntity<Void> updateGuestCount(
+  public ResponseEntity<Void> modifyGuestCount(
       @PathVariable String restaurantUuid,
       @PathVariable String restaurantTimeSlotUuid,
       @RequestParam int delta
   ) {
-    restaurantService.modifyTimeSlotGuestCount(restaurantTimeSlotUuid, delta);
+    restaurantService.increaseOrDecreaseTimeSlotGuestCount(restaurantTimeSlotUuid, delta);
     return ResponseEntity.ok().build();
   }
 }
