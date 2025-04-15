@@ -11,11 +11,20 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
@@ -25,6 +34,7 @@ import table.eat.now.restaurant.global.fixture.RestaurantFixture;
 import table.eat.now.restaurant.global.fixture.RestaurantMenuFixture;
 import table.eat.now.restaurant.global.fixture.RestaurantTimeSlotFixture;
 import table.eat.now.restaurant.restaurant.application.exception.RestaurantErrorCode;
+import table.eat.now.restaurant.restaurant.application.exception.RestaurantTimeSlotErrorCode;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.CreateRestaurantCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantCriteria;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.CreateRestaurantInfo;
@@ -35,11 +45,15 @@ import table.eat.now.restaurant.restaurant.domain.entity.RestaurantMenu;
 import table.eat.now.restaurant.restaurant.domain.entity.RestaurantMenu.MenuStatus;
 import table.eat.now.restaurant.restaurant.domain.entity.RestaurantTimeSlot;
 import table.eat.now.restaurant.restaurant.domain.repository.RestaurantRepository;
+import table.eat.now.restaurant.restaurant.domain.repository.RestaurantTimeSlotRepository;
 
 class RestaurantServiceTest extends IntegrationTestSupport {
 
   @Autowired
   private RestaurantRepository restaurantRepository;
+
+  @Autowired
+  private RestaurantTimeSlotRepository restaurantTimeSlotRepository;
 
   @Autowired
   private RestaurantService restaurantService;
@@ -439,5 +453,121 @@ class RestaurantServiceTest extends IntegrationTestSupport {
     }
 
   }
+
+  @DisplayName("식당 타임슬롯 현재 게스트 수 수정")
+  @Nested
+  class modifyTimeSlotGuestCount{
+    RestaurantTimeSlot timeSlot;
+    Restaurant restaurant;
+    int maxCapacity = 10;
+    int curTotalGuestCount = 5;
+
+    @BeforeEach
+    void setUp() {
+      timeSlot = RestaurantTimeSlotFixture.createRandom();
+      ReflectionTestUtils.setField(timeSlot, "maxCapacity", maxCapacity);
+      ReflectionTestUtils.setField(timeSlot, "curTotalGuestCount", curTotalGuestCount); // 초기값 설정
+      restaurant = RestaurantFixture.createRandomByStatusAndMenusAndTimeSlots(
+          RestaurantStatus.OPENED, null, Set.of(timeSlot));
+      restaurantRepository.save(restaurant);
+    }
+
+    public static Stream<Arguments> provideDeltaValuesForCheckingIncreaseAndDecrease() {
+      return Stream.of(
+          Arguments.of(1, 6),
+          Arguments.of(2, 7),
+          Arguments.of(-1, 4),
+          Arguments.of(-2, 3)
+      );
+    }
+
+    @DisplayName("delta 값에 따라 인원수가 정확히 증가/감소한다.")
+    @ParameterizedTest(name = "delta: {0}, expectedCount: {1}")
+    @MethodSource("provideDeltaValuesForCheckingIncreaseAndDecrease")
+    void success_increaseAndDecrease(int delta, int expectedCount) {
+      // when
+      restaurantService.increaseOrDecreaseTimeSlotGuestCount(
+          timeSlot.getRestaurantTimeslotUuid(),
+          delta
+      );
+
+      // then
+      RestaurantTimeSlot updated = restaurantTimeSlotRepository.findById(timeSlot.getId()).orElseThrow();
+      assertThat(updated.getCurTotalGuestCount()).isEqualTo(expectedCount);
+    }
+
+    @DisplayName("동시성 환경에서도 최대 수용 인원 수(maxCapacity)을 초과하지 않는다.")
+    @Test
+    void success_동시성확인() throws InterruptedException {
+      // given
+      int threadCount = 20;
+      ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+
+      String restaurantTimeSlotUuid = timeSlot.getRestaurantTimeslotUuid();
+
+      // when
+      List<CompletableFuture<Void>> futures = IntStream.range(0, threadCount)
+          .mapToObj(i -> CompletableFuture.runAsync(() -> {
+            try {
+              restaurantService.increaseOrDecreaseTimeSlotGuestCount(
+                  restaurantTimeSlotUuid, 1
+              );
+            } catch (CustomException e) {
+              // maxCapacity 초과 시 발생 → 무시 (정상 케이스)
+            }
+          }, executorService))
+          .collect(Collectors.toList());
+
+      // 모든 작업이 끝날 때까지 기다림
+      futures.forEach(CompletableFuture::join);
+
+      // then
+      RestaurantTimeSlot updated = restaurantTimeSlotRepository.findById(timeSlot.getId())
+          .orElseThrow();
+
+      assertThat(updated.getCurTotalGuestCount())
+          .isLessThanOrEqualTo(maxCapacity)
+          .isGreaterThan(0);
+
+      executorService.shutdown();
+    }
+
+    @DisplayName("존재하지 않는 타임슬롯을 수정하려고 하면 예외가 발생한다.")
+    @Test
+    void fail_notFound() {
+      // given
+      String invalidUuid = UUID.randomUUID().toString();
+
+      // when & then
+      assertThatThrownBy(() -> restaurantService.increaseOrDecreaseTimeSlotGuestCount(
+          invalidUuid,
+          1
+      )).isInstanceOf(CustomException.class)
+          .hasMessageContaining(RestaurantTimeSlotErrorCode.NOT_FOUND.getMessage());
+    }
+
+    @DisplayName("현재 인원이 음수가 되도록 만드는 (delta)를 입력하면  예외가 발생한다.")
+    @Test
+    void fail_negativeGuestCount() {
+      // when & then
+      assertThatThrownBy(() -> restaurantService.increaseOrDecreaseTimeSlotGuestCount(
+          timeSlot.getRestaurantTimeslotUuid(),
+          curTotalGuestCount * -1 - 1
+      )).isInstanceOf(CustomException.class)
+          .hasMessageContaining(RestaurantTimeSlotErrorCode.EXCEEDS_CAPACITY.getMessage());
+    }
+
+    @DisplayName("최대 수용 인원 수(maxCapacity)을 초과하도록 만드는 (delta)를 입력하면 예외가 발생한다.")
+    @Test
+    void fail_exceedsMaxCapacity() {
+      // when & then
+      assertThatThrownBy(() -> restaurantService.increaseOrDecreaseTimeSlotGuestCount(
+          timeSlot.getRestaurantTimeslotUuid(),
+          maxCapacity + 1
+      )).isInstanceOf(CustomException.class)
+          .hasMessageContaining(RestaurantTimeSlotErrorCode.EXCEEDS_CAPACITY.getMessage());
+    }
+  }
+
 
 }
