@@ -4,5 +4,7 @@ public enum EventType {
   SUCCEED,
   FAILED,
   CANCEL_SUCCEED,
-  CANCEL_FAILED
+  CANCEL_FAILED,
+  CANCELING,
+  ;
 }

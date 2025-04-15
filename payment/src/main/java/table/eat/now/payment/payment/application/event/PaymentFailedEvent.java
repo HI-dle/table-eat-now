@@ -8,13 +8,13 @@ import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 public record PaymentFailedEvent(
     EventType eventType,
     String paymentUuid,
-    JsonNode payload,
+    PaymentFailedPayload payload,
     CurrentUserInfoDto userInfo
 ) implements PaymentEvent {
 
   public static PaymentFailedEvent of(
       PaymentFailedPayload payload, CurrentUserInfoDto userInfo) {
     return new PaymentFailedEvent(
-        FAILED, payload.paymentUuid(), MapperUtil.toJsonNode(payload), userInfo);
+        FAILED, payload.paymentUuid(), payload, userInfo);
   }
 }

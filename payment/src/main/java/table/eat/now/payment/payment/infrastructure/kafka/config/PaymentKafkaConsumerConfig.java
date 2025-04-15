@@ -18,6 +18,7 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import table.eat.now.payment.payment.infrastructure.kafka.event.EventType;
 import table.eat.now.payment.payment.infrastructure.kafka.event.PaymentFailedEvent;
 import table.eat.now.payment.payment.infrastructure.kafka.event.PaymentSuccessEvent;
+import table.eat.now.payment.payment.infrastructure.kafka.event.ReservationCancelingEvent;
 
 @EnableKafka
 @Configuration
@@ -37,8 +38,8 @@ public class PaymentKafkaConsumerConfig {
   }
 
   // 타입별 컨슈머 팩토리 생성 메서드
-  private <T> ConsumerFactory<String, T> createConsumerFactory(Class<T> targetType,
-      String groupId) {
+  private <T> ConsumerFactory<String, T> createConsumerFactory(
+      Class<T> targetType, String groupId) {
     Map<String, Object> props = getCommonConsumerProps(groupId);
 
     JsonDeserializer<T> jsonDeserializer = new JsonDeserializer<>(targetType);
@@ -98,5 +99,16 @@ public class PaymentKafkaConsumerConfig {
   public ConcurrentKafkaListenerContainerFactory<String, PaymentFailedEvent>
   failedEventKafkaListenerContainerFactory() {
     return createContainerFactory(failedEventConsumerFactory(), EventType.FAILED.name());
+  }
+
+  @Bean
+  public ConsumerFactory<String, ReservationCancelingEvent> cancelingEventConsumerFactory() {
+    return createConsumerFactory(ReservationCancelingEvent.class, "reservation-canceling-consumer");
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, ReservationCancelingEvent>
+  cancelingEventKafkaListenerContainerFactory() {
+    return createContainerFactory(cancelingEventConsumerFactory(), EventType.CANCELING.name());
   }
 }

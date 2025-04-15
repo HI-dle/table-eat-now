@@ -88,7 +88,7 @@ public class Payment extends BaseEntity {
   private Payment(PaymentReference reference, PaymentAmount amount) {
     this.reference = reference;
     this.identifier = PaymentIdentifier.create();
-    this.paymentStatus = PaymentStatus.CREATED;
+    this.paymentStatus = PaymentStatus.PENDING;
     this.amount = amount;
   }
 

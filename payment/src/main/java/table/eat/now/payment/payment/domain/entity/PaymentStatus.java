@@ -1,7 +1,7 @@
 package table.eat.now.payment.payment.domain.entity;
 
 public enum PaymentStatus {
-  CREATED,
+  PENDING,
   APPROVED,
   CANCELED,
   REFUNDED,
@@ -9,7 +9,7 @@ public enum PaymentStatus {
 
   public boolean canChangeTo(PaymentStatus nextStatus) {
     return switch (this) {
-      case CREATED -> nextStatus == APPROVED || nextStatus == CANCELED;
+      case PENDING -> nextStatus == APPROVED || nextStatus == CANCELED;
       case APPROVED -> nextStatus == CANCELED || nextStatus == REFUNDED;
       case CANCELED, REFUNDED -> false;
     };

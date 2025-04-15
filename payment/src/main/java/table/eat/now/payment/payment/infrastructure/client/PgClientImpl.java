@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import table.eat.now.payment.payment.application.client.PgClient;
-import table.eat.now.payment.payment.application.dto.request.CancelPaymentCommand;
+import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.ConfirmPaymentCommand;
 import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentInfo;
 import table.eat.now.payment.payment.application.client.dto.ConfirmPgPaymentInfo;
@@ -26,7 +26,7 @@ public class PgClientImpl implements PgClient {
   }
 
   @Override
-  public CancelPgPaymentInfo cancel(CancelPaymentCommand command, String idempotencyKey) {
+  public CancelPgPaymentInfo cancel(CancelPgPaymentCommand command, String idempotencyKey) {
     return tossPaymentClient
         .cancelPayment(
             CancelTossPayRequest.from(command),

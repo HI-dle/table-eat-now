@@ -31,7 +31,7 @@ class PaymentTest {
       assertThat(payment).isNotNull();
       assertThat(payment.getReference()).isEqualTo(validReference);
       assertThat(payment.getAmount()).isEqualTo(validAmount);
-      assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.CREATED);
+      assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.PENDING);
       assertThat(payment.getIdentifier()).isNotNull();
       assertThat(payment.getPaymentKey()).isNull();
       assertThat(payment.getApprovedAt()).isNull();
