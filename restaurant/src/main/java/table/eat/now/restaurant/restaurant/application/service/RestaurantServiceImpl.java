@@ -69,7 +69,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 
   @Override
   @Transactional
-  public void modifyTimeSlotGuestCount(String restaurantTimeSlotUuid, int delta) {
+  public void increaseOrDecreaseTimeSlotGuestCount(String restaurantTimeSlotUuid, int delta) {
     RestaurantTimeSlot timeSlot = restaurantTimeSlotRepository
         .findWithLockByRestaurantTimeslotUuid(restaurantTimeSlotUuid)
         .orElseThrow(() -> new CustomException(RestaurantTimeSlotErrorCode.NOT_FOUND));

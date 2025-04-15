@@ -15,5 +15,5 @@ public interface RestaurantService {
 
   GetRestaurantInfo getRestaurant(GetRestaurantCriteria criteria);
 
-  void modifyTimeSlotGuestCount(String restaurantTimeSlotUuid, int delta);
+  void increaseOrDecreaseTimeSlotGuestCount(String restaurantTimeSlotUuid, int delta);
 }
