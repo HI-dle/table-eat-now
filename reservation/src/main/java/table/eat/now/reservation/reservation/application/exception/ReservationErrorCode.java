@@ -16,6 +16,10 @@ public enum ReservationErrorCode implements ErrorCode {
   /**
    * BAD_REQUEST
   */
+  // BAD_REQUEST - CANCEL
+  ALREADY_CANCELED("이미 취소되었는 예약입니다.", HttpStatus.BAD_REQUEST),
+  CANCEL_POLICY_VIOLATION("예약 취소가 불가능한 상태입니다..", HttpStatus.BAD_REQUEST),
+
   // BAD_REQUEST - AMOUNT`
   INVALID_MENU_TOTAL_AMOUNT("총 금액이 메뉴 금액과 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
   INVALID_PAYMENT_DETAILS_TOTAL_AMOUNT("총 금액이결제 총 금액과 일치하지 않습니다.", HttpStatus.BAD_REQUEST),

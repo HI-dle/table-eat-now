@@ -16,7 +16,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import lombok.AccessLevel;
@@ -160,6 +162,29 @@ public class Reservation extends BaseEntity {
         && getDeletedAt() == null) return true;
 
     return false;
+  }
+
+  public boolean isCanceled() {
+    return this.status == ReservationStatus.CANCELLED;
+  }
+
+  public boolean isCancelable(LocalDateTime cancelRequestDateTime) {
+    if (isCanceled()) return false;
+
+    LocalDateTime reservationDateTime =
+        LocalDateTime.of(
+            this.restaurantTimeSlotDetails.getAvailableDate(),
+            this.restaurantTimeSlotDetails.getTimeslot()
+        );
+
+    Duration durationUntilReservation = Duration.between(cancelRequestDateTime, reservationDateTime);
+    long hoursUntilReservation = durationUntilReservation.toHours();
+
+    return hoursUntilReservation >= 3;
+  }
+
+  public void cancel() {
+    this.status = ReservationStatus.CANCELLED;
   }
 
   @Getter
