@@ -33,7 +33,7 @@ public record CreateReservationCommand(
 ) {
 
   public Reservation toEntityWithUuidAndPaymentKey(
-      String reservationUuid, String reservationName, String paymentKey) {
+      String reservationUuid, String reservationName, Long ownerId, Long staffId, String paymentKey) {
     List<ReservationPaymentDetail> paymentDetails = this.payments().stream()
         .map(paymentDetail -> paymentDetail.toEntityWithPaymentKey(paymentKey))
         .toList();
@@ -48,6 +48,8 @@ public record CreateReservationCommand(
         .restaurantId(restaurantUuid)
         .restaurantName(restaurantDetails.name())
         .restaurantAddress(restaurantDetails.address())
+        .ownerId(ownerId)
+        .staffId(staffId)
         .restaurantContactNumber(restaurantDetails.contactNumber())
         .restaurantOpeningTime(restaurantDetails.openingTime())
         .restaurantClosingTime(restaurantDetails.closingTime())
@@ -86,6 +88,7 @@ public record CreateReservationCommand(
   public record RestaurantDetails(
       String name,
       String address,
+      Long ownerId,
       String contactNumber,
       LocalTime openingTime,
       LocalTime closingTime

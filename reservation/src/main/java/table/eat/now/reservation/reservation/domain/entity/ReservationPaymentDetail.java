@@ -77,6 +77,6 @@ public class ReservationPaymentDetail extends BaseEntity {
     PROMOTION_EVENT("이벤트"),
     ;
 
-    private final String name;
+    private final String description;
   }
 }

@@ -5,6 +5,7 @@
 package table.eat.now.reservation.reservation.infrastructure.persistence;
 
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
@@ -22,7 +23,17 @@ public class ReservationRepositoryImpl implements ReservationRepository {
   }
 
   @Override
+  public Optional<Reservation> findWithDetailsByReservationUuid(String reservationUuid) {
+    return jpaReservationRepository.findWithDetailsByReservationUuid(reservationUuid);
+  }
+
+  @Override
   public List<Reservation> findAll() {
     return jpaReservationRepository.findAll();
+  }
+
+  @Override
+  public <S extends Reservation> List<S> saveAll(Iterable<S> entities) {
+    return jpaReservationRepository.saveAll(entities);
   }
 }

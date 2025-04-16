@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class RestaurantMenuDetails {
   private String name;
   private BigDecimal price;
-  private Integer count;
+  private Integer quantity;
 
   public static RestaurantMenuDetails of(String name, BigDecimal price, Integer quantity) {
     return new RestaurantMenuDetails(name, price, quantity);

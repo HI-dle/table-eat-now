@@ -16,6 +16,8 @@ import lombok.NoArgsConstructor;
 public class RestaurantDetails {
   private String name;
   private String address;
+  private Long ownerId;
+  private Long staffId;
   private String contactNumber;
   private LocalTime openingTime;
   private LocalTime closingTime;
@@ -23,10 +25,12 @@ public class RestaurantDetails {
   public static RestaurantDetails of(
       String name,
       String address,
+      Long ownerId,
+      Long staffId,
       String contactNumber,
       LocalTime openingTime,
       LocalTime closingTime
       ) {
-    return new RestaurantDetails(name, address, contactNumber, openingTime, closingTime);
+    return new RestaurantDetails(name, address, ownerId, staffId, contactNumber, openingTime, closingTime);
   }
 }
