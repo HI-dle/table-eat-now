@@ -50,6 +50,7 @@ public class ReservationApiController {
   }
 
   @GetMapping("/{reservationUuid}")
+  @AuthCheck
   public ResponseEntity<GetReservationResponse> getReservation(
       @CurrentUserInfo CurrentUserInfoDto userInfo,
       @PathVariable String reservationUuid
