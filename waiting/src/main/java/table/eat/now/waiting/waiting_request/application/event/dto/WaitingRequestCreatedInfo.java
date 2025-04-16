@@ -1,9 +1,10 @@
-package table.eat.now.waiting.waiting_request.application.dto.event;
+package table.eat.now.waiting.waiting_request.application.event.dto;
 
 import lombok.Builder;
 
 @Builder
-public record WaitingRequestCreatedEvent(
+public record WaitingRequestCreatedInfo(
+    String waitingRequestUuid,
     String phone,
     String slackId,
     String restaurantName,
@@ -11,10 +12,12 @@ public record WaitingRequestCreatedEvent(
     Long remainingCount,
     long estimatedWaitingMin
 ) {
-  public static WaitingRequestCreatedEvent of(
-      String phone, String slackId, String restaurantName,
+  public static WaitingRequestCreatedInfo of(
+      String waitingRequestUuid, String phone, String slackId, String restaurantName,
       Long sequence, Long remainingCount, long estimatedWaitingSec) {
-    return WaitingRequestCreatedEvent.builder()
+
+    return WaitingRequestCreatedInfo.builder()
+        .waitingRequestUuid(waitingRequestUuid)
         .phone(phone)
         .slackId(slackId)
         .restaurantName(restaurantName)

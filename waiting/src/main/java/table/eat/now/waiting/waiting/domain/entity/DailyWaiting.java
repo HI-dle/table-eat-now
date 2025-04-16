@@ -41,12 +41,12 @@ public class DailyWaiting extends BaseEntity {
   private LocalDate waitingDate;
 
   @Column(nullable = false)
-  private long avgWaitingSec;
+  private Long avgWaitingSec;
 
   private Long totalSequence;
 
   private DailyWaiting(String restaurantUuid, String restaurantName, WaitingStatus status,
-      LocalDate waitingDate, long avgWaitingSec) {
+      LocalDate waitingDate, Long avgWaitingSec) {
     this.dailyWaitingUuid = UUID.randomUUID().toString();
     this.restaurantUuid = restaurantUuid;
     this.restaurantName = restaurantName;
@@ -56,7 +56,7 @@ public class DailyWaiting extends BaseEntity {
   }
 
   public static DailyWaiting of(String restaurantUuid, String restaurantName, String status,
-      LocalDate waitingDate, long avgWaitingSec) {
+      LocalDate waitingDate, Long avgWaitingSec) {
     return new DailyWaiting(restaurantUuid, restaurantName, WaitingStatus.valueOf(status), waitingDate, avgWaitingSec);
   }
 

@@ -10,6 +10,6 @@ import table.eat.now.waiting.waiting_request.infrastructure.client.feign.config.
 @FeignClient(name="waiting", configuration = InternalFeignConfig.class)
 public interface WaitingFeignClient {
 
-  @GetMapping("/internal/v1/waiting/{dailyWaitingUuid}")
+  @GetMapping("/internal/v1/waitings/{dailyWaitingUuid}")
   ResponseEntity<GetDailyWaitingResponse> getDailyWaitingInfo(@PathVariable String dailyWaitingUuid);
 }
