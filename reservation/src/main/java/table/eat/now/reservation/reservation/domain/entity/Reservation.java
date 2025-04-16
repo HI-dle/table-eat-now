@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import table.eat.now.common.domain.BaseEntity;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.reservation.reservation.domain.entity.json.RestaurantDetails;
 import table.eat.now.reservation.reservation.domain.entity.json.RestaurantMenuDetails;
 import table.eat.now.reservation.reservation.domain.entity.json.RestaurantTimeSlotDetails;
@@ -103,6 +104,8 @@ public class Reservation extends BaseEntity {
       String restaurantId,
       String restaurantAddress,
       LocalTime restaurantClosingTime,
+      Long ownerId,
+      Long staffId,
       String restaurantContactNumber,
       String restaurantName,
       LocalTime restaurantOpeningTime,
@@ -127,6 +130,8 @@ public class Reservation extends BaseEntity {
         RestaurantDetails.of(
             restaurantName,
             restaurantAddress,
+            ownerId,
+            staffId,
             restaurantContactNumber,
             restaurantOpeningTime,
             restaurantClosingTime
@@ -137,6 +142,14 @@ public class Reservation extends BaseEntity {
     this.specialRequest = specialRequest;
     this.paymentDetails = ReservationPaymentDetails.of(details, this);
     this.totalAmount = paymentDetails.getTotalAmount();
+  }
+
+  public boolean isReadableUser(Long userId, UserRole role) {
+    if(role.isMaster()) return true;
+    if(role.isOwner() && restaurantDetails.getOwnerId().equals(userId)) return true;
+    if(role.isStaff() && restaurantDetails.getStaffId().equals(userId)) return true;
+    if(reserverId.equals(userId)) return true;
+    return false;
   }
 
   @Getter

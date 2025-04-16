@@ -29,6 +29,10 @@ public class ReservationPaymentDetails {
     this.values.addAll(details);
   }
 
+  public List<ReservationPaymentDetail> getValues() {
+    return values.stream().toList();
+  }
+
   public static ReservationPaymentDetails of(List<ReservationPaymentDetail> details,
       Reservation reservation) {
     return new ReservationPaymentDetails(details, reservation);

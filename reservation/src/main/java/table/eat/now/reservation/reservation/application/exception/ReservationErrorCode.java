@@ -46,9 +46,15 @@ public enum ReservationErrorCode implements ErrorCode {
   PROMOTION_USAGE_LIMIT_EXCEEDED("프로모션 최대 사용 개수를 초과합니다.", HttpStatus.BAD_REQUEST),
 
   /**
+   * NOT_FOUND
+   */
+  NOT_FOUND("예약을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+  /**
    * INTERNAL_SERVER_ERROR
    */
-  RESERVATION_SAVE_FAILED("예약 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+  RESERVATION_SAVE_FAILED("예약 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+  ;
 
   private final String message;
   private final HttpStatus status;

@@ -32,7 +32,9 @@ import table.eat.now.reservation.reservation.application.service.discount.Discou
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
+import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
 import table.eat.now.reservation.reservation.application.service.dto.response.CreateReservationInfo;
+import table.eat.now.reservation.reservation.application.service.dto.response.GetReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo.Timeslot;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
@@ -97,10 +99,27 @@ public class ReservationServiceImpl implements ReservationService {
     // 8. 예약 저장
     Reservation reservation = command
         .toEntityWithUuidAndPaymentKey(
-            reservationUuid, reservationName, paymentInfo.idempotencyKey());
+            reservationUuid, reservationName, restaurant.ownerId(), restaurant.staffId(),  paymentInfo.idempotencyKey());
     reservationRepository.save(reservation);
 
-    return CreateReservationInfo.of(reservation.getReservationUuid(), paymentInfo.idempotencyKey());
+    return CreateReservationInfo.of(
+        reservation.getReservationUuid(), paymentInfo.idempotencyKey());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public GetReservationInfo getReservation(GetReservationCriteria criteria) {
+    Reservation reservation = getReservationOrElseThrow(criteria);
+    if(!reservation.isReadableUser(criteria.userId(), criteria.role())){
+      throw CustomException.from(ReservationErrorCode.NOT_FOUND);
+    }
+    return GetReservationInfo.from(reservation);
+  }
+
+  private Reservation getReservationOrElseThrow(GetReservationCriteria criteria) {
+    return reservationRepository.findWithDetailsByReservationUuid(
+            criteria.reservationUuid())
+        .orElseThrow(() -> CustomException.from(ReservationErrorCode.NOT_FOUND));
   }
 
   private void validateTotalPrice(CreateReservationCommand command) {
