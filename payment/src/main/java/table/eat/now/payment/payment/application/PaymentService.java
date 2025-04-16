@@ -4,10 +4,13 @@ import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.payment.payment.application.dto.request.CancelPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.ConfirmPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.CreatePaymentCommand;
+import table.eat.now.payment.payment.application.dto.request.SearchMyPaymentsQuery;
 import table.eat.now.payment.payment.application.dto.response.ConfirmPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.CreatePaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
+import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
+import table.eat.now.payment.payment.application.dto.response.SearchMyPaymentInfo;
 
 public interface PaymentService {
 
@@ -20,4 +23,6 @@ public interface PaymentService {
   GetPaymentInfo getPayment(String paymentUuid, CurrentUserInfoDto userInfo);
 
   void cancelPayment(CancelPaymentCommand command, CurrentUserInfoDto userInfo);
+
+  PaginatedInfo<SearchMyPaymentInfo> searchMyPayments(SearchMyPaymentsQuery query);
 }

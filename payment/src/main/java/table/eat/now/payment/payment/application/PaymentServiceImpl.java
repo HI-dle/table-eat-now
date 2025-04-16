@@ -19,12 +19,15 @@ import table.eat.now.payment.payment.application.dto.request.CancelPaymentComman
 import table.eat.now.payment.payment.application.dto.request.ConfirmPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.CreatePaymentCommand;
 import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentInfo;
+import table.eat.now.payment.payment.application.dto.request.SearchMyPaymentsQuery;
 import table.eat.now.payment.payment.application.dto.response.ConfirmPaymentInfo;
 import table.eat.now.payment.payment.application.client.dto.ConfirmPgPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.CreatePaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
+import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
+import table.eat.now.payment.payment.application.dto.response.SearchMyPaymentInfo;
 import table.eat.now.payment.payment.application.event.PaymentCanceledEvent;
 import table.eat.now.payment.payment.application.event.PaymentCanceledPayload;
 import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
@@ -160,5 +163,12 @@ public class PaymentServiceImpl implements PaymentService {
     return paymentRepository
         .findByIdentifier_PaymentUuidAndDeletedAtNull(paymentUuid)
         .orElseThrow(() -> CustomException.from(PAYMENT_NOT_FOUND));
+  }
+
+  @Override
+  public PaginatedInfo<SearchMyPaymentInfo> searchMyPayments(SearchMyPaymentsQuery query) {
+    return PaginatedInfo.from(
+            paymentRepository.searchMyPayments(query.toCriteria()))
+        .map(SearchMyPaymentInfo::from);
   }
 }

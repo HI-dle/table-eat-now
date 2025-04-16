@@ -6,6 +6,7 @@ import static table.eat.now.common.resolver.dto.UserRole.MASTER;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -19,9 +20,12 @@ import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.payment.payment.application.PaymentService;
 import table.eat.now.payment.payment.presentation.dto.request.ConfirmPaymentRequest;
+import table.eat.now.payment.payment.presentation.dto.request.SearchMyPaymentsRequest;
 import table.eat.now.payment.payment.presentation.dto.response.ConfirmPaymentResponse;
 import table.eat.now.payment.payment.presentation.dto.response.GetCheckoutDetailResponse;
 import table.eat.now.payment.payment.presentation.dto.response.GetPaymentResponse;
+import table.eat.now.payment.payment.presentation.dto.response.PaginatedResponse;
+import table.eat.now.payment.payment.presentation.dto.response.SearchMyPaymentResponse;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -57,5 +61,14 @@ public class PaymentApiController {
         GetPaymentResponse.from(paymentService.getPayment(paymentUuid.toString(), userInfo)));
   }
 
+  @GetMapping("/my")
+  public ResponseEntity<PaginatedResponse<SearchMyPaymentResponse>> getMyPayments(
+      @CurrentUserInfo CurrentUserInfoDto userInfo,
+      @Valid SearchMyPaymentsRequest request, Pageable pageable) {
+
+    return ResponseEntity.ok(PaginatedResponse.from(
+            paymentService.searchMyPayments(request.toQuery(pageable, userInfo)))
+        .map(SearchMyPaymentResponse::from));
+  }
 }
 
