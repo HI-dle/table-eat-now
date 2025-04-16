@@ -19,12 +19,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.reservation.global.IntegrationTestSupport;
+import table.eat.now.reservation.global.fixture.ReservationFixture;
+import table.eat.now.reservation.global.fixture.ReservationPaymentDetailFixture;
 import table.eat.now.reservation.global.util.UuidMaker;
 import table.eat.now.reservation.reservation.application.client.dto.response.CreatePaymentInfo;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo;
@@ -38,9 +43,12 @@ import table.eat.now.reservation.reservation.application.service.dto.request.Cre
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.RestaurantDetails;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.RestaurantMenuDetails;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.RestaurantTimeSlotDetails;
+import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
+import table.eat.now.reservation.reservation.application.service.dto.response.GetReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
 import table.eat.now.reservation.reservation.domain.entity.Reservation.ReservationStatus;
+import table.eat.now.reservation.reservation.domain.entity.ReservationPaymentDetail;
 import table.eat.now.reservation.reservation.domain.repository.ReservationRepository;
 
 class ReservationServiceTest extends IntegrationTestSupport {
@@ -1702,4 +1710,250 @@ class ReservationServiceTest extends IntegrationTestSupport {
           );
     }
   }
+
+  @DisplayName("예약 단건 조회 서비스 : 삭제 처리되지 않은 예약")
+  @Nested
+  class getReservation {
+
+    Reservation reservation;
+    Reservation deletedReservation;
+
+    @BeforeEach
+    void setUp() {
+      reservation = ReservationFixture.createRandomByPaymentDetails(List.of(
+          ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PAYMENT)
+      ));
+      ReflectionTestUtils.setField(reservation, "status", ReservationStatus.CONFIRMED);
+
+      deletedReservation = ReservationFixture.createRandomByPaymentDetails(List.of(
+          ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PAYMENT)
+      ));
+
+      ReflectionTestUtils.setField(deletedReservation, "status", ReservationStatus.CANCELLED);
+      ReflectionTestUtils.setField(deletedReservation, "deletedAt",
+          LocalDateTime.now().minusDays(1));
+      ReflectionTestUtils.setField(deletedReservation, "deletedBy", 1L);
+      reservationRepository.saveAll(List.of(reservation, deletedReservation));
+    }
+
+    @DisplayName("마스터는 모든 예약을 볼 수 있다.")
+    @Test
+    void success_Reservation_master() {
+      // given
+      GetReservationCriteria criteria = new GetReservationCriteria(
+          reservation.getReservationUuid(),
+          1L,
+          UserRole.MASTER);
+
+      // when
+      GetReservationInfo result = reservationService.getReservation(criteria);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result.reservationUuid()).isEqualTo(reservation.getReservationUuid());
+    }
+
+    @DisplayName("OWNER 는 본인의 가게 예약을 볼 수 있다.")
+    @Test
+    void success_reservation_owner() {
+      // given
+      GetReservationCriteria criteria = new GetReservationCriteria(
+          reservation.getReservationUuid(),
+          reservation.getRestaurantDetails().getOwnerId(),
+          UserRole.OWNER);
+
+      // when
+      GetReservationInfo result = reservationService.getReservation(criteria);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result.reservationUuid()).isEqualTo(reservation.getReservationUuid());
+    }
+
+    @DisplayName("STAFF 는 본인의 가게 예약을 볼 수 있다.")
+    @Test
+    void success_reservation_staff() {
+      // given
+      GetReservationCriteria criteria = new GetReservationCriteria(
+          reservation.getReservationUuid(),
+          reservation.getRestaurantDetails().getStaffId(),
+          UserRole.STAFF);
+
+      // when
+      GetReservationInfo result = reservationService.getReservation(criteria);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result.reservationUuid()).isEqualTo(reservation.getReservationUuid());
+    }
+
+    @DisplayName("CUSTOMER 는 본인의 예약을 볼 수 있다.")
+    @Test
+    void success_customer() {
+      // given
+      GetReservationCriteria criteria = new GetReservationCriteria(
+          reservation.getReservationUuid(),
+          reservation.getReserverId(),
+          UserRole.CUSTOMER);
+
+      // when
+      GetReservationInfo result = reservationService.getReservation(criteria);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result.reservationUuid()).isEqualTo(reservation.getReservationUuid());
+    }
+
+    @DisplayName("없는 예약을 조회할 시 예외가 발생한다.")
+    @Test
+    void test() {
+      // given
+      GetReservationCriteria criteria = new GetReservationCriteria("invalid-uuid",
+          1L,
+          UserRole.MASTER);
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.getReservation(criteria))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.NOT_FOUND.getMessage());
+    }
+
+    @DisplayName("OWNER 는 본인의 가게 예약이 아닌 예약 조회시 예외가 발생한다.")
+    @Test
+    void fail_owner() {
+      // given
+      GetReservationCriteria criteria = new GetReservationCriteria(
+          reservation.getReservationUuid(),
+          reservation.getRestaurantDetails().getOwnerId()+1,
+          UserRole.OWNER);
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.getReservation(criteria))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.NOT_FOUND.getMessage());
+    }
+
+    @DisplayName("STAFF 는 본인의 가게 예약이 아닌 예약 조회시 예외가 발생한다.")
+    @Test
+    void fail_staff() {
+      // given
+      GetReservationCriteria criteria = new GetReservationCriteria(
+          reservation.getReservationUuid(),
+          reservation.getRestaurantDetails().getStaffId()+1,
+          UserRole.STAFF);
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.getReservation(criteria))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.NOT_FOUND.getMessage());
+    }
+
+    @DisplayName("CUSTOMER 는 본인의 예약이 아닌 예약 조회시 예외가 발생한다.")
+    @Test
+    void fail_customer() {
+      // given
+      GetReservationCriteria criteria = new GetReservationCriteria(
+          reservation.getReservationUuid(),
+          reservation.getReserverId()+1,
+          UserRole.CUSTOMER);
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.getReservation(criteria))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.NOT_FOUND.getMessage());
+    }
+  }
+
+  @DisplayName("예약 단건 조회 서비스 : 삭제된 예약")
+  @Nested
+  class getReservation_deletedReservation {
+
+    Reservation reservation;
+    Reservation deletedReservation;
+
+    @BeforeEach
+    void setUp() {
+      reservation = ReservationFixture.createRandomByPaymentDetails(List.of(
+          ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PAYMENT)
+      ));
+      ReflectionTestUtils.setField(reservation, "status", ReservationStatus.CONFIRMED);
+
+      deletedReservation = ReservationFixture.createRandomByPaymentDetails(List.of(
+          ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PAYMENT)
+      ));
+
+      ReflectionTestUtils.setField(deletedReservation, "status", ReservationStatus.CANCELLED);
+      ReflectionTestUtils.setField(deletedReservation, "deletedAt",
+          LocalDateTime.now().minusDays(1));
+      ReflectionTestUtils.setField(deletedReservation, "deletedBy", 1L);
+      reservationRepository.saveAll(List.of(reservation, deletedReservation));
+    }
+
+    @DisplayName("마스터는 삭제된 예약도 볼 수 있다.")
+    @Test
+    void success_master() {
+      // given
+      GetReservationCriteria criteria = new GetReservationCriteria(
+          deletedReservation.getReservationUuid(),
+          1L,
+          UserRole.MASTER);
+
+      // when
+      GetReservationInfo result = reservationService.getReservation(criteria);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result.reservationUuid()).isEqualTo(deletedReservation.getReservationUuid());
+    }
+
+    @DisplayName("OWNER 는 삭제된 예약을 보지 못한다.")
+    @Test
+    void fail_owner() {
+      // given
+      GetReservationCriteria criteria = new GetReservationCriteria(
+          deletedReservation.getReservationUuid(),
+          deletedReservation.getRestaurantDetails().getOwnerId(),
+          UserRole.OWNER);
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.getReservation(criteria))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.NOT_FOUND.getMessage());
+    }
+
+    @DisplayName("STAFF 는 삭제된 예약을 보지 못한다.")
+    @Test
+    void fail_staff() {
+      // given
+      GetReservationCriteria criteria = new GetReservationCriteria(
+          deletedReservation.getReservationUuid(),
+          deletedReservation.getRestaurantDetails().getStaffId(),
+          UserRole.STAFF);
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.getReservation(criteria))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.NOT_FOUND.getMessage());
+    }
+
+    @DisplayName("CUSTOMER 는 삭제된 예약을 보지 못한다.")
+    @Test
+    void fail_customer() {
+      // given
+      GetReservationCriteria criteria = new GetReservationCriteria(
+          deletedReservation.getReservationUuid(),
+          deletedReservation.getReserverId(),
+          UserRole.CUSTOMER);
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.getReservation(criteria))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.NOT_FOUND.getMessage());
+    }
+  }
+
 }
