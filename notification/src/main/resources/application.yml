@@ -20,6 +20,11 @@ spring:
         jdbc:
           batch_size: 30
     show-sql: true
+  data:
+    redis:
+      host: localhost
+      port: ${DEV_REDIS_PORT}
+      username: ${DEV_REDIS_USERNAME}
   mail:
     host: smtp.gmail.com
     port: 587

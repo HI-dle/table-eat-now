@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -55,6 +56,10 @@ public class Notification extends BaseEntity{
   @Column(name = "scheduled_time")
   private LocalDateTime scheduledTime;
 
+  //// DB에 저장되지 않고 알림 재시도를 위한 필드
+  @Transient
+  private int retryCount = 0;
+
   private Notification(Long userId, NotificationType notificationType,
       String customerName, LocalDateTime reservationTime, String restaurantName,
       NotificationStatus status, NotificationMethod notificationMethod,
@@ -89,7 +94,10 @@ public class Notification extends BaseEntity{
     this.scheduledTime = scheduledTime;
   }
 
-  public void modifyNotificationStatus() {
+  public void modifyNotificationStatusIsSent() {
     this.status = NotificationStatus.SENT;
+  }
+  public void modifyNotificationStatusIsFailed() {
+    this.status = NotificationStatus.FAILED;
   }
 }
