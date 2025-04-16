@@ -28,7 +28,7 @@ import table.eat.now.reservation.global.util.UuidMaker;
 import table.eat.now.reservation.reservation.application.service.dto.response.CreateReservationInfo;
 import table.eat.now.reservation.reservation.presentation.dto.request.CreateReservationRequest;
 
-class ReservationControllerTest extends ControllerTestSupport {
+class ReservationApiControllerTest extends ControllerTestSupport {
 
   @DisplayName("예약 신청 컨트롤러")
   @Nested
