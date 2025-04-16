@@ -15,6 +15,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import table.eat.now.promotion.promotionuser.application.event.EventType;
 import table.eat.now.promotion.promotionuser.infrastructure.kafka.dto.PromotionUserSaveEvent;
 
 @EnableKafka
