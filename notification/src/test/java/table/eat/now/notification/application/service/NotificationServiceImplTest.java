@@ -55,10 +55,8 @@ import table.eat.now.notification.application.strategy.message.formatter.InfoWai
 import table.eat.now.notification.application.strategy.message.formatter.NoShowFormatter;
 import table.eat.now.notification.application.strategy.message.formatter.Reminder1HrFormatter;
 import table.eat.now.notification.application.strategy.message.formatter.Reminder9AmFormatter;
-import table.eat.now.notification.application.strategy.send.EmailSender;
 import table.eat.now.notification.application.strategy.send.NotificationSenderStrategy;
 import table.eat.now.notification.application.strategy.send.NotificationSenderStrategySelector;
-import table.eat.now.notification.application.strategy.send.SlackSender;
 import table.eat.now.notification.domain.entity.Notification;
 import table.eat.now.notification.domain.entity.NotificationMethod;
 import table.eat.now.notification.domain.entity.NotificationStatus;
@@ -68,6 +66,8 @@ import table.eat.now.notification.domain.repository.NotificationRepository;
 import table.eat.now.notification.domain.repository.search.NotificationSearchCriteria;
 import table.eat.now.notification.domain.repository.search.NotificationSearchCriteriaQuery;
 import table.eat.now.notification.domain.repository.search.PaginatedResult;
+import table.eat.now.notification.infrastructure.sender.EmailSender;
+import table.eat.now.notification.infrastructure.sender.SlackSender;
 
 /**
  * @author : hanjihoon

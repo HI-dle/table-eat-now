@@ -1,10 +1,11 @@
-package table.eat.now.notification.application.strategy.send;
+package table.eat.now.notification.infrastructure.sender;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 import table.eat.now.notification.application.strategy.NotificationTemplate;
+import table.eat.now.notification.application.strategy.send.NotificationSenderStrategy;
 import table.eat.now.notification.domain.entity.NotificationMethod;
 
 /**
