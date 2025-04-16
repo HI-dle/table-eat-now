@@ -64,3 +64,51 @@ X-User-Role: CUSTOMER
 GET https://api.tosspayments.com/v1/payments/orders/00000000-0000-0000-0000-000000000027
 Authorization: Basic dGVzdF9za19BTG5RdkRkMlZKR2s0eUdLR1E5TnJNajdYNDFtOg
 Content-Type: application/json
+
+### 내 결제 목록 조회 (정렬)
+GET http://localhost:8088/api/v1/payments/my?orderBy=createdAt&sort=desc
+Content-Type: application/json
+X-User-Id: 123
+X-User-Role: CUSTOMER
+
+### 내 결제 목록 조회 (식당별 필터링)
+GET http://localhost:8088/api/v1/payments/my?restaurantUuid=00000
+Content-Type: application/json
+X-User-Id: 123
+X-User-Role: CUSTOMER
+
+### 내 결제 목록 조회 (결제 상태별 필터링)
+GET http://localhost:8088/api/v1/payments/my?paymentStatus=APPROVED
+Content-Type: application/json
+X-User-Id: 123
+X-User-Role: CUSTOMER
+
+### 내 결제 목록 조회 (날짜 범위 필터링)
+GET http://localhost:8088/api/v1/payments/my?startDate=2025-03-01&endDate=2025-04-16
+Content-Type: application/json
+X-User-Id: 123
+X-User-Role: CUSTOMER
+
+### 내 결제 목록 조회 (모든 필터 조합)
+GET http://localhost:8088/api/v1/payments/my?restaurantUuid=00000&paymentStatus=APPROVED&startDate=2025-03-01&endDate=2025-04-16&orderBy=createdAt&sort=desc&page=0&size=10
+Content-Type: application/json
+X-User-Id: 123
+X-User-Role: CUSTOMER
+
+### 관리자 권한으로 내 결제 목록 조회
+GET http://localhost:8088/api/v1/payments/my
+Content-Type: application/json
+X-User-Id: 456
+X-User-Role: MASTER
+
+### 잘못된 날짜 형식으로 요청 (에러 테스트)
+GET http://localhost:8088/api/v1/payments/my?startDate=invalid-date
+Content-Type: application/json
+X-User-Id: 123
+X-User-Role: CUSTOMER
+
+### 잘못된 정렬 필드로 요청 (에러 테스트)
+GET http://localhost:8088/api/v1/payments/my?orderBy=invalidField
+Content-Type: application/json
+X-User-Id: 123
+X-User-Role: CUSTOMER
