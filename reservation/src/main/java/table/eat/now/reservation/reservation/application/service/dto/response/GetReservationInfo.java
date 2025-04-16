@@ -8,9 +8,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import lombok.Builder;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
 import table.eat.now.reservation.reservation.domain.entity.ReservationPaymentDetail;
 
+@Builder
 public record GetReservationInfo(
     String reservationUuid,
     String name,
@@ -59,6 +61,7 @@ public record GetReservationInfo(
     PENDING_PAYMENT, CONFIRMED, CANCELLED // 예시
   }
 
+  @Builder
   public record PaymentDetailInfo(
       String reservationPaymentDetailUuid,
       PaymentType type,
