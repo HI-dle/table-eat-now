@@ -14,4 +14,6 @@ public interface RestaurantService {
   CreateRestaurantInfo createRestaurant(CreateRestaurantCommand command);
 
   GetRestaurantInfo getRestaurant(GetRestaurantCriteria criteria);
+
+  void increaseOrDecreaseTimeSlotGuestCount(String restaurantTimeSlotUuid, int delta);
 }
