@@ -58,6 +58,7 @@ services:
       - grafana-storage:/var/lib/grafana  # Grafana 데이터 저장소
 
   zookeeper:
+    container_name: ten-zookeeper
     image: bitnami/zookeeper:latest
     platform: linux/amd64
     ports:
@@ -68,6 +69,7 @@ services:
       ALLOW_ANONYMOUS_LOGIN: "yes"
 
   kafka:
+    container_name: ten-kafka
     image: bitnami/kafka:3.8.1
     platform: linux/amd64
     ports:
@@ -82,6 +84,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
   kafka-ui:
+    container_name: ten-kafka-ui
     image: provectuslabs/kafka-ui:latest
     platform: linux/amd64
     ports:
@@ -91,7 +94,6 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
       KAFKA_CLUSTERS_0_READONLY: "false"
-
 
 networks:
   app_network:

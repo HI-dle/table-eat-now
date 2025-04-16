@@ -11,6 +11,7 @@ spring:
       - classpath:properties/redis.yml
       - classpath:properties/cloud.yml
       - classpath:properties/zipkin.yml
+      - classpath:properties/kafka.yml
   profiles:
     group:
       local: local
