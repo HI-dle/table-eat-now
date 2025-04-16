@@ -1,15 +1,12 @@
 /**
  * @author : jieun(je-pa)
- * @Date : 2025. 04. 11.
+ * @Date : 2025. 04. 16.
  */
 package table.eat.now.reservation.reservation.presentation;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
@@ -30,93 +27,26 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.reservation.global.ControllerTestSupport;
-import table.eat.now.reservation.global.util.UuidMaker;
 import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
-import table.eat.now.reservation.reservation.application.service.dto.response.CreateReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetReservationInfo;
-import table.eat.now.reservation.reservation.presentation.dto.request.CreateReservationRequest;
 
-class ReservationApiControllerTest extends ControllerTestSupport {
+class ReservationAdminControllerTest extends ControllerTestSupport {
 
-  @DisplayName("예약 신청 컨트롤러")
+  private static final String urlPrefix = "/admin/v1/reservations";
+
+  @DisplayName("예약 단건 조회 admin 컨트롤러")
   @Nested
-  class create{
-
-    @DisplayName("고객이 예약을 신청할 수 있다.")
-    @Test
-    void createReservation() throws Exception{
-      CreateReservationRequest request = new CreateReservationRequest(
-          "홍길동", // 예약자 이름
-          "010-9876-5432", // 예약자 연락처
-          UUID.randomUUID().toString(), // 레스토랑 UUID
-          UUID.randomUUID().toString(), // 레스토랑 타임슬롯 UUID
-          UUID.randomUUID().toString(), // 레스토랑 메뉴 UUID
-          2, // 예약 인원 수
-          "특별 요청 사항", // 요청사항
-          new BigDecimal("10000"), // 총 금액
-          new CreateReservationRequest.RestaurantTimeSlotDetails(
-              LocalDate.now(), // 예약 가능 날짜
-              LocalTime.of(12, 0) // 타임슬롯
-          ),
-          new CreateReservationRequest.RestaurantDetails(
-              "맛집 레스토랑", // 레스토랑 이름
-              "서울시 강남구 테헤란로 123", // 레스토랑 주소
-              "02-1234-5678", // 레스토랑 연락처
-              LocalTime.of(10, 0), // 오픈 시간
-              LocalTime.of(22, 0) // 마감 시간
-          ),
-          new CreateReservationRequest.RestaurantMenuDetails(
-              "스시 세트", // 메뉴 이름
-              new BigDecimal("20000"), // 메뉴 가격
-              3 // 메뉴 수량
-          ),
-          List.of(
-              new CreateReservationRequest.PaymentDetail(
-                  CreateReservationRequest.PaymentType.PAYMENT,
-                  "payment-ref-123",
-                  new BigDecimal("10000")
-              )
-          )
-      );
-
-      // 반환할 UUID
-      String reservationUuid = UuidMaker.makeUuid().toString();
-      String paymentReferenceKey = UuidMaker.makeUuid().toString();
-      given(reservationService.createReservation(any()))
-          .willReturn(new CreateReservationInfo(
-              reservationUuid, paymentReferenceKey
-          ));
-
-      // when & then
-      mockMvc.perform(post("/api/v1/reservations")
-              .header(USER_ID_HEADER, "1") // 사용자 ID 헤더
-              .header(USER_ROLE_HEADER, "CUSTOMER") // 사용자 역할 헤더
-              .contentType(MediaType.APPLICATION_JSON)
-              .content(objectMapper.writeValueAsString(request))) // 요청 바디 설정
-          .andExpect(status().isCreated()) // 상태 코드 확인
-          .andExpect(header().string("Location",
-              containsString("/api/v1/reservations/" + reservationUuid))) // Location 헤더 확인
-          .andExpect(jsonPath("$.reservationUuid").value(reservationUuid)) // 응답 본문에서 restaurantUuid 값 확인
-          .andExpect(jsonPath("$.paymentReferenceKey").value(paymentReferenceKey)); // 응답 본문에서 restaurantUuid 값 확인
-    }
-  }
-
-  @DisplayName("예약 단건 조회 api 컨트롤러")
-  @Nested
-  class GetReservationApi {
-
-    private static final String urlPrefix = "/api/v1/reservations";
+  class GetReservationAdmin {
 
     public static Stream<Arguments> provideUserRoleForCheckingGetReservationPermission() {
       return Stream.of(
           Arguments.of(UserRole.MASTER),
           Arguments.of(UserRole.OWNER),
-          Arguments.of(UserRole.STAFF),
-          Arguments.of(UserRole.CUSTOMER)
+          Arguments.of(UserRole.STAFF)
       );
     }
 
-    @DisplayName("MASTER, OWNER, STAFF, CUSTOMER 는 예약을 단건 조회할 수 있다.")
+    @DisplayName("MASTER, OWNER, STAFF는 예약을 단건 조회할 수 있다.")
     @MethodSource("provideUserRoleForCheckingGetReservationPermission")
     @ParameterizedTest(name = "{index}: ''{0}''는 예약을 단건 조회할 수 있다.")
     void success(UserRole role) throws Exception {
@@ -182,6 +112,22 @@ class ReservationApiControllerTest extends ControllerTestSupport {
           .andExpect(jsonPath("$.paymentDetails[0].detailReferenceId").value("카카오페이1234"));
     }
 
+    @DisplayName("CUSTOMER는 admin api를 사용할 수 없어 403 예외가 발생한다.")
+    @Test
+    void fail_isForbidden_customer() throws Exception {
+      // given
+      String reservationUuid = UUID.randomUUID().toString();
+      Long userId = 99L;
+      UserRole role = UserRole.CUSTOMER;
+
+      // when & then
+      mockMvc.perform(get(urlPrefix + "/{reservationUuid}", reservationUuid)
+              .header(USER_ID_HEADER, userId)
+              .header(USER_ROLE_HEADER, role)
+              .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isForbidden());
+    }
+
     @DisplayName("권한이 없으면 401 예외가 발생한다.")
     @Test
     void fail_isForbidden() throws Exception {
@@ -197,4 +143,5 @@ class ReservationApiControllerTest extends ControllerTestSupport {
           .andExpect(status().isUnauthorized());
     }
   }
+
 }
