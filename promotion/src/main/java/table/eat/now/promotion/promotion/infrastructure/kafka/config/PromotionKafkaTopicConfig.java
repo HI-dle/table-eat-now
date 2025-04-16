@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
-public class PaymentKafkaTopicConfig {
+public class PromotionKafkaTopicConfig {
 
   private static final String PROMOTION_TOPIC_NAME = "promotion-event";
 

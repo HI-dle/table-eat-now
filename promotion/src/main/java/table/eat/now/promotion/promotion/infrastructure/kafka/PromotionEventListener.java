@@ -8,7 +8,7 @@ import table.eat.now.promotion.promotion.application.service.PromotionService;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PaymentEventListener {
+public class PromotionEventListener {
 
   private final PromotionService promotionService;
 

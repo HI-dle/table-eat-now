@@ -8,6 +8,7 @@ import table.eat.now.promotion.promotionuser.application.dto.request.UpdatePromo
 import table.eat.now.promotion.promotionuser.application.dto.response.CreatePromotionUserInfo;
 import table.eat.now.promotion.promotionuser.application.dto.response.SearchPromotionUserInfo;
 import table.eat.now.promotion.promotionuser.application.dto.response.UpdatePromotionUserInfo;
+import table.eat.now.promotion.promotionuser.application.event.dto.PromotionUserSaveEventInfo;
 
 /**
  * @author : hanjihoon
@@ -24,4 +25,6 @@ public interface PromotionUserService {
       SearchPromotionUserCommand command);
 
   void deletePromotionUser(Long userId, CurrentUserInfoDto userInfoDto);
+
+  void savePromotionUsers(PromotionUserSaveEventInfo promotionUserSaveEventInfos);
 }

@@ -17,7 +17,7 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 @EnableKafka
 @Configuration
-public class PaymentKafkaConsumerConfig {
+public class PromotionKafkaConsumerConfig {
 
   @Value("${spring.kafka.bootstrap-servers}")
   private String bootstrapServers;
@@ -71,39 +71,4 @@ public class PaymentKafkaConsumerConfig {
 
     return factory;
   }
-
-//  // PaymentSuccessEvent 관련 컨슈머 팩토리들
-//  @Bean
-//  public ConsumerFactory<String, PaymentSuccessEvent> successEventConsumerFactory() {
-//    return createConsumerFactory(PaymentSuccessEvent.class, "payment-success-consumer");
-//  }
-//
-//  @Bean
-//  public ConcurrentKafkaListenerContainerFactory<String, PaymentSuccessEvent>
-//  successEventKafkaListenerContainerFactory() {
-//    return createContainerFactory(successEventConsumerFactory(), EventType.SUCCEED.name());
-//  }
-//
-//  // PaymentFailedEvent 관련 컨슈머 팩토리들
-//  @Bean
-//  public ConsumerFactory<String, PaymentFailedEvent> failedEventConsumerFactory() {
-//    return createConsumerFactory(PaymentFailedEvent.class, "payment-failed-consumer");
-//  }
-//
-//  @Bean
-//  public ConcurrentKafkaListenerContainerFactory<String, PaymentFailedEvent>
-//  failedEventKafkaListenerContainerFactory() {
-//    return createContainerFactory(failedEventConsumerFactory(), EventType.FAILED.name());
-//  }
-//
-//  @Bean
-//  public ConsumerFactory<String, ReservationCancelingEvent> cancelingEventConsumerFactory() {
-//    return createConsumerFactory(ReservationCancelingEvent.class, "reservation-canceling-consumer");
-//  }
-//
-//  @Bean
-//  public ConcurrentKafkaListenerContainerFactory<String, ReservationCancelingEvent>
-//  cancelingEventKafkaListenerContainerFactory() {
-//    return createContainerFactory(cancelingEventConsumerFactory(), EventType.CANCELING.name());
-//  }
 }

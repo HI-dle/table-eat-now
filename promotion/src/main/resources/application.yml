@@ -17,6 +17,11 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        # 배치 처리 설정
+        hibernate.jdbc.batch_size: 1000  # 한 번에 처리할 엔티티의 개수
+        hibernate.order_inserts: true  # 배치 삽입 시 데이터 순서대로 삽입
+        hibernate.order_updates: true  # 배치 업데이트 시 데이터 순서대로 업데이트
+        hibernate.jdbc.batch_versioned_data: true  # 버전된 데이터도 배치 처리
     show-sql: true
 
   data:

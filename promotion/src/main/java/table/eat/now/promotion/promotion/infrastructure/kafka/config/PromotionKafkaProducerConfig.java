@@ -15,7 +15,7 @@ import table.eat.now.promotion.promotion.application.event.PromotionEvent;
 import table.eat.now.promotion.promotion.infrastructure.kafka.interceptor.EventTypeHeaderInterceptor;
 
 @Configuration
-public class PaymentKafkaProducerConfig {
+public class PromotionKafkaProducerConfig {
 
   @Value("${spring.kafka.bootstrap-servers}")
   private String bootstrapServers;

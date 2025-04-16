@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -22,9 +23,11 @@ import table.eat.now.common.domain.BaseEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PromotionUser extends BaseEntity {
 
+  //배치 저장을 위해 시퀀스 사용 IDENTITY 사용시 DB에서 아이디 부여하기 때문
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  Long id;
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "promotion_user_id")
+  @SequenceGenerator(name = "promotion_user_id", sequenceName = "promotion_user_id", allocationSize = 50)
+  private Long id;
 
   @Column(nullable = false, unique = true, length = 100, name = "promotion_user_uuid")
   private String promotionUserUuid;

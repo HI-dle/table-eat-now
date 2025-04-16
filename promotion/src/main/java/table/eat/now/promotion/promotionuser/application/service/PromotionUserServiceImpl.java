@@ -1,5 +1,6 @@
 package table.eat.now.promotion.promotionuser.application.service;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import table.eat.now.promotion.promotionuser.application.dto.request.UpdatePromo
 import table.eat.now.promotion.promotionuser.application.dto.response.CreatePromotionUserInfo;
 import table.eat.now.promotion.promotionuser.application.dto.response.SearchPromotionUserInfo;
 import table.eat.now.promotion.promotionuser.application.dto.response.UpdatePromotionUserInfo;
+import table.eat.now.promotion.promotionuser.application.event.dto.PromotionUserSaveEventInfo;
 import table.eat.now.promotion.promotionuser.application.exception.PromotionUserErrorCode;
 import table.eat.now.promotion.promotionuser.domain.entity.PromotionUser;
 import table.eat.now.promotion.promotionuser.domain.repository.PromotionUserRepository;
@@ -56,6 +58,16 @@ public class PromotionUserServiceImpl implements PromotionUserService{
     PromotionUser promotionUser = findByPromotionUserFromUserId(userId);
     promotionUser.delete(userInfoDto.userId());
     log.info("삭제가 완료 되었습니다. 삭제한 userId: {}", promotionUser);
+  }
+
+  @Override
+  @Transactional
+  public void savePromotionUsers(PromotionUserSaveEventInfo promotionUserSaveEventInfo) {
+
+    List<PromotionUser> userList = PromotionUserSaveEventInfo.from(
+        promotionUserSaveEventInfo.payloads());
+    // 배치 저장
+    promotionUserRepository.saveAllInBatch(userList);
   }
 
   private PromotionUser findByPromotionUser(String promotionUserUuid) {
