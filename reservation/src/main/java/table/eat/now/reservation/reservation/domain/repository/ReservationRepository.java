@@ -16,4 +16,6 @@ public interface ReservationRepository {
 
   // test 용
   List<Reservation> findAll();
+
+  <S extends Reservation> List<S> saveAll(Iterable<S> entities);
 }

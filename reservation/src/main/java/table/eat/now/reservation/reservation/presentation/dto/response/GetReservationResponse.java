@@ -24,7 +24,7 @@ public record GetReservationResponse(
     String menuName,
     BigDecimal menuPrice,
     int menuQuantity,
-    GetReservationInfo.ReservationStatus status,
+    String status,
     String specialRequest,
     BigDecimal totalAmount,
     List<PaymentDetailDto> paymentDetails
@@ -44,7 +44,7 @@ public record GetReservationResponse(
         info.menuName(),
         info.menuPrice(),
         info.menuQuantity(),
-        info.status(),
+        info.status().name(),
         info.specialRequest(),
         info.totalAmount(),
         info.paymentDetails().stream()
@@ -55,14 +55,14 @@ public record GetReservationResponse(
 
   public record PaymentDetailDto(
       String reservationPaymentDetailUuid,
-      GetReservationInfo.PaymentType type,
+      String type,
       BigDecimal amount,
       String detailReferenceId
   ) {
     public static PaymentDetailDto from(GetReservationInfo.PaymentDetailInfo detail) {
       return new PaymentDetailDto(
           detail.reservationPaymentDetailUuid(),
-          detail.type(),
+          detail.type().name(),
           detail.amount(),
           detail.detailReferenceId()
       );

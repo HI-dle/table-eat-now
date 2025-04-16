@@ -58,7 +58,7 @@ public class Reservation extends BaseEntity {
   private String restaurantTimeSlotUuid;
 
   @Column(name = "restaurant_uuid", nullable = false, length = 100)
-  private String restaurantId;
+  private String restaurantId; // todo: 변수명 수정 필요
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "restaurant_timeslot_details", columnDefinition = "json", nullable = false)
@@ -146,9 +146,19 @@ public class Reservation extends BaseEntity {
 
   public boolean isReadableUser(Long userId, UserRole role) {
     if(role.isMaster()) return true;
-    if(role.isOwner() && restaurantDetails.getOwnerId().equals(userId)) return true;
-    if(role.isStaff() && restaurantDetails.getStaffId().equals(userId)) return true;
-    if(reserverId.equals(userId)) return true;
+
+    if(role.isOwner()
+        && restaurantDetails.getOwnerId().equals(userId)
+        && getDeletedAt() == null) return true;
+
+    if(role.isStaff()
+        && restaurantDetails.getStaffId().equals(userId)
+        && getDeletedAt() == null) return true;
+
+    if(role.isCustomer()
+        && reserverId.equals(userId)
+        && getDeletedAt() == null) return true;
+
     return false;
   }
 

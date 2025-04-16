@@ -31,4 +31,9 @@ public class ReservationRepositoryImpl implements ReservationRepository {
   public List<Reservation> findAll() {
     return jpaReservationRepository.findAll();
   }
+
+  @Override
+  public <S extends Reservation> List<S> saveAll(Iterable<S> entities) {
+    return jpaReservationRepository.saveAll(entities);
+  }
 }

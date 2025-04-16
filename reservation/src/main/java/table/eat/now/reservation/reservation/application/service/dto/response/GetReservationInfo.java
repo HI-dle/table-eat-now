@@ -56,7 +56,7 @@ public record GetReservationInfo(
   }
 
   public enum ReservationStatus {
-    PENDING, CONFIRMED, CANCELLED // 예시
+    PENDING_PAYMENT, CONFIRMED, CANCELLED // 예시
   }
 
   public record PaymentDetailInfo(
@@ -69,7 +69,7 @@ public record GetReservationInfo(
     public static PaymentDetailInfo from(ReservationPaymentDetail detail) {
       return new PaymentDetailInfo(
           detail.getReservationPaymentDetailUuid(),
-          PaymentType.valueOf(detail.getType().getName()),
+          PaymentType.valueOf(detail.getType().name()),
           detail.getAmount(),
           detail.getDetailReferenceId()
       );
@@ -77,6 +77,6 @@ public record GetReservationInfo(
   }
 
   public enum PaymentType {
-    CARD, CASH, COUPON // 예시
+    PAYMENT, PROMOTION_COUPON, PROMOTION_EVENT // 예시
   }
 }

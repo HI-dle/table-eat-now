@@ -28,4 +28,8 @@ public enum UserRole {
   public boolean isMaster() {
     return this == MASTER;
   }
+
+  public boolean isCustomer() {
+    return this == CUSTOMER;
+  }
 }
