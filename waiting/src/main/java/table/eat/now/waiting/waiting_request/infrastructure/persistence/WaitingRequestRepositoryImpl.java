@@ -26,7 +26,7 @@ public class WaitingRequestRepositoryImpl implements WaitingRequestRepository {
   }
 
   @Override
-  public boolean enqueueWaitingRequest(
+  public Boolean enqueueWaitingRequest(
       String dailyWaitingUuid, String waitingRequestUuid, long epochMilli) {
     return redisRepository.addWaitingRequest(dailyWaitingUuid, waitingRequestUuid, epochMilli);
   }

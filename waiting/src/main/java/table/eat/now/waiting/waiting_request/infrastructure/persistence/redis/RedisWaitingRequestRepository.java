@@ -4,7 +4,7 @@ public interface RedisWaitingRequestRepository {
 
   Long increaseSequence(String dailyWaitingUuid);
 
-  boolean addWaitingRequest(String dailyWaitingUuid, String waitingRequestUuid, long timestamp);
+  Boolean addWaitingRequest(String dailyWaitingUuid, String waitingRequestUuid, long timestamp);
 
   Integer getSequence(String dailyWaitingUuid);
 

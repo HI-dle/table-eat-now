@@ -34,8 +34,8 @@ public class WaitingRequestHistory extends HistoryBaseEntity {
     this.status = status;
   }
 
-  public static WaitingRequestHistory create() {
-    return new WaitingRequestHistory(WaitingStatus.WAITING);
+  public static WaitingRequestHistory of(WaitingStatus status) {
+    return new WaitingRequestHistory(status);
   }
 
   public void registerWaitingRequest(WaitingRequest waitingRequest) {

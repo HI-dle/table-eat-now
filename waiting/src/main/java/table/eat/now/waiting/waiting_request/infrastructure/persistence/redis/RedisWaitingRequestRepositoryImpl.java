@@ -17,11 +17,10 @@ public class RedisWaitingRequestRepositoryImpl implements RedisWaitingRequestRep
   }
 
   @Override
-  public boolean addWaitingRequest(
+  public Boolean addWaitingRequest(
       String dailyWaitingUuid, String waitingRequestUuid, long timestamp) {
-    return Boolean.TRUE.equals(
-        redisTemplate.opsForZSet()
-            .add(WAITING_ZSET_PREFIX + dailyWaitingUuid, waitingRequestUuid, timestamp));
+    return redisTemplate.opsForZSet()
+            .add(WAITING_ZSET_PREFIX + dailyWaitingUuid, waitingRequestUuid, timestamp);
   }
 
   @Override
