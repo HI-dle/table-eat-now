@@ -30,21 +30,16 @@ Content-Type: application/json
 X-User-Id: 3
 X-User-Role: STAFF
 
-{
-  "restaurantUuid":"00000000-0000-0000-0000-000000000001"
-}
-
-### 대기 요청 조회 
-GET localhost:8086/api/v1/waiting-requests/{{waitingRequestUuid}}?phone=01000000000
-Content-Type: application/json
-
-
 ### 대기 요청 조회 admin # 임시
 GET localhost:8086/admin/v1/waiting-requests/{{waitingRequestUuid}}
 Content-Type: application/json
 X-User-Id: 3
 X-User-Role: STAFF
 
-{
-  "restaurantUuid":"00000000-0000-0000-0000-000000000001"
-}
+### 대기 요청 조회 
+GET localhost:8086/api/v1/waiting-requests/{{waitingRequestUuid}}?phone=01000000000
+Content-Type: application/json
+
+### 대기 연기 요청
+PATCH localhost:8086/api/v1/waiting-requests/{{waitingRequestUuid}}/postpone?phone=01000000000
+Content-Type: application/json

@@ -14,8 +14,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
@@ -27,12 +29,15 @@ import table.eat.now.waiting.waiting_request.application.dto.response.GetDailyWa
 import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
 import table.eat.now.waiting.waiting_request.application.event.EventPublisher;
+import table.eat.now.waiting.waiting_request.application.event.dto.EventType;
 import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestCreatedEvent;
 import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestEntranceEvent;
 import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestEvent;
+import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestPostponedEvent;
 import table.eat.now.waiting.waiting_request.application.exception.WaitingRequestErrorCode;
 import table.eat.now.waiting.waiting_request.application.utils.TimeProvider;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
+import table.eat.now.waiting.waiting_request.domain.entity.WaitingStatus;
 import table.eat.now.waiting.waiting_request.domain.repository.WaitingRequestRepository;
 import table.eat.now.waiting.waiting_request.fixture.WaitingRequestFixture;
 
@@ -279,5 +284,53 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
       assertThat(info.restaurantName()).isEqualTo(dailyWaitingInfo.restaurantName());
       assertThat(info.estimatedWaitingMin()).isEqualTo((info.rank() + 1L) * dailyWaitingInfo.avgWaitingSec() / 60L);
     }
+  }
+
+  @DisplayName("대기 연기 요청 검증")
+  @Nested
+  class postponeWaitingRequest {
+
+    private GetDailyWaitingInfo dailyWaitingInfo;
+
+    @BeforeEach
+    void setUp() {
+      dailyWaitingInfo = GetDailyWaitingInfo.builder()
+          .dailyWaitingUuid(waitingRequest.getDailyWaitingUuid())
+          .restaurantUuid(waitingRequest.getRestaurantUuid())
+          .waitingDate(LocalDate.now())
+          .avgWaitingSec(600L)
+          .status("AVAILABLE")
+          .build();
+      given(waitingClient.getDailyWaitingInfo(waitingRequest.getDailyWaitingUuid())).willReturn(dailyWaitingInfo);
+    }
+
+    @Transactional
+    @DisplayName("성공")
+    @Test
+    void success() {
+      // given
+      doNothing().when(eventPublisher).publish(any(WaitingRequestPostponedEvent.class));
+      ArgumentCaptor<WaitingRequestPostponedEvent> captor = ArgumentCaptor.forClass(
+          WaitingRequestPostponedEvent.class);
+
+      // when, then
+      assertThatNoException().isThrownBy(() -> waitingRequestService.postponeWaitingRequest(
+          null, waitingRequest.getWaitingRequestUuid(), waitingRequest.getPhone()));
+
+      verify(eventPublisher).publish(captor.capture());
+      WaitingRequestPostponedEvent event = captor.getValue();
+      assertThat(event.waitingRequestUuid()).isEqualTo(waitingRequest.getWaitingRequestUuid());
+      assertThat(event.eventType()).isEqualTo(EventType.WAITING_POSTPONED);
+
+      WaitingRequest modified = waitingRequestRepository.findByWaitingRequestUuidAndDeletedAtIsNull(
+              waitingRequest.getWaitingRequestUuid())
+          .orElseThrow(
+              () -> CustomException.from(WaitingRequestErrorCode.INVALID_WAITING_REQUEST_UUID));
+      assertThat(modified.getStatus()).isEqualTo(WaitingStatus.POSTPONED);
+
+      var histories = modified.getHistories();
+      assertThat(histories.get(0).getStatus()).isEqualTo(WaitingStatus.POSTPONED);
+    }
+
   }
 }
