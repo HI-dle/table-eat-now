@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -27,6 +28,9 @@ import table.eat.now.promotion.promotionuser.application.dto.request.UpdatePromo
 import table.eat.now.promotion.promotionuser.application.dto.response.CreatePromotionUserInfo;
 import table.eat.now.promotion.promotionuser.application.dto.response.SearchPromotionUserInfo;
 import table.eat.now.promotion.promotionuser.application.dto.response.UpdatePromotionUserInfo;
+import table.eat.now.promotion.promotionuser.application.event.EventType;
+import table.eat.now.promotion.promotionuser.application.event.dto.PromotionUserSaveEventInfo;
+import table.eat.now.promotion.promotionuser.application.event.dto.PromotionUserSavePayloadInfo;
 import table.eat.now.promotion.promotionuser.application.exception.PromotionUserErrorCode;
 import table.eat.now.promotion.promotionuser.domain.entity.PromotionUser;
 import table.eat.now.promotion.promotionuser.domain.repository.PromotionUserRepository;
@@ -200,6 +204,41 @@ class PromotionUserServiceImplTest {
         .hasMessage(PromotionUserErrorCode.INVALID_PROMOTION_USER_UUID.getMessage());
 
     verify(promotionUserRepository).findByUserIdAndDeletedAtIsNull(targetUserId);
+  }
+
+
+  @DisplayName("프로모션 유저를 배치 저장한다.")
+  @Test
+  void save_promotion_users_success() {
+    // given
+    CurrentUserInfoDto userInfo = new CurrentUserInfoDto(1L, UserRole.MASTER);
+    List<PromotionUserSavePayloadInfo> payloads = List.of(
+        new PromotionUserSavePayloadInfo(101L, "promo-uuid-1"),
+        new PromotionUserSavePayloadInfo(102L, "promo-uuid-1")
+    );
+
+    PromotionUserSaveEventInfo eventInfo = new PromotionUserSaveEventInfo(
+        EventType.SUCCEED,
+        payloads,
+        userInfo
+    );
+
+    //Mock 객체의 메서드가 어떤 인자를 받았는지 확인하고 싶을 때 사용
+    ArgumentCaptor<List<PromotionUser>> captor = ArgumentCaptor.forClass(List.class);
+
+    // when
+    promotionUserService.savePromotionUsers(eventInfo);
+
+    // then
+    verify(promotionUserRepository).saveAllInBatch(captor.capture());
+    List<PromotionUser> savedUsers = captor.getValue();
+
+
+    assertThat(savedUsers).hasSize(2);
+    assertThat(savedUsers).extracting("userId")
+        .containsExactlyInAnyOrder(101L, 102L);
+    assertThat(savedUsers).extracting("promotionUuid")
+        .containsOnly("promo-uuid-1");
   }
 
 
