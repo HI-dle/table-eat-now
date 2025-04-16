@@ -1,4 +1,4 @@
-package table.eat.now.notification.application.strategy.send;
+package table.eat.now.notification.infrastructure.sender;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import table.eat.now.notification.application.strategy.NotificationTemplate;
+import table.eat.now.notification.application.strategy.send.NotificationSenderStrategy;
 import table.eat.now.notification.domain.entity.NotificationMethod;
 
 /**

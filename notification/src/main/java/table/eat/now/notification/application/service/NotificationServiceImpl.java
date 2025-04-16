@@ -106,7 +106,7 @@ public class NotificationServiceImpl implements NotificationService{
 
     senderStrategy.send(notification.getUserId(), formattedMessage);
 
-    notification.modifyNotificationStatus();
+    notification.modifyNotificationStatusIsSent();
   }
 
 

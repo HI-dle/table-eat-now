@@ -1,8 +1,11 @@
 package table.eat.now.notification.domain.repository;
 
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import table.eat.now.notification.domain.entity.Notification;
+import table.eat.now.notification.domain.entity.NotificationStatus;
 import table.eat.now.notification.domain.repository.search.NotificationSearchCriteria;
 import table.eat.now.notification.domain.repository.search.NotificationSearchCriteriaQuery;
 import table.eat.now.notification.domain.repository.search.PaginatedResult;
@@ -18,5 +21,8 @@ public interface NotificationRepository {
   Optional<Notification> findByNotificationUuidAndDeletedByIsNull(String notificationUuid);
 
   PaginatedResult<NotificationSearchCriteriaQuery> searchNotification(NotificationSearchCriteria searchCriteria);
+
+  List<Notification> findByStatusAndScheduledTimeLessThanEqualAndDeletedByIsNull(
+      NotificationStatus status, LocalDateTime localDateTime);
 
 }
