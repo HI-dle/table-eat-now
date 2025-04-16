@@ -14,6 +14,7 @@ import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.payment.payment.application.client.PgClient;
 import table.eat.now.payment.payment.application.client.ReservationClient;
+import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.CancelPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.ConfirmPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.CreatePaymentCommand;
@@ -24,7 +25,11 @@ import table.eat.now.payment.payment.application.dto.response.CreatePaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
+import table.eat.now.payment.payment.application.event.PaymentCanceledEvent;
+import table.eat.now.payment.payment.application.event.PaymentCanceledPayload;
 import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
+import table.eat.now.payment.payment.application.event.PaymentFailedEvent;
+import table.eat.now.payment.payment.application.event.PaymentFailedPayload;
 import table.eat.now.payment.payment.application.event.PaymentSuccessEvent;
 import table.eat.now.payment.payment.application.event.PaymentSuccessPayload;
 import table.eat.now.payment.payment.application.helper.TransactionalHelper;
@@ -81,19 +86,12 @@ public class PaymentServiceImpl implements PaymentService {
       ConfirmPaymentCommand command, CurrentUserInfoDto userInfo) {
 
     Payment payment = getPaymentByReservationId(command.reservationId());
-    ConfirmPgPaymentInfo confirmedInfo =
-        pgClient.confirm(command, payment.getIdempotencyKey());
-    log.info("Confirm payment {}", confirmedInfo);
-
+    ConfirmPgPaymentInfo confirmedInfo = confirm(command, payment);
     try {
-      payment.confirm(confirmedInfo.toConfirm());
-      paymentEventPublisher.publish(PaymentSuccessEvent
-          .of(PaymentSuccessPayload.from(payment), userInfo));
-    } catch (IllegalArgumentException e) {
-      log.error("Confirm payment failed", e);
+      completePayment(userInfo, payment, confirmedInfo);
+    } catch (Exception e) {
       transactionalHelper.doInNewTransaction(
-          () -> cancelPayment(command, e.getMessage(), payment)
-      );
+          () -> rollbackPayment(command, userInfo, e, payment));
     }
     return ConfirmPaymentInfo.from(payment);
   }
@@ -104,13 +102,43 @@ public class PaymentServiceImpl implements PaymentService {
         .orElseThrow(() -> CustomException.from(PAYMENT_NOT_FOUND));
   }
 
-  public void cancelPayment(ConfirmPaymentCommand command, String cancelReason, Payment payment) {
-    CancelPgPaymentInfo cancelledInfo =
-        pgClient.cancel(CancelPaymentCommand.
-            of(command.paymentKey(), cancelReason), payment.getIdempotencyKey());
-    log.info("Cancel payment {}", cancelledInfo);
+  private ConfirmPgPaymentInfo confirm(ConfirmPaymentCommand command, Payment payment) {
+    ConfirmPgPaymentInfo confirmedInfo = pgClient.confirm(command, payment.getIdempotencyKey());
+    log.info("Confirm payment {}", confirmedInfo);
+    return confirmedInfo;
+  }
 
+  private void completePayment(
+      CurrentUserInfoDto userInfo, Payment payment, ConfirmPgPaymentInfo confirmedInfo) {
+    payment.confirm(confirmedInfo.toConfirm());
+    paymentEventPublisher
+        .publish(PaymentSuccessEvent.of(PaymentSuccessPayload.from(payment), userInfo));
+  }
+
+  private void rollbackPayment(
+      ConfirmPaymentCommand command, CurrentUserInfoDto userInfo, Exception e, Payment payment) {
+    String cancelReason = e.getMessage();
+    cancel(command.paymentKey(), cancelReason, payment);
+    paymentEventPublisher.publish(PaymentFailedEvent.of(
+        PaymentFailedPayload.from(payment, cancelReason), userInfo
+    ));
+  }
+
+  private void cancel(String paymentKey, String cancelReason, Payment payment) {
+    CancelPgPaymentInfo cancelledInfo = pgClient.cancel(
+        CancelPgPaymentCommand.of(paymentKey, cancelReason), payment.getIdempotencyKey());
+    log.info("Cancel payment {}", cancelledInfo);
     payment.cancel(cancelledInfo.toCancel());
+  }
+
+  @Override
+  @Transactional
+  public void cancelPayment(CancelPaymentCommand command, CurrentUserInfoDto userInfo) {
+    Payment payment = getPaymentByReservationId(command.reservationUuid());
+    cancel(command.idempotencyKey(), command.cancelReason(), payment);
+    paymentEventPublisher.publish(PaymentCanceledEvent.of(
+        PaymentCanceledPayload.from(payment), userInfo
+    ));
   }
 
   @Override

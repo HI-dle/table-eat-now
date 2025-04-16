@@ -2,11 +2,13 @@ package table.eat.now.payment.payment.application.event;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
@@ -52,6 +54,23 @@ class MapperUtilTest {
     });
 
     assertThat(exception.getMessage()).contains("Failed to convert object to JsonNode");
+  }
+
+  @Test
+  void MapperUtil_생성자는_인스턴스화_시도시_예외를_던진다() throws Exception {
+    // given
+    Constructor<MapperUtil> constructor = MapperUtil.class.getDeclaredConstructor();
+    constructor.setAccessible(true);
+
+    // when
+    InvocationTargetException exception = assertThrows(InvocationTargetException.class,
+        constructor::newInstance);
+
+    // then
+    Throwable cause = exception.getCause();
+    assertNotNull(cause);
+    assertInstanceOf(AssertionError.class, cause);
+    assertEquals("Utility class should not be instantiated", cause.getMessage());
   }
 
   static class TestPayload {
