@@ -3,9 +3,12 @@ package table.eat.now.promotion.promotion.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -37,13 +40,17 @@ import table.eat.now.promotion.promotion.application.dto.response.GetPromotionIn
 import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsClientInfo;
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
+import table.eat.now.promotion.promotion.application.event.PromotionEventPublisher;
+import table.eat.now.promotion.promotion.application.event.produce.PromotionUserSaveEvent;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
 import table.eat.now.promotion.promotion.application.service.util.MaxParticipate;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
 import table.eat.now.promotion.promotion.domain.entity.PromotionStatus;
 import table.eat.now.promotion.promotion.domain.entity.PromotionType;
 import table.eat.now.promotion.promotion.domain.entity.repository.PromotionRepository;
+import table.eat.now.promotion.promotion.domain.entity.repository.event.ParticipateResult;
 import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipant;
+import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipantDto;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PaginatedResult;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PromotionSearchCriteria;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PromotionSearchCriteriaQuery;
@@ -61,6 +68,9 @@ class PromotionServiceImplTest {
 
   @Mock
   private PromotionClient promotionClient;
+
+  @Mock
+  private PromotionEventPublisher promotionEventPublisher;
 
   @InjectMocks
   private PromotionServiceImpl promotionService;
@@ -395,51 +405,88 @@ class PromotionServiceImplTest {
     verify(promotionRepository).findAllByPromotionUuidInAndDeletedByIsNull(promotionUuids);
   }
 
-  @DisplayName("프로모션에 정상적으로 참여하면 true를 반환한다.")
+  @DisplayName("프로모션 참여 실패 시 false를 반환한다.")
   @Test
-  void participate_promotion_success() {
+  void participate_promotion_fail() {
     // given
     ParticipatePromotionUserInfo info = new ParticipatePromotionUserInfo(
         1L,
         UUID.randomUUID().toString(),
-        "봄맞이 프로모션"
+        "실패 프로모션"
     );
 
-    PromotionParticipant domain = info.toDomain();
 
-    when(promotionRepository.addUserToPromotion(domain, MaxParticipate.PARTICIPATE_10000_MAX))
-        .thenReturn(true);
-
-    // when
-    boolean result = promotionService.participate(info);
-
-    // then
-    assertThat(result).isTrue();
-    verify(promotionRepository).addUserToPromotion(domain, MaxParticipate.PARTICIPATE_10000_MAX);
-  }
-
-  @DisplayName("프로모션 정원이 초과되면 false를 반환한다.")
-  @Test
-  void participate_promotion_exceed_limit() {
-    // given
-    ParticipatePromotionUserInfo info = new ParticipatePromotionUserInfo(
-        2L,
-        UUID.randomUUID().toString(),
-        "여름맞이 프로모션"
-    );
-
-    PromotionParticipant domain = info.toDomain();
-
-    when(promotionRepository.addUserToPromotion(domain, MaxParticipate.PARTICIPATE_10000_MAX))
-        .thenReturn(false);
+    when(promotionRepository.addUserToPromotion(any(PromotionParticipant.class),
+        eq(MaxParticipate.PARTICIPATE_10000_MAX)))
+        .thenReturn(ParticipateResult.FAIL);
 
     // when
     boolean result = promotionService.participate(info);
 
     // then
     assertThat(result).isFalse();
-    verify(promotionRepository).addUserToPromotion(domain, MaxParticipate.PARTICIPATE_10000_MAX);
+    verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_10000_MAX));
+    verifyNoInteractions(promotionEventPublisher);
   }
+
+
+  @DisplayName("참여 후 배치 전송 대상이면 true를 반환하고 이벤트 발행한다.")
+  @Test
+  void participate_success_send_batch_event() {
+    // given
+    ParticipatePromotionUserInfo info = new ParticipatePromotionUserInfo(
+        2L,
+        UUID.randomUUID().toString(),
+        "이벤트 대상 프로모션"
+    );
+
+    when(promotionRepository.addUserToPromotion(any(PromotionParticipant.class)
+        , eq(MaxParticipate.PARTICIPATE_10000_MAX)))
+        .thenReturn(ParticipateResult.SUCCESS_SEND_BATCH);
+
+    List<PromotionParticipantDto> participantList = List.of(
+        new PromotionParticipantDto(2L, info.promotionUuid())
+    );
+
+    when(promotionRepository.getPromotionUsers(info.promotionName()))
+        .thenReturn(participantList);
+
+    // when
+    boolean result = promotionService.participate(info);
+
+    // then
+    assertThat(result).isTrue();
+    verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_10000_MAX));
+    verify(promotionRepository).getPromotionUsers(info.promotionName());
+    verify(promotionEventPublisher).publish(any(PromotionUserSaveEvent.class));
+  }
+
+  @DisplayName("성공적으로 참여했지만 배치 대상이 아니면 true를 반환하고 이벤트 발행은 하지 않는다.")
+  @Test
+  void participate_success_without_batch() {
+    // given
+    ParticipatePromotionUserInfo info = new ParticipatePromotionUserInfo(
+        3L,
+        UUID.randomUUID().toString(),
+        "일반 참여 프로모션"
+    );
+
+
+
+    when(promotionRepository.addUserToPromotion(any(PromotionParticipant.class)
+        , eq(MaxParticipate.PARTICIPATE_10000_MAX)))
+        .thenReturn(ParticipateResult.SUCCESS);
+
+    // when
+    boolean result = promotionService.participate(info);
+
+    // then
+    assertThat(result).isTrue();
+    verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_10000_MAX));
+    verify(promotionRepository, never()).getPromotionUsers(anyString());
+    verifyNoInteractions(promotionEventPublisher);
+  }
+
 
 
 
