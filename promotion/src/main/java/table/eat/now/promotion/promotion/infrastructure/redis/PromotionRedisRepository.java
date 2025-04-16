@@ -1,6 +1,6 @@
 package table.eat.now.promotion.promotion.infrastructure.redis;
 
-import table.eat.now.promotion.promotion.infrastructure.dto.request.PromotionUserQuery;
+import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipant;
 
 /**
  * @author : hanjihoon
@@ -8,6 +8,5 @@ import table.eat.now.promotion.promotion.infrastructure.dto.request.PromotionUse
  */
 public interface PromotionRedisRepository {
 
-  void addUserToPromotion(String promotionName, PromotionUserQuery promotionUserQuery);
-  void removeUserFromPromotion(String promotionName, Long userId);
+  boolean addUserToPromotion(PromotionParticipant participant, int maxCount);
 }

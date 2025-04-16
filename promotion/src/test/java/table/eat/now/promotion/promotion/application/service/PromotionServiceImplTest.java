@@ -29,6 +29,7 @@ import table.eat.now.promotion.promotion.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotion.application.dto.client.response.GetPromotionRestaurantInfo;
 import table.eat.now.promotion.promotion.application.dto.request.CreatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.request.GetPromotionsFeignCommand;
+import table.eat.now.promotion.promotion.application.dto.request.ParticipatePromotionUserInfo;
 import table.eat.now.promotion.promotion.application.dto.request.SearchPromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
@@ -37,10 +38,12 @@ import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsC
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
+import table.eat.now.promotion.promotion.application.service.util.MaxParticipate;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
 import table.eat.now.promotion.promotion.domain.entity.PromotionStatus;
 import table.eat.now.promotion.promotion.domain.entity.PromotionType;
 import table.eat.now.promotion.promotion.domain.entity.repository.PromotionRepository;
+import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipant;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PaginatedResult;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PromotionSearchCriteria;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PromotionSearchCriteriaQuery;
@@ -391,6 +394,53 @@ class PromotionServiceImplTest {
     verify(promotionClient).findRestaurantsByPromotions(restaurantUuid, "promo-uuid-2");
     verify(promotionRepository).findAllByPromotionUuidInAndDeletedByIsNull(promotionUuids);
   }
+
+  @DisplayName("프로모션에 정상적으로 참여하면 true를 반환한다.")
+  @Test
+  void participate_promotion_success() {
+    // given
+    ParticipatePromotionUserInfo info = new ParticipatePromotionUserInfo(
+        1L,
+        UUID.randomUUID().toString(),
+        "봄맞이 프로모션"
+    );
+
+    PromotionParticipant domain = info.toDomain();
+
+    when(promotionRepository.addUserToPromotion(domain, MaxParticipate.PARTICIPATE_10000_MAX))
+        .thenReturn(true);
+
+    // when
+    boolean result = promotionService.participate(info);
+
+    // then
+    assertThat(result).isTrue();
+    verify(promotionRepository).addUserToPromotion(domain, MaxParticipate.PARTICIPATE_10000_MAX);
+  }
+
+  @DisplayName("프로모션 정원이 초과되면 false를 반환한다.")
+  @Test
+  void participate_promotion_exceed_limit() {
+    // given
+    ParticipatePromotionUserInfo info = new ParticipatePromotionUserInfo(
+        2L,
+        UUID.randomUUID().toString(),
+        "여름맞이 프로모션"
+    );
+
+    PromotionParticipant domain = info.toDomain();
+
+    when(promotionRepository.addUserToPromotion(domain, MaxParticipate.PARTICIPATE_10000_MAX))
+        .thenReturn(false);
+
+    // when
+    boolean result = promotionService.participate(info);
+
+    // then
+    assertThat(result).isFalse();
+    verify(promotionRepository).addUserToPromotion(domain, MaxParticipate.PARTICIPATE_10000_MAX);
+  }
+
 
 
 

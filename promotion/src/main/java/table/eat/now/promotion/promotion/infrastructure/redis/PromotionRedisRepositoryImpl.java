@@ -1,9 +1,17 @@
 package table.eat.now.promotion.promotion.infrastructure.redis;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Repository;
-import table.eat.now.promotion.promotion.infrastructure.dto.request.PromotionUserQuery;
+import table.eat.now.common.exception.CustomException;
+import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
+import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipant;
+import table.eat.now.promotion.promotion.infrastructure.dto.request.PromotionUserCommand;
 
 /**
  * @author : hanjihoon
@@ -11,26 +19,60 @@ import table.eat.now.promotion.promotion.infrastructure.dto.request.PromotionUse
  */
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
 
-  private final RedisTemplate<String, Object> redisTemplate;
-  private static final String PROMOTION_KEY_PRE_FIX = "promotion:";
+
+  private final RedisTemplate<String, String> redisTemplate;
+  private final ObjectMapper objectMapper;
+  private final PromotionLuaScriptProvider luaScriptProvider;
+
+  private static final String PROMOTION_KEY_PREFIX = "promotion:";
 
   @Override
-  public void addUserToPromotion(String promotionName, PromotionUserQuery promotionUserQuery) {
+  public boolean addUserToPromotion(PromotionParticipant participant, int maxCount) {
+    PromotionUserCommand command = PromotionUserCommand.from(participant);
 
-    // 스코어는 현재 시간을 기준으로 설정
-    double score = System.currentTimeMillis();
+    String key = buildKey(command.promotionName());
+    long now = System.currentTimeMillis();
 
-    // ZSET에 PromotionUserInfo 객체 저장
-    redisTemplate.opsForZSet().add(
-        PROMOTION_KEY_PRE_FIX + promotionName, promotionUserQuery, score);
+    DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+    script.setScriptText(luaScriptProvider.getAddUserScript());
+    script.setResultType(Long.class);
+
+    try {
+      Long result = redisTemplate.execute(
+          script,
+          Collections.singletonList(key),
+          String.valueOf(maxCount),
+          String.valueOf(now),
+          String.valueOf(command.userId()),
+          command.promotionUuid()
+
+      );
+      //아래 로그는 나중에 지우겠습니다~ 리팩토링 진행 후에요!
+      log.info("Lua Script Key: {}", key);
+      log.info("Max Count: {}", maxCount);
+      log.info("Now: {}", now);
+      log.info("Serialized Command: {}", serialize(command));
+
+      //return 부분도 마음에 들지 않아 리팩토링할 때 수정하겠습니다!
+      return result != null && result == 1L;
+    } catch (Exception e) {
+      log.error("Redis Lua Script Error", e);
+      throw CustomException.from(PromotionErrorCode.PROMOTION_LUA_SCRIPT_FAILED);
+    }
   }
 
+  private String buildKey(String promotionName) {
+    return PROMOTION_KEY_PREFIX + promotionName;
+  }
 
-  @Override
-  public void removeUserFromPromotion(String promotionName, Long userId) {
-    redisTemplate.opsForZSet().removeRangeByScore(
-        PROMOTION_KEY_PRE_FIX + promotionName, userId, userId);
+  private String serialize(PromotionUserCommand command) {
+    try {
+      return objectMapper.writeValueAsString(command);
+    } catch (JsonProcessingException e) {
+      throw CustomException.from(PromotionErrorCode.PROMOTION_SERIALIZATION_FAILED);
+    }
   }
 }

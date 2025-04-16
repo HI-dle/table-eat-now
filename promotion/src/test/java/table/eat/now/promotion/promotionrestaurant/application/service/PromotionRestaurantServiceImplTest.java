@@ -256,6 +256,27 @@ class PromotionRestaurantServiceImplTest {
         restaurantUuid, promotionUuid);
   }
 
+  @DisplayName("존재하지 않는 restaurantUuid와 promotionUuid로 조회 시 예외를 던진다.")
+  @Test
+  void find_promotion_restaurant_not_found_exception_test() {
+    // given
+    String restaurantUuid = "non-existent-restaurant-uuid";
+    String promotionUuid = "non-existent-promotion-uuid";
+
+    when(promotionRestaurantRepository.findByRestaurantUuidAndPromotionUuidAndDeletedAtIsNull(
+        restaurantUuid, promotionUuid)).thenReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() -> promotionRestaurantService.findRestaurantsByPromotions(
+        restaurantUuid, promotionUuid))
+        .isInstanceOf(CustomException.class)
+        .hasMessage(PromotionRestaurantErrorCode.INVALID_PROMOTION_RESTAURANT_UUID.getMessage());
+
+    verify(promotionRestaurantRepository).findByRestaurantUuidAndPromotionUuidAndDeletedAtIsNull(
+        restaurantUuid, promotionUuid);
+  }
+
+
 
 
 

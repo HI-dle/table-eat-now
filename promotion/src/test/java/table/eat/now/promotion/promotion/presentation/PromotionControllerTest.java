@@ -1,10 +1,11 @@
 package table.eat.now.promotion.promotion.presentation;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
@@ -27,10 +28,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.promotion.promotion.application.dto.PaginatedResultCommand;
+import table.eat.now.promotion.promotion.application.dto.request.ParticipatePromotionUserInfo;
 import table.eat.now.promotion.promotion.application.dto.request.SearchPromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.GetPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.service.PromotionService;
+import table.eat.now.promotion.promotion.presentation.dto.request.ParticipatePromotionUserRequest;
 import table.eat.now.promotion.promotion.presentation.dto.request.SearchPromotionRequest;
 
 /**
@@ -177,6 +180,56 @@ class PromotionControllerTest {
         .andExpect(jsonPath("$.content[1].promotionName").value("여름맞이 할인"))
         .andDo(print());
 
+  }
+
+  @DisplayName("유저가 프로모션에 정상적으로 참여하면 200 OK를 반환합니다.")
+  @Test
+  void participate_promotion_success_test() throws Exception {
+    // given
+    ParticipatePromotionUserRequest request = new ParticipatePromotionUserRequest(
+        1L,
+        UUID.randomUUID().toString(),
+        "봄맞이 프로모션"
+    );
+
+    ParticipatePromotionUserInfo command = request.toApplication();
+
+    given(promotionService.participate(eq(command)))
+        .willReturn(true);
+
+    // when then
+    mockMvc.perform(post("/api/v1/promotions/event/participate")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+        )
+        .andExpect(status().isOk())
+        .andExpect(content().string(request.promotionName() + "에 참여 성공했습니다."))
+        .andDo(print());
+  }
+
+  @DisplayName("프로모션 정원이 마감되면 429 TOO_MANY_REQUESTS 를 반환합니다.")
+  @Test
+  void participate_promotion_fail_test() throws Exception {
+    // given
+    ParticipatePromotionUserRequest request = new ParticipatePromotionUserRequest(
+        2L,
+        UUID.randomUUID().toString(),
+        "여름맞이 프로모션"
+    );
+
+    ParticipatePromotionUserInfo command = request.toApplication();
+
+    given(promotionService.participate(eq(command)))
+        .willReturn(false);
+
+    // when then
+    mockMvc.perform(post("/api/v1/promotions/event/participate")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+        )
+        .andExpect(status().isTooManyRequests())
+        .andExpect(content().string("정원이 마감되었습니다."))
+        .andDo(print());
   }
 
 
