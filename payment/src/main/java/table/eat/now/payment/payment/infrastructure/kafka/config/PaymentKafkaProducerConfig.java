@@ -12,6 +12,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import table.eat.now.payment.payment.application.event.PaymentEvent;
+import table.eat.now.payment.payment.infrastructure.kafka.interceptor.EventTypeHeaderInterceptor;
 
 @Configuration
 public class PaymentKafkaProducerConfig {
@@ -29,6 +30,7 @@ public class PaymentKafkaProducerConfig {
     props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
     props.put(ProducerConfig.ACKS_CONFIG, "all");
     props.put(ProducerConfig.RETRIES_CONFIG, 3);
+    props.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, EventTypeHeaderInterceptor.class.getName());
 
     return new DefaultKafkaProducerFactory<>(props);
   }
