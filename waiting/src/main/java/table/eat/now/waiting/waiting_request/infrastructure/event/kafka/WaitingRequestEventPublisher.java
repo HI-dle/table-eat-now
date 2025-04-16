@@ -15,6 +15,6 @@ public class WaitingRequestEventPublisher implements EventPublisher<WaitingReque
 
   @Override
   public void publish(WaitingRequestEvent event) {
-    kafkaTemplate.send(TopicConfig.TOPIC_NAME, event.waitingRequestUuid() ,event);
+    kafkaTemplate.send(TopicConfig.TOPIC_NAME, event.waitingRequestUuid(), event);
   }
 }

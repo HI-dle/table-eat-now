@@ -14,6 +14,9 @@ public class EventTypeHeaderInterceptor implements ProducerInterceptor<String, W
   @Override
   public ProducerRecord<String, WaitingRequestEvent> onSend(ProducerRecord<String, WaitingRequestEvent> record) {
     WaitingRequestEvent event = record.value();
+    if (event == null || event.eventType() == null) {
+      return record;
+    }
     record
         .headers()
         .add(EVENT_TYPE_HEADER, event.eventType().name().getBytes(StandardCharsets.UTF_8));
