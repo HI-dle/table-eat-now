@@ -12,6 +12,19 @@ kafka:
 
 ---
 spring:
+  config.activate.on-profile: test
+  kafka:
+    bootstrap-servers: ${LOCAL_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+kafka:
+  topic:
+    waiting-request:
+      partitions: 3
+      replicas: 3
+      min-insync-replicas: 2
+
+---
+spring:
   config.activate.on-profile: develop
   kafka:
     bootstrap-servers: ${DEV_KAFKA_BOOTSTRAP_SERVERS}
