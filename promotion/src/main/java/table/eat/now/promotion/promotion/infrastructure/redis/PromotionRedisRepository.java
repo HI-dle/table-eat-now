@@ -1,6 +1,9 @@
 package table.eat.now.promotion.promotion.infrastructure.redis;
 
+import java.util.List;
+import table.eat.now.promotion.promotion.domain.entity.repository.event.ParticipateResult;
 import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipant;
+import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipantDto;
 
 /**
  * @author : hanjihoon
@@ -8,5 +11,6 @@ import table.eat.now.promotion.promotion.domain.entity.repository.event.Promotio
  */
 public interface PromotionRedisRepository {
 
-  boolean addUserToPromotion(PromotionParticipant participant, int maxCount);
+  ParticipateResult addUserToPromotion(PromotionParticipant participant, int maxCount);
+  List<PromotionParticipantDto> getPromotionUsers(String promotionName);
 }
