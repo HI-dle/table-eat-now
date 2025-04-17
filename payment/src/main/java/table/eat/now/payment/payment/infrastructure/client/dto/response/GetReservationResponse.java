@@ -1,12 +1,42 @@
 package table.eat.now.payment.payment.infrastructure.client.dto.response;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
 
-//Todo : internal 형식물어보기
-public record GetReservationResponse() {
+public record GetReservationResponse(
+    String reservationUuid,
+    String name,
+    String reserverName,
+    String reserverContact,
+    int guestCount,
+    String restaurantName,
+    String restaurantContactNumber,
+    String restaurantAddress,
+    LocalDate reservationDate,
+    LocalTime reservationTime,
+    String menuName,
+    BigDecimal menuPrice,
+    int menuQuantity,
+    String status,
+    String specialRequest,
+    BigDecimal totalAmount,
+    List<PaymentDetailDto> paymentDetails
+) {
 
-  public GetReservationInfo toInfo(){
-    return null;
+  public record PaymentDetailDto(
+      String reservationPaymentDetailUuid,
+      String type,
+      BigDecimal amount,
+      String detailReferenceId
+  ) {}
+
+  public GetReservationInfo toInfo() {
+    return GetReservationInfo.builder()
+        .totalAmount(totalAmount)
+        .status(status)
+        .build();
   }
-
 }

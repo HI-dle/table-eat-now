@@ -114,9 +114,6 @@ class PaymentServiceImplTest {
           .build();
 
       GetReservationInfo reservationInfo = GetReservationInfo.builder()
-          .reservationUuid(reservationUuid)
-          .restaurantUuid(restaurantUuid)
-          .customerId(customerId)
           .status("PENDING_PAYMENT")
           .totalAmount(originalAmount)
           .build();
@@ -166,9 +163,6 @@ class PaymentServiceImplTest {
     void 예약_상태가_결제_대기_상태가_아니면_예외를_발생시킨다() {
       // given
       GetReservationInfo invalidStatusInfo = GetReservationInfo.builder()
-          .reservationUuid(reservationUuid)
-          .restaurantUuid(restaurantUuid)
-          .customerId(customerId)
           .status("CONFIRMED")
           .totalAmount(originalAmount)
           .build();

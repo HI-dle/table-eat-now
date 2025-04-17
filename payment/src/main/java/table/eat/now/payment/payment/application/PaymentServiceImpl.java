@@ -61,7 +61,7 @@ public class PaymentServiceImpl implements PaymentService {
   private void validateReservation(CreatePaymentCommand command) {
     GetReservationInfo reservationInfo = getReservationInfo(command);
 
-    if (reservationInfo.totalAmount().compareTo(command.originalAmount()) != 0) {
+    if (!reservationInfo.totalAmount().equals(command.originalAmount())) {
       throw CustomException.from(PAYMENT_AMOUNT_MISMATCH);
     }
     if (!reservationInfo.status().equals("PENDING_PAYMENT")) {
