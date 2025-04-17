@@ -43,6 +43,7 @@ import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
 import table.eat.now.payment.payment.application.dto.request.CancelPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.ConfirmPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.CreatePaymentCommand;
+import table.eat.now.payment.payment.application.dto.request.SearchMasterPaymentsQuery;
 import table.eat.now.payment.payment.application.dto.request.SearchMyPaymentsQuery;
 import table.eat.now.payment.payment.application.dto.response.ConfirmPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.CreatePaymentInfo;
@@ -779,6 +780,290 @@ class PaymentServiceImplTest {
 
       SearchPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
       assertThat(capturedCriteria.restaurantUuid()).isEqualTo(specificRestaurantId);
+    }
+  }
+  @Nested
+  class searchMasterPayments_는 {
+    private Long userId;
+    private String restaurantUuid;
+    private String paymentStatus;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private String orderBy;
+    private String sort;
+    private int page;
+    private int size;
+    private SearchMasterPaymentsQuery query;
+
+    @BeforeEach
+    void setUp() {
+      userId = 123L;
+      restaurantUuid = UUID.randomUUID().toString();
+      paymentStatus = "APPROVED";
+      startDate = LocalDate.now().minusMonths(1);
+      endDate = LocalDate.now();
+      orderBy = "createdAt";
+      sort = "desc";
+      page = 0;
+      size = 10;
+
+      query = SearchMasterPaymentsQuery.builder()
+          .userId(userId)
+          .restaurantUuid(restaurantUuid)
+          .paymentStatus(paymentStatus)
+          .startDate(startDate)
+          .endDate(endDate)
+          .orderBy(orderBy)
+          .sort(sort)
+          .page(page)
+          .size(size)
+          .build();
+
+      List<SearchPaymentsResult> searchResults = List.of(
+          createSearchPaymentsResult("payment-1", userId, "reservation-1"),
+          createSearchPaymentsResult("payment-2", userId, "reservation-2"),
+          createSearchPaymentsResult("payment-3", 456L, "reservation-3")
+      );
+      PaginatedResult<SearchPaymentsResult> paginatedResult =
+          new PaginatedResult<>(searchResults, page, size, 3L, 1);
+
+      when(paymentRepository.searchPayments(any(SearchPaymentsCriteria.class)))
+          .thenReturn(paginatedResult);
+    }
+
+    private SearchPaymentsResult createSearchPaymentsResult(
+        String paymentUuid, Long customerId, String reservationId) {
+      return new SearchPaymentsResult(
+          paymentUuid,
+          customerId,
+          "payment_key_" + paymentUuid,
+          reservationId,
+          restaurantUuid,
+          "예약 " + reservationId,
+          "APPROVED",
+          BigDecimal.valueOf(50000),
+          BigDecimal.ZERO,
+          BigDecimal.valueOf(50000),
+          LocalDateTime.now().minusDays(5),
+          LocalDateTime.now().minusDays(5).plusHours(1),
+          null
+      );
+    }
+
+    @Test
+    void 유효한_검색_조건으로_조회하면_페이징된_결제_목록을_반환한다() {
+      // when
+      PaginatedInfo<SearchPaymentsInfo> result = paymentService.searchMasterPayments(query);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result.content()).hasSize(3);
+      assertThat(result.page()).isEqualTo(page);
+      assertThat(result.size()).isEqualTo(size);
+      assertThat(result.totalElements()).isEqualTo(3L);
+      assertThat(result.totalPages()).isEqualTo(1);
+
+      // 첫 번째 결제 정보 검증
+      SearchPaymentsInfo firstPayment = result.content().get(0);
+      assertThat(firstPayment.paymentUuid()).isEqualTo("payment-1");
+      assertThat(firstPayment.customerId()).isEqualTo(userId);
+      assertThat(firstPayment.reservationId()).isEqualTo("reservation-1");
+      assertThat(firstPayment.restaurantId()).isEqualTo(restaurantUuid);
+      assertThat(firstPayment.paymentStatus()).isEqualTo("APPROVED");
+
+      SearchPaymentsInfo thirdPayment = result.content().get(2);
+      assertThat(thirdPayment.paymentUuid()).isEqualTo("payment-3");
+      assertThat(thirdPayment.customerId()).isEqualTo(456L);
+      assertThat(thirdPayment.reservationId()).isEqualTo("reservation-3");
+
+      ArgumentCaptor<SearchPaymentsCriteria> criteriaCaptor =
+          ArgumentCaptor.forClass(SearchPaymentsCriteria.class);
+      verify(paymentRepository).searchPayments(criteriaCaptor.capture());
+
+      SearchPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
+      assertThat(capturedCriteria.userId()).isEqualTo(userId);
+      assertThat(capturedCriteria.restaurantUuid()).isEqualTo(restaurantUuid);
+      assertThat(capturedCriteria.paymentStatus()).isEqualTo(PaymentStatus.valueOf(paymentStatus));
+      assertThat(capturedCriteria.startDate()).isEqualTo(startDate);
+      assertThat(capturedCriteria.endDate()).isEqualTo(endDate);
+      assertThat(capturedCriteria.orderBy()).isEqualTo(orderBy);
+      assertThat(capturedCriteria.sort()).isEqualTo(sort);
+      assertThat(capturedCriteria.page()).isEqualTo(page);
+      assertThat(capturedCriteria.size()).isEqualTo(size);
+    }
+
+    @Test
+    void userId_없이_조회하면_모든_사용자의_결제를_반환한다() {
+      // given
+      SearchMasterPaymentsQuery allUsersQuery = SearchMasterPaymentsQuery.builder()
+          .restaurantUuid(restaurantUuid)
+          .paymentStatus(paymentStatus)
+          .startDate(startDate)
+          .endDate(endDate)
+          .orderBy(orderBy)
+          .sort(sort)
+          .page(page)
+          .size(size)
+          .build();
+
+      List<SearchPaymentsResult> multiUserResults = List.of(
+          createSearchPaymentsResult("payment-1", 123L, "reservation-1"),
+          createSearchPaymentsResult("payment-2", 456L, "reservation-2"),
+          createSearchPaymentsResult("payment-3", 789L, "reservation-3")
+      );
+      PaginatedResult<SearchPaymentsResult> multiUserPaginatedResult =
+          new PaginatedResult<>(multiUserResults, page, size, 3L, 1);
+
+      when(paymentRepository.searchPayments(argThat(criteria ->
+          criteria.userId() == null)))
+          .thenReturn(multiUserPaginatedResult);
+
+      // when
+      PaginatedInfo<SearchPaymentsInfo> result = paymentService.searchMasterPayments(allUsersQuery);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result.content()).hasSize(3);
+
+      assertThat(result.content().stream().map(SearchPaymentsInfo::customerId))
+          .containsExactly(123L, 456L, 789L);
+
+      ArgumentCaptor<SearchPaymentsCriteria> criteriaCaptor =
+          ArgumentCaptor.forClass(SearchPaymentsCriteria.class);
+      verify(paymentRepository).searchPayments(criteriaCaptor.capture());
+
+      SearchPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
+      assertThat(capturedCriteria.userId()).isNull();
+    }
+
+    @Test
+    void paymentStatus로_필터링하면_해당_상태의_결제만_반환한다() {
+      // given
+      String specificStatus = "PENDING";
+      SearchMasterPaymentsQuery statusQuery = SearchMasterPaymentsQuery.builder()
+          .paymentStatus(specificStatus)
+          .page(0)
+          .size(10)
+          .build();
+
+      List<SearchPaymentsResult> pendingResults = List.of(
+          createSearchPaymentsResult("payment-pending-1", 123L, "reservation-pending-1"),
+          createSearchPaymentsResult("payment-pending-2", 456L, "reservation-pending-2")
+      );
+      PaginatedResult<SearchPaymentsResult> pendingPaginatedResult =
+          new PaginatedResult<>(pendingResults, 0, 10, 2L, 1);
+
+      when(paymentRepository.searchPayments(argThat(criteria ->
+          PaymentStatus.valueOf(specificStatus).equals(criteria.paymentStatus()))))
+          .thenReturn(pendingPaginatedResult);
+
+      // when
+      PaginatedInfo<SearchPaymentsInfo> result = paymentService.searchMasterPayments(statusQuery);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result.content()).hasSize(2);
+      assertThat(result.content().get(0).paymentUuid()).isEqualTo("payment-pending-1");
+      assertThat(result.content().get(1).paymentUuid()).isEqualTo("payment-pending-2");
+
+      ArgumentCaptor<SearchPaymentsCriteria> criteriaCaptor =
+          ArgumentCaptor.forClass(SearchPaymentsCriteria.class);
+      verify(paymentRepository).searchPayments(criteriaCaptor.capture());
+
+      SearchPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
+      assertThat(capturedCriteria.paymentStatus()).isEqualTo(PaymentStatus.valueOf(specificStatus));
+    }
+
+    @Test
+    void 날짜_범위로_필터링하면_해당_기간의_결제만_반환한다() {
+      // given
+      LocalDate specificStartDate = LocalDate.now().minusDays(7);
+      LocalDate specificEndDate = LocalDate.now();
+      SearchMasterPaymentsQuery dateQuery = SearchMasterPaymentsQuery.builder()
+          .startDate(specificStartDate)
+          .endDate(specificEndDate)
+          .page(0)
+          .size(10)
+          .build();
+
+      List<SearchPaymentsResult> dateFilteredResults = List.of(
+          createSearchPaymentsResult("payment-recent-1", 123L, "reservation-recent-1"),
+          createSearchPaymentsResult("payment-recent-2", 456L, "reservation-recent-2")
+      );
+      PaginatedResult<SearchPaymentsResult> datePaginatedResult =
+          new PaginatedResult<>(dateFilteredResults, 0, 10, 2L, 1);
+
+      when(paymentRepository.searchPayments(argThat(criteria ->
+          specificStartDate.equals(criteria.startDate()) &&
+              specificEndDate.equals(criteria.endDate()))))
+          .thenReturn(datePaginatedResult);
+
+      // when
+      PaginatedInfo<SearchPaymentsInfo> result = paymentService.searchMasterPayments(dateQuery);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result.content()).hasSize(2);
+      assertThat(result.content().stream().map(SearchPaymentsInfo::paymentUuid))
+          .containsExactly("payment-recent-1", "payment-recent-2");
+
+      ArgumentCaptor<SearchPaymentsCriteria> criteriaCaptor =
+          ArgumentCaptor.forClass(SearchPaymentsCriteria.class);
+      verify(paymentRepository).searchPayments(criteriaCaptor.capture());
+
+      SearchPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
+      assertThat(capturedCriteria.startDate()).isEqualTo(specificStartDate);
+      assertThat(capturedCriteria.endDate()).isEqualTo(specificEndDate);
+    }
+
+    @Test
+    void 모든_필터_없이_조회하면_전체_결제_내역을_반환한다() {
+      // given
+      SearchMasterPaymentsQuery emptyQuery = SearchMasterPaymentsQuery.builder()
+          .page(0)
+          .size(10)
+          .build();
+
+      List<SearchPaymentsResult> allResults = List.of(
+          createSearchPaymentsResult("payment-1", 111L, "reservation-1"),
+          createSearchPaymentsResult("payment-2", 222L, "reservation-2"),
+          createSearchPaymentsResult("payment-3", 333L, "reservation-3"),
+          createSearchPaymentsResult("payment-4", 444L, "reservation-4")
+      );
+      PaginatedResult<SearchPaymentsResult> allPaginatedResult =
+          new PaginatedResult<>(allResults, 0, 10, 4L, 1);
+
+      when(paymentRepository.searchPayments(argThat(criteria ->
+          criteria.userId() == null &&
+              criteria.restaurantUuid() == null &&
+              criteria.paymentStatus() == null &&
+              criteria.startDate() == null &&
+              criteria.endDate() == null)))
+          .thenReturn(allPaginatedResult);
+
+      // when
+      PaginatedInfo<SearchPaymentsInfo> result = paymentService.searchMasterPayments(emptyQuery);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result.content()).hasSize(4);
+      assertThat(result.totalElements()).isEqualTo(4L);
+
+      // 모든 사용자의 다양한 결제 내역이 포함되어 있는지 확인
+      assertThat(result.content().stream().map(SearchPaymentsInfo::customerId))
+          .containsExactly(111L, 222L, 333L, 444L);
+
+      // 검색 조건 검증
+      ArgumentCaptor<SearchPaymentsCriteria> criteriaCaptor =
+          ArgumentCaptor.forClass(SearchPaymentsCriteria.class);
+      verify(paymentRepository).searchPayments(criteriaCaptor.capture());
+
+      SearchPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
+      assertThat(capturedCriteria.userId()).isNull();
+      assertThat(capturedCriteria.restaurantUuid()).isNull();
+      assertThat(capturedCriteria.paymentStatus()).isNull();
+      assertThat(capturedCriteria.startDate()).isNull();
+      assertThat(capturedCriteria.endDate()).isNull();
     }
   }
 }
