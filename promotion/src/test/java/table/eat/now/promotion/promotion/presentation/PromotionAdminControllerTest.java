@@ -1,16 +1,13 @@
 package table.eat.now.promotion.promotion.presentation;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -35,7 +32,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
-import table.eat.now.promotion.promotion.application.dto.response.GetPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 import table.eat.now.promotion.promotion.application.service.PromotionService;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
@@ -66,8 +62,10 @@ class PromotionAdminControllerTest {
   @DisplayName("프로모션 생성 테스트")
   @Test
   void promotion_create_test () throws Exception {
+    String couponUuid = UUID.randomUUID().toString();
     // given
     CreatePromotionRequest request = new CreatePromotionRequest(
+        couponUuid,
         "봄맞이 할인 프로모션",
         "전 메뉴 3000원 할인",
         LocalDateTime.now().plusDays(1),
@@ -98,8 +96,10 @@ class PromotionAdminControllerTest {
   void promotion_uuid_update_controller_test() throws Exception {
     // given
     String promotionUuid = UUID.randomUUID().toString();
+    String couponUuid = UUID.randomUUID().toString();
 
     UpdatePromotionRequest request = new UpdatePromotionRequest(
+        couponUuid,
         "봄맞이 할인 프로모션 - 수정 후",
         "전 메뉴 5000원 할인",
         LocalDateTime.now().plusDays(2),
@@ -112,6 +112,7 @@ class PromotionAdminControllerTest {
     UpdatePromotionCommand command = request.toApplication();
 
     Promotion promotion = Promotion.of(
+        couponUuid,
         "봄맞이 할인 프로모션 - 수정 전",
         "전 메뉴 5000원 할인",
         LocalDateTime.now().plusDays(2),
@@ -121,7 +122,9 @@ class PromotionAdminControllerTest {
         PromotionType.valueOf("COUPON")
     );
 
-    promotion.modifyPromotion( command.promotionName(),
+    promotion.modifyPromotion(
+        command.couponUuid(),
+        command.promotionName(),
         command.description(),
         command.startTime(),
         command.endTime(),
@@ -143,6 +146,7 @@ class PromotionAdminControllerTest {
 
     // then
     resultActions.andExpect(status().isOk())
+        .andExpect(jsonPath("$.couponUuid").value(couponUuid))
         .andExpect(jsonPath("$.promotionName").value("봄맞이 할인 프로모션 - 수정 후"))
         .andExpect(jsonPath("$.description").value("전 메뉴 5000원 할인"))
         .andExpect(jsonPath("$.discountAmount").value(5000))

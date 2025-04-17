@@ -41,6 +41,7 @@ import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsC
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 import table.eat.now.promotion.promotion.application.event.PromotionEventPublisher;
+import table.eat.now.promotion.promotion.application.event.produce.PromotionUserCouponSaveEvent;
 import table.eat.now.promotion.promotion.application.event.produce.PromotionUserSaveEvent;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
 import table.eat.now.promotion.promotion.application.service.util.MaxParticipate;
@@ -78,8 +79,10 @@ class PromotionServiceImplTest {
   @DisplayName("프로모션 서비스 단위 테스트")
   @Test
   void promotion_crate_service_test() {
+    String couponUuid = UUID.randomUUID().toString();
     // given
     CreatePromotionCommand command = new CreatePromotionCommand(
+        couponUuid,
         "봄맞이 할인 프로모션",
         "전 메뉴 3000원 할인",
         LocalDateTime.now().plusDays(1),
@@ -109,8 +112,10 @@ class PromotionServiceImplTest {
     // given
 
     String promotionUuid = UUID.randomUUID().toString();
+    String couponUuid = UUID.randomUUID().toString();
 
     UpdatePromotionCommand command = new UpdatePromotionCommand(
+        couponUuid,
         "봄맞이 할인 프로모션 - 수정 후",
         "전 메뉴 5000원 할인",
         LocalDateTime.now().plusDays(2),
@@ -120,6 +125,7 @@ class PromotionServiceImplTest {
         "COUPON"
     );
     Promotion promotion = Promotion.of(
+        couponUuid,
         "봄맞이 할인 프로모션 - 수정 전",
         "전 메뉴 5000원 할인",
         LocalDateTime.now().plusDays(2),
@@ -129,7 +135,9 @@ class PromotionServiceImplTest {
         PromotionType.valueOf("COUPON")
     );
 
-    promotion.modifyPromotion(command.promotionName(),
+    promotion.modifyPromotion(
+        command.couponUuid(),
+        command.promotionName(),
         command.description(),
         command.startTime(),
         command.endTime(),
@@ -156,8 +164,10 @@ class PromotionServiceImplTest {
   void promotion_uuid_update_fail_test() {
     // given
     String invalidUuid = UUID.randomUUID().toString();
+    String couponUuid = UUID.randomUUID().toString();
 
     UpdatePromotionCommand command = new UpdatePromotionCommand(
+        couponUuid,
         "잘못된 수정",
         "내용 없음",
         LocalDateTime.now(),
@@ -180,8 +190,10 @@ class PromotionServiceImplTest {
   void promotion_uuid_find_success_test() {
     // given
     String promotionUuid = UUID.randomUUID().toString();
+    String couponUuid = UUID.randomUUID().toString();
 
     Promotion promotion = Promotion.of(
+        couponUuid,
         "봄맞이 할인",
         "전 메뉴 5000원 할인",
         LocalDateTime.now().plusDays(2),
@@ -225,6 +237,7 @@ class PromotionServiceImplTest {
   @DisplayName("프로모션 검색 시 페이징된 결과를 반환한다.")
   @Test
   void search_promotion_success_test() {
+    String couponUuid = UUID.randomUUID().toString();
     // given
     SearchPromotionCommand command = new SearchPromotionCommand(
         "할인",
@@ -243,7 +256,9 @@ class PromotionServiceImplTest {
     PromotionSearchCriteria criteria = command.toCriteria();
 
     PromotionSearchCriteriaQuery result1 = new PromotionSearchCriteriaQuery(
+
         1L, UUID.randomUUID().toString(),
+        couponUuid,
         "봄맞이 할인",
         "봄 시즌 한정 할인",
         LocalDateTime.now(),
@@ -255,6 +270,7 @@ class PromotionServiceImplTest {
 
     PromotionSearchCriteriaQuery result2 = new PromotionSearchCriteriaQuery(
         2L, UUID.randomUUID().toString(),
+        couponUuid,
         "여름맞이 이벤트",
         "여름 시즌 한정 할인",
         LocalDateTime.now().plusDays(1),
@@ -355,6 +371,7 @@ class PromotionServiceImplTest {
   @Test
   void reservation_get_promotions_success() {
     String restaurantUuid = "restaurant-uuid-123";
+    String couponUuid = UUID.randomUUID().toString();
     Set<String> promotionUuids = Set.of("promo-uuid-1", "promo-uuid-2");
 
     GetPromotionsFeignCommand command = new GetPromotionsFeignCommand(promotionUuids, restaurantUuid);
@@ -372,6 +389,7 @@ class PromotionServiceImplTest {
         .thenReturn(promotionRestaurantInfo2);
 
     Promotion promo1 = Promotion.of(
+        couponUuid,
         "봄 프로모션", "할인 설명입니다",
         LocalDateTime.now(),
         LocalDateTime.now().plusDays(10),
@@ -381,6 +399,7 @@ class PromotionServiceImplTest {
     );
 
     Promotion promo2 = Promotion.of(
+        couponUuid,
         "여름 프로모션", "여름 한정 할인",
         LocalDateTime.now(),
         LocalDateTime.now().plusDays(5),
@@ -430,36 +449,59 @@ class PromotionServiceImplTest {
   }
 
 
-  @DisplayName("참여 후 배치 전송 대상이면 true를 반환하고 이벤트 발행한다.")
+  @DisplayName("참여 후 배치 전송 대상이면 true를 반환하고 이벤트를 발행한다.")
   @Test
   void participate_success_send_batch_event() {
     // given
+    Long userId = 2L;
+    String promotionUuid = "test-promotion-uuid";
+    String promotionName = "이벤트 대상 프로모션";
+    String couponUuid = "test-coupon-uuid";
+
     ParticipatePromotionUserInfo info = new ParticipatePromotionUserInfo(
-        2L,
-        UUID.randomUUID().toString(),
-        "이벤트 대상 프로모션"
+        userId,
+        promotionUuid,
+        promotionName
     );
 
-    when(promotionRepository.addUserToPromotion(any(PromotionParticipant.class)
-        , eq(MaxParticipate.PARTICIPATE_10000_MAX)))
+    when(promotionRepository.addUserToPromotion(any(PromotionParticipant.class),
+        eq(MaxParticipate.PARTICIPATE_10000_MAX)))
         .thenReturn(ParticipateResult.SUCCESS_SEND_BATCH);
 
     List<PromotionParticipantDto> participantList = List.of(
-        new PromotionParticipantDto(2L, info.promotionUuid())
+        new PromotionParticipantDto(userId, promotionUuid)
     );
 
-    when(promotionRepository.getPromotionUsers(info.promotionName()))
+    when(promotionRepository.getPromotionUsers(promotionName))
         .thenReturn(participantList);
+
+    Promotion promotion = Promotion.of(
+        couponUuid,
+        promotionName,
+        "전 메뉴 5000원 할인",
+        LocalDateTime.now().plusDays(2),
+        LocalDateTime.now().plusDays(12),
+        BigDecimal.valueOf(5000),
+        PromotionStatus.valueOf("READY"),
+        PromotionType.valueOf("COUPON"));
+
+    when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))
+        .thenReturn(Optional.of(promotion));
 
     // when
     boolean result = promotionService.participate(info);
 
     // then
     assertThat(result).isTrue();
+
     verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_10000_MAX));
-    verify(promotionRepository).getPromotionUsers(info.promotionName());
+    verify(promotionRepository).getPromotionUsers(promotionName);
+    verify(promotionRepository).findByPromotionUuidAndDeletedByIsNull(promotionUuid);
+
     verify(promotionEventPublisher).publish(any(PromotionUserSaveEvent.class));
+    verify(promotionEventPublisher).publish(any(PromotionUserCouponSaveEvent.class));
   }
+
 
   @DisplayName("성공적으로 참여했지만 배치 대상이 아니면 true를 반환하고 이벤트 발행은 하지 않는다.")
   @Test
