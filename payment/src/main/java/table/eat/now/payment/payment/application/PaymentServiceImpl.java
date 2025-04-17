@@ -61,7 +61,7 @@ public class PaymentServiceImpl implements PaymentService {
   private void validateReservation(CreatePaymentCommand command) {
     GetReservationInfo reservationInfo = getReservationInfo(command);
 
-    if (!reservationInfo.totalAmount().equals(command.originalAmount())) {
+    if (reservationInfo.totalAmount().compareTo(command.originalAmount()) != 0) {
       throw CustomException.from(PAYMENT_AMOUNT_MISMATCH);
     }
     if (!reservationInfo.status().equals("PENDING_PAYMENT")) {
@@ -167,6 +167,7 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public PaginatedInfo<SearchPaymentsInfo> searchMyPayments(SearchMyPaymentsQuery query) {
     return PaginatedInfo.from(
             paymentRepository.searchPayments(query.toCriteria()))
@@ -174,9 +175,10 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public PaginatedInfo<SearchPaymentsInfo> searchMasterPayments(SearchMasterPaymentsQuery query) {
     return PaginatedInfo.from(
-        paymentRepository.searchPayments(query.toCriteria()))
+            paymentRepository.searchPayments(query.toCriteria()))
         .map(SearchPaymentsInfo::from);
   }
 

@@ -45,7 +45,7 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
         .from(review)
         .where(whereCondition)
         .orderBy(getOrderSpecifier(criteria.sort(), criteria.orderBy()))
-        .offset(criteria.page())
+        .offset((long) criteria.page() * criteria.size())
         .limit(criteria.size())
         .fetch();
 
@@ -73,7 +73,7 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
         .from(review)
         .where(whereCondition)
         .orderBy(getOrderSpecifier(criteria.sort(), criteria.orderBy()))
-        .offset(criteria.page())
+        .offset((long) criteria.page() * criteria.size())
         .limit(criteria.size())
         .fetch();
 

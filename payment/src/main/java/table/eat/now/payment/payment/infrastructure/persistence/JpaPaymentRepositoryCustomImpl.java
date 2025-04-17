@@ -44,7 +44,7 @@ public class JpaPaymentRepositoryCustomImpl implements JpaPaymentRepositoryCusto
         .from(payment)
         .where(whereCondition)
         .orderBy(getOrderSpecifier(criteria.sort(), criteria.orderBy()))
-        .offset(criteria.page())
+        .offset((long) criteria.page() * criteria.size())
         .limit(criteria.size())
         .fetch();
 
