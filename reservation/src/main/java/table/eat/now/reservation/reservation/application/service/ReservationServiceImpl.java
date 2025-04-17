@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
@@ -27,12 +28,15 @@ import table.eat.now.reservation.reservation.application.client.dto.response.Get
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo.Promotion;
 import table.eat.now.reservation.reservation.application.exception.ReservationErrorCode;
+import table.eat.now.reservation.reservation.application.listener.event.CancelReservationAfterCommitEvent;
 import table.eat.now.reservation.reservation.application.service.discount.DiscountStrategy;
 import table.eat.now.reservation.reservation.application.service.discount.DiscountStrategyFactory;
+import table.eat.now.reservation.reservation.application.service.dto.request.CancelReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
 import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
+import table.eat.now.reservation.reservation.application.service.dto.response.CancelReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.CreateReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
@@ -49,6 +53,8 @@ public class ReservationServiceImpl implements ReservationService {
   private final PaymentClient paymentClient;
   private final PromotionClient promotionClient;
   private final RestaurantClient restaurantClient;
+  private final ApplicationEventPublisher eventPublisher;
+  private final ReservationCancelPolicy reservationCancelPolicy;
 
   @Override
   @Transactional
@@ -110,10 +116,34 @@ public class ReservationServiceImpl implements ReservationService {
   @Transactional(readOnly = true)
   public GetReservationInfo getReservation(GetReservationCriteria criteria) {
     Reservation reservation = getReservationOrElseThrow(criteria);
-    if(!reservation.isReadableUser(criteria.userId(), criteria.role())){
+    if(!reservation.isAccessibleBy(criteria.userId(), criteria.role())){
       throw CustomException.from(ReservationErrorCode.NOT_FOUND);
     }
     return GetReservationInfo.from(reservation);
+  }
+
+  @Override
+  @Transactional
+  public CancelReservationInfo cancelReservation(CancelReservationCommand command) {
+    Reservation reservation = getByNoDeletedReservationUuidOrElseThrow(command.reservationUuid());
+
+    reservationCancelPolicy.validCancelableBy(
+        reservation, command.cancelRequestDateTime(), command.requesterId(), command.userRole());
+
+    reservation.cancelWithReason(command.reason()); // 상태를 CANCELED로 변경
+
+    eventPublisher.publishEvent(CancelReservationAfterCommitEvent.from(reservation));
+
+    return CancelReservationInfo.from(reservation);
+  }
+
+  private Reservation getByNoDeletedReservationUuidOrElseThrow(String reservationUuid) {
+    Reservation reservation = reservationRepository.findByReservationUuid(reservationUuid)
+        .orElseThrow(() -> CustomException.from(ReservationErrorCode.NOT_FOUND));
+
+    if(reservation.isDeleted()) throw CustomException.from(ReservationErrorCode.NOT_FOUND);
+
+    return reservation;
   }
 
   private Reservation getReservationOrElseThrow(GetReservationCriteria criteria) {

@@ -14,6 +14,8 @@ public interface ReservationRepository {
 
   Optional<Reservation> findWithDetailsByReservationUuid(String reservationUuid);
 
+  Optional<Reservation> findByReservationUuid(String reservationUuid);
+
   // test 용
   List<Reservation> findAll();
 

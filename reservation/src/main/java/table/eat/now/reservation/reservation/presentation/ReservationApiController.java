@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,8 +20,12 @@ import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.reservation.reservation.application.service.ReservationService;
+import table.eat.now.reservation.reservation.application.service.dto.request.CancelReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
+import table.eat.now.reservation.reservation.application.service.dto.response.CancelReservationInfo;
+import table.eat.now.reservation.reservation.presentation.dto.request.CancelReservationRequest;
 import table.eat.now.reservation.reservation.presentation.dto.request.CreateReservationRequest;
+import table.eat.now.reservation.reservation.presentation.dto.response.CancelReservationResponse;
 import table.eat.now.reservation.reservation.presentation.dto.response.CreateReservationResponse;
 import table.eat.now.reservation.reservation.presentation.dto.response.GetReservationResponse;
 
@@ -62,6 +67,25 @@ public class ReservationApiController {
             )
         )
     );
+  }
+
+  @PatchMapping("/{reservationUuid}/cancel")
+  @AuthCheck
+  public ResponseEntity<CancelReservationResponse> cancelReservation(
+      @CurrentUserInfo CurrentUserInfoDto userInfo,
+      @PathVariable String reservationUuid,
+      @Valid @RequestBody CancelReservationRequest request
+  ) {
+
+    CancelReservationInfo response = reservationService.cancelReservation(
+        CancelReservationCommand.builder()
+            .reservationUuid(reservationUuid)
+            .reason(request.cancelReason())
+            .requesterId(userInfo.userId())
+            .userRole(userInfo.role())
+            .cancelRequestDateTime(LocalDateTime.now())
+            .build());
+    return ResponseEntity.ok(CancelReservationResponse.from(response));
   }
 
 }

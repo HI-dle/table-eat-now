@@ -28,6 +28,11 @@ public class ReservationRepositoryImpl implements ReservationRepository {
   }
 
   @Override
+  public Optional<Reservation> findByReservationUuid(String reservationUuid) {
+    return jpaReservationRepository.findByReservationUuid(reservationUuid);
+  }
+
+  @Override
   public List<Reservation> findAll() {
     return jpaReservationRepository.findAll();
   }

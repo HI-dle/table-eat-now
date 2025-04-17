@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -31,20 +32,23 @@ import org.springframework.http.MediaType;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.reservation.global.ControllerTestSupport;
 import table.eat.now.reservation.global.util.UuidMaker;
+import table.eat.now.reservation.reservation.application.service.dto.request.CancelReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
+import table.eat.now.reservation.reservation.application.service.dto.response.CancelReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.CreateReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetReservationInfo;
+import table.eat.now.reservation.reservation.presentation.dto.request.CancelReservationRequest;
 import table.eat.now.reservation.reservation.presentation.dto.request.CreateReservationRequest;
 
 class ReservationApiControllerTest extends ControllerTestSupport {
 
   @DisplayName("예약 신청 컨트롤러")
   @Nested
-  class create{
+  class create {
 
     @DisplayName("고객이 예약을 신청할 수 있다.")
     @Test
-    void createReservation() throws Exception{
+    void createReservation() throws Exception {
       CreateReservationRequest request = new CreateReservationRequest(
           "홍길동", // 예약자 이름
           "010-9876-5432", // 예약자 연락처
@@ -96,8 +100,10 @@ class ReservationApiControllerTest extends ControllerTestSupport {
           .andExpect(status().isCreated()) // 상태 코드 확인
           .andExpect(header().string("Location",
               containsString("/api/v1/reservations/" + reservationUuid))) // Location 헤더 확인
-          .andExpect(jsonPath("$.reservationUuid").value(reservationUuid)) // 응답 본문에서 restaurantUuid 값 확인
-          .andExpect(jsonPath("$.paymentReferenceKey").value(paymentReferenceKey)); // 응답 본문에서 restaurantUuid 값 확인
+          .andExpect(
+              jsonPath("$.reservationUuid").value(reservationUuid)) // 응답 본문에서 restaurantUuid 값 확인
+          .andExpect(jsonPath("$.paymentReferenceKey").value(
+              paymentReferenceKey)); // 응답 본문에서 restaurantUuid 값 확인
     }
   }
 
@@ -176,7 +182,8 @@ class ReservationApiControllerTest extends ControllerTestSupport {
           .andExpect(jsonPath("$.status").value("CONFIRMED"))
           .andExpect(jsonPath("$.specialRequest").value("창가 자리 부탁드려요"))
           .andExpect(jsonPath("$.totalAmount").value(60000))
-          .andExpect(jsonPath("$.paymentDetails[0].reservationPaymentDetailUuid").value(paymentDetail.reservationPaymentDetailUuid()))
+          .andExpect(jsonPath("$.paymentDetails[0].reservationPaymentDetailUuid").value(
+              paymentDetail.reservationPaymentDetailUuid()))
           .andExpect(jsonPath("$.paymentDetails[0].type").value("PAYMENT"))
           .andExpect(jsonPath("$.paymentDetails[0].amount").value(15000))
           .andExpect(jsonPath("$.paymentDetails[0].detailReferenceId").value("카카오페이1234"));
@@ -195,6 +202,50 @@ class ReservationApiControllerTest extends ControllerTestSupport {
               .header(USER_ID_HEADER, userId)
               .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isUnauthorized());
+    }
+  }
+
+  @DisplayName("예약 취소 api 컨트롤러")
+  @Nested
+  class CancelReservationApi {
+
+    static Stream<Arguments> provideUserRoleForCancelReservation() {
+      return Stream.of(
+          Arguments.of(UserRole.MASTER),
+          Arguments.of(UserRole.OWNER),
+          Arguments.of(UserRole.STAFF),
+          Arguments.of(UserRole.CUSTOMER)
+      );
+    }
+
+    @DisplayName("예약을 취소할 수 있다")
+    @MethodSource("provideUserRoleForCancelReservation")
+    @ParameterizedTest(name = "{index}: ''{0}'' 은 예약을 취소할 수 있다.")
+    void cancelReservation_success(UserRole role) throws Exception {
+      // given
+      String reservationUuid = UUID.randomUUID().toString();
+      Long userId = 1L;
+      String cancelReason = "일정 변경으로 인한 취소";
+
+      CancelReservationInfo cancelReservationInfo = CancelReservationInfo.builder()
+          .reservationUuid(reservationUuid)
+          .status("CANCELLED")
+          .build();
+
+      given(reservationService.cancelReservation(any(CancelReservationCommand.class)))
+          .willReturn(cancelReservationInfo);
+
+      CancelReservationRequest request = new CancelReservationRequest(cancelReason);
+
+      // when & then
+      mockMvc.perform(patch("/api/v1/reservations/{reservationUuid}/cancel", reservationUuid)
+              .header(USER_ID_HEADER, userId)
+              .header(USER_ROLE_HEADER, role)
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(request)))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.reservationUuid").value(reservationUuid))
+          .andExpect(jsonPath("$.status").value("CANCELLED"));
     }
   }
 }

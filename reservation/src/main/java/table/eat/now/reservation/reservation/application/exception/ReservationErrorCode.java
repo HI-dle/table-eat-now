@@ -16,6 +16,11 @@ public enum ReservationErrorCode implements ErrorCode {
   /**
    * BAD_REQUEST
   */
+  // BAD_REQUEST - CANCEL
+  CANCELLATION_DEADLINE_PASSED("취소 마감 시간이 지났습니다.", HttpStatus.BAD_REQUEST),
+  ALREADY_CANCELED("이미 취소가 된 상태입니다.", HttpStatus.BAD_REQUEST),
+  ALREADY_DELETED("이미 삭제가 된 상태입니다.", HttpStatus.BAD_REQUEST),
+
   // BAD_REQUEST - AMOUNT`
   INVALID_MENU_TOTAL_AMOUNT("총 금액이 메뉴 금액과 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
   INVALID_PAYMENT_DETAILS_TOTAL_AMOUNT("총 금액이결제 총 금액과 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
@@ -44,6 +49,11 @@ public enum ReservationErrorCode implements ErrorCode {
   PROMOTION_INVALID_RUNNING("진행중인 프로모션이 아닙니다.", HttpStatus.BAD_REQUEST),
   INVALID_PROMOTION_DISCOUNT("적용된 프로모션 할인 금액이 실제 할인 금액과 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
   PROMOTION_USAGE_LIMIT_EXCEEDED("프로모션 최대 사용 개수를 초과합니다.", HttpStatus.BAD_REQUEST),
+
+  /**
+   * FORBIDDEN
+   */
+  NO_CANCEL_PERMISSION("해당 예약에 대한 취소 권한이 없습니다.",HttpStatus.FORBIDDEN),
 
   /**
    * NOT_FOUND
