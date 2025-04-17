@@ -1968,7 +1968,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
     void setUp() {
       confirmedReservation = ReservationFixture.createRandomByPaymentDetails(List.of(
           ReservationPaymentDetailFixture.createRandomByType(
-              ReservationPaymentDetail.PaymentType.PAYMENT),
+              ReservationPaymentDetail.PaymentType.PROMOTION_EVENT),
           ReservationPaymentDetailFixture.createRandomByType(
               ReservationPaymentDetail.PaymentType.PROMOTION_COUPON),
           ReservationPaymentDetailFixture.createRandomByType(
