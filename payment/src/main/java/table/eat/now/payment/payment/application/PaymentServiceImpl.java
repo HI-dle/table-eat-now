@@ -19,12 +19,16 @@ import table.eat.now.payment.payment.application.dto.request.CancelPaymentComman
 import table.eat.now.payment.payment.application.dto.request.ConfirmPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.CreatePaymentCommand;
 import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentInfo;
+import table.eat.now.payment.payment.application.dto.request.SearchMasterPaymentsQuery;
+import table.eat.now.payment.payment.application.dto.request.SearchMyPaymentsQuery;
 import table.eat.now.payment.payment.application.dto.response.ConfirmPaymentInfo;
 import table.eat.now.payment.payment.application.client.dto.ConfirmPgPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.CreatePaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
+import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
+import table.eat.now.payment.payment.application.dto.response.SearchPaymentsInfo;
 import table.eat.now.payment.payment.application.event.PaymentCanceledEvent;
 import table.eat.now.payment.payment.application.event.PaymentCanceledPayload;
 import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
@@ -161,4 +165,21 @@ public class PaymentServiceImpl implements PaymentService {
         .findByIdentifier_PaymentUuidAndDeletedAtNull(paymentUuid)
         .orElseThrow(() -> CustomException.from(PAYMENT_NOT_FOUND));
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PaginatedInfo<SearchPaymentsInfo> searchMyPayments(SearchMyPaymentsQuery query) {
+    return PaginatedInfo.from(
+            paymentRepository.searchPayments(query.toCriteria()))
+        .map(SearchPaymentsInfo::from);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PaginatedInfo<SearchPaymentsInfo> searchMasterPayments(SearchMasterPaymentsQuery query) {
+    return PaginatedInfo.from(
+            paymentRepository.searchPayments(query.toCriteria()))
+        .map(SearchPaymentsInfo::from);
+  }
+
 }

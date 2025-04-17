@@ -7,7 +7,7 @@ import table.eat.now.payment.payment.application.dto.request.CreatePaymentComman
 public record CreatePaymentRequest(
     @NotNull String reservationUuid,
     @NotNull String restaurantUuid,
-    @NotNull Long customerId,
+    @NotNull Long customerId, // 꼭 필요할까요 (user context 에서 받을 수 있음)
     @NotNull String reservationName,
     @NotNull BigDecimal originalAmount
 ) {

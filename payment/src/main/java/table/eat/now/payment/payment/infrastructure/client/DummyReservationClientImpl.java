@@ -16,17 +16,12 @@ public class DummyReservationClientImpl implements ReservationClient {
   @Override
   public GetReservationInfo getReservation(String reservationUuid) {
     String nonValidUUID  = "00000000-0000-0000-0000-000000000000";
-    String validUUID = "00000000-0000-0000-0000-000000000001";
 
     if (nonValidUUID.equals(reservationUuid)) {
       throw CustomException.from(RESERVATION_NOT_FOUND);
     }
 
     return GetReservationInfo.builder()
-        .reservationUuid(reservationUuid)
-        .restaurantUuid(validUUID)
-        .customerId(123L)
-        .reservationName("하이들하신가")
         .status("PENDING_PAYMENT")
         .totalAmount(new BigDecimal("45000"))
         .build();

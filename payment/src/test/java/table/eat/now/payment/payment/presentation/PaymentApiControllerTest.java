@@ -13,7 +13,9 @@ import static table.eat.now.payment.payment.application.exception.PaymentErrorCo
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -40,6 +42,8 @@ import table.eat.now.payment.payment.application.PaymentService;
 import table.eat.now.payment.payment.application.dto.response.ConfirmPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
+import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
+import table.eat.now.payment.payment.application.dto.response.SearchPaymentsInfo;
 import table.eat.now.payment.payment.presentation.dto.request.ConfirmPaymentRequest;
 
 @ActiveProfiles("test")
@@ -312,6 +316,163 @@ class PaymentApiControllerTest {
           .andExpect(status().isForbidden())
           .andExpect(jsonPath("$.message")
               .value(PAYMENT_ACCESS_DENIED.getMessage()));
+    }
+  }
+
+  @Nested
+  class 내_결제_목록_조회_시 {
+
+    private CurrentUserInfoDto userInfo;
+    private PaginatedInfo<SearchPaymentsInfo> paginatedInfo;
+    private List<SearchPaymentsInfo> paymentInfoList;
+
+    @BeforeEach
+    void setUp() {
+      userInfo = new CurrentUserInfoDto(123L, UserRole.CUSTOMER);
+
+      // 테스트 결제 정보 생성
+      paymentInfoList = List.of(
+          createSearchMyPaymentInfo(UUID.randomUUID().toString(), "reservation1", "APPROVED"),
+          createSearchMyPaymentInfo(UUID.randomUUID().toString(), "reservation2", "CANCELED")
+      );
+
+      // 페이징된 결제 정보 생성
+      paginatedInfo = new PaginatedInfo<>(
+          paymentInfoList,
+          0,
+          10,
+          2L,
+          1
+      );
+    }
+
+    private SearchPaymentsInfo createSearchMyPaymentInfo(
+        String paymentUuid, String reservationId, String paymentStatus) {
+      return SearchPaymentsInfo.builder()
+          .paymentUuid(paymentUuid)
+          .customerId(123L)
+          .paymentKey("payment_key_" + UUID.randomUUID().toString().substring(0, 8))
+          .reservationId(reservationId)
+          .restaurantId("restaurant123")
+          .reservationName("맛있는 식당 예약")
+          .paymentStatus(paymentStatus)
+          .originalAmount(BigDecimal.valueOf(15000))
+          .discountAmount(BigDecimal.valueOf(2000))
+          .totalAmount(BigDecimal.valueOf(13000))
+          .createdAt(LocalDateTime.now())
+          .approvedAt("APPROVED".equals(paymentStatus) ? LocalDateTime.now().plusMinutes(10) : null)
+          .cancelledAt("CANCELED".equals(paymentStatus) ? LocalDateTime.now().plusMinutes(20) : null)
+          .build();
+    }
+
+    @Test
+    void 유효한_요청으로_내_결제_목록_조회시_200_상태코드와_페이징된_결제_목록을_반환한다() throws Exception {
+      // given
+      when(paymentService.searchMyPayments(any()))
+          .thenReturn(paginatedInfo);
+
+      // when
+      ResultActions actions = mockMvc.perform(get("/api/v1/payments/my")
+          .header(USER_ID_HEADER, userInfo.userId())
+          .header(USER_ROLE_HEADER, userInfo.role())
+          .param("page", "0")
+          .param("size", "10")
+          .contentType(MediaType.APPLICATION_JSON));
+
+      // then
+      actions
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.content").isArray())
+          .andExpect(jsonPath("$.content.length()").value(2))
+          .andExpect(jsonPath("$.content[0].paymentUuid").value(paymentInfoList.get(0).paymentUuid()))
+          .andExpect(jsonPath("$.content[0].paymentStatus").value("APPROVED"))
+          .andExpect(jsonPath("$.content[1].paymentUuid").value(paymentInfoList.get(1).paymentUuid()))
+          .andExpect(jsonPath("$.content[1].paymentStatus").value("CANCELED"))
+          .andExpect(jsonPath("$.page").value(0))
+          .andExpect(jsonPath("$.size").value(10))
+          .andExpect(jsonPath("$.totalElements").value(2))
+          .andExpect(jsonPath("$.totalPages").value(1));
+    }
+
+    @Test
+    void 필터링_파라미터를_포함한_요청시_200_상태코드와_필터링된_결제_목록을_반환한다() throws Exception {
+      // given
+      UUID restaurantUuid = UUID.randomUUID();
+      String paymentStatus = "APPROVED";
+      LocalDate startDate = LocalDate.now().minusDays(30);
+      LocalDate endDate = LocalDate.now();
+
+      List<SearchPaymentsInfo> filteredList = List.of(
+          createSearchMyPaymentInfo(UUID.randomUUID().toString(), "reservation1", "APPROVED")
+      );
+
+      PaginatedInfo<SearchPaymentsInfo> filteredInfo = new PaginatedInfo<>(
+          filteredList,
+          0,
+          10,
+          1L,
+          1
+      );
+
+      when(paymentService.searchMyPayments(any()))
+          .thenReturn(filteredInfo);
+
+      // when
+      ResultActions actions = mockMvc.perform(get("/api/v1/payments/my")
+          .header(USER_ID_HEADER, userInfo.userId())
+          .header(USER_ROLE_HEADER, userInfo.role())
+          .param("restaurantUuid", restaurantUuid.toString())
+          .param("paymentStatus", paymentStatus)
+          .param("startDate", startDate.toString())
+          .param("endDate", endDate.toString())
+          .param("orderBy", "createdAt")
+          .param("sort", "desc")
+          .param("page", "0")
+          .param("size", "10")
+          .contentType(MediaType.APPLICATION_JSON));
+
+      // then
+      actions
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.content").isArray())
+          .andExpect(jsonPath("$.content.length()").value(1))
+          .andExpect(jsonPath("$.content[0].paymentStatus").value("APPROVED"))
+          .andExpect(jsonPath("$.page").value(0))
+          .andExpect(jsonPath("$.size").value(10))
+          .andExpect(jsonPath("$.totalElements").value(1))
+          .andExpect(jsonPath("$.totalPages").value(1));
+    }
+
+    @Test
+    void 잘못된_날짜_형식으로_요청시_400_상태코드와_메시지를_반환한다() throws Exception {
+      // given
+      String invalidDate = "invalid-date";
+
+      // when
+      ResultActions actions = mockMvc.perform(get("/api/v1/payments/my")
+          .header(USER_ID_HEADER, userInfo.userId())
+          .header(USER_ROLE_HEADER, userInfo.role())
+          .param("startDate", invalidDate)
+          .contentType(MediaType.APPLICATION_JSON));
+
+      // then
+      actions
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.message")
+              .value(ApiErrorCode.INVALID_REQUEST.getMessage()));
+    }
+
+    @Test
+    void 잘못된_정렬_필드로_요청시_400_상태코드를_반환한다() throws Exception {
+      // when
+      ResultActions actions = mockMvc.perform(get("/api/v1/payments/my")
+          .header(USER_ID_HEADER, userInfo.userId())
+          .header(USER_ROLE_HEADER, userInfo.role())
+          .param("orderBy", "invalidField")
+          .contentType(MediaType.APPLICATION_JSON));
+
+      // then
+      actions.andExpect(status().isBadRequest());
     }
   }
 }
