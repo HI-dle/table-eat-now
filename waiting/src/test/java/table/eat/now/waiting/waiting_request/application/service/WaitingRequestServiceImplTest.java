@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -24,6 +26,10 @@ import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaiti
 import table.eat.now.waiting.waiting_request.application.dto.response.GetDailyWaitingInfo;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
+import table.eat.now.waiting.waiting_request.application.event.EventPublisher;
+import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestCreatedEvent;
+import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestEntranceEvent;
+import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestEvent;
 import table.eat.now.waiting.waiting_request.application.exception.WaitingRequestErrorCode;
 import table.eat.now.waiting.waiting_request.application.utils.TimeProvider;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
@@ -43,6 +49,9 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
 
   @MockitoBean
   private WaitingClient waitingClient;
+
+  @MockitoBean
+  private EventPublisher<WaitingRequestEvent> eventPublisher;
 
   private WaitingRequest waitingRequest;
 
@@ -85,6 +94,7 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
           .status("AVAILABLE")
           .build();
       given(waitingClient.getDailyWaitingInfo(command.dailyWaitingUuid())).willReturn(dailyWaitingInfo);
+      doNothing().when(eventPublisher).publish(any(WaitingRequestCreatedEvent.class));
 
       // when
       String waitingRequestUuid = waitingRequestService.createWaitingRequest(userInfo, command);
@@ -99,6 +109,8 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
       assertThat(waitingRequest.getWaitingRequestUuid()).isEqualTo(waitingRequestUuid);
       assertThat(waitingRequest.getRestaurantUuid()).isEqualTo(dailyWaitingInfo.restaurantUuid());
       assertThat(waitingRequest.getSequence()).isEqualTo(sequence);
+
+      verify(eventPublisher).publish(any(WaitingRequestCreatedEvent.class));
     }
 
     @DisplayName("이미 대기 요청한 휴대전화 번호로 재요청하는 경우 생성 실패")
@@ -176,10 +188,12 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
     void success() {
       // given
       CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(4L, UserRole.STAFF);
+      doNothing().when(eventPublisher).publish(any(WaitingRequestEntranceEvent.class));
 
       // when, then
       assertThatNoException().isThrownBy(() -> waitingRequestService.processWaitingRequestEntrance(
           userInfo, waitingRequest.getWaitingRequestUuid()));
+      verify(eventPublisher).publish(any(WaitingRequestEntranceEvent.class));
     }
 
     @DisplayName("해당 레스토랑의 직원이 아닌 경우 실패")

@@ -7,11 +7,16 @@ import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.waiting.waiting_request.application.client.RestaurantClient;
 import table.eat.now.waiting.waiting_request.application.client.WaitingClient;
-import table.eat.now.waiting.waiting_request.application.dto.event.WaitingRequestCreatedEvent;
 import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaitingRequestCommand;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetDailyWaitingInfo;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
+import table.eat.now.waiting.waiting_request.application.event.EventPublisher;
+import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestCreatedEvent;
+import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestCreatedInfo;
+import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestEntranceEvent;
+import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestEntranceInfo;
+import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestEvent;
 import table.eat.now.waiting.waiting_request.application.exception.WaitingRequestErrorCode;
 import table.eat.now.waiting.waiting_request.application.utils.TimeProvider;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
@@ -23,6 +28,7 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
   private final WaitingRequestRepository waitingRequestRepository;
   private final RestaurantClient restaurantClient;
   private final WaitingClient waitingClient;
+  private final EventPublisher<WaitingRequestEvent> eventPublisher;
 
   @Override
   public String createWaitingRequest(
@@ -43,8 +49,9 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
         waitingRequestUuid, dailyWaitingInfo.restaurantUuid(), userInfo.userId(), sequence);
     waitingRequestRepository.save(waitingRequest);
 
-    // todo. 대기 결과 안내 문자 발송
-    sendWaitingRequestCreatedMessage(command, dailyWaitingInfo.restaurantName(), sequence, rank, estimatedWaitingSec);
+    sendWaitingRequestCreatedMessage(
+        command, waitingRequestUuid, dailyWaitingInfo.restaurantName(),
+        sequence, rank, estimatedWaitingSec);
 
     return waitingRequestUuid;
   }
@@ -64,8 +71,6 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
     validateRestaurantAuthority(userInfo, restaurantInfo);
 
     dequeueWaitingRequest(waitingRequest.getDailyWaitingUuid(), waitingRequestsUuid);
-
-    // todo 메세지 전송 필요
     sendWaitingRequestEntranceMessage(waitingRequest, restaurantInfo.name());
   }
 
@@ -101,13 +106,22 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
   }
 
   private void sendWaitingRequestCreatedMessage(
-      CreateWaitingRequestCommand command, String restaurantName, Long sequence, Long rank, long estimatedWaitingSec) {
+      CreateWaitingRequestCommand command, String waitingRequestUuid,
+      String restaurantName, Long sequence, Long rank, long estimatedWaitingSec) {
 
-    WaitingRequestCreatedEvent event = WaitingRequestCreatedEvent.of(
-        command.phone(), command.slackId(), restaurantName, sequence, rank, estimatedWaitingSec);
+    WaitingRequestCreatedInfo createdInfo = WaitingRequestCreatedInfo.of(
+        waitingRequestUuid, command.phone(), command.slackId(), restaurantName, sequence, rank, estimatedWaitingSec);
+
+    eventPublisher.publish(WaitingRequestCreatedEvent.from(createdInfo));
   }
 
   private void sendWaitingRequestEntranceMessage(WaitingRequest waitingRequest, String restaurantName) {
+
+    WaitingRequestEntranceInfo entranceInfo = WaitingRequestEntranceInfo.of(
+        waitingRequest.getWaitingRequestUuid(), waitingRequest.getPhone(), waitingRequest.getSlackId(),
+        restaurantName, waitingRequest.getSequence().longValue());
+
+    eventPublisher.publish(WaitingRequestEntranceEvent.from(entranceInfo));
   }
 
   private void dequeueWaitingRequest(String dailyWaitingUuid, String waitingRequestsUuid) {
