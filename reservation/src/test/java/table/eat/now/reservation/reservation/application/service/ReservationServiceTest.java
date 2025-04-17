@@ -1963,34 +1963,20 @@ class ReservationServiceTest extends IntegrationTestSupport {
   class cancel_success {
 
     Reservation confirmedReservation;
-    Reservation canceledReservation;
-    Reservation deletedReservation;
 
     @BeforeEach
     void setUp() {
       confirmedReservation = ReservationFixture.createRandomByPaymentDetails(List.of(
           ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PAYMENT),
+          ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PROMOTION_COUPON),
+          ReservationPaymentDetailFixture.createRandomByType(
               ReservationPaymentDetail.PaymentType.PAYMENT)
       ));
       ReflectionTestUtils.setField(confirmedReservation, "status", ReservationStatus.CONFIRMED);
 
-      canceledReservation = ReservationFixture.createRandomByPaymentDetails(List.of(
-          ReservationPaymentDetailFixture.createRandomByType(
-              ReservationPaymentDetail.PaymentType.PAYMENT)
-      ));
-
-      ReflectionTestUtils.setField(canceledReservation, "status", ReservationStatus.CANCELLED);
-
-      deletedReservation = ReservationFixture.createRandomByPaymentDetails(List.of(
-          ReservationPaymentDetailFixture.createRandomByType(
-              ReservationPaymentDetail.PaymentType.PAYMENT)
-      ));
-
-      ReflectionTestUtils.setField(deletedReservation, "status", ReservationStatus.CANCELLED);
-      ReflectionTestUtils.setField(deletedReservation, "deletedAt",
-          LocalDateTime.now().minusDays(1));
-      ReflectionTestUtils.setField(deletedReservation, "deletedBy", 1L);
-      reservationRepository.saveAll(List.of(confirmedReservation, canceledReservation, deletedReservation));
+      reservationRepository.saveAll(List.of(confirmedReservation));
     }
 
     @DisplayName("MASTER 는 모든 예약을 취소할 수 있다.")
