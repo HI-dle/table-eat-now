@@ -61,6 +61,7 @@ public class PaymentApiController {
         GetPaymentResponse.from(paymentService.getPayment(paymentUuid.toString(), userInfo)));
   }
 
+  @AuthCheck(roles = {CUSTOMER, MASTER})
   @GetMapping("/my")
   public ResponseEntity<PaginatedResponse<SearchPaymentsResponse>> getMyPayments(
       @CurrentUserInfo CurrentUserInfoDto userInfo,
