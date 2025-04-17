@@ -27,7 +27,7 @@ import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailI
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
 import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
-import table.eat.now.payment.payment.application.dto.response.SearchMyPaymentInfo;
+import table.eat.now.payment.payment.application.dto.response.SearchMyPaymentsInfo;
 import table.eat.now.payment.payment.application.event.PaymentCanceledEvent;
 import table.eat.now.payment.payment.application.event.PaymentCanceledPayload;
 import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
@@ -166,9 +166,9 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override
-  public PaginatedInfo<SearchMyPaymentInfo> searchMyPayments(SearchMyPaymentsQuery query) {
+  public PaginatedInfo<SearchMyPaymentsInfo> searchMyPayments(SearchMyPaymentsQuery query) {
     return PaginatedInfo.from(
             paymentRepository.searchMyPayments(query.toCriteria()))
-        .map(SearchMyPaymentInfo::from);
+        .map(SearchMyPaymentsInfo::from);
   }
 }

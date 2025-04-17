@@ -6,7 +6,7 @@ import lombok.Builder;
 import table.eat.now.payment.payment.domain.repository.search.SearchMyPaymentsResult;
 
 @Builder
-public record SearchMyPaymentInfo(
+public record SearchMyPaymentsInfo(
     String paymentUuid,
     Long customerId,
     String paymentKey,
@@ -21,8 +21,8 @@ public record SearchMyPaymentInfo(
     LocalDateTime approvedAt,
     LocalDateTime cancelledAt
 ) {
-  public static SearchMyPaymentInfo from(SearchMyPaymentsResult result) {
-    return SearchMyPaymentInfo.builder()
+  public static SearchMyPaymentsInfo from(SearchMyPaymentsResult result) {
+    return SearchMyPaymentsInfo.builder()
         .paymentUuid(result.paymentUuid())
         .customerId(result.customerId())
         .paymentKey(result.paymentKey())

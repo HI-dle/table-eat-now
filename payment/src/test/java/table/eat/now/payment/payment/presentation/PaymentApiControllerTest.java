@@ -43,7 +43,7 @@ import table.eat.now.payment.payment.application.dto.response.ConfirmPaymentInfo
 import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
-import table.eat.now.payment.payment.application.dto.response.SearchMyPaymentInfo;
+import table.eat.now.payment.payment.application.dto.response.SearchMyPaymentsInfo;
 import table.eat.now.payment.payment.presentation.dto.request.ConfirmPaymentRequest;
 
 @ActiveProfiles("test")
@@ -323,8 +323,8 @@ class PaymentApiControllerTest {
   class 내_결제_목록_조회_시 {
 
     private CurrentUserInfoDto userInfo;
-    private PaginatedInfo<SearchMyPaymentInfo> paginatedInfo;
-    private List<SearchMyPaymentInfo> paymentInfoList;
+    private PaginatedInfo<SearchMyPaymentsInfo> paginatedInfo;
+    private List<SearchMyPaymentsInfo> paymentInfoList;
 
     @BeforeEach
     void setUp() {
@@ -346,9 +346,9 @@ class PaymentApiControllerTest {
       );
     }
 
-    private SearchMyPaymentInfo createSearchMyPaymentInfo(
+    private SearchMyPaymentsInfo createSearchMyPaymentInfo(
         String paymentUuid, String reservationId, String paymentStatus) {
-      return SearchMyPaymentInfo.builder()
+      return SearchMyPaymentsInfo.builder()
           .paymentUuid(paymentUuid)
           .customerId(123L)
           .paymentKey("payment_key_" + UUID.randomUUID().toString().substring(0, 8))
@@ -402,11 +402,11 @@ class PaymentApiControllerTest {
       LocalDate startDate = LocalDate.now().minusDays(30);
       LocalDate endDate = LocalDate.now();
 
-      List<SearchMyPaymentInfo> filteredList = List.of(
+      List<SearchMyPaymentsInfo> filteredList = List.of(
           createSearchMyPaymentInfo(UUID.randomUUID().toString(), "reservation1", "APPROVED")
       );
 
-      PaginatedInfo<SearchMyPaymentInfo> filteredInfo = new PaginatedInfo<>(
+      PaginatedInfo<SearchMyPaymentsInfo> filteredInfo = new PaginatedInfo<>(
           filteredList,
           0,
           10,

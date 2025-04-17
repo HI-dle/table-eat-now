@@ -25,7 +25,7 @@ import table.eat.now.payment.payment.presentation.dto.response.ConfirmPaymentRes
 import table.eat.now.payment.payment.presentation.dto.response.GetCheckoutDetailResponse;
 import table.eat.now.payment.payment.presentation.dto.response.GetPaymentResponse;
 import table.eat.now.payment.payment.presentation.dto.response.PaginatedResponse;
-import table.eat.now.payment.payment.presentation.dto.response.SearchMyPaymentResponse;
+import table.eat.now.payment.payment.presentation.dto.response.SearchMyPaymentsResponse;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -62,13 +62,13 @@ public class PaymentApiController {
   }
 
   @GetMapping("/my")
-  public ResponseEntity<PaginatedResponse<SearchMyPaymentResponse>> getMyPayments(
+  public ResponseEntity<PaginatedResponse<SearchMyPaymentsResponse>> getMyPayments(
       @CurrentUserInfo CurrentUserInfoDto userInfo,
       @Valid SearchMyPaymentsRequest request, Pageable pageable) {
 
     return ResponseEntity.ok(PaginatedResponse.from(
             paymentService.searchMyPayments(request.toQuery(pageable, userInfo)))
-        .map(SearchMyPaymentResponse::from));
+        .map(SearchMyPaymentsResponse::from));
   }
 }
 

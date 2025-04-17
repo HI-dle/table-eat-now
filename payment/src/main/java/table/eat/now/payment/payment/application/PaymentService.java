@@ -10,7 +10,7 @@ import table.eat.now.payment.payment.application.dto.response.CreatePaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
-import table.eat.now.payment.payment.application.dto.response.SearchMyPaymentInfo;
+import table.eat.now.payment.payment.application.dto.response.SearchMyPaymentsInfo;
 
 public interface PaymentService {
 
@@ -24,5 +24,5 @@ public interface PaymentService {
 
   void cancelPayment(CancelPaymentCommand command, CurrentUserInfoDto userInfo);
 
-  PaginatedInfo<SearchMyPaymentInfo> searchMyPayments(SearchMyPaymentsQuery query);
+  PaginatedInfo<SearchMyPaymentsInfo> searchMyPayments(SearchMyPaymentsQuery query);
 }
