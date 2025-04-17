@@ -23,6 +23,11 @@ public class RestaurantRepositoryImpl implements RestaurantRepository {
   }
 
   @Override
+  public Optional<Restaurant> findByRestaurantUuidWithMenusAndTimeslots(String restaurantUuid) {
+    return jpaRestaurantRepository.findByRestaurantUuid(restaurantUuid);
+  }
+
+  @Override
   public List<Restaurant> findAll() {
     return jpaRestaurantRepository.findAll();
   }

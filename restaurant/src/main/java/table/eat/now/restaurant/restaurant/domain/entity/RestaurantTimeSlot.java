@@ -53,11 +53,13 @@ public class RestaurantTimeSlot extends BaseEntity {
 
   @Builder(builderMethodName = "baseBuilder")
   private RestaurantTimeSlot(
+      String restaurantTimeslotUuid,
       LocalDate availableDate,
       Integer maxCapacity,
       Restaurant restaurant,
       LocalTime timeslot
   ) {
+    this.restaurantTimeslotUuid = restaurantTimeslotUuid;
     this.availableDate = availableDate;
     this.maxCapacity = maxCapacity;
     this.restaurant = restaurant;
@@ -78,5 +80,11 @@ public class RestaurantTimeSlot extends BaseEntity {
       throw new IllegalArgumentException("curTotalGuestCount 는 maxCapacity 보다 클 수 없습니다.");
     }
     this.curTotalGuestCount = newCount;
+  }
+
+  public void modify(LocalDate availableDate, LocalTime timeslot, Integer maxCapacity) {
+    this.availableDate = availableDate;
+    this.timeslot = timeslot;
+    this.maxCapacity = maxCapacity;
   }
 }

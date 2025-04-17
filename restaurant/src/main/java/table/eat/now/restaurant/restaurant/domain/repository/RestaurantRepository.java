@@ -12,6 +12,8 @@ public interface RestaurantRepository {
 
   Restaurant save(Restaurant entity);
 
+  Optional<Restaurant> findByRestaurantUuidWithMenusAndTimeslots(String restaurantUuid);
+
   Optional<Restaurant> findByDynamicCondition(String restaurantUuid, boolean includeDeleted,
       boolean includeInactive);
 

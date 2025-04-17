@@ -147,6 +147,26 @@ public class Restaurant extends BaseEntity {
     timeSlot.modifyRestaurant(this);
   }
 
+  public void modify(
+      String name,
+      String info,
+      Integer maxReservationGuestCountPerTeamOnline,
+      String waitingStatus,
+      String status,
+      String contactNumber,
+      String address,
+      LocalTime openingAt,
+      LocalTime closingAt
+  ) {
+    this.name = name;
+    this.info = info;
+    this.maxReservationGuestCountPerTeamOnline = maxReservationGuestCountPerTeamOnline;
+    this.waitingStatus = WaitingStatus.valueOf(waitingStatus);
+    this.status = RestaurantStatus.valueOf(status);
+    this.contactInfo = ContactInfo.of(contactNumber, address);
+    this.operatingTime = OperatingTime.of(openingAt, closingAt);
+  }
+
   @Getter
   @RequiredArgsConstructor
   public enum RestaurantStatus {

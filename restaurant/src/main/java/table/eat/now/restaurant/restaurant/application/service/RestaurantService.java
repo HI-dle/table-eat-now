@@ -6,8 +6,10 @@ package table.eat.now.restaurant.restaurant.application.service;
 
 import table.eat.now.restaurant.restaurant.application.service.dto.request.CreateRestaurantCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantCriteria;
+import table.eat.now.restaurant.restaurant.application.service.dto.request.ModifyRestaurantCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.CreateRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantInfo;
+import table.eat.now.restaurant.restaurant.application.service.dto.response.ModifyRestaurantInfo;
 
 public interface RestaurantService {
 
@@ -16,4 +18,6 @@ public interface RestaurantService {
   GetRestaurantInfo getRestaurant(GetRestaurantCriteria criteria);
 
   void increaseOrDecreaseTimeSlotGuestCount(String restaurantTimeSlotUuid, int delta);
+
+  ModifyRestaurantInfo modifyRestaurant(ModifyRestaurantCommand command);
 }
