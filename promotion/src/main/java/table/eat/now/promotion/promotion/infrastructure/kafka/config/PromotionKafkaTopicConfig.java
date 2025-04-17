@@ -20,7 +20,7 @@ public class PromotionKafkaTopicConfig {
   }
 
   @Bean
-  public String paymentTopic() {
+  public String promotionTopic() {
     return PROMOTION_TOPIC_NAME;
   }
 }
