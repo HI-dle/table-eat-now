@@ -42,14 +42,15 @@ public class RestaurantMenuFixture {
       MenuStatus status
   ) {
 
-    RestaurantMenu menu = RestaurantMenu.inactiveMenuBuilder()
+    RestaurantMenu menu = RestaurantMenu.fullBuilder()
         .restaurant(restaurant)
         .name(name)
         .price(price)
+        .restaurantMenuUuid(UUID.randomUUID().toString())
+        .menuStatus(status)
         .build();
 
     ReflectionTestUtils.setField(menu, "restaurantMenuUuid", restaurantMenuUuid);
-    ReflectionTestUtils.setField(menu, "status", status);
 
     return menu;
   }
