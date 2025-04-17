@@ -6,6 +6,7 @@ import static table.eat.now.promotion.promotionuser.domain.entity.QPromotionUser
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import table.eat.now.promotion.promotionuser.domain.entity.PromotionUser;
@@ -22,6 +23,23 @@ import table.eat.now.promotion.promotionuser.infrastructure.persistence.JpaPromo
 public class JpaPromotionUserRepositoryCustomImpl implements JpaPromotionUserRepositoryCustom {
 
   private final JPAQueryFactory queryFactory;
+  private final EntityManager entityManager;
+
+
+  @Override
+  public void saveAllInBatch(List<PromotionUser> promotionUsers) {
+    int batchSize = 1000;
+    //batchSize만큼 persist 후 flush+clear 반복
+    for (int i = 0; i < promotionUsers.size(); i++) {
+      entityManager.persist(promotionUsers.get(i));
+      if (i % batchSize == 0 && i > 0) {
+        entityManager.flush();
+        entityManager.clear();
+      }
+    }
+    entityManager.flush();
+    entityManager.clear();
+  }
 
   @Override
   public PaginatedResult<PromotionUserSearchCriteriaQuery> searchPromotionUser(
@@ -80,4 +98,5 @@ public class JpaPromotionUserRepositoryCustomImpl implements JpaPromotionUserRep
         criteria.isAsc() ? promotionUser.updatedAt.asc() : promotionUser.updatedAt.desc())
         : (criteria.isAsc() ? promotionUser.createdAt.asc() : promotionUser.createdAt.desc());
   }
+
 }

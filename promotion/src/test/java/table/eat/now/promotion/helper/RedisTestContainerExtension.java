@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
+
 public class RedisTestContainerExtension implements BeforeAllCallback {
 
   private static final String REDIS_IMAGE = "redis:7.0.8-alpine";

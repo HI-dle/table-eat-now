@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.promotion.promotion.application.client.PromotionClient;
 import table.eat.now.promotion.promotion.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotion.application.dto.client.response.GetPromotionRestaurantInfo;
@@ -20,12 +21,16 @@ import table.eat.now.promotion.promotion.application.dto.response.GetPromotionIn
 import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsClientInfo;
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
+import table.eat.now.promotion.promotion.application.event.PromotionEventPublisher;
+import table.eat.now.promotion.promotion.application.event.produce.PromotionUserSaveEvent;
+import table.eat.now.promotion.promotion.application.event.produce.PromotionUserSavePayload;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
 import table.eat.now.promotion.promotion.application.service.util.MaxParticipate;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
 import table.eat.now.promotion.promotion.domain.entity.PromotionStatus;
 import table.eat.now.promotion.promotion.domain.entity.PromotionType;
 import table.eat.now.promotion.promotion.domain.entity.repository.PromotionRepository;
+import table.eat.now.promotion.promotion.domain.entity.repository.event.ParticipateResult;
 
 /**
  * @author : hanjihoon
@@ -38,6 +43,7 @@ public class PromotionServiceImpl implements PromotionService{
 
   private final PromotionRepository promotionRepository;
   private final PromotionClient promotionClient;
+  private final PromotionEventPublisher promotionEventPublisher;
 
   @Override
   @Transactional
@@ -107,12 +113,41 @@ public class PromotionServiceImpl implements PromotionService{
   }
 
   @Override
+  @Transactional
   public boolean participate(ParticipatePromotionUserInfo info) {
     // Redis에 참여 시도
-    return promotionRepository.addUserToPromotion(
+    ParticipateResult participateResult = promotionRepository.addUserToPromotion(
         info.toDomain(), MaxParticipate.PARTICIPATE_10000_MAX);
-    //위 참가 인원 부분은...컬럼을 늘리면 대참사가 나기 때문에... 위처럼 구성하고 전략 패턴 사용하듯
-    //요청 데이터만 받아서 사용해볼까.. 싶기도 합니다.. 마음에 안 드시다면 제가 컬럼을 추가하겠습니다..!
+
+    return checkParticipate(info, participateResult);
+  }
+
+  private boolean checkParticipate(ParticipatePromotionUserInfo info,
+      ParticipateResult participateResult) {
+    if (participateResult == ParticipateResult.FAIL) {
+      return false;
+    }
+
+    if (participateResult == ParticipateResult.SUCCESS_SEND_BATCH) {
+      List<PromotionUserSavePayload> savePayloadList = promotionRepository.getPromotionUsers(
+              info.promotionName()).stream()
+          .map(PromotionUserSavePayload::from)
+          .toList();
+
+      promotionEventPublisher.publish(
+          PromotionUserSaveEvent.of(
+              savePayloadList, createCurrentUserInfoDto()));
+    }
+
+    return true;
+  }
+
+  //이 부분 너무 고민입니다...PromotionUser로 보낼 때 auditing에 사용될 CurrentUserInfoDto가
+  //필요할 것 같은데 이미 프로모션 진행 중에 자동으로 저장되게끔 구성을 해서 CurrentUserInfoDto를
+  // controller에서 받아오기엔 1000번째 유저의 아이디가 들어가 버리는 탓에 아래 메서드에서 관리자 값을 하나 두고
+  // 관리자 값을 넣어줄까 싶어서 구성해 보았습니다. 좋은 방안 있으면 알려주세요!
+  private CurrentUserInfoDto createCurrentUserInfoDto() {
+    return CurrentUserInfoDto.of(1L, UserRole.MASTER);
   }
 
   private void deleteCheckPromotionStatus(PromotionStatus status) {

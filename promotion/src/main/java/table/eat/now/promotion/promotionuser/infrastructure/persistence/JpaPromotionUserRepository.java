@@ -15,4 +15,6 @@ public interface JpaPromotionUserRepository extends
   Optional<PromotionUser> findByPromotionUserUuidAndDeletedAtIsNull(
       String promotionUserUuid);
   Optional<PromotionUser> findByUserIdAndDeletedAtIsNull(Long userId);
+
+
 }

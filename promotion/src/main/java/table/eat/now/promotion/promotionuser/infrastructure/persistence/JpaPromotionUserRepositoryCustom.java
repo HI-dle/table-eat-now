@@ -1,5 +1,7 @@
 package table.eat.now.promotion.promotionuser.infrastructure.persistence;
 
+import java.util.List;
+import table.eat.now.promotion.promotionuser.domain.entity.PromotionUser;
 import table.eat.now.promotion.promotionuser.domain.repository.search.PaginatedResult;
 import table.eat.now.promotion.promotionuser.domain.repository.search.PromotionUserSearchCriteria;
 import table.eat.now.promotion.promotionuser.domain.repository.search.PromotionUserSearchCriteriaQuery;
@@ -12,4 +14,6 @@ public interface JpaPromotionUserRepositoryCustom {
 
   PaginatedResult<PromotionUserSearchCriteriaQuery> searchPromotionUser(
       PromotionUserSearchCriteria criteria);
+
+  void saveAllInBatch(List<PromotionUser> promotionUsers);
 }

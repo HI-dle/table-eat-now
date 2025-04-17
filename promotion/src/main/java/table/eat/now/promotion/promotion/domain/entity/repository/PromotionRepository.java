@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
+import table.eat.now.promotion.promotion.domain.entity.repository.event.ParticipateResult;
 import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipant;
+import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipantDto;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PaginatedResult;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PromotionSearchCriteria;
 import table.eat.now.promotion.promotion.domain.entity.repository.search.PromotionSearchCriteriaQuery;
@@ -22,6 +24,8 @@ public interface PromotionRepository {
 
   List<Promotion> findAllByPromotionUuidInAndDeletedByIsNull(Set<String> promotionUuids);
 
-  boolean addUserToPromotion(PromotionParticipant participant, int maxCount);
+  ParticipateResult addUserToPromotion(PromotionParticipant participant, int maxCount);
+
+  List<PromotionParticipantDto> getPromotionUsers(String promotionName);
 
 }

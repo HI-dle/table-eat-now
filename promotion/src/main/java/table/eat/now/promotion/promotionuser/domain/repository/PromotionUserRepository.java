@@ -1,5 +1,6 @@
 package table.eat.now.promotion.promotionuser.domain.repository;
 
+import java.util.List;
 import java.util.Optional;
 import table.eat.now.promotion.promotionuser.domain.entity.PromotionUser;
 import table.eat.now.promotion.promotionuser.domain.repository.search.PaginatedResult;
@@ -20,4 +21,7 @@ public interface PromotionUserRepository {
   PaginatedResult<PromotionUserSearchCriteriaQuery> searchPromotionUser(PromotionUserSearchCriteria criteria);
 
   Optional<PromotionUser> findByUserIdAndDeletedAtIsNull(Long userId);
+
+  void saveAllInBatch(List<PromotionUser> promotionUsers);
+
 }

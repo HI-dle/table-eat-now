@@ -3,6 +3,8 @@ package table.eat.now.promotion.promotion.infrastructure.redis;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -10,8 +12,11 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Repository;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
+import table.eat.now.promotion.promotion.domain.entity.repository.event.ParticipateResult;
 import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipant;
+import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipantDto;
 import table.eat.now.promotion.promotion.infrastructure.dto.request.PromotionUserCommand;
+import table.eat.now.promotion.promotion.infrastructure.kafka.dto.PromotionUserSavePayloadQuery;
 
 /**
  * @author : hanjihoon
@@ -30,7 +35,7 @@ public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
   private static final String PROMOTION_KEY_PREFIX = "promotion:";
 
   @Override
-  public boolean addUserToPromotion(PromotionParticipant participant, int maxCount) {
+  public ParticipateResult addUserToPromotion(PromotionParticipant participant, int maxCount) {
     PromotionUserCommand command = PromotionUserCommand.from(participant);
 
     String key = buildKey(command.promotionName());
@@ -50,19 +55,37 @@ public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
           command.promotionUuid()
 
       );
-      //아래 로그는 나중에 지우겠습니다~ 리팩토링 진행 후에요!
-      log.info("Lua Script Key: {}", key);
-      log.info("Max Count: {}", maxCount);
-      log.info("Now: {}", now);
-      log.info("Serialized Command: {}", serialize(command));
-
-      //return 부분도 마음에 들지 않아 리팩토링할 때 수정하겠습니다!
-      return result != null && result == 1L;
+      if (result == null || result == 0L) {
+        return ParticipateResult.FAIL;
+      }
+      if (result == 2L) {
+        return ParticipateResult.SUCCESS_SEND_BATCH;
+      }
+      return ParticipateResult.SUCCESS;
     } catch (Exception e) {
       log.error("Redis Lua Script Error", e);
       throw CustomException.from(PromotionErrorCode.PROMOTION_LUA_SCRIPT_FAILED);
     }
   }
+
+
+  @Override
+  public List<PromotionParticipantDto> getPromotionUsers(String promotionName) {
+    String key = buildKey(promotionName);
+    Set<String> queryData = redisTemplate.opsForZSet().range(key, 0, 999);
+    if (queryData == null || queryData.isEmpty()) return Collections.emptyList();
+
+    return queryData.stream()
+        .map(this::parseToPayload)
+        .map(PromotionUserSavePayloadQuery::from)
+        .toList();
+  }
+
+  private PromotionUserSavePayloadQuery parseToPayload(String query) {
+    String[] parts = query.split(":");
+    return new PromotionUserSavePayloadQuery(Long.valueOf(parts[0]), parts[1]);
+  }
+
 
   private String buildKey(String promotionName) {
     return PROMOTION_KEY_PREFIX + promotionName;

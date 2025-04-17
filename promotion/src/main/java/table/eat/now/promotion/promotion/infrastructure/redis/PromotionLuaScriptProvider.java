@@ -27,6 +27,12 @@ public class PromotionLuaScriptProvider {
     local uniqueScore = now * 1000 + userId
 
     redis.call('ZADD', key, uniqueScore, userInfo)
+    
+    currentCount = redis.call('ZCARD', key)
+    if currentCount % 1000 == 0 then
+      return 2
+    end
+            
     return 1
 
     """;
