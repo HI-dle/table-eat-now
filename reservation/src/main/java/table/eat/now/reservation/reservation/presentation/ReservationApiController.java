@@ -74,7 +74,7 @@ public class ReservationApiController {
   public ResponseEntity<CancelReservationResponse> cancelReservation(
       @CurrentUserInfo CurrentUserInfoDto userInfo,
       @PathVariable String reservationUuid,
-      @Valid CancelReservationRequest request
+      @Valid @RequestBody CancelReservationRequest request
   ) {
 
     CancelReservationInfo response = reservationService.cancelReservation(
