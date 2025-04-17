@@ -4,7 +4,7 @@
  */
 package table.eat.now.reservation.reservation.application.service;
 
-import java.time.LocalDateTime;
+import table.eat.now.reservation.reservation.application.service.dto.request.CancelReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
 import table.eat.now.reservation.reservation.application.service.dto.response.CancelReservationInfo;
@@ -17,5 +17,5 @@ public interface ReservationService {
 
   GetReservationInfo getReservation(GetReservationCriteria criteria);
 
-  CancelReservationInfo cancelReservation(String reservationUuid, LocalDateTime cancelRequestDateTime);
+  CancelReservationInfo cancelReservation(CancelReservationCommand command);
 }

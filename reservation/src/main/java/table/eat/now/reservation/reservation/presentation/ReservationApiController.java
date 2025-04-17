@@ -20,8 +20,10 @@ import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.reservation.reservation.application.service.ReservationService;
+import table.eat.now.reservation.reservation.application.service.dto.request.CancelReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
 import table.eat.now.reservation.reservation.application.service.dto.response.CancelReservationInfo;
+import table.eat.now.reservation.reservation.presentation.dto.request.CancelReservationRequest;
 import table.eat.now.reservation.reservation.presentation.dto.request.CreateReservationRequest;
 import table.eat.now.reservation.reservation.presentation.dto.response.CancelReservationResponse;
 import table.eat.now.reservation.reservation.presentation.dto.response.CreateReservationResponse;
@@ -68,11 +70,21 @@ public class ReservationApiController {
   }
 
   @PatchMapping("/{reservationUuid}/cancel")
+  @AuthCheck
   public ResponseEntity<CancelReservationResponse> cancelReservation(
-      @PathVariable String reservationUuid) {
+      @CurrentUserInfo CurrentUserInfoDto userInfo,
+      @PathVariable String reservationUuid,
+      @Valid CancelReservationRequest request
+  ) {
 
     CancelReservationInfo response = reservationService.cancelReservation(
-        reservationUuid, LocalDateTime.now());
+        CancelReservationCommand.builder()
+            .reservationUuid(reservationUuid)
+            .reason(request.cancelReason())
+            .requesterId(userInfo.userId())
+            .userRole(userInfo.role())
+            .cancelRequestDateTime(LocalDateTime.now())
+            .build());
     return ResponseEntity.ok(CancelReservationResponse.from(response));
   }
 

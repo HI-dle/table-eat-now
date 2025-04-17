@@ -5,6 +5,7 @@
 package table.eat.now.reservation.reservation.domain.entity.json;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -20,5 +21,10 @@ public class RestaurantTimeSlotDetails {
 
   public static RestaurantTimeSlotDetails of(LocalDate availableDate, LocalTime timeslot) {
     return new RestaurantTimeSlotDetails(availableDate, timeslot);
+  }
+
+  // get하니까 역직렬화 오류뜨네요?
+  public LocalDateTime reservationDateTime() {
+    return LocalDateTime.of(availableDate, timeslot);
   }
 }

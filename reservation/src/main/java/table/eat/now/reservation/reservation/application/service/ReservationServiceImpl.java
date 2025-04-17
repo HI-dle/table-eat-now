@@ -31,6 +31,7 @@ import table.eat.now.reservation.reservation.application.exception.ReservationEr
 import table.eat.now.reservation.reservation.application.listener.event.CancelReservationAfterCommitEvent;
 import table.eat.now.reservation.reservation.application.service.discount.DiscountStrategy;
 import table.eat.now.reservation.reservation.application.service.discount.DiscountStrategyFactory;
+import table.eat.now.reservation.reservation.application.service.dto.request.CancelReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
@@ -53,6 +54,7 @@ public class ReservationServiceImpl implements ReservationService {
   private final PromotionClient promotionClient;
   private final RestaurantClient restaurantClient;
   private final ApplicationEventPublisher eventPublisher;
+  private final ReservationCancelPolicy reservationCancelPolicy;
 
   @Override
   @Transactional
@@ -114,7 +116,7 @@ public class ReservationServiceImpl implements ReservationService {
   @Transactional(readOnly = true)
   public GetReservationInfo getReservation(GetReservationCriteria criteria) {
     Reservation reservation = getReservationOrElseThrow(criteria);
-    if(!reservation.isReadableUser(criteria.userId(), criteria.role())){
+    if(!reservation.isAccessibleBy(criteria.userId(), criteria.role())){
       throw CustomException.from(ReservationErrorCode.NOT_FOUND);
     }
     return GetReservationInfo.from(reservation);
@@ -122,28 +124,15 @@ public class ReservationServiceImpl implements ReservationService {
 
   @Override
   @Transactional
-  public CancelReservationInfo cancelReservation(
-      String reservationUuid, LocalDateTime cancelRequestDateTime) {
-    Reservation reservation = getByNoDeletedReservationUuidOrElseThrow(reservationUuid);
+  public CancelReservationInfo cancelReservation(CancelReservationCommand command) {
+    Reservation reservation = getByNoDeletedReservationUuidOrElseThrow(command.reservationUuid());
 
-    if (reservation.isCanceled()) {
-      throw CustomException.from(ReservationErrorCode.ALREADY_CANCELED);
-    }
+    reservationCancelPolicy.validCancelableBy(
+        reservation, command.cancelRequestDateTime(), command.requesterId(), command.userRole());
 
-    if (!reservation.isCancelable(cancelRequestDateTime)) {
-      throw CustomException.from(ReservationErrorCode.CANCEL_POLICY_VIOLATION);
-    }
+    reservation.cancelWithReason(command.reason()); // 상태를 CANCELED로 변경
 
-    reservation.cancel(); // 상태를 CANCELED로 변경
-
-    /**
-     * todo: 이벤트로 할지... 동기로 할지...
-     *  1. 식당 예약 인원 해제
-     *  2. 쿠폰 반환
-     *  3. 결제 취소
-      */
-
-    eventPublisher.publishEvent(CancelReservationAfterCommitEvent.from(reservationUuid));
+    eventPublisher.publishEvent(CancelReservationAfterCommitEvent.from(reservation));
 
     return CancelReservationInfo.from(reservation);
   }

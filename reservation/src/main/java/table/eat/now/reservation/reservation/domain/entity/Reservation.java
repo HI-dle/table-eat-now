@@ -16,9 +16,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import lombok.AccessLevel;
@@ -92,6 +90,9 @@ public class Reservation extends BaseEntity {
   @Column(name = "total_amount", nullable = false)
   private BigDecimal totalAmount;
 
+  @Column(name = "cancel_reason", nullable = true, length = 200)
+  private String cancelReason;
+
   @Embedded
   private ReservationPaymentDetails paymentDetails;
 
@@ -146,7 +147,7 @@ public class Reservation extends BaseEntity {
     this.totalAmount = paymentDetails.getTotalAmount();
   }
 
-  public boolean isReadableUser(Long userId, UserRole role) {
+  public boolean isAccessibleBy(Long userId, UserRole role) {
     if(role.isMaster()) return true;
 
     if(role.isOwner()
@@ -164,27 +165,17 @@ public class Reservation extends BaseEntity {
     return false;
   }
 
+  public boolean isEditableBy(Long userId, UserRole role) {
+    return isAccessibleBy(userId, role);
+  }
+
   public boolean isCanceled() {
     return this.status == ReservationStatus.CANCELLED;
   }
 
-  public boolean isCancelable(LocalDateTime cancelRequestDateTime) {
-    if (isCanceled()) return false;
-
-    LocalDateTime reservationDateTime =
-        LocalDateTime.of(
-            this.restaurantTimeSlotDetails.getAvailableDate(),
-            this.restaurantTimeSlotDetails.getTimeslot()
-        );
-
-    Duration durationUntilReservation = Duration.between(cancelRequestDateTime, reservationDateTime);
-    long hoursUntilReservation = durationUntilReservation.toHours();
-
-    return hoursUntilReservation >= 3;
-  }
-
-  public void cancel() {
+  public void cancelWithReason(String reason) {
     this.status = ReservationStatus.CANCELLED;
+    this.cancelReason = reason;
   }
 
   @Getter
