@@ -1828,7 +1828,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
       // given
       GetReservationCriteria criteria = new GetReservationCriteria(
           reservation.getReservationUuid(),
-          reservation.getRestaurantDetails().getOwnerId() + 1,
+          reservation.getRestaurantDetails().getOwnerId() + 10000L,
           UserRole.OWNER);
 
       // when & then
@@ -1843,7 +1843,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
       // given
       GetReservationCriteria criteria = new GetReservationCriteria(
           reservation.getReservationUuid(),
-          reservation.getRestaurantDetails().getStaffId() + 1,
+          reservation.getRestaurantDetails().getStaffId() + 10000L,
           UserRole.STAFF);
 
       // when & then
@@ -1858,7 +1858,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
       // given
       GetReservationCriteria criteria = new GetReservationCriteria(
           reservation.getReservationUuid(),
-          reservation.getReserverId() + 1,
+          reservation.getReserverId() + 10000L,
           UserRole.CUSTOMER);
 
       // when & then
