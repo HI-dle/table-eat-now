@@ -48,7 +48,7 @@ import table.eat.now.payment.payment.application.dto.response.ConfirmPaymentInfo
 import table.eat.now.payment.payment.application.dto.response.CreatePaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
-import table.eat.now.payment.payment.application.dto.response.SearchMyPaymentsInfo;
+import table.eat.now.payment.payment.application.dto.response.SearchPaymentsInfo;
 import table.eat.now.payment.payment.application.event.PaymentCanceledEvent;
 import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
 import table.eat.now.payment.payment.application.event.PaymentSuccessEvent;
@@ -59,8 +59,8 @@ import table.eat.now.payment.payment.domain.entity.PaymentReference;
 import table.eat.now.payment.payment.domain.entity.PaymentStatus;
 import table.eat.now.payment.payment.domain.repository.PaymentRepository;
 import table.eat.now.payment.payment.domain.repository.search.PaginatedResult;
-import table.eat.now.payment.payment.domain.repository.search.SearchMyPaymentsCriteria;
-import table.eat.now.payment.payment.domain.repository.search.SearchMyPaymentsResult;
+import table.eat.now.payment.payment.domain.repository.search.SearchPaymentsCriteria;
+import table.eat.now.payment.payment.domain.repository.search.SearchPaymentsResult;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -339,7 +339,6 @@ class PaymentServiceImplTest {
       // when & then
       CustomException exception = assertThrows(CustomException.class, () ->
           paymentService.getCheckoutDetail(idempotencyKey));
-
       assertThat(exception.getMessage()).isEqualTo(PAYMENT_NOT_FOUND.getMessage());
     }
   }
@@ -402,7 +401,6 @@ class PaymentServiceImplTest {
       ArgumentCaptor<CancelPgPaymentCommand> commandCaptor = ArgumentCaptor.forClass(
           CancelPgPaymentCommand.class);
       verify(pgClient).cancel(commandCaptor.capture(), eq(payment.getIdempotencyKey()));
-
       CancelPgPaymentCommand capturedCommand = commandCaptor.getValue();
       assertThat(capturedCommand.cancelReason()).isEqualTo(cancelReason);
 
@@ -503,10 +501,7 @@ class PaymentServiceImplTest {
       // then
       assertThat(result).isNotNull();
       assertThat(result.paymentUuid()).isEqualTo(payment.getIdentifier().getPaymentUuid());
-      // 필요한 필드 검증
       assertThat(result.customerId()).isEqualTo(payment.getReference().getCustomerId());
-
-      // 메서드 호출 검증
       verify(paymentRepository).findByIdentifier_PaymentUuidAndDeletedAtNull(paymentUuid);
     }
 
@@ -518,7 +513,6 @@ class PaymentServiceImplTest {
 
       assertThat(exception.getMessage()).isEqualTo(PAYMENT_ACCESS_DENIED.getMessage());
 
-      // 메서드 호출 검증
       verify(paymentRepository).findByIdentifier_PaymentUuidAndDeletedAtNull(paymentUuid);
     }
 
@@ -534,8 +528,6 @@ class PaymentServiceImplTest {
           paymentService.getPayment(nonExistentPaymentUuid, userInfo));
 
       assertThat(exception.getMessage()).isEqualTo(PAYMENT_NOT_FOUND.getMessage());
-
-      // 메서드 호출 검증
       verify(paymentRepository).findByIdentifier_PaymentUuidAndDeletedAtNull(
           nonExistentPaymentUuid);
     }
@@ -578,20 +570,20 @@ class PaymentServiceImplTest {
           .size(size)
           .build();
 
-      List<SearchMyPaymentsResult> searchResults = List.of(
+      List<SearchPaymentsResult> searchResults = List.of(
           createSearchMyPaymentsResult("payment-1", userId, "reservation-1"),
           createSearchMyPaymentsResult("payment-2", userId, "reservation-2")
       );
-      PaginatedResult<SearchMyPaymentsResult> paginatedResult =
+      PaginatedResult<SearchPaymentsResult> paginatedResult =
           new PaginatedResult<>(searchResults, page, size, 2L, 1);
 
-      when(paymentRepository.searchMyPayments(any(SearchMyPaymentsCriteria.class)))
+      when(paymentRepository.searchPayments(any(SearchPaymentsCriteria.class)))
           .thenReturn(paginatedResult);
     }
 
-    private SearchMyPaymentsResult createSearchMyPaymentsResult(
+    private SearchPaymentsResult createSearchMyPaymentsResult(
         String paymentUuid, Long customerId, String reservationId) {
-      return new SearchMyPaymentsResult(
+      return new SearchPaymentsResult(
           paymentUuid,
           customerId,
           "payment_key_" + paymentUuid,
@@ -611,7 +603,7 @@ class PaymentServiceImplTest {
     @Test
     void 유효한_검색_조건으로_조회하면_페이징된_결제_목록을_반환한다() {
       // when
-      PaginatedInfo<SearchMyPaymentsInfo> result = paymentService.searchMyPayments(query);
+      PaginatedInfo<SearchPaymentsInfo> result = paymentService.searchMyPayments(query);
 
       // then
       assertThat(result).isNotNull();
@@ -621,16 +613,16 @@ class PaymentServiceImplTest {
       assertThat(result.totalElements()).isEqualTo(2L);
       assertThat(result.totalPages()).isEqualTo(1);
 
-      SearchMyPaymentsInfo firstPayment = result.content().get(0);
+      SearchPaymentsInfo firstPayment = result.content().get(0);
       assertThat(firstPayment.paymentUuid()).isEqualTo("payment-1");
       assertThat(firstPayment.customerId()).isEqualTo(userId);
       assertThat(firstPayment.reservationId()).isEqualTo("reservation-1");
       assertThat(firstPayment.restaurantId()).isEqualTo(restaurantUuid);
       assertThat(firstPayment.paymentStatus()).isEqualTo("APPROVED");
 
-      ArgumentCaptor<SearchMyPaymentsCriteria> criteriaCaptor =
-          ArgumentCaptor.forClass(SearchMyPaymentsCriteria.class);
-      verify(paymentRepository).searchMyPayments(criteriaCaptor.capture());
+      ArgumentCaptor<SearchPaymentsCriteria> criteriaCaptor =
+          ArgumentCaptor.forClass(SearchPaymentsCriteria.class);
+      verify(paymentRepository).searchPayments(criteriaCaptor.capture());
     }
 
     @Test
@@ -642,14 +634,14 @@ class PaymentServiceImplTest {
           .size(10)
           .build();
 
-      List<SearchMyPaymentsResult> allResults = List.of(
+      List<SearchPaymentsResult> allResults = List.of(
           createSearchMyPaymentsResult("payment-1", userId, "reservation-1"),
           createSearchMyPaymentsResult("payment-2", userId, "reservation-2")
       );
-      PaginatedResult<SearchMyPaymentsResult> allPaginatedResult =
+      PaginatedResult<SearchPaymentsResult> allPaginatedResult =
           new PaginatedResult<>(allResults, 0, 10, 2L, 1);
 
-      when(paymentRepository.searchMyPayments(argThat(criteria ->
+      when(paymentRepository.searchPayments(argThat(criteria ->
           criteria.restaurantUuid() == null &&
               criteria.paymentStatus() == null &&
               criteria.startDate() == null &&
@@ -657,16 +649,16 @@ class PaymentServiceImplTest {
           .thenReturn(allPaginatedResult);
 
       // when
-      PaginatedInfo<SearchMyPaymentsInfo> result = paymentService.searchMyPayments(basicQuery);
+      PaginatedInfo<SearchPaymentsInfo> result = paymentService.searchMyPayments(basicQuery);
 
       // then
       assertThat(result).isNotNull();
       assertThat(result.content()).hasSize(2);
-      ArgumentCaptor<SearchMyPaymentsCriteria> criteriaCaptor =
-          ArgumentCaptor.forClass(SearchMyPaymentsCriteria.class);
-      verify(paymentRepository).searchMyPayments(criteriaCaptor.capture());
+      ArgumentCaptor<SearchPaymentsCriteria> criteriaCaptor =
+          ArgumentCaptor.forClass(SearchPaymentsCriteria.class);
+      verify(paymentRepository).searchPayments(criteriaCaptor.capture());
 
-      SearchMyPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
+      SearchPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
       assertThat(capturedCriteria.userId()).isEqualTo(userId);
       assertThat(capturedCriteria.restaurantUuid()).isNull();
       assertThat(capturedCriteria.paymentStatus()).isNull();
@@ -685,29 +677,29 @@ class PaymentServiceImplTest {
           .size(10)
           .build();
 
-      List<SearchMyPaymentsResult> pendingResults = List.of(
+      List<SearchPaymentsResult> pendingResults = List.of(
           createSearchMyPaymentsResult("payment-pending", userId, "reservation-pending")
       );
-      PaginatedResult<SearchMyPaymentsResult> pendingPaginatedResult =
+      PaginatedResult<SearchPaymentsResult> pendingPaginatedResult =
           new PaginatedResult<>(pendingResults, 0, 10, 1L, 1);
 
-      when(paymentRepository.searchMyPayments(argThat(criteria ->
+      when(paymentRepository.searchPayments(argThat(criteria ->
           specificStatus.equals(criteria.paymentStatus().name()))))
           .thenReturn(pendingPaginatedResult);
 
       // when
-      PaginatedInfo<SearchMyPaymentsInfo> result = paymentService.searchMyPayments(statusQuery);
+      PaginatedInfo<SearchPaymentsInfo> result = paymentService.searchMyPayments(statusQuery);
 
       // then
       assertThat(result).isNotNull();
       assertThat(result.content()).hasSize(1);
       assertThat(result.content().get(0).paymentUuid()).isEqualTo("payment-pending");
 
-      ArgumentCaptor<SearchMyPaymentsCriteria> criteriaCaptor =
-          ArgumentCaptor.forClass(SearchMyPaymentsCriteria.class);
-      verify(paymentRepository).searchMyPayments(criteriaCaptor.capture());
+      ArgumentCaptor<SearchPaymentsCriteria> criteriaCaptor =
+          ArgumentCaptor.forClass(SearchPaymentsCriteria.class);
+      verify(paymentRepository).searchPayments(criteriaCaptor.capture());
 
-      SearchMyPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
+      SearchPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
       assertThat(capturedCriteria.paymentStatus().name()).isEqualTo(specificStatus);
     }
 
@@ -724,31 +716,30 @@ class PaymentServiceImplTest {
           .size(10)
           .build();
 
-      // 날짜 범위 검색 결과 모킹
-      List<SearchMyPaymentsResult> dateFilteredResults = List.of(
+      List<SearchPaymentsResult> dateFilteredResults = List.of(
           createSearchMyPaymentsResult("payment-recent", userId, "reservation-recent")
       );
-      PaginatedResult<SearchMyPaymentsResult> datePaginatedResult =
+      PaginatedResult<SearchPaymentsResult> datePaginatedResult =
           new PaginatedResult<>(dateFilteredResults, 0, 10, 1L, 1);
 
-      when(paymentRepository.searchMyPayments(argThat(criteria ->
+      when(paymentRepository.searchPayments(argThat(criteria ->
           specificStartDate.equals(criteria.startDate()) &&
               specificEndDate.equals(criteria.endDate()))))
           .thenReturn(datePaginatedResult);
 
       // when
-      PaginatedInfo<SearchMyPaymentsInfo> result = paymentService.searchMyPayments(dateQuery);
+      PaginatedInfo<SearchPaymentsInfo> result = paymentService.searchMyPayments(dateQuery);
 
       // then
       assertThat(result).isNotNull();
       assertThat(result.content()).hasSize(1);
       assertThat(result.content().get(0).paymentUuid()).isEqualTo("payment-recent");
 
-      ArgumentCaptor<SearchMyPaymentsCriteria> criteriaCaptor =
-          ArgumentCaptor.forClass(SearchMyPaymentsCriteria.class);
-      verify(paymentRepository).searchMyPayments(criteriaCaptor.capture());
+      ArgumentCaptor<SearchPaymentsCriteria> criteriaCaptor =
+          ArgumentCaptor.forClass(SearchPaymentsCriteria.class);
+      verify(paymentRepository).searchPayments(criteriaCaptor.capture());
 
-      SearchMyPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
+      SearchPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
       assertThat(capturedCriteria.startDate()).isEqualTo(specificStartDate);
       assertThat(capturedCriteria.endDate()).isEqualTo(specificEndDate);
     }
@@ -764,31 +755,29 @@ class PaymentServiceImplTest {
           .size(10)
           .build();
 
-      // 식당별 검색 결과 모킹
-      List<SearchMyPaymentsResult> restaurantResults = List.of(
+      List<SearchPaymentsResult> restaurantResults = List.of(
           createSearchMyPaymentsResult("payment-restaurant", userId, "reservation-restaurant")
       );
-      PaginatedResult<SearchMyPaymentsResult> restaurantPaginatedResult =
+      PaginatedResult<SearchPaymentsResult> restaurantPaginatedResult =
           new PaginatedResult<>(restaurantResults, 0, 10, 1L, 1);
 
-      when(paymentRepository.searchMyPayments(argThat(criteria ->
+      when(paymentRepository.searchPayments(argThat(criteria ->
           specificRestaurantId.equals(criteria.restaurantUuid()))))
           .thenReturn(restaurantPaginatedResult);
 
       // when
-      PaginatedInfo<SearchMyPaymentsInfo> result = paymentService.searchMyPayments(restaurantQuery);
+      PaginatedInfo<SearchPaymentsInfo> result = paymentService.searchMyPayments(restaurantQuery);
 
       // then
       assertThat(result).isNotNull();
       assertThat(result.content()).hasSize(1);
       assertThat(result.content().get(0).paymentUuid()).isEqualTo("payment-restaurant");
 
-      // 식당 필터 검증
-      ArgumentCaptor<SearchMyPaymentsCriteria> criteriaCaptor =
-          ArgumentCaptor.forClass(SearchMyPaymentsCriteria.class);
-      verify(paymentRepository).searchMyPayments(criteriaCaptor.capture());
+      ArgumentCaptor<SearchPaymentsCriteria> criteriaCaptor =
+          ArgumentCaptor.forClass(SearchPaymentsCriteria.class);
+      verify(paymentRepository).searchPayments(criteriaCaptor.capture());
 
-      SearchMyPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
+      SearchPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
       assertThat(capturedCriteria.restaurantUuid()).isEqualTo(specificRestaurantId);
     }
   }

@@ -3,7 +3,7 @@ package table.eat.now.payment.payment.domain.repository.search;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record SearchMyPaymentsResult(
+public record SearchPaymentsResult(
     String paymentUuid,
     Long customerId,
     String paymentKey,

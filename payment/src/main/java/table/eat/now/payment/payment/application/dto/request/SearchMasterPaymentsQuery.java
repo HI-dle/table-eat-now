@@ -6,7 +6,7 @@ import table.eat.now.payment.payment.domain.entity.PaymentStatus;
 import table.eat.now.payment.payment.domain.repository.search.SearchPaymentsCriteria;
 
 @Builder
-public record SearchMyPaymentsQuery(
+public record SearchMasterPaymentsQuery(
     String restaurantUuid,
     String paymentStatus,
     LocalDate startDate,
@@ -17,7 +17,6 @@ public record SearchMyPaymentsQuery(
     int page,
     int size
 ) {
-
   public SearchPaymentsCriteria toCriteria() {
     return SearchPaymentsCriteria.builder()
         .restaurantUuid(restaurantUuid)

@@ -78,28 +78,34 @@ X-User-Id: 123
 X-User-Role: CUSTOMER
 
 ### 내 결제 목록 조회 (결제 상태별 필터링)
-GET http://localhost:8088/api/v1/payments/my?paymentStatus=APPROVED
+GET http://localhost:8088/api/v1/payments/my?paymentStatus=PENDING
 Content-Type: application/json
 X-User-Id: 123
 X-User-Role: CUSTOMER
 
 ### 내 결제 목록 조회 (날짜 범위 필터링)
-GET http://localhost:8088/api/v1/payments/my?startDate=2025-03-01&endDate=2025-04-16
+GET http://localhost:8088/api/v1/payments/my?startDate=2025-03-01&endDate=2025-04-17
 Content-Type: application/json
 X-User-Id: 123
 X-User-Role: CUSTOMER
 
 ### 내 결제 목록 조회 (모든 필터 조합)
-GET http://localhost:8088/api/v1/payments/my?restaurantUuid=00000&paymentStatus=APPROVED&startDate=2025-03-01&endDate=2025-04-16&orderBy=createdAt&sort=desc&page=0&size=10
+GET http://localhost:8088/api/v1/payments/my?paymentStatus=APPROVED&startDate=2025-03-01&endDate=2025-04-16&orderBy=createdAt&sort=desc&page=0&size=10
 Content-Type: application/json
 X-User-Id: 123
 X-User-Role: CUSTOMER
 
-### 관리자 권한으로 내 결제 목록 조회
-GET http://localhost:8088/api/v1/payments/my
+### 관리자 권한으로 결제 목록 조회 (필터링)
+GET http://localhost:8088/admin/v1/payments?userId=567
 Content-Type: application/json
 X-User-Id: 456
 X-User-Role: MASTER
+
+### 사용자 권한으로 관리자 결제 목록 조회 (예외)
+GET http://localhost:8088/admin/v1/payments
+Content-Type: application/json
+X-User-Id: 456
+X-User-Role: CUSTOMER
 
 ### 잘못된 날짜 형식으로 요청 (에러 테스트)
 GET http://localhost:8088/api/v1/payments/my?startDate=invalid-date

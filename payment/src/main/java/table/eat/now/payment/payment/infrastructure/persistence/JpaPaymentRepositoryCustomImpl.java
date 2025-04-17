@@ -13,8 +13,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import table.eat.now.payment.payment.domain.entity.PaymentStatus;
 import table.eat.now.payment.payment.domain.repository.search.PaginatedResult;
-import table.eat.now.payment.payment.domain.repository.search.SearchMyPaymentsCriteria;
-import table.eat.now.payment.payment.domain.repository.search.SearchMyPaymentsResult;
+import table.eat.now.payment.payment.domain.repository.search.SearchPaymentsCriteria;
+import table.eat.now.payment.payment.domain.repository.search.SearchPaymentsResult;
 
 @RequiredArgsConstructor
 public class JpaPaymentRepositoryCustomImpl implements JpaPaymentRepositoryCustom {
@@ -22,12 +22,11 @@ public class JpaPaymentRepositoryCustomImpl implements JpaPaymentRepositoryCusto
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public PaginatedResult<SearchMyPaymentsResult> searchMyPayments(
-      SearchMyPaymentsCriteria criteria) {
-    BooleanExpression whereCondition = buildMyWhereCondition(criteria);
+  public PaginatedResult<SearchPaymentsResult> searchPayments(SearchPaymentsCriteria criteria) {
+    BooleanExpression whereCondition = buildWhereCondition(criteria);
 
-    List<SearchMyPaymentsResult> content = queryFactory
-        .select(Projections.constructor(SearchMyPaymentsResult.class,
+    List<SearchPaymentsResult> content = queryFactory
+        .select(Projections.constructor(SearchPaymentsResult.class,
             payment.identifier.paymentUuid,
             payment.reference.customerId,
             payment.paymentKey,
@@ -70,7 +69,7 @@ public class JpaPaymentRepositoryCustomImpl implements JpaPaymentRepositoryCusto
     return count != null ? count : 0L;
   }
 
-  private BooleanExpression buildMyWhereCondition(SearchMyPaymentsCriteria criteria) {
+  private BooleanExpression buildWhereCondition(SearchPaymentsCriteria criteria) {
     return payment.deletedAt.isNull()
         .and(restaurantIdEquals(criteria.restaurantUuid()))
         .and(paymentStatusEquals((criteria.paymentStatus())))

@@ -3,10 +3,10 @@ package table.eat.now.payment.payment.presentation.dto.response;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Builder;
-import table.eat.now.payment.payment.application.dto.response.SearchMyPaymentsInfo;
+import table.eat.now.payment.payment.application.dto.response.SearchPaymentsInfo;
 
 @Builder
-public record SearchMyPaymentsResponse(
+public record SearchPaymentsResponse(
     String paymentUuid,
     Long customerId,
     String paymentKey,
@@ -22,8 +22,8 @@ public record SearchMyPaymentsResponse(
     LocalDateTime cancelledAt
 ) {
 
-  public static SearchMyPaymentsResponse from(SearchMyPaymentsInfo info) {
-    return SearchMyPaymentsResponse.builder()
+  public static SearchPaymentsResponse from(SearchPaymentsInfo info) {
+    return SearchPaymentsResponse.builder()
         .paymentUuid(info.paymentUuid())
         .customerId(info.customerId())
         .paymentKey(info.paymentKey())

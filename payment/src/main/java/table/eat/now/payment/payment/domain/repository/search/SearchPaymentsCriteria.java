@@ -5,7 +5,7 @@ import lombok.Builder;
 import table.eat.now.payment.payment.domain.entity.PaymentStatus;
 
 @Builder
-public record SearchMyPaymentsCriteria(
+public record SearchPaymentsCriteria(
     String restaurantUuid,
     PaymentStatus paymentStatus,
     LocalDate startDate,
