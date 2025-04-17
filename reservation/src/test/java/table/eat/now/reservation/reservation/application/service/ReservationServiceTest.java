@@ -2184,7 +2184,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .reservationUuid(confirmedReservation.getReservationUuid())
           .cancelRequestDateTime(
               confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusDays(1))
-          .requesterId(confirmedReservation.getRestaurantDetails().getOwnerId() - 1) // 잘못된 ID
+          .requesterId(confirmedReservation.getRestaurantDetails().getOwnerId() - 10000L) // 잘못된 ID
           .userRole(UserRole.OWNER)
           .reason("황하온의 변덕")
           .build();
@@ -2203,7 +2203,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .reservationUuid(confirmedReservation.getReservationUuid())
           .cancelRequestDateTime(
               confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusDays(1))
-          .requesterId(confirmedReservation.getRestaurantDetails().getStaffId() - 1) // 잘못된 ID
+          .requesterId(confirmedReservation.getRestaurantDetails().getStaffId() - 10000L) // 잘못된 ID
           .userRole(UserRole.STAFF)
           .reason("강혜주의 바쁜 그녀")
           .build();
@@ -2222,7 +2222,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .reservationUuid(confirmedReservation.getReservationUuid())
           .cancelRequestDateTime(
               confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusDays(1))
-          .requesterId(confirmedReservation.getReserverId() - 1) // 잘못된 ID
+          .requesterId(confirmedReservation.getReserverId() + 10000L) // 잘못된 ID
           .userRole(UserRole.CUSTOMER)
           .reason("박지은의 잠옴")
           .build();
