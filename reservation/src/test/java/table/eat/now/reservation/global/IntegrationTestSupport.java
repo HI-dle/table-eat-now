@@ -7,6 +7,7 @@ package table.eat.now.reservation.global;
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestConstructor;
@@ -39,6 +40,9 @@ public abstract class IntegrationTestSupport {
 
   @MockitoBean
   protected RestaurantClient restaurantClient;
+
+  @MockitoBean
+  protected ApplicationEventPublisher eventPublisher;
 
   @AfterEach
   void tearDown() {
