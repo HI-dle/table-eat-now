@@ -16,7 +16,6 @@ import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -64,7 +63,6 @@ public class RestaurantTimeSlot extends BaseEntity {
     this.availableDate = availableDate;
     this.maxCapacity = maxCapacity;
     this.restaurant = restaurant;
-    this.restaurantTimeslotUuid = UUID.randomUUID().toString();
     this.timeslot = timeslot;
     this.curTotalGuestCount = 0;
   }
