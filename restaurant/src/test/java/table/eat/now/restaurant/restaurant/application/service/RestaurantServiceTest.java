@@ -1182,7 +1182,7 @@ class RestaurantServiceTest extends IntegrationTestSupport {
       RestaurantMenu willDeleteMenu = RestaurantMenuFixture.createRandom();
       RestaurantTimeSlot willModifyTimeSlot = RestaurantTimeSlotFixture.createRandom();
       RestaurantTimeSlot willDeleteTimeSlot = RestaurantTimeSlotFixture.createRandom();
-      ReflectionTestUtils.setField(willDeleteTimeSlot, "curTotalGuestCount", 20);
+      ReflectionTestUtils.setField(willModifyTimeSlot, "curTotalGuestCount", 20);
       Set<RestaurantMenu> menus = Set.of(willModifyMenu, willDeleteMenu);
       Set<RestaurantTimeSlot> timeSlots = Set.of(willModifyTimeSlot, willDeleteTimeSlot);
       Restaurant savedRestaurant = restaurantRepository.save(
