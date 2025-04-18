@@ -170,7 +170,7 @@ public class Restaurant extends BaseEntity {
 
   public boolean isEditableBy(Long userId, UserRole userRole) {
     if(userRole == UserRole.MASTER) return true;
-    if(userRole == UserRole.OWNER && userId == ownerId) return true;
+    if(userRole == UserRole.OWNER && userId.equals(ownerId)) return true;
     return false;
   }
 
