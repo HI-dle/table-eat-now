@@ -33,7 +33,7 @@ class ReviewSchedulerTest {
       reviewScheduler.updateRestaurantRatings();
 
       // then
-      verify(updateRestaurantRatingUseCase, times(1)).execute(batchSize);
+      verify(updateRestaurantRatingUseCase, times(1)).execute();
     }
 
     @Test
@@ -43,13 +43,13 @@ class ReviewSchedulerTest {
       ReflectionTestUtils.setField(reviewScheduler, "batchSize", batchSize);
 
       doThrow(new RuntimeException("Test exception"))
-          .when(updateRestaurantRatingUseCase).execute(batchSize);
+          .when(updateRestaurantRatingUseCase).execute();
 
       // when
       reviewScheduler.updateRestaurantRatings();
 
       // then
-      verify(updateRestaurantRatingUseCase, times(1)).execute(batchSize);
+      verify(updateRestaurantRatingUseCase, times(1)).execute();
     }
   }
 }

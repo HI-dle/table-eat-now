@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import table.eat.now.review.application.event.RestaurantRatingUpdateEvent;
 import table.eat.now.review.application.event.ReviewEventPublisher;
@@ -28,6 +29,9 @@ import table.eat.now.review.domain.repository.search.RestaurantRatingResult;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@TestPropertySource(properties = {
+    "review.rating.update.batch-size=3"
+})
 class UpdateRestaurantRatingUseCaseTest {
 
   @MockitoBean
@@ -49,7 +53,7 @@ class UpdateRestaurantRatingUseCaseTest {
           .thenReturn(0L);
 
       // when
-      updateRestaurantRatingUseCase.execute(100);
+      updateRestaurantRatingUseCase.execute();
 
       // then
       verify(reviewRepository, times(1))
@@ -116,7 +120,7 @@ class UpdateRestaurantRatingUseCaseTest {
       when(reviewRepository.calculateRestaurantRatings(batch3)).thenReturn(result3);
 
       // when
-      updateRestaurantRatingUseCase.execute(batchSize);
+      updateRestaurantRatingUseCase.execute();
 
       // then
       verify(reviewRepository)
@@ -135,7 +139,7 @@ class UpdateRestaurantRatingUseCaseTest {
     @Test
     void 평점계산_중_에러가_발생해도_나머지_식당은_계속_처리한다() {
       // given
-      int batchSize = 1;
+      int batchSize = 3;
       List<String> batch1 = Collections.singletonList("1");
       List<String> batch2 = Collections.singletonList("2");
 
@@ -159,7 +163,7 @@ class UpdateRestaurantRatingUseCaseTest {
           .thenReturn(result2);
 
       // when
-      updateRestaurantRatingUseCase.execute(batchSize);
+      updateRestaurantRatingUseCase.execute();
 
       // then
       verify(reviewRepository, times(1))

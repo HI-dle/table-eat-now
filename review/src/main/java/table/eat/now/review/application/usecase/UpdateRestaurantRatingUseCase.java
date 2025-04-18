@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.review.application.event.RestaurantRatingUpdateEvent;
@@ -19,13 +20,15 @@ import table.eat.now.review.domain.repository.search.RestaurantRatingResult;
 @RequiredArgsConstructor
 public class UpdateRestaurantRatingUseCase {
 
+  @Value("${review.rating.update.batch-size}")
+  private int batchSize;
   private static final int RECENT_MINUTES = 5;
 
   private final ReviewRepository reviewRepository;
   private final ReviewEventPublisher reviewEventPublisher;
 
   @Transactional(readOnly = true)
-  public void execute(int batchSize) {
+  public void execute() {
     LocalDateTime updatedAfter = LocalDateTime.now().minusMinutes(RECENT_MINUTES);
     long totalCount = reviewRepository.countRecentlyUpdatedRestaurants(updatedAfter);
 
