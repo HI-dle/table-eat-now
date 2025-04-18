@@ -23,6 +23,17 @@ public class RestaurantMenuFixture {
         .collect(Collectors.toSet());
   }
 
+  public static RestaurantMenu createRandom(){
+    Long num = LongIdGenerator.makeLong();
+    return RestaurantMenuFixture.create(
+        UUID.randomUUID().toString(),
+        "name" + num,
+        BigDecimal.valueOf(num * 1000),
+        null,
+        MenuStatus.INACTIVE
+    );
+  }
+
   public static RestaurantMenu createRandomByStatus(MenuStatus status){
     Long num = LongIdGenerator.makeLong();
     return RestaurantMenuFixture.create(
