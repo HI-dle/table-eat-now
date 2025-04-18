@@ -87,13 +87,13 @@ public class UpdateRestaurantRatingUseCase {
     }
 
     private void processRestaurantBatch(List<String> batch) {
-      List<String> uniqueIds = extractUniqueRestaurants(batch);
+      List<String> uniqueIds = extractUniqueRestaurantIds(batch);
       if (!uniqueIds.isEmpty()) {
         updateAndPublishRatings(uniqueIds);
       }
     }
 
-    private List<String> extractUniqueRestaurants(List<String> restaurantIds) {
+    private List<String> extractUniqueRestaurantIds(List<String> restaurantIds) {
       return restaurantIds.stream()
           .filter(id -> !processedIds.contains(id))
           .map(id -> {
