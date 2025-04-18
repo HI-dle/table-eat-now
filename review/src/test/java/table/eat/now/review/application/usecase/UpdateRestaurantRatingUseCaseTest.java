@@ -49,7 +49,8 @@ class UpdateRestaurantRatingUseCaseTest {
     @Test
     void 업데이트할_식당이_없으면_아무_처리도_하지_않는다() {
       // given
-      when(reviewRepository.countRecentlyUpdatedRestaurants(any(LocalDateTime.class)))
+      when(reviewRepository.countRecentlyUpdatedRestaurants(
+          any(LocalDateTime.class),any(LocalDateTime.class)))
           .thenReturn(0L);
 
       // when
@@ -57,10 +58,12 @@ class UpdateRestaurantRatingUseCaseTest {
 
       // then
       verify(reviewRepository, times(1))
-          .countRecentlyUpdatedRestaurants(any(LocalDateTime.class));
+          .countRecentlyUpdatedRestaurants(
+              any(LocalDateTime.class),any(LocalDateTime.class));
 
       verify(reviewRepository, never())
-          .findRecentlyUpdatedRestaurantIds(any(), anyLong(), anyInt());
+          .findRecentlyUpdatedRestaurantIds(
+              any(LocalDateTime.class),any(LocalDateTime.class), anyLong(), anyInt());
 
       verify(reviewRepository, never())
           .calculateRestaurantRatings(anyList());
@@ -95,24 +98,25 @@ class UpdateRestaurantRatingUseCaseTest {
       );
 
       // 스텁 설정
-      when(reviewRepository.countRecentlyUpdatedRestaurants(any(LocalDateTime.class)))
+      when(reviewRepository.countRecentlyUpdatedRestaurants(
+          any(LocalDateTime.class),any(LocalDateTime.class)))
           .thenReturn(7L);
 
       when(reviewRepository
           .findRecentlyUpdatedRestaurantIds(
-              any(LocalDateTime.class), eq(0L), eq(batchSize)))
+              any(LocalDateTime.class),any(LocalDateTime.class), eq(0L), eq(batchSize)))
           .thenReturn(batch1);
       when(reviewRepository
           .findRecentlyUpdatedRestaurantIds(
-              any(LocalDateTime.class), eq(3L), eq(batchSize)))
+              any(LocalDateTime.class),any(LocalDateTime.class), eq(3L), eq(batchSize)))
           .thenReturn(batch2);
       when(reviewRepository
           .findRecentlyUpdatedRestaurantIds(
-              any(LocalDateTime.class), eq(6L), eq(batchSize)))
+              any(LocalDateTime.class),any(LocalDateTime.class), eq(6L), eq(batchSize)))
           .thenReturn(batch3);
       when(reviewRepository
           .findRecentlyUpdatedRestaurantIds(
-              any(LocalDateTime.class), eq(7L), eq(batchSize)))
+              any(LocalDateTime.class),any(LocalDateTime.class), eq(7L), eq(batchSize)))
           .thenReturn(Collections.emptyList());
 
       when(reviewRepository.calculateRestaurantRatings(batch1)).thenReturn(result1);
@@ -124,10 +128,11 @@ class UpdateRestaurantRatingUseCaseTest {
 
       // then
       verify(reviewRepository)
-          .countRecentlyUpdatedRestaurants(any(LocalDateTime.class));
+          .countRecentlyUpdatedRestaurants(any(LocalDateTime.class),any(LocalDateTime.class));
 
       verify(reviewRepository, times(3))
-          .findRecentlyUpdatedRestaurantIds(any(LocalDateTime.class), anyLong(), eq(batchSize));
+          .findRecentlyUpdatedRestaurantIds(
+              any(LocalDateTime.class),any(LocalDateTime.class), anyLong(), eq(batchSize));
 
       verify(reviewRepository, times(3))
           .calculateRestaurantRatings(anyList());
@@ -147,14 +152,18 @@ class UpdateRestaurantRatingUseCaseTest {
           new RestaurantRatingResult("2", new BigDecimal("4.0"))
       );
 
-      when(reviewRepository.countRecentlyUpdatedRestaurants(any(LocalDateTime.class)))
+      when(reviewRepository.countRecentlyUpdatedRestaurants(
+          any(LocalDateTime.class),any(LocalDateTime.class)))
           .thenReturn(2L);
 
-      when(reviewRepository.findRecentlyUpdatedRestaurantIds(any(LocalDateTime.class), eq(0L),
+      when(reviewRepository.findRecentlyUpdatedRestaurantIds(
+          any(LocalDateTime.class),any(LocalDateTime.class), eq(0L),
           eq(batchSize))).thenReturn(batch1);
-      when(reviewRepository.findRecentlyUpdatedRestaurantIds(any(LocalDateTime.class), eq(1L),
+      when(reviewRepository.findRecentlyUpdatedRestaurantIds(
+          any(LocalDateTime.class),any(LocalDateTime.class), eq(1L),
           eq(batchSize))).thenReturn(batch2);
-      when(reviewRepository.findRecentlyUpdatedRestaurantIds(any(LocalDateTime.class), eq(2L),
+      when(reviewRepository.findRecentlyUpdatedRestaurantIds(any(
+          LocalDateTime.class),any(LocalDateTime.class), eq(2L),
           eq(batchSize))).thenReturn(Collections.emptyList());
 
       when(reviewRepository.calculateRestaurantRatings(eq(batch1)))
@@ -167,10 +176,11 @@ class UpdateRestaurantRatingUseCaseTest {
 
       // then
       verify(reviewRepository, times(1))
-          .countRecentlyUpdatedRestaurants(any(LocalDateTime.class));
+          .countRecentlyUpdatedRestaurants(any(LocalDateTime.class),any(LocalDateTime.class));
 
       verify(reviewRepository, times(2))
-          .findRecentlyUpdatedRestaurantIds(any(LocalDateTime.class), anyLong(), eq(batchSize));
+          .findRecentlyUpdatedRestaurantIds(
+              any(LocalDateTime.class),any(LocalDateTime.class), anyLong(), eq(batchSize));
 
       verify(reviewRepository, times(2))
           .calculateRestaurantRatings(anyList());

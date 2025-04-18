@@ -29,8 +29,10 @@ public class UpdateRestaurantRatingUseCase {
 
   @Transactional(readOnly = true)
   public void execute() {
-    LocalDateTime updatedAfter = LocalDateTime.now().minusMinutes(RECENT_MINUTES);
-    long totalCount = reviewRepository.countRecentlyUpdatedRestaurants(updatedAfter);
+    LocalDateTime startTime = LocalDateTime.now().minusMinutes(RECENT_MINUTES);
+    LocalDateTime endTime = LocalDateTime.now();
+
+    long totalCount = getRecentlyUpdatedRestaurantCounts(startTime, endTime);
 
     if (totalCount == 0) {
       logNoRestaurantsToUpdate();
@@ -38,8 +40,14 @@ public class UpdateRestaurantRatingUseCase {
     }
 
     logStartBatchUpdate(totalCount);
-    BatchProcessor processor = new BatchProcessor(totalCount, batchSize, updatedAfter);
+    BatchProcessor processor =
+        new BatchProcessor(totalCount, batchSize, startTime, endTime);
     processor.process();
+  }
+
+  private long getRecentlyUpdatedRestaurantCounts(
+      LocalDateTime startTime, LocalDateTime endTime) {
+    return reviewRepository.countRecentlyUpdatedRestaurants(startTime, endTime);
   }
 
   private void logNoRestaurantsToUpdate() {
@@ -51,16 +59,20 @@ public class UpdateRestaurantRatingUseCase {
   }
 
   private class BatchProcessor {
+
     private final long totalCount;
     private final int batchSize;
-    private final LocalDateTime updatedAfter;
+    private final LocalDateTime startTime;
+    private final LocalDateTime endTime;
     private final Set<String> processedIds;
     private long processedCount;
 
-    BatchProcessor(long totalCount, int batchSize, LocalDateTime updatedAfter) {
+    BatchProcessor(
+        long totalCount, int batchSize, LocalDateTime startTime, LocalDateTime endTime) {
       this.totalCount = totalCount;
       this.batchSize = batchSize;
-      this.updatedAfter = updatedAfter;
+      this.startTime = startTime;
+      this.endTime = endTime;
       this.processedIds = new HashSet<>();
       this.processedCount = 0;
     }
@@ -86,7 +98,7 @@ public class UpdateRestaurantRatingUseCase {
 
     private List<String> fetchBatch() {
       return reviewRepository
-          .findRecentlyUpdatedRestaurantIds(updatedAfter, processedCount, batchSize);
+          .findRecentlyUpdatedRestaurantIds(startTime, endTime, processedCount, batchSize);
     }
 
     private void processRestaurantBatch(List<String> batch) {

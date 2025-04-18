@@ -28,23 +28,28 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
 
   @Override
   public List<String> findRecentlyUpdatedRestaurantIds
-      (LocalDateTime updatedAfter, long offset, int limit) {
+      (LocalDateTime startTime, LocalDateTime endTime, long offset, int limit) {
     return queryFactory
         .select(review.reference.restaurantId)
         .from(review)
-        .where(review.updatedAt.goe(updatedAfter))
+        .where(betweenUpdatedAt(startTime, endTime))
         .groupBy(review.reference.restaurantId)
         .offset(offset)
         .limit(limit)
         .fetch();
   }
 
+  private BooleanExpression betweenUpdatedAt(
+      LocalDateTime startTime, LocalDateTime endTime) {
+    return review.updatedAt.goe(startTime).and(review.updatedAt.loe(endTime));
+  }
+
   @Override
-  public long countRecentlyUpdatedRestaurants(LocalDateTime updatedAfter) {
+  public long countRecentlyUpdatedRestaurants(LocalDateTime startTime, LocalDateTime endTime) {
     Long count = queryFactory
         .select(review.reference.restaurantId.countDistinct())
         .from(review)
-        .where(review.updatedAt.goe(updatedAfter))
+        .where(betweenUpdatedAt(startTime, endTime))
         .fetchOne();
 
     return count != null ? count : 0L;
