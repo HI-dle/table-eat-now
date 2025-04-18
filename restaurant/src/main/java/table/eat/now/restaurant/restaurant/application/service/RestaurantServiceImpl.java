@@ -127,7 +127,8 @@ public class RestaurantServiceImpl implements RestaurantService {
 
   private static void modifyMenus(ModifyRestaurantCommand command, Restaurant restaurant) {
     // 메뉴 수정 처리
-    Map<String, MenuCommand> menuMap = command.menus().stream()
+    Map<String, MenuCommand> menuMap = Optional.ofNullable(command.menus())
+        .orElseGet(java.util.List::of).stream()
         .collect(Collectors.toMap(
             m -> Optional.ofNullable(m.restaurantMenuUuid()).orElse(UUID.randomUUID().toString()),
             m -> m
