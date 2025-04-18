@@ -16,6 +16,7 @@ import table.eat.now.notification.application.dto.response.CreateNotificationInf
 import table.eat.now.notification.application.dto.response.GetNotificationInfo;
 import table.eat.now.notification.application.dto.response.NotificationSearchInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
+import table.eat.now.notification.application.event.dto.NotificationSendEvent;
 import table.eat.now.notification.application.exception.NotificationErrorCode;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategy;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategySelector;
@@ -24,6 +25,9 @@ import table.eat.now.notification.application.strategy.NotificationTemplate;
 import table.eat.now.notification.application.strategy.send.NotificationSenderStrategy;
 import table.eat.now.notification.application.strategy.send.NotificationSenderStrategySelector;
 import table.eat.now.notification.domain.entity.Notification;
+import table.eat.now.notification.domain.entity.NotificationMethod;
+import table.eat.now.notification.domain.entity.NotificationStatus;
+import table.eat.now.notification.domain.entity.NotificationType;
 import table.eat.now.notification.domain.repository.NotificationRepository;
 
 /**
@@ -109,8 +113,53 @@ public class NotificationServiceImpl implements NotificationService{
     notification.modifyNotificationStatusIsSent();
   }
 
+  //일부러 리팩토링할 생각하고 엄청 단순히 짰습니다..!
+  @Override
+  @Transactional
+  public void consumerNotification(NotificationSendEvent notificationSendEvent) {
+    if (notificationSendEvent.payload().scheduledTime() != null) {
+      hasScheduleTimeToSaveNotification(notificationSendEvent);
+    } else {
 
+      Notification notification = Notification.of(
+          notificationSendEvent.userInfoDto().userId(),
+          NotificationType.valueOf(notificationSendEvent.payload().notificationType()),
+          notificationSendEvent.payload().customerName(),
+          notificationSendEvent.payload().reservationTime(),
+          notificationSendEvent.payload().restaurantName(),
+          NotificationStatus.PENDING,
+          NotificationMethod.valueOf(notificationSendEvent.payload().notificationMethod()),
+          null
+      );
 
+      NotificationFormatterStrategy strategy =
+          formatterSelector.select(notification.getNotificationType());
+
+      Map<String, String> params = paramExtractor.extract(notification);
+
+      NotificationTemplate formattedMessage = strategy.format(params);
+
+      NotificationSenderStrategy senderStrategy = sendSelector.select(
+          notification.getNotificationMethod());
+
+      senderStrategy.send(notification.getUserId(), formattedMessage);
+
+      notification.modifyNotificationStatusIsSent();
+    }
+  }
+
+  private void hasScheduleTimeToSaveNotification(NotificationSendEvent notificationSendEvent) {
+    notificationRepository.save(Notification.of(
+        notificationSendEvent.userInfoDto().userId(),
+        NotificationType.valueOf(notificationSendEvent.payload().notificationType()),
+        notificationSendEvent.payload().customerName(),
+        notificationSendEvent.payload().reservationTime(),
+        notificationSendEvent.payload().restaurantName(),
+        NotificationStatus.PENDING,
+        NotificationMethod.valueOf(notificationSendEvent.payload().notificationMethod()),
+        notificationSendEvent.payload().scheduledTime()
+    ));
+  }
 
 
   private Notification findByNotification(String notificationUuid) {

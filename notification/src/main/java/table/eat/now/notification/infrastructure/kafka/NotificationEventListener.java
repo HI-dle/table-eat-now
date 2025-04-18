@@ -19,6 +19,6 @@ public class NotificationEventListener {
       containerFactory = "sendNotificationEventKafkaListenerContainerFactory"
   )
   public void handleNotificationSend(NotificationSendEvent notificationSendEvent) {
-
+    notificationService.consumerNotification(notificationSendEvent);
   }
 }
