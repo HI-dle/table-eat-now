@@ -31,7 +31,7 @@ X-User-Id: 1
 X-User-Role: MASTER
 
 {
-  "name": "맛있는 식당",
+  "name": "내가 차린 식당",
   "address": "서울특별시 강남구 테헤란로 123",
   "contactNumber": "010-1234-5678",
   "openingAt": "2025-04-17T10:00:00",
@@ -43,13 +43,19 @@ X-User-Role: MASTER
   "menus": [
     {
       "restaurantMenuUuid": "2710145b-6523-470f-a85f-6fe0d6d8455a",
-      "name": "된장찌개3",
+      "name": "한지훈이 말아주는 된장찌개",
       "price": 9000,
       "status": "INACTIVE"
     },
     {
       "restaurantMenuUuid": null,
-      "name": "김치찌개3",
+      "name": "강혜주표 3월 17일에 만든 고기 덮밥",
+      "price": 9000,
+      "status": "INACTIVE"
+    },
+    {
+      "restaurantMenuUuid": null,
+      "name": "황하온의 랜덤 음식",
       "price": 9000,
       "status": "INACTIVE"
     }
