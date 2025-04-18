@@ -65,7 +65,7 @@ public class RestaurantAdminController {
   public ResponseEntity<ModifyRestaurantResponse> modifyRestaurant(
       @CurrentUserInfo CurrentUserInfoDto userInfo,
       @PathVariable String restaurantUuid,
-      @RequestBody ModifyRestaurantRequest request) {
+      @Valid @RequestBody ModifyRestaurantRequest request) {
     ModifyRestaurantCommand command = request.toCommand(restaurantUuid, userInfo.userId(), userInfo.role());
     ModifyRestaurantInfo info = restaurantService.modifyRestaurant(command);
     return ResponseEntity.ok(ModifyRestaurantResponse.from(info));
