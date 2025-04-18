@@ -18,9 +18,9 @@ import table.eat.now.common.domain.BaseEntity;
     name = "p_review",
     indexes = {
         @Index(name = "idx_review_update_restaurant",
-            columnList = "updated_at,restaurant_id"),
+            columnList = "updated_at,restaurant_uuid"),
         @Index(name = "idx_review_restaurant_rating",
-            columnList = "restaurant_id,deleted_at,rating")
+            columnList = "restaurant_uuid,deleted_at,rating")
     }
 )
 public class Review extends BaseEntity {
