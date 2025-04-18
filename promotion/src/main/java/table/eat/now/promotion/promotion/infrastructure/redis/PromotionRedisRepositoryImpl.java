@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
 
   @Override
   public ParticipateResult addUserToPromotion(PromotionParticipant participant, int maxCount) {
+    //실행 부분은 Command 패턴으로, 아래 결과 값 분기는 Enum+정적 메서드패턴으로 리팩토링 예정
     PromotionUserCommand command = PromotionUserCommand.from(participant);
 
     String key = buildKey(command.promotionName());
@@ -55,7 +57,7 @@ public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
           command.promotionUuid()
 
       );
-      if (result == null || result == 0L) {
+      if (Objects.isNull(result)|| result == 0L) {
         return ParticipateResult.FAIL;
       }
       if (result == 2L) {
