@@ -9,7 +9,7 @@ public interface WaitingRequestRepository {
 
   boolean existsByConditionAndStatusIsWaitingAndDeletedAtIsNull(String dailyWaitingUuid, String phone);
 
-  boolean enqueueWaitingRequest(
+  Boolean enqueueWaitingRequest(
       String dailyWaitingUuid, String waitingRequestUuid, long epochMilli);
 
   WaitingRequest save(WaitingRequest waitingRequest);

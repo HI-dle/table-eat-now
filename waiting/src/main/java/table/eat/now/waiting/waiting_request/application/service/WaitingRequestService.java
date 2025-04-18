@@ -15,4 +15,6 @@ public interface WaitingRequestService {
       CurrentUserInfoDto userInfo, String waitingRequestUuid, String phone);
 
   GetWaitingRequestInfo getWaitingRequestAdmin(CurrentUserInfoDto userInfo, String string);
+
+  void postponeWaitingRequest(CurrentUserInfoDto userInfo, String waitingRequestUuid, String phone);
 }
