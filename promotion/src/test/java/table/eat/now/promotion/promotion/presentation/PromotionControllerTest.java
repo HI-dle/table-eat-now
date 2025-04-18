@@ -60,8 +60,10 @@ class PromotionControllerTest {
   void promotion_uuid_find_controller_test() throws Exception {
     // given
     String promotionUuid = UUID.randomUUID().toString();
+    String couponUuid = UUID.randomUUID().toString();
     GetPromotionInfo info = new GetPromotionInfo(
         1L,
+        couponUuid,
         promotionUuid,
         "봄맞이 할인",
         "따뜻한 봄을 맞이하여 전 메뉴 2000원 할인",
@@ -86,6 +88,7 @@ class PromotionControllerTest {
     // then
     resultActions.andExpect(status().isOk())
         .andExpect(jsonPath("$.promotionId").value(1L))
+        .andExpect(jsonPath("$.couponUuid").value(couponUuid))
         .andExpect(jsonPath("$.promotionUuid").value(promotionUuid))
         .andExpect(jsonPath("$.promotionName").value("봄맞이 할인"))
         .andExpect(jsonPath("$.description").value("따뜻한 봄을 맞이하여 전 메뉴 2000원 할인"))
@@ -100,6 +103,7 @@ class PromotionControllerTest {
   @Test
   void search_promotions_controller_test() throws Exception {
     // given
+    String couponUuid = UUID.randomUUID().toString();
     SearchPromotionRequest request = new SearchPromotionRequest(
         "할인",
         "시즌",
@@ -118,6 +122,7 @@ class PromotionControllerTest {
 
     SearchPromotionInfo info1 = new SearchPromotionInfo(
         1L,
+        couponUuid,
         UUID.randomUUID().toString(),
         "봄맞이 할인",
         "봄 시즌 한정 할인",
@@ -130,6 +135,7 @@ class PromotionControllerTest {
 
     SearchPromotionInfo info2 = new SearchPromotionInfo(
         2L,
+        couponUuid,
         UUID.randomUUID().toString(),
         "여름맞이 할인",
         "여름 시즌 한정 할인",

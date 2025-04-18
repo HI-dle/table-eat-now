@@ -22,6 +22,7 @@ import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsC
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 import table.eat.now.promotion.promotion.application.event.PromotionEventPublisher;
+import table.eat.now.promotion.promotion.application.event.produce.PromotionUserCouponSaveEvent;
 import table.eat.now.promotion.promotion.application.event.produce.PromotionUserSaveEvent;
 import table.eat.now.promotion.promotion.application.event.produce.PromotionUserSavePayload;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
@@ -56,6 +57,7 @@ public class PromotionServiceImpl implements PromotionService{
   public UpdatePromotionInfo updatePromotion(UpdatePromotionCommand command, String promotionUuid) {
     Promotion promotion = findByPromotion(promotionUuid);
     promotion.modifyPromotion(
+        command.couponUuid(),
         command.promotionName(),
         command.description(),
         command.startTime(),
@@ -119,10 +121,10 @@ public class PromotionServiceImpl implements PromotionService{
     ParticipateResult participateResult = promotionRepository.addUserToPromotion(
         info.toDomain(), MaxParticipate.PARTICIPATE_10000_MAX);
 
-    return checkParticipate(info, participateResult);
+    return participateProcess(info, participateResult);
   }
 
-  private boolean checkParticipate(ParticipatePromotionUserInfo info,
+  private boolean participateProcess(ParticipatePromotionUserInfo info,
       ParticipateResult participateResult) {
     if (participateResult == ParticipateResult.FAIL) {
       return false;
@@ -134,11 +136,16 @@ public class PromotionServiceImpl implements PromotionService{
           .map(PromotionUserSavePayload::from)
           .toList();
 
-      promotionEventPublisher.publish(
-          PromotionUserSaveEvent.of(
-              savePayloadList, createCurrentUserInfoDto()));
-    }
+      PromotionUserSaveEvent promotionUserSaveEvent = PromotionUserSaveEvent.of(
+          savePayloadList, createCurrentUserInfoDto());
 
+      promotionEventPublisher.publish(promotionUserSaveEvent);
+
+      Promotion promotion = findByPromotion(info.promotionUuid());
+
+      promotionEventPublisher.publish(PromotionUserCouponSaveEvent.of(
+          promotionUserSaveEvent, promotion.getCouponUuid()));
+    }
     return true;
   }
 

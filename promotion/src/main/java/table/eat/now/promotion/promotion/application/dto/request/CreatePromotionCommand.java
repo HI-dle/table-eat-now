@@ -10,7 +10,8 @@ import table.eat.now.promotion.promotion.domain.entity.PromotionType;
  * @author : hanjihoon
  * @Date : 2025. 04. 08.
  */
-public record CreatePromotionCommand(String promotionName,
+public record CreatePromotionCommand(String couponUuid,
+                                     String promotionName,
                                      String description,
                                      LocalDateTime startTime,
                                      LocalDateTime endTime,
@@ -20,7 +21,7 @@ public record CreatePromotionCommand(String promotionName,
 
   public Promotion toEntity() {
     return Promotion.of(
-        promotionName, description, startTime, endTime,
+        couponUuid, promotionName, description, startTime, endTime,
         discountAmount, PromotionStatus.valueOf(promotionStatus),
         PromotionType.valueOf(promotionType));
   }

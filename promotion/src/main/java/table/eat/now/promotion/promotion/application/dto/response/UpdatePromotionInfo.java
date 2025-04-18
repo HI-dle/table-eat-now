@@ -11,6 +11,7 @@ import table.eat.now.promotion.promotion.domain.entity.Promotion;
  */
 @Builder
 public record UpdatePromotionInfo(Long promotionId,
+                                  String couponUuid,
                                   String promotionUuid,
                                   String promotionName,
                                   String description,
@@ -23,6 +24,7 @@ public record UpdatePromotionInfo(Long promotionId,
   public static UpdatePromotionInfo from(Promotion promotion) {
     return UpdatePromotionInfo.builder()
         .promotionId(promotion.getId())
+        .couponUuid(promotion.getCouponUuid())
         .promotionUuid(promotion.getPromotionUuid())
         .promotionName(promotion.getDetails().getPromotionName())
         .description(promotion.getDetails().getDescription())
