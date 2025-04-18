@@ -1,4 +1,4 @@
-package table.eat.now.review.infrastructure.persistence;
+package table.eat.now.review.infrastructure.persistence.jpa;
 
 import static table.eat.now.review.domain.entity.QReview.review;
 
@@ -7,6 +7,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -14,6 +15,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import table.eat.now.review.domain.entity.ServiceType;
 import table.eat.now.review.domain.repository.search.PaginatedResult;
+import table.eat.now.review.domain.repository.search.RestaurantRatingResult;
 import table.eat.now.review.domain.repository.search.SearchAdminReviewCriteria;
 import table.eat.now.review.domain.repository.search.SearchAdminReviewResult;
 import table.eat.now.review.domain.repository.search.SearchReviewCriteria;
@@ -23,6 +25,50 @@ import table.eat.now.review.domain.repository.search.SearchReviewResult;
 public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom {
 
   private final JPAQueryFactory queryFactory;
+
+  @Override
+  public List<String> findRecentlyUpdatedRestaurantIds
+      (LocalDateTime startTime, LocalDateTime endTime, long offset, int limit) {
+    return queryFactory
+        .select(review.reference.restaurantId)
+        .from(review)
+        .where(betweenUpdatedAt(startTime, endTime))
+        .groupBy(review.reference.restaurantId)
+        .orderBy(review.updatedAt.asc(), review.reference.restaurantId.asc())
+        .offset(offset)
+        .limit(limit)
+        .fetch();
+  }
+
+  private BooleanExpression betweenUpdatedAt(
+      LocalDateTime startTime, LocalDateTime endTime) {
+    return review.updatedAt.goe(startTime).and(review.updatedAt.loe(endTime));
+  }
+
+  @Override
+  public long countRecentlyUpdatedRestaurants(LocalDateTime startTime, LocalDateTime endTime) {
+    Long count = queryFactory
+        .select(review.reference.restaurantId.countDistinct())
+        .from(review)
+        .where(betweenUpdatedAt(startTime, endTime))
+        .fetchOne();
+
+    return count != null ? count : 0L;
+  }
+
+  @Override
+  public List<RestaurantRatingResult> calculateRestaurantRatings(List<String> restaurantIds) {
+    return queryFactory
+        .select(Projections.constructor(RestaurantRatingResult.class,
+            review.reference.restaurantId,
+            Expressions.numberTemplate(BigDecimal.class, "avg({0})", review.content.rating)
+        ))
+        .from(review)
+        .where(review.reference.restaurantId.in(restaurantIds)
+            .and(review.deletedAt.isNull()))
+        .groupBy(review.reference.restaurantId)
+        .fetch();
+  }
 
   @Override
   public PaginatedResult<SearchReviewResult> searchReviews(SearchReviewCriteria criteria) {
@@ -53,7 +99,8 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
   }
 
   @Override
-  public PaginatedResult<SearchAdminReviewResult> searchAdminReviews(SearchAdminReviewCriteria criteria) {
+  public PaginatedResult<SearchAdminReviewResult> searchAdminReviews(
+      SearchAdminReviewCriteria criteria) {
     BooleanExpression whereCondition = buildWhereAdminCondition(criteria);
 
     List<SearchAdminReviewResult> content = queryFactory
@@ -125,21 +172,21 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
     String accessibleRestaurantId = criteria.accessibleRestaurantId();
     boolean isMaster = criteria.isMaster();
 
-    if(isMaster && optionalVisibility != null) {
+    if (isMaster && optionalVisibility != null) {
       return optionalVisibility ?
           isVisible : isInvisible;
     }
 
-    if(isMaster) {
+    if (isMaster) {
       return null;
     }
 
-    if(accessibleRestaurantId != null && optionalVisibility != null) {
+    if (accessibleRestaurantId != null && optionalVisibility != null) {
       return optionalVisibility ? isVisible
           : isInvisible.and(filterByAccessibleRestaurantId(accessibleRestaurantId));
     }
 
-    if(accessibleRestaurantId != null) {
+    if (accessibleRestaurantId != null) {
       return isVisible.or(filterByAccessibleRestaurantId(accessibleRestaurantId));
     }
 
@@ -157,17 +204,17 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
       return isVisible;
     }
 
-    if(currentUserId.equals(targetUserId)) {
+    if (currentUserId.equals(targetUserId)) {
       return optionalVisibility == null ? null :
           optionalVisibility ? isVisible : isInvisible;
     }
 
-    if(targetUserId != null) {
+    if (targetUserId != null) {
       return optionalVisibility == null ? isVisible :
           optionalVisibility ? isVisible : Expressions.FALSE;
     }
 
-    if(optionalVisibility != null) {
+    if (optionalVisibility != null) {
       return optionalVisibility ?
           isVisible : isInvisible.and(filterByCurrentUser(currentUserId));
     }

@@ -47,6 +47,7 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   public CreateReviewInfo createReview(CreateReviewCommand command) {
     validateReference(command.toReviewReference());
+
     return CreateReviewInfo.from(reviewRepository.save(command.toEntity()));
   }
 
