@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.Getter;
@@ -13,7 +14,15 @@ import table.eat.now.common.domain.BaseEntity;
 
 @Getter
 @Entity
-@Table(name = "p_review")
+@Table(
+    name = "p_review",
+    indexes = {
+        @Index(name = "idx_review_update_restaurant",
+            columnList = "updated_at,restaurant_id"),
+        @Index(name = "idx_review_restaurant_rating",
+            columnList = "restaurant_id,deleted_at,rating")
+    }
+)
 public class Review extends BaseEntity {
 
   @Id
@@ -82,7 +91,7 @@ public class Review extends BaseEntity {
     super.delete(deletedBy);
   }
 
-  public String getRestaurantId(){
+  public String getRestaurantId() {
     return this.getReference().getRestaurantId();
   }
 
