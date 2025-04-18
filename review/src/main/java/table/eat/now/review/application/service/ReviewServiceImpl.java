@@ -57,7 +57,6 @@ public class ReviewServiceImpl implements ReviewService {
   private final WaitingClient waitingClient;
   private final ReservationClient reservationClient;
   private final RestaurantClient restaurantClient;
-  private final ReviewEventPublisher reviewEventPublisher;
 
   @Override
   public CreateReviewInfo createReview(CreateReviewCommand command) {
@@ -201,65 +200,5 @@ public class ReviewServiceImpl implements ReviewService {
   public void deleteReview(String reviewId, CurrentUserInfoDto userInfo) {
     findReview(reviewId)
         .delete(userInfo.userId(), userInfo.role().name());
-  }
-
-  @Transactional(readOnly = true)
-  public void updateRecentlyChangedRatings(int batchSize) {
-    LocalDateTime updatedAfter = LocalDateTime.now().minusMinutes(5);
-    long totalCount = getTotalUpdatedRestaurantCount(updatedAfter);
-    if (totalCount == 0) {
-      return;
-    }
-    log.info("총 {}개 레스토랑의 평점을 배치 단위로 업데이트합니다.", totalCount);
-    Set<String> processedRestaurantIds = new HashSet<>();
-    long processedCount = 0;
-    while (processedCount < totalCount) {
-      List<String> restaurantIdsList =
-          getRecentlyUpdatedRestaurantIds(batchSize, updatedAfter, processedCount);
-      if (restaurantIdsList.isEmpty()) {
-        break;
-      }
-      List<String> uniqueRestaurantIds = restaurantIdsList.stream()
-          .filter(id -> !processedRestaurantIds.contains(id))
-          .peek(processedRestaurantIds::add)
-          .collect(Collectors.toList());
-      if (uniqueRestaurantIds.isEmpty()) {
-        processedCount += restaurantIdsList.size();
-        continue;
-      }
-      try {
-        List<RestaurantRatingResult> results = getRestaurantRatingResults(uniqueRestaurantIds);
-        if (!results.isEmpty()) {
-          reviewEventPublisher.publish(
-              RestaurantRatingUpdateEvent.of(RestaurantRatingUpdatePayload.from(results)));
-          log.info("레스토랑 평점 일괄 업데이트 이벤트 발행: {}개", results.size());
-        }
-        processedCount += restaurantIdsList.size();
-        log.info("레스토랑 평점 업데이트 진행률: {}/{} (중복 제외 실제 처리: {}개)",
-            processedCount, totalCount, uniqueRestaurantIds.size());
-      } catch (Exception e) {
-        log.error("레스토랑 평점 업데이트 배치 처리 중 오류 발생: {}", e.getMessage(), e);
-        processedCount += restaurantIdsList.size();
-      }
-    }
-
-    log.info("레스토랑 평점 업데이트 작업 완료: 총 {}개 조회됨, 중복 제외 {}개 처리됨",
-        processedCount, processedRestaurantIds.size());
-  }
-
-  private List<String> getRecentlyUpdatedRestaurantIds(
-      int batchSize, LocalDateTime updatedAfter, long processedCount) {
-    return reviewRepository
-        .findRecentlyUpdatedRestaurantIds(updatedAfter, processedCount, batchSize);
-  }
-
-  private long getTotalUpdatedRestaurantCount(LocalDateTime updatedAfter) {
-    return reviewRepository.countRecentlyUpdatedRestaurants(updatedAfter);
-  }
-
-  private List<RestaurantRatingResult> getRestaurantRatingResults(
-      List<String> uniqueRestaurantIds) {
-    return reviewRepository
-        .calculateRestaurantRatings(uniqueRestaurantIds);
   }
 }

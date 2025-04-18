@@ -39,13 +39,11 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
         .fetch();
   }
 
-  @Override
   public long countRecentlyUpdatedRestaurants(LocalDateTime updatedAfter) {
     Long count = queryFactory
-        .select(review.count())
+        .select(review.reference.restaurantId.countDistinct())
         .from(review)
         .where(review.updatedAt.goe(updatedAfter))
-        .groupBy(review.reference.restaurantId)
         .fetchOne();
 
     return count != null ? count : 0L;
@@ -56,7 +54,8 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
     return queryFactory
         .select(Projections.constructor(RestaurantRatingResult.class,
             review.reference.restaurantId,
-            Expressions.numberTemplate(BigDecimal.class, "avg({0})", review.content.rating)
+            Expressions.numberTemplate(BigDecimal.class,
+                "ROUND(AVG({0})::numeric, 2)", review.content.rating)
         ))
         .from(review)
         .where(review.reference.restaurantId.in(restaurantIds)

@@ -28,6 +28,4 @@ public interface ReviewService {
   void deleteReview(String reviewId, CurrentUserInfoDto userInfo);
 
   PaginatedInfo<SearchAdminReviewInfo> searchAdminReviews(SearchAdminReviewQuery query, CurrentUserInfoDto userInfo);
-
-  void updateRecentlyChangedRatings(int batchSize);
 }
