@@ -21,9 +21,9 @@ public class ReviewScheduler {
   public void updateRestaurantRatings() {
     try {
       updateRestaurantRatingUseCase.execute(batchSize);
+      log.info("리뷰 평점 일괄 업데이트 작업 종료");
     } catch (Exception e) {
       log.error("평점 업데이트 작업 중 오류 발생: {}", e.getMessage(), e);
     }
-    log.info("리뷰 평점 일괄 업데이트 작업 종료");
   }
 }

@@ -10,11 +10,11 @@ import org.springframework.kafka.config.TopicBuilder;
 public class ReviewKafkaTopicConfig {
 
   private static final String REVIEW_TOPIC_NAME = "review-event";
-  @Value("${kafka.topic.review.partitions:3}")
+  @Value("${kafka-config.topic.partitions}")
   private int partitions;
-  @Value("${kafka.topic.review.replicas:3}")
+  @Value("${kafka-config.topic.replicas}")
   private int replicas;
-  @Value("${kafka.topic.review.min-insync-replicas:2}")
+  @Value("${kafka-config.topic.min-insync-replicas}")
   private String minInsyncReplicas;
 
   @Bean
