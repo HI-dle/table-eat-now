@@ -15,9 +15,24 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
+  kafka:
+    bootstrap-servers: ${LOCAL_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+kafka:
+  topic:
+    review:
+      partitions: 3
+      replicas: 3
+      min-insync-replicas: 2
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
 server:
   port: 8087
+
+review:
+  rating:
+    update:
+      cron: 0 */5 * * * *
+      batch-size: 1000
