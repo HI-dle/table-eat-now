@@ -10,16 +10,7 @@ import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_
 import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_NOT_FOUND;
 import static table.eat.now.review.application.exception.ReviewErrorCode.SERVICE_USER_MISMATCH;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
@@ -28,9 +19,6 @@ import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.review.application.client.ReservationClient;
 import table.eat.now.review.application.client.RestaurantClient;
 import table.eat.now.review.application.client.WaitingClient;
-import table.eat.now.review.application.event.RestaurantRatingUpdateEvent;
-import table.eat.now.review.application.event.RestaurantRatingUpdatePayload;
-import table.eat.now.review.application.event.ReviewEventPublisher;
 import table.eat.now.review.application.service.dto.request.CreateReviewCommand;
 import table.eat.now.review.application.service.dto.request.SearchAdminReviewQuery;
 import table.eat.now.review.application.service.dto.request.SearchReviewQuery;
@@ -46,11 +34,9 @@ import table.eat.now.review.domain.entity.Review;
 import table.eat.now.review.domain.entity.ReviewReference;
 import table.eat.now.review.domain.entity.ServiceType;
 import table.eat.now.review.domain.repository.ReviewRepository;
-import table.eat.now.review.domain.repository.search.RestaurantRatingResult;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class ReviewServiceImpl implements ReviewService {
 
   private final ReviewRepository reviewRepository;
