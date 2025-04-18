@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -86,5 +87,9 @@ public class RestaurantTimeSlot extends BaseEntity {
     this.availableDate = availableDate;
     this.timeslot = timeslot;
     this.maxCapacity = maxCapacity;
+  }
+
+  public boolean equalsDateTime(LocalDateTime dateTime) {
+    return LocalDateTime.of(availableDate, timeslot).equals(dateTime);
   }
 }

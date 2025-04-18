@@ -4,6 +4,7 @@
  */
 package table.eat.now.restaurant.restaurant.application.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
@@ -98,6 +99,9 @@ public class RestaurantServiceImpl implements RestaurantService {
   public ModifyRestaurantInfo modifyRestaurant(ModifyRestaurantCommand command) {
     Restaurant restaurant = getRestaurantByRestaurantUuidWithMenusAndTimeslots(
         command.restaurantUuid());
+    if(!restaurant.isEditableBy(command.requesterId(), command.requesterRole())){
+      throw CustomException.from(RestaurantErrorCode.NO_MODIFY_PERMISSION);
+    }
 
     // 레스토랑 정보 수정
     restaurant.modify(
@@ -155,7 +159,8 @@ public class RestaurantServiceImpl implements RestaurantService {
     //        .filter(ts -> ts.availableDate().isBefore(LocalDate.now().plusDays(101)));
     Map<String, TimeSlotCommand> timeSlotMap = command.timeslots().stream()
         .collect(Collectors.toMap(
-            t -> Optional.ofNullable(t.restaurantTimeslotUuid()).orElse(UUID.randomUUID().toString()),
+            t -> Optional.ofNullable(t.restaurantTimeslotUuid())
+                .orElse(UUID.randomUUID().toString()),
             t -> t
         ));
 
@@ -164,19 +169,24 @@ public class RestaurantServiceImpl implements RestaurantService {
       String timeSlotUuid = timeSlot.getRestaurantTimeslotUuid();
       if (!timeSlotMap.containsKey(timeSlotUuid)) {
         if (timeSlot.getCurTotalGuestCount() > 0) {
-          throw new IllegalStateException("예약 인원이 존재하는 타임슬롯은 삭제할 수 없습니다.");
+          throw CustomException.from(RestaurantTimeSlotErrorCode.CANNOT_DELETE_RESERVED_TIMESLOT);
         }
         timeSlot.delete(requesterId);
         continue;
       }
       TimeSlotCommand timeSlotCommand = timeSlotMap.get(timeSlotUuid);
 
-      if (timeSlot.getCurTotalGuestCount() > 0) {
-        throw new IllegalStateException("예약 인원이 있는 타임슬롯은 수정할 수 없습니다.");
+      LocalDateTime timeSlotCommandDateTime = LocalDateTime.of(timeSlotCommand.availableDate(),
+          timeSlotCommand.timeslot());
+      if (timeSlot.getCurTotalGuestCount() > 0
+          && !timeSlot.equalsDateTime(timeSlotCommandDateTime)) {
+        throw CustomException.from(
+            RestaurantTimeSlotErrorCode.CANNOT_MODIFY_DATETIME_WHEN_RESERVED_TIMESLOT);
       }
 
       if (timeSlotCommand.maxCapacity() < timeSlot.getCurTotalGuestCount()) {
-        throw new IllegalArgumentException("현재 예약 인원보다 수용 인원을 작게 설정할 수 없습니다.");
+        throw CustomException.from(
+            RestaurantTimeSlotErrorCode.MAX_CAPACITY_CANNOT_BE_LESS_THAN_CURRENT);
       }
 
       timeSlot.modify(
