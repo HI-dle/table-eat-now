@@ -188,5 +188,142 @@ class UpdateRestaurantRatingUseCaseTest {
       verify(reviewEventPublisher, times(1))
           .publish(any(RestaurantRatingUpdateEvent.class));
     }
+    @Test
+    void 중복된_레스토랑_ID는_한번만_처리한다() {
+      // given
+      int batchSize = 3;
+
+      List<String> batch1 = Arrays.asList("1", "2", "3");
+      List<String> batch2 = Arrays.asList("2", "3", "4");
+
+      List<RestaurantRatingResult> result1 = List.of(
+          new RestaurantRatingResult("1", new BigDecimal("4.5")),
+          new RestaurantRatingResult("2", new BigDecimal("3.2")),
+          new RestaurantRatingResult("3", new BigDecimal("4.0"))
+      );
+
+      List<RestaurantRatingResult> result2 = List.of(
+          new RestaurantRatingResult("4", new BigDecimal("3.8"))
+      );
+
+      when(reviewRepository.countRecentlyUpdatedRestaurants(
+          any(LocalDateTime.class), any(LocalDateTime.class)))
+          .thenReturn(5L);
+
+      when(reviewRepository.findRecentlyUpdatedRestaurantIds(
+          any(LocalDateTime.class), any(LocalDateTime.class), eq(0L), eq(batchSize)))
+          .thenReturn(batch1);
+      when(reviewRepository.findRecentlyUpdatedRestaurantIds(
+          any(LocalDateTime.class), any(LocalDateTime.class), eq(3L), eq(batchSize)))
+          .thenReturn(batch2);
+      when(reviewRepository.findRecentlyUpdatedRestaurantIds(
+          any(LocalDateTime.class), any(LocalDateTime.class), eq(5L), eq(batchSize)))
+          .thenReturn(Collections.emptyList());
+
+      when(reviewRepository.calculateRestaurantRatings(eq(Arrays.asList("1", "2", "3"))))
+          .thenReturn(result1);
+      when(reviewRepository.calculateRestaurantRatings(eq(Collections.singletonList("4"))))
+          .thenReturn(result2);
+
+      // when
+      updateRestaurantRatingUseCase.execute();
+
+      // then
+      verify(reviewRepository, times(1))
+          .countRecentlyUpdatedRestaurants(any(LocalDateTime.class), any(LocalDateTime.class));
+
+      verify(reviewRepository, times(2))
+          .findRecentlyUpdatedRestaurantIds(
+              any(LocalDateTime.class), any(LocalDateTime.class), anyLong(), eq(batchSize));
+
+      verify(reviewRepository).calculateRestaurantRatings(eq(Arrays.asList("1", "2", "3")));
+      verify(reviewRepository).calculateRestaurantRatings(eq(Collections.singletonList("4")));
+      verify(reviewRepository, times(2)).calculateRestaurantRatings(anyList());
+
+      verify(reviewEventPublisher, times(2))
+          .publish(any(RestaurantRatingUpdateEvent.class));
+    }
+
+    @Test
+    void 빈_결과가_반환되면_이벤트를_발행하지_않는다() {
+      // given
+      int batchSize = 3;
+      List<String> batch1 = Arrays.asList("1", "2", "3");
+
+      when(reviewRepository.countRecentlyUpdatedRestaurants(
+          any(LocalDateTime.class), any(LocalDateTime.class)))
+          .thenReturn(3L);
+
+      when(reviewRepository.findRecentlyUpdatedRestaurantIds(
+          any(LocalDateTime.class), any(LocalDateTime.class), eq(0L), eq(batchSize)))
+          .thenReturn(batch1);
+      when(reviewRepository.findRecentlyUpdatedRestaurantIds(
+          any(LocalDateTime.class), any(LocalDateTime.class), eq(3L), eq(batchSize)))
+          .thenReturn(Collections.emptyList());
+
+      when(reviewRepository.calculateRestaurantRatings(batch1))
+          .thenReturn(Collections.emptyList());
+
+      // when
+      updateRestaurantRatingUseCase.execute();
+
+      // then
+      verify(reviewRepository, times(1))
+          .countRecentlyUpdatedRestaurants(any(LocalDateTime.class), any(LocalDateTime.class));
+
+      verify(reviewRepository, times(1))
+          .findRecentlyUpdatedRestaurantIds(
+              any(LocalDateTime.class), any(LocalDateTime.class), anyLong(), eq(batchSize));
+
+      verify(reviewRepository, times(1))
+          .calculateRestaurantRatings(anyList());
+
+      verify(reviewEventPublisher, never())
+          .publish(any(RestaurantRatingUpdateEvent.class));
+    }
+
+    @Test
+    void 배치_처리_중_빈_배치가_반환되면_즉시_종료한다() {
+      // given
+      int batchSize = 3;
+      List<String> batch1 = Arrays.asList("1", "2", "3");
+
+      List<RestaurantRatingResult> result1 = List.of(
+          new RestaurantRatingResult("1", new BigDecimal("4.5")),
+          new RestaurantRatingResult("2", new BigDecimal("3.2")),
+          new RestaurantRatingResult("3", new BigDecimal("4.0"))
+      );
+
+      when(reviewRepository.countRecentlyUpdatedRestaurants(
+          any(LocalDateTime.class), any(LocalDateTime.class)))
+          .thenReturn(5L);
+
+      when(reviewRepository.findRecentlyUpdatedRestaurantIds(
+          any(LocalDateTime.class), any(LocalDateTime.class), eq(0L), eq(batchSize)))
+          .thenReturn(batch1);
+      when(reviewRepository.findRecentlyUpdatedRestaurantIds(
+          any(LocalDateTime.class), any(LocalDateTime.class), eq(3L), eq(batchSize)))
+          .thenReturn(Collections.emptyList());
+
+      when(reviewRepository.calculateRestaurantRatings(batch1))
+          .thenReturn(result1);
+
+      // when
+      updateRestaurantRatingUseCase.execute();
+
+      // then
+      verify(reviewRepository, times(1))
+          .countRecentlyUpdatedRestaurants(any(LocalDateTime.class), any(LocalDateTime.class));
+
+      verify(reviewRepository, times(2))
+          .findRecentlyUpdatedRestaurantIds(
+              any(LocalDateTime.class), any(LocalDateTime.class), anyLong(), eq(batchSize));
+
+      verify(reviewRepository, times(1))
+          .calculateRestaurantRatings(anyList());
+
+      verify(reviewEventPublisher, times(1))
+          .publish(any(RestaurantRatingUpdateEvent.class));
+    }
   }
 }
