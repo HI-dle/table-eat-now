@@ -91,7 +91,7 @@ public class UpdateRestaurantRatingUseCase {
       if (batch.isEmpty()) {
         return false;
       }
-      processRestaurantBatch(batch);
+      processRestaurantBatchUpdate(batch);
       processedCount += batch.size();
       return true;
     }
@@ -101,7 +101,7 @@ public class UpdateRestaurantRatingUseCase {
           .findRecentlyUpdatedRestaurantIds(startTime, endTime, processedCount, batchSize);
     }
 
-    private void processRestaurantBatch(List<String> batch) {
+    private void processRestaurantBatchUpdate(List<String> batch) {
       List<String> uniqueIds = extractUniqueRestaurantIds(batch);
       if (!uniqueIds.isEmpty()) {
         updateAndPublishRatings(uniqueIds);
