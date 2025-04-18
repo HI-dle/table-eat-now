@@ -96,19 +96,19 @@ class UpdateRestaurantRatingUseCaseTest {
 
       when(reviewRepository
           .findRecentlyUpdatedRestaurantIds(
-              any(LocalDateTime.class), eq(0L), batchSize))
+              any(LocalDateTime.class), eq(0L), eq(batchSize)))
           .thenReturn(batch1);
       when(reviewRepository
           .findRecentlyUpdatedRestaurantIds(
-              any(LocalDateTime.class), eq(3L), batchSize))
+              any(LocalDateTime.class), eq(3L), eq(batchSize)))
           .thenReturn(batch2);
       when(reviewRepository
           .findRecentlyUpdatedRestaurantIds(
-              any(LocalDateTime.class), eq(6L), batchSize))
+              any(LocalDateTime.class), eq(6L), eq(batchSize)))
           .thenReturn(batch3);
       when(reviewRepository
           .findRecentlyUpdatedRestaurantIds(
-              any(LocalDateTime.class), eq(7L), batchSize))
+              any(LocalDateTime.class), eq(7L), eq(batchSize)))
           .thenReturn(Collections.emptyList());
 
       when(reviewRepository.calculateRestaurantRatings(batch1)).thenReturn(result1);
