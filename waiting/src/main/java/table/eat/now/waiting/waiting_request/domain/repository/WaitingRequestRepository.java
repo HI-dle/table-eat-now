@@ -1,7 +1,11 @@
 package table.eat.now.waiting.waiting_request.domain.repository;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import table.eat.now.waiting.waiting_request.domain.criteria.CurrentWaitingRequestCriteria;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
+import table.eat.now.waiting.waiting_request.domain.info.Paginated;
 
 public interface WaitingRequestRepository {
 
@@ -21,4 +25,12 @@ public interface WaitingRequestRepository {
   Long getRank(String dailyWaitingUuid, String waitingRequestUuid);
 
   boolean dequeueWaitingRequest(String s, String waitingRequestsUuid);
+
+  Set<String> getIdsInRange(String dailyWaitingUuid, long start, long end);
+
+  Paginated<WaitingRequest> getCurrentWaitingRequests(CurrentWaitingRequestCriteria criteria);
+
+  List<WaitingRequest> findByWaitingRequestUuidInAndDeletedAtIsNull(Set<String> idsSet);
+
+  Long countCurrentWaitingRequests(String dailyWaitingUuid);
 }

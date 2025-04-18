@@ -30,6 +30,12 @@ Content-Type: application/json
 X-User-Id: 3
 X-User-Role: STAFF
 
+### 대기 요청 목록 조회 # 임시
+PATCH localhost:8086/admin/v1/waiting-requests?dailyWaitingUuid=00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+X-User-Id: 3
+X-User-Role: STAFF
+
 ### 대기 요청 조회 admin # 임시
 GET localhost:8086/admin/v1/waiting-requests/{{waitingRequestUuid}}
 Content-Type: application/json

@@ -57,7 +57,7 @@ public class WaitingRequestApiController {
   }
 
   @PatchMapping("/{waitingRequestUuid}/postpone")
-  public ResponseEntity<GetWaitingRequestResponse> postponeWaitingRequest(
+  public ResponseEntity<Void> postponeWaitingRequest(
       @CurrentUserInfo CurrentUserInfoDto userInfo,
       @PathVariable UUID waitingRequestUuid,
       @RequestParam @Valid @Pattern(regexp = "^[0-9]{8,15}$") String phone
