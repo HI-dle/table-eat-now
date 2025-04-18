@@ -19,10 +19,13 @@ spring:
 
   kafka:
     bootstrap-servers: localhost:9092
+    enabled: false
     consumer:
       auto-offset-reset: earliest
       properties:
         spring.json.trusted.packages: "*"
+
+
 
 eureka:
   client:

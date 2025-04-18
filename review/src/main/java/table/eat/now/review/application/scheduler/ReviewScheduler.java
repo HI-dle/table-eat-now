@@ -19,8 +19,6 @@ public class ReviewScheduler {
 
   @Scheduled(cron = "${review.rating.update.cron}")
   public void updateRestaurantRatings() {
-    log.info("리뷰 평점 일괄 업데이트 작업 시작 (배치 크기: {})", batchSize);
-
     try {
       updateRestaurantRatingUseCase.execute(batchSize);
     } catch (Exception e) {
