@@ -70,7 +70,7 @@ public record GetRestaurantResponse(
 
   public record Timeslot(
       String restaurantTimeslotUuid,
-      LocalDate availableStartDate,
+      LocalDate availableDate,
       Integer maxCapacity,
       Integer curTotalGuestCount,
       LocalTime timeslot
@@ -79,7 +79,7 @@ public record GetRestaurantResponse(
     public GetRestaurantInfo.Timeslot toInfo() {
       return GetRestaurantInfo.Timeslot.builder()
           .restaurantTimeslotUuid(restaurantTimeslotUuid)
-          .availableDate(availableStartDate)
+          .availableDate(availableDate)
           .maxCapacity(maxCapacity)
           .curTotalGuestCount(curTotalGuestCount)
           .timeslot(timeslot)

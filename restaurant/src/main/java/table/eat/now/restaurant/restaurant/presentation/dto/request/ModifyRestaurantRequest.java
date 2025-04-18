@@ -108,7 +108,7 @@ public record ModifyRestaurantRequest(
       String restaurantTimeslotUuid,
 
       @NotNull(message = "예약 가능 시작일은 필수입니다.")
-      LocalDate availableStartDate,
+      LocalDate availableDate,
 
       @NotNull(message = "최대 수용 인원은 필수입니다.")
       @Positive(message = "최대 수용 인원은 1 이상이어야 합니다.")
@@ -120,7 +120,7 @@ public record ModifyRestaurantRequest(
     public TimeSlotCommand toCommand() {
       return TimeSlotCommand.builder()
           .restaurantTimeslotUuid(restaurantTimeslotUuid)
-          .availableDate(availableStartDate)
+          .availableDate(availableDate)
           .timeslot(timeslot)
           .maxCapacity(maxCapacity)
           .build();
