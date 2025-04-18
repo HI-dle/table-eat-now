@@ -29,8 +29,8 @@ public class UpdateRestaurantRatingUseCase {
 
   @Transactional(readOnly = true)
   public void execute() {
-    LocalDateTime startTime = LocalDateTime.now().minusMinutes(RECENT_MINUTES);
     LocalDateTime endTime = LocalDateTime.now();
+    LocalDateTime startTime = endTime.minusMinutes(RECENT_MINUTES);
 
     long totalCount = getRecentlyUpdatedRestaurantCounts(startTime, endTime);
 
@@ -82,6 +82,7 @@ public class UpdateRestaurantRatingUseCase {
         if (processBatch()) {
           logProgress();
         }
+        else break;
       }
       logCompletion();
     }

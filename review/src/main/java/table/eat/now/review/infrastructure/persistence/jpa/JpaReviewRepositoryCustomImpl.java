@@ -34,6 +34,7 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
         .from(review)
         .where(betweenUpdatedAt(startTime, endTime))
         .groupBy(review.reference.restaurantId)
+        .orderBy(review.updatedAt.asc(), review.reference.restaurantId.asc())
         .offset(offset)
         .limit(limit)
         .fetch();
