@@ -38,12 +38,14 @@ import table.eat.now.reservation.reservation.application.client.dto.response.Get
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo.Promotion;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo.Promotion.PromotionStatus;
 import table.eat.now.reservation.reservation.application.exception.ReservationErrorCode;
+import table.eat.now.reservation.reservation.application.service.dto.request.CancelReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.RestaurantDetails;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.RestaurantMenuDetails;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.RestaurantTimeSlotDetails;
 import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
+import table.eat.now.reservation.reservation.application.service.dto.response.CancelReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
@@ -1826,7 +1828,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
       // given
       GetReservationCriteria criteria = new GetReservationCriteria(
           reservation.getReservationUuid(),
-          reservation.getRestaurantDetails().getOwnerId()+1,
+          reservation.getRestaurantDetails().getOwnerId() + 10000L,
           UserRole.OWNER);
 
       // when & then
@@ -1841,7 +1843,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
       // given
       GetReservationCriteria criteria = new GetReservationCriteria(
           reservation.getReservationUuid(),
-          reservation.getRestaurantDetails().getStaffId()+1,
+          reservation.getRestaurantDetails().getStaffId() + 10000L,
           UserRole.STAFF);
 
       // when & then
@@ -1856,7 +1858,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
       // given
       GetReservationCriteria criteria = new GetReservationCriteria(
           reservation.getReservationUuid(),
-          reservation.getReserverId()+1,
+          reservation.getReserverId() + 10000L,
           UserRole.CUSTOMER);
 
       // when & then
@@ -1956,4 +1958,280 @@ class ReservationServiceTest extends IntegrationTestSupport {
     }
   }
 
+  @DisplayName("예약 취소 서비스: 성공")
+  @Nested
+  class cancel_success {
+
+    Reservation confirmedReservation;
+
+    @BeforeEach
+    void setUp() {
+      confirmedReservation = ReservationFixture.createRandomByPaymentDetails(List.of(
+          ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PROMOTION_EVENT),
+          ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PROMOTION_COUPON),
+          ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PAYMENT)
+      ));
+      ReflectionTestUtils.setField(confirmedReservation, "status", ReservationStatus.CONFIRMED);
+
+      reservationRepository.saveAll(List.of(confirmedReservation));
+    }
+
+    @DisplayName("MASTER 는 모든 예약을 취소할 수 있다.")
+    @Test
+    void success_master() {
+      // given
+      CancelReservationCommand command = CancelReservationCommand.builder()
+          .reservationUuid(confirmedReservation.getReservationUuid())
+          .cancelRequestDateTime(
+              confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusDays(1))
+          .requesterId(1L)
+          .userRole(UserRole.MASTER)
+          .reason("한지훈의 단순변심")
+          .build();
+
+      // when
+      CancelReservationInfo result = reservationService.cancelReservation(command);
+
+      // then
+      assertThat(result.reservationUuid()).isEqualTo(confirmedReservation.getReservationUuid());
+      assertThat(result.status()).isEqualTo(ReservationStatus.CANCELLED.toString());
+    }
+
+    @DisplayName("OWNER 는 본인의 가게의 예약을 취소할 수 있다.")
+    @Test
+    void success_owner() {
+      // given
+      CancelReservationCommand command = CancelReservationCommand.builder()
+          .reservationUuid(confirmedReservation.getReservationUuid())
+          .cancelRequestDateTime(
+              confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusDays(1))
+          .requesterId(confirmedReservation.getRestaurantDetails().getOwnerId())
+          .userRole(UserRole.OWNER)
+          .reason("황하온의 변덕")
+          .build();
+
+      // when
+      CancelReservationInfo result = reservationService.cancelReservation(command);
+
+      // then
+      assertThat(result.reservationUuid()).isEqualTo(confirmedReservation.getReservationUuid());
+      assertThat(result.status()).isEqualTo(ReservationStatus.CANCELLED.toString());
+    }
+
+    @DisplayName("STAFF 는 본인의 가게의 예약을 취소할 수 있다.")
+    @Test
+    void success_staff() {
+      // given
+      CancelReservationCommand command = CancelReservationCommand.builder()
+          .reservationUuid(confirmedReservation.getReservationUuid())
+          .cancelRequestDateTime(
+              confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusDays(1))
+          .requesterId(confirmedReservation.getRestaurantDetails().getStaffId())
+          .userRole(UserRole.STAFF)
+          .reason("강혜주의 바쁜 그녀")
+          .build();
+
+      // when
+      CancelReservationInfo result = reservationService.cancelReservation(command);
+
+      // then
+      assertThat(result.reservationUuid()).isEqualTo(confirmedReservation.getReservationUuid());
+      assertThat(result.status()).isEqualTo(ReservationStatus.CANCELLED.toString());
+    }
+
+    @DisplayName("CUSTOMER 는 본인의 예약을 취소 할 수 있다.")
+    @Test
+    void success_customer() {
+      // given
+      CancelReservationCommand command = CancelReservationCommand.builder()
+          .reservationUuid(confirmedReservation.getReservationUuid())
+          .cancelRequestDateTime(
+              confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusDays(1))
+          .requesterId(confirmedReservation.getReserverId())
+          .userRole(UserRole.CUSTOMER)
+          .reason("박지은의 잠옴")
+          .build();
+
+      // when
+      CancelReservationInfo result = reservationService.cancelReservation(command);
+
+      // then
+      assertThat(result.reservationUuid()).isEqualTo(confirmedReservation.getReservationUuid());
+      assertThat(result.status()).isEqualTo(ReservationStatus.CANCELLED.toString());
+    }
+
+  }
+
+  @DisplayName("예약 취소 서비스: 실패")
+  @Nested
+  class cancel_fail {
+
+    Reservation confirmedReservation;
+    Reservation canceledReservation;
+    Reservation deletedReservation;
+
+    @BeforeEach
+    void setUp() {
+      confirmedReservation = ReservationFixture.createRandomByPaymentDetails(List.of(
+          ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PAYMENT)
+      ));
+      ReflectionTestUtils.setField(confirmedReservation, "status", ReservationStatus.CONFIRMED);
+
+      canceledReservation = ReservationFixture.createRandomByPaymentDetails(List.of(
+          ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PAYMENT)
+      ));
+
+      ReflectionTestUtils.setField(canceledReservation, "status", ReservationStatus.CANCELLED);
+
+      deletedReservation = ReservationFixture.createRandomByPaymentDetails(List.of(
+          ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PAYMENT)
+      ));
+
+      ReflectionTestUtils.setField(deletedReservation, "status", ReservationStatus.CANCELLED);
+      ReflectionTestUtils.setField(deletedReservation, "deletedAt",
+          LocalDateTime.now().minusDays(1));
+      ReflectionTestUtils.setField(deletedReservation, "deletedBy", 1L);
+      reservationRepository.saveAll(List.of(confirmedReservation, canceledReservation, deletedReservation));
+    }
+
+    @DisplayName("없는 예약을 취소하려고 하면 찾을 수 없어 예외가 발생한다.")
+    @Test
+    void fail_notFound() {
+      // given
+      CancelReservationCommand command = CancelReservationCommand.builder()
+          .reservationUuid("not-found-uuid")
+          .cancelRequestDateTime(
+              confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusDays(1))
+          .requesterId(1L)
+          .userRole(UserRole.MASTER)
+          .reason("한지훈의 단순변심")
+          .build();
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.cancelReservation(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.NOT_FOUND.getMessage());
+    }
+
+    @DisplayName("이미 삭제된 예약을 취소하려고 하면 찾을 수 없어 예외가 발생한다.")
+    @Test
+    void fail_notFound_alreadyDeleted() {
+      // given
+      CancelReservationCommand command = CancelReservationCommand.builder()
+          .reservationUuid(deletedReservation.getReservationUuid())
+          .cancelRequestDateTime(
+              confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusDays(1))
+          .requesterId(1L)
+          .userRole(UserRole.MASTER)
+          .reason("한지훈의 단순변심")
+          .build();
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.cancelReservation(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.NOT_FOUND.getMessage());
+    }
+
+    @DisplayName("이미 취소된 예약을 취소하려고 하면 예외가 발생한다.")
+    @Test
+    void fail_alreadyCanceled() {
+      // given
+      CancelReservationCommand command = CancelReservationCommand.builder()
+          .reservationUuid(canceledReservation.getReservationUuid())
+          .cancelRequestDateTime(
+              confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusDays(1))
+          .requesterId(1L)
+          .userRole(UserRole.MASTER)
+          .reason("한지훈의 단순변심")
+          .build();
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.cancelReservation(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.ALREADY_CANCELED.getMessage());
+    }
+
+    @DisplayName("취소 마감 시간이 지나서 취소를 하려고 하면 예외가 발생한다.")
+    @Test
+    void fail_cancellationDeadlinePassed() {
+      // given
+      CancelReservationCommand command = CancelReservationCommand.builder()
+          .reservationUuid(confirmedReservation.getReservationUuid())
+          .cancelRequestDateTime(
+              confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusHours(2)) // 3시간 조건 위배
+          .requesterId(confirmedReservation.getRestaurantDetails().getOwnerId())
+          .userRole(UserRole.OWNER)
+          .reason("황하온의 변덕")
+          .build();
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.cancelReservation(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.CANCELLATION_DEADLINE_PASSED.getMessage());
+    }
+
+    @DisplayName("OWNER 가 본인의 가게가 아닌 예약을 취소하려고 하면 예외가 발생한다.")
+    @Test
+    void fail_owner_permission() {
+      // given
+      CancelReservationCommand command = CancelReservationCommand.builder()
+          .reservationUuid(confirmedReservation.getReservationUuid())
+          .cancelRequestDateTime(
+              confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusDays(1))
+          .requesterId(confirmedReservation.getRestaurantDetails().getOwnerId() - 10000L) // 잘못된 ID
+          .userRole(UserRole.OWNER)
+          .reason("황하온의 변덕")
+          .build();
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.cancelReservation(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.NO_CANCEL_PERMISSION.getMessage());
+    }
+
+    @DisplayName("STAFF 가 본인의 가게가 아닌 예약을 취소하려고 하면 예외가 발생한다.")
+    @Test
+    void fail_staff() {
+      // given
+      CancelReservationCommand command = CancelReservationCommand.builder()
+          .reservationUuid(confirmedReservation.getReservationUuid())
+          .cancelRequestDateTime(
+              confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusDays(1))
+          .requesterId(confirmedReservation.getRestaurantDetails().getStaffId() - 10000L) // 잘못된 ID
+          .userRole(UserRole.STAFF)
+          .reason("강혜주의 바쁜 그녀")
+          .build();
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.cancelReservation(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.NO_CANCEL_PERMISSION.getMessage());
+    }
+
+    @DisplayName("CUSTOMER 는 본인의 예약이 아닌 예약을 취소하려고 하면 예외가 발생한다.")
+    @Test
+    void fail_customer() {
+      // given
+      CancelReservationCommand command = CancelReservationCommand.builder()
+          .reservationUuid(confirmedReservation.getReservationUuid())
+          .cancelRequestDateTime(
+              confirmedReservation.getRestaurantTimeSlotDetails().reservationDateTime().minusDays(1))
+          .requesterId(confirmedReservation.getReserverId() + 10000L) // 잘못된 ID
+          .userRole(UserRole.CUSTOMER)
+          .reason("박지은의 잠옴")
+          .build();
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.cancelReservation(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.NO_CANCEL_PERMISSION.getMessage());
+    }
+
+  }
 }

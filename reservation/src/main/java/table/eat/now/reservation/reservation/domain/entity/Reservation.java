@@ -90,6 +90,9 @@ public class Reservation extends BaseEntity {
   @Column(name = "total_amount", nullable = false)
   private BigDecimal totalAmount;
 
+  @Column(name = "cancel_reason", nullable = true, length = 200)
+  private String cancelReason;
+
   @Embedded
   private ReservationPaymentDetails paymentDetails;
 
@@ -144,7 +147,7 @@ public class Reservation extends BaseEntity {
     this.totalAmount = paymentDetails.getTotalAmount();
   }
 
-  public boolean isReadableUser(Long userId, UserRole role) {
+  public boolean isAccessibleBy(Long userId, UserRole role) {
     if(role.isMaster()) return true;
 
     if(role.isOwner()
@@ -160,6 +163,19 @@ public class Reservation extends BaseEntity {
         && getDeletedAt() == null) return true;
 
     return false;
+  }
+
+  public boolean isEditableBy(Long userId, UserRole role) {
+    return isAccessibleBy(userId, role);
+  }
+
+  public boolean isCanceled() {
+    return this.status == ReservationStatus.CANCELLED;
+  }
+
+  public void cancelWithReason(String reason) {
+    this.status = ReservationStatus.CANCELLED;
+    this.cancelReason = reason;
   }
 
   @Getter

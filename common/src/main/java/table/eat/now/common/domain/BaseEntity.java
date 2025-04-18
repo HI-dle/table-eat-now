@@ -39,4 +39,8 @@ public abstract class BaseEntity implements Serializable {
     this.deletedAt = LocalDateTime.now();
     this.deletedBy = deletedBy;
   }
+
+  public boolean isDeleted(){
+    return deletedAt != null || deletedBy != null;
+  }
 }

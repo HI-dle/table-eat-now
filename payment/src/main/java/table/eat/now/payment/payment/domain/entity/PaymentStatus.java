@@ -14,4 +14,12 @@ public enum PaymentStatus {
       case CANCELED, REFUNDED -> false;
     };
   }
+
+  public static PaymentStatus from(String name){
+    try {
+      return valueOf(name.toUpperCase());
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("유효하지 않은 결제 상태 입니다: " + name);
+    }
+  }
 }
