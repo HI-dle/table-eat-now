@@ -6,10 +6,14 @@ package table.eat.now.restaurant.restaurant.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -27,6 +31,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
+import table.eat.now.common.domain.BaseEntity;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.restaurant.global.IntegrationTestSupport;
@@ -37,10 +42,12 @@ import table.eat.now.restaurant.restaurant.application.exception.RestaurantError
 import table.eat.now.restaurant.restaurant.application.exception.RestaurantTimeSlotErrorCode;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.CreateRestaurantCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantCriteria;
+import table.eat.now.restaurant.restaurant.application.service.dto.request.ModifyRestaurantCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.CreateRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant.RestaurantStatus;
+import table.eat.now.restaurant.restaurant.domain.entity.Restaurant.WaitingStatus;
 import table.eat.now.restaurant.restaurant.domain.entity.RestaurantMenu;
 import table.eat.now.restaurant.restaurant.domain.entity.RestaurantMenu.MenuStatus;
 import table.eat.now.restaurant.restaurant.domain.entity.RestaurantTimeSlot;
@@ -248,7 +255,7 @@ class RestaurantServiceTest extends IntegrationTestSupport {
       restaurantRepository.saveAll(List.of(inactiveRestaurant1, openedRestaurant2));
       GetRestaurantCriteria criteria = GetRestaurantCriteria.from(
           inactiveRestaurant1.getRestaurantUuid(),
-          UserRole.STAFF, inactiveRestaurant1.getStaffId()+1);
+          UserRole.STAFF, inactiveRestaurant1.getStaffId() + 1);
 
       // when & then
       assertThatThrownBy(() -> restaurantService.getRestaurant(criteria))
@@ -454,13 +461,23 @@ class RestaurantServiceTest extends IntegrationTestSupport {
 
   }
 
-  @DisplayName("식당 타임슬롯 현재 게스트 수 수정")
+  @DisplayName("식당 타임슬롯 현재 게스트 수 수정 서비스")
   @Nested
-  class modifyTimeSlotGuestCount{
+  class modifyTimeSlotGuestCount {
+
     RestaurantTimeSlot timeSlot;
     Restaurant restaurant;
     int maxCapacity = 10;
     int curTotalGuestCount = 5;
+
+    public static Stream<Arguments> provideDeltaValuesForCheckingIncreaseAndDecrease() {
+      return Stream.of(
+          Arguments.of(1, 6),
+          Arguments.of(2, 7),
+          Arguments.of(-1, 4),
+          Arguments.of(-2, 3)
+      );
+    }
 
     @BeforeEach
     void setUp() {
@@ -470,15 +487,6 @@ class RestaurantServiceTest extends IntegrationTestSupport {
       restaurant = RestaurantFixture.createRandomByStatusAndMenusAndTimeSlots(
           RestaurantStatus.OPENED, null, Set.of(timeSlot));
       restaurantRepository.save(restaurant);
-    }
-
-    public static Stream<Arguments> provideDeltaValuesForCheckingIncreaseAndDecrease() {
-      return Stream.of(
-          Arguments.of(1, 6),
-          Arguments.of(2, 7),
-          Arguments.of(-1, 4),
-          Arguments.of(-2, 3)
-      );
     }
 
     @DisplayName("delta 값에 따라 인원수가 정확히 증가/감소한다.")
@@ -492,7 +500,8 @@ class RestaurantServiceTest extends IntegrationTestSupport {
       );
 
       // then
-      RestaurantTimeSlot updated = restaurantTimeSlotRepository.findById(timeSlot.getId()).orElseThrow();
+      RestaurantTimeSlot updated = restaurantTimeSlotRepository.findById(timeSlot.getId())
+          .orElseThrow();
       assertThat(updated.getCurTotalGuestCount()).isEqualTo(expectedCount);
     }
 
@@ -569,5 +578,683 @@ class RestaurantServiceTest extends IntegrationTestSupport {
     }
   }
 
+  @DisplayName("식당 수정 서비스")
+  @Nested
+  class modifyRestaurant {
 
+    @DisplayName("OWNER 가 식당의 정보(메뉴, 타임슬롯 포함)를 수정할 수 있다.")
+    @Test
+    void success_owner() {
+      // given
+      RestaurantMenu willModifyMenu = RestaurantMenuFixture.createRandom();
+      RestaurantMenu willDeleteMenu = RestaurantMenuFixture.createRandom();
+      RestaurantTimeSlot willModifyTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      RestaurantTimeSlot willDeleteTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      Set<RestaurantMenu> menus = Set.of(willModifyMenu, willDeleteMenu);
+      Set<RestaurantTimeSlot> timeSlots = Set.of(willModifyTimeSlot, willDeleteTimeSlot);
+      Restaurant savedRestaurant = restaurantRepository.save(
+          RestaurantFixture.createRandomByStatusAndMenusAndTimeSlots(
+              RestaurantStatus.OPENED, menus, timeSlots));
+
+      /** command **/
+      Long requesterId = savedRestaurant.getOwnerId();
+      UserRole requesterRole = UserRole.OWNER;
+      String restaurantUuid = savedRestaurant.getRestaurantUuid();
+      // menu
+      String requestModifyMenuUuid = willModifyMenu.getRestaurantMenuUuid();
+      // timeslot
+      String requestModifyTimeslotUuid = willModifyTimeSlot.getRestaurantTimeslotUuid();
+      LocalDate requestModifyTimeSlotAvailableDate = willModifyTimeSlot.getAvailableDate().plusDays(1);
+      LocalTime requestModifyTimeSlotTime = willModifyTimeSlot.getTimeslot().minusHours(1);
+      int requestModifyTimeslotMaxCapacity = willModifyTimeSlot.getMaxCapacity() + 10;
+
+      ModifyRestaurantCommand command = ModifyRestaurantCommand.builder()
+          .requesterId(requesterId)
+          .requesterRole(requesterRole)
+          .restaurantUuid(restaurantUuid)
+          .name("내가 차린 식당")
+          .address("서울특별시 강남구 테헤란로 123")
+          .contactNumber("010-1234-5678")
+          .openingAt(LocalTime.of(10, 0))
+          .closingAt(LocalTime.of(22, 0))
+          .info("신선한 재료만 사용하는 건강한 식당입니다.")
+          .status("INACTIVE")
+          .waitingStatus("INACTIVE")
+          .maxReservationGuestCountPerTeamOnline(4)
+          .menus(List.of(
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(requestModifyMenuUuid)
+                  .name("한지훈이 말아주는 된장찌개")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("SOLDOUT")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("강혜주표 3월 17일에 만든 고기 덮밥")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("INACTIVE")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("황하온의 배달시킨 밀면")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("ACTIVE")
+                  .build()
+          ))
+          .timeslots(List.of(
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(requestModifyTimeslotUuid)
+                  .availableDate(requestModifyTimeSlotAvailableDate)
+                  .timeslot(requestModifyTimeSlotTime)
+                  .maxCapacity(requestModifyTimeslotMaxCapacity)
+                  .build(),
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(null)
+                  .availableDate(LocalDate.of(2025, 4, 18))
+                  .timeslot(LocalTime.of(18, 0))
+                  .maxCapacity(15)
+                  .build()
+          ))
+          .build();
+
+      // when
+      restaurantService.modifyRestaurant(command);
+
+      // then
+      Optional<Restaurant> result = restaurantRepository.findByRestaurantUuidWithMenusAndTimeslots(
+          savedRestaurant.getRestaurantUuid());
+
+      assertThat(result).isPresent();
+      Restaurant modified = result.get();
+
+      // 식당 기본 정보 검증
+      assertThat(modified)
+          .extracting(
+              Restaurant::getName,
+              r -> r.getContactInfo().getAddress(),
+              r -> r.getContactInfo().getContactNumber(),
+              r -> r.getOperatingTime().getOpeningAt(),
+              r -> r.getOperatingTime().getClosingAt(),
+              Restaurant::getInfo,
+              Restaurant::getStatus,
+              Restaurant::getWaitingStatus,
+              Restaurant::getMaxReservationGuestCountPerTeamOnline
+          )
+          .containsExactly(
+              "내가 차린 식당",
+              "서울특별시 강남구 테헤란로 123",
+              "010-1234-5678",
+              LocalTime.of(10, 0),
+              LocalTime.of(22, 0),
+              "신선한 재료만 사용하는 건강한 식당입니다.",
+              RestaurantStatus.INACTIVE,
+              WaitingStatus.INACTIVE,
+              4
+          );
+
+      // 메뉴 검증
+      assertThat(modified.getMenus())
+          .hasSize(4)
+          .extracting(RestaurantMenu::getName, RestaurantMenu::getStatus, m -> m.getPrice().intValue(), RestaurantMenu::getDeletedBy)
+          .containsExactlyInAnyOrder(
+              tuple("한지훈이 말아주는 된장찌개", MenuStatus.SOLDOUT, BigDecimal.valueOf(9000).intValue(), null),
+              tuple("강혜주표 3월 17일에 만든 고기 덮밥", MenuStatus.INACTIVE, BigDecimal.valueOf(9000).intValue(), null),
+              tuple("황하온의 배달시킨 밀면", MenuStatus.ACTIVE, BigDecimal.valueOf(9000).intValue(), null),
+              tuple(willDeleteMenu.getName(), willDeleteMenu.getStatus(), willDeleteMenu.getPrice().intValue(), command.requesterId())
+          );
+
+      // 타임슬롯 검증
+      assertThat(modified.getTimeSlots())
+          .hasSize(3)
+          .extracting(RestaurantTimeSlot::getAvailableDate, RestaurantTimeSlot::getTimeslot, RestaurantTimeSlot::getMaxCapacity, BaseEntity::getDeletedBy)
+          .containsExactlyInAnyOrder(
+              tuple(requestModifyTimeSlotAvailableDate, requestModifyTimeSlotTime, requestModifyTimeslotMaxCapacity, null),
+              tuple(LocalDate.of(2025, 4, 18), LocalTime.of(18, 0), 15, null),
+              tuple(willDeleteTimeSlot.getAvailableDate(), willDeleteTimeSlot.getTimeslot(), willDeleteTimeSlot.getMaxCapacity(), command.requesterId())
+          );
+    }
+
+    @DisplayName("OWNER 가 수정하려는 타임슬롯이 현재 예약 인원이 있어도 날짜/시간만 동일하다면 식당의 정보(메뉴, 타임슬롯 포함)를 수정할 수 있다.")
+    @Test
+    void success_owner_withCurTotalGuestCount() {
+      // given
+      RestaurantMenu willModifyMenu = RestaurantMenuFixture.createRandom();
+      RestaurantMenu willDeleteMenu = RestaurantMenuFixture.createRandom();
+      RestaurantTimeSlot willModifyTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      ReflectionTestUtils.setField(willModifyTimeSlot, "curTotalGuestCount", 1);
+      RestaurantTimeSlot willDeleteTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      Set<RestaurantMenu> menus = Set.of(willModifyMenu, willDeleteMenu);
+      Set<RestaurantTimeSlot> timeSlots = Set.of(willModifyTimeSlot, willDeleteTimeSlot);
+      Restaurant savedRestaurant = restaurantRepository.save(
+          RestaurantFixture.createRandomByStatusAndMenusAndTimeSlots(
+              RestaurantStatus.OPENED, menus, timeSlots));
+
+      /** command **/
+      Long requesterId = savedRestaurant.getOwnerId();
+      UserRole requesterRole = UserRole.OWNER;
+      String restaurantUuid = savedRestaurant.getRestaurantUuid();
+      // menu
+      String requestModifyMenuUuid = willModifyMenu.getRestaurantMenuUuid();
+      // timeslot
+      String requestModifyTimeslotUuid = willModifyTimeSlot.getRestaurantTimeslotUuid();
+      LocalDate requestModifyTimeSlotAvailableDate = willModifyTimeSlot.getAvailableDate();
+      LocalTime requestModifyTimeSlotTime = willModifyTimeSlot.getTimeslot();
+      int requestModifyTimeslotMaxCapacity = willModifyTimeSlot.getMaxCapacity() + 10;
+
+      ModifyRestaurantCommand command = ModifyRestaurantCommand.builder()
+          .requesterId(requesterId)
+          .requesterRole(requesterRole)
+          .restaurantUuid(restaurantUuid)
+          .name("내가 차린 식당")
+          .address("서울특별시 강남구 테헤란로 123")
+          .contactNumber("010-1234-5678")
+          .openingAt(LocalTime.of(10, 0))
+          .closingAt(LocalTime.of(22, 0))
+          .info("신선한 재료만 사용하는 건강한 식당입니다.")
+          .status("INACTIVE")
+          .waitingStatus("INACTIVE")
+          .maxReservationGuestCountPerTeamOnline(4)
+          .menus(List.of(
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(requestModifyMenuUuid)
+                  .name("한지훈이 말아주는 된장찌개")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("SOLDOUT")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("강혜주표 3월 17일에 만든 고기 덮밥")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("INACTIVE")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("황하온의 배달시킨 밀면")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("ACTIVE")
+                  .build()
+          ))
+          .timeslots(List.of(
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(requestModifyTimeslotUuid)
+                  .availableDate(requestModifyTimeSlotAvailableDate)
+                  .timeslot(requestModifyTimeSlotTime)
+                  .maxCapacity(requestModifyTimeslotMaxCapacity)
+                  .build(),
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(null)
+                  .availableDate(LocalDate.of(2025, 4, 18))
+                  .timeslot(LocalTime.of(18, 0))
+                  .maxCapacity(15)
+                  .build()
+          ))
+          .build();
+
+      // when
+      restaurantService.modifyRestaurant(command);
+
+      // then
+      Optional<Restaurant> result = restaurantRepository.findByRestaurantUuidWithMenusAndTimeslots(
+          savedRestaurant.getRestaurantUuid());
+
+      assertThat(result).isPresent();
+      Restaurant modified = result.get();
+
+      // 식당 기본 정보 검증
+      assertThat(modified)
+          .extracting(
+              Restaurant::getName,
+              r -> r.getContactInfo().getAddress(),
+              r -> r.getContactInfo().getContactNumber(),
+              r -> r.getOperatingTime().getOpeningAt(),
+              r -> r.getOperatingTime().getClosingAt(),
+              Restaurant::getInfo,
+              Restaurant::getStatus,
+              Restaurant::getWaitingStatus,
+              Restaurant::getMaxReservationGuestCountPerTeamOnline
+          )
+          .containsExactly(
+              "내가 차린 식당",
+              "서울특별시 강남구 테헤란로 123",
+              "010-1234-5678",
+              LocalTime.of(10, 0),
+              LocalTime.of(22, 0),
+              "신선한 재료만 사용하는 건강한 식당입니다.",
+              RestaurantStatus.INACTIVE,
+              WaitingStatus.INACTIVE,
+              4
+          );
+
+      // 메뉴 검증
+      assertThat(modified.getMenus())
+          .hasSize(4)
+          .extracting(RestaurantMenu::getName, RestaurantMenu::getStatus, m -> m.getPrice().intValue(), RestaurantMenu::getDeletedBy)
+          .containsExactlyInAnyOrder(
+              tuple("한지훈이 말아주는 된장찌개", MenuStatus.SOLDOUT, BigDecimal.valueOf(9000).intValue(), null),
+              tuple("강혜주표 3월 17일에 만든 고기 덮밥", MenuStatus.INACTIVE, BigDecimal.valueOf(9000).intValue(), null),
+              tuple("황하온의 배달시킨 밀면", MenuStatus.ACTIVE, BigDecimal.valueOf(9000).intValue(), null),
+              tuple(willDeleteMenu.getName(), willDeleteMenu.getStatus(), willDeleteMenu.getPrice().intValue(), command.requesterId())
+          );
+
+      // 타임슬롯 검증
+      assertThat(modified.getTimeSlots())
+          .hasSize(3)
+          .extracting(RestaurantTimeSlot::getAvailableDate, RestaurantTimeSlot::getTimeslot, RestaurantTimeSlot::getMaxCapacity, BaseEntity::getDeletedBy)
+          .containsExactlyInAnyOrder(
+              tuple(requestModifyTimeSlotAvailableDate, requestModifyTimeSlotTime, requestModifyTimeslotMaxCapacity, null),
+              tuple(LocalDate.of(2025, 4, 18), LocalTime.of(18, 0), 15, null),
+              tuple(willDeleteTimeSlot.getAvailableDate(), willDeleteTimeSlot.getTimeslot(), willDeleteTimeSlot.getMaxCapacity(), command.requesterId())
+          );
+    }
+
+    @DisplayName("OWNER가 본인의 식당이 아닌 식당을 수정하려하면 예외가 발생한다.")
+    @Test
+    void fail_noModifyPermission() {
+      RestaurantMenu willModifyMenu = RestaurantMenuFixture.createRandom();
+      RestaurantMenu willDeleteMenu = RestaurantMenuFixture.createRandom();
+      RestaurantTimeSlot willModifyTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      RestaurantTimeSlot willDeleteTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      ReflectionTestUtils.setField(willDeleteTimeSlot, "curTotalGuestCount", 1);
+      Set<RestaurantMenu> menus = Set.of(willModifyMenu, willDeleteMenu);
+      Set<RestaurantTimeSlot> timeSlots = Set.of(willModifyTimeSlot, willDeleteTimeSlot);
+      Restaurant savedRestaurant = restaurantRepository.save(
+          RestaurantFixture.createRandomByStatusAndMenusAndTimeSlots(
+              RestaurantStatus.OPENED, menus, timeSlots));
+
+      // given
+      /** command **/
+      Long requesterId = savedRestaurant.getOwnerId() + 10000;
+      UserRole requesterRole = UserRole.OWNER;
+      String restaurantUuid = savedRestaurant.getRestaurantUuid();
+      // menu
+      String requestModifyMenuUuid = willModifyMenu.getRestaurantMenuUuid();
+      // timeslot
+      String requestModifyTimeslotUuid = willModifyTimeSlot.getRestaurantTimeslotUuid();
+      LocalDate requestModifyTimeSlotAvailableDate = willModifyTimeSlot.getAvailableDate().plusDays(1);
+      LocalTime requestModifyTimeSlotTime = willModifyTimeSlot.getTimeslot().minusHours(1);
+      int requestModifyTimeslotMaxCapacity = willModifyTimeSlot.getMaxCapacity() + 10;
+
+      ModifyRestaurantCommand command = ModifyRestaurantCommand.builder()
+          .requesterId(requesterId)
+          .requesterRole(requesterRole)
+          .restaurantUuid(restaurantUuid)
+          .name("내가 차린 식당")
+          .address("서울특별시 강남구 테헤란로 123")
+          .contactNumber("010-1234-5678")
+          .openingAt(LocalTime.of(10, 0))
+          .closingAt(LocalTime.of(22, 0))
+          .info("신선한 재료만 사용하는 건강한 식당입니다.")
+          .status("INACTIVE")
+          .waitingStatus("INACTIVE")
+          .maxReservationGuestCountPerTeamOnline(4)
+          .menus(List.of(
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(requestModifyMenuUuid)
+                  .name("한지훈이 말아주는 된장찌개")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("SOLDOUT")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("강혜주표 3월 17일에 만든 고기 덮밥")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("INACTIVE")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("황하온의 배달시킨 밀면")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("ACTIVE")
+                  .build()
+          ))
+          .timeslots(List.of(
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(requestModifyTimeslotUuid)
+                  .availableDate(requestModifyTimeSlotAvailableDate)
+                  .timeslot(requestModifyTimeSlotTime)
+                  .maxCapacity(requestModifyTimeslotMaxCapacity)
+                  .build(),
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(null)
+                  .availableDate(LocalDate.of(2025, 4, 18))
+                  .timeslot(LocalTime.of(18, 0))
+                  .maxCapacity(15)
+                  .build()
+          ))
+          .build();
+
+      // when & then
+      assertThatThrownBy(() -> restaurantService.modifyRestaurant(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(RestaurantErrorCode.NO_MODIFY_PERMISSION.getMessage());
+    }
+
+    @DisplayName("없는 식당을 수정하려고 하면 예외가 발생한다.")
+    @Test
+    void fail_restaurantNotFound() {
+      RestaurantMenu willModifyMenu = RestaurantMenuFixture.createRandom();
+      RestaurantMenu willDeleteMenu = RestaurantMenuFixture.createRandom();
+      RestaurantTimeSlot willModifyTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      RestaurantTimeSlot willDeleteTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      ReflectionTestUtils.setField(willDeleteTimeSlot, "curTotalGuestCount", 1);
+      Set<RestaurantMenu> menus = Set.of(willModifyMenu, willDeleteMenu);
+      Set<RestaurantTimeSlot> timeSlots = Set.of(willModifyTimeSlot, willDeleteTimeSlot);
+      Restaurant savedRestaurant = restaurantRepository.save(
+          RestaurantFixture.createRandomByStatusAndMenusAndTimeSlots(
+              RestaurantStatus.OPENED, menus, timeSlots));
+
+      // given
+      /** command **/
+      Long requesterId = savedRestaurant.getOwnerId();
+      UserRole requesterRole = UserRole.OWNER;
+      String restaurantUuid = "not-found-uuid";
+      // menu
+      String requestModifyMenuUuid = willModifyMenu.getRestaurantMenuUuid();
+      // timeslot
+      String requestModifyTimeslotUuid = willModifyTimeSlot.getRestaurantTimeslotUuid();
+      LocalDate requestModifyTimeSlotAvailableDate = willModifyTimeSlot.getAvailableDate().plusDays(1);
+      LocalTime requestModifyTimeSlotTime = willModifyTimeSlot.getTimeslot().minusHours(1);
+      int requestModifyTimeslotMaxCapacity = willModifyTimeSlot.getMaxCapacity() + 10;
+
+      ModifyRestaurantCommand command = ModifyRestaurantCommand.builder()
+          .requesterId(requesterId)
+          .requesterRole(requesterRole)
+          .restaurantUuid(restaurantUuid)
+          .name("내가 차린 식당")
+          .address("서울특별시 강남구 테헤란로 123")
+          .contactNumber("010-1234-5678")
+          .openingAt(LocalTime.of(10, 0))
+          .closingAt(LocalTime.of(22, 0))
+          .info("신선한 재료만 사용하는 건강한 식당입니다.")
+          .status("INACTIVE")
+          .waitingStatus("INACTIVE")
+          .maxReservationGuestCountPerTeamOnline(4)
+          .menus(List.of(
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(requestModifyMenuUuid)
+                  .name("한지훈이 말아주는 된장찌개")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("SOLDOUT")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("강혜주표 3월 17일에 만든 고기 덮밥")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("INACTIVE")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("황하온의 배달시킨 밀면")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("ACTIVE")
+                  .build()
+          ))
+          .timeslots(List.of(
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(requestModifyTimeslotUuid)
+                  .availableDate(requestModifyTimeSlotAvailableDate)
+                  .timeslot(requestModifyTimeSlotTime)
+                  .maxCapacity(requestModifyTimeslotMaxCapacity)
+                  .build(),
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(null)
+                  .availableDate(LocalDate.of(2025, 4, 18))
+                  .timeslot(LocalTime.of(18, 0))
+                  .maxCapacity(15)
+                  .build()
+          ))
+          .build();
+
+      // when & then
+      assertThatThrownBy(() -> restaurantService.modifyRestaurant(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(RestaurantErrorCode.RESTAURANT_NOT_FOUND.getMessage());
+    }
+
+    @DisplayName("예약 인원이 존재하는 타임 슬롯은 삭제할 수 없어 예외가 발생한다.")
+    @Test
+    void fail_cannotDeleteReservedTimeslot() {
+      RestaurantMenu willModifyMenu = RestaurantMenuFixture.createRandom();
+      RestaurantMenu willDeleteMenu = RestaurantMenuFixture.createRandom();
+      RestaurantTimeSlot willModifyTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      RestaurantTimeSlot willDeleteTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      ReflectionTestUtils.setField(willDeleteTimeSlot, "curTotalGuestCount", 1);
+      Set<RestaurantMenu> menus = Set.of(willModifyMenu, willDeleteMenu);
+      Set<RestaurantTimeSlot> timeSlots = Set.of(willModifyTimeSlot, willDeleteTimeSlot);
+      Restaurant savedRestaurant = restaurantRepository.save(
+          RestaurantFixture.createRandomByStatusAndMenusAndTimeSlots(
+              RestaurantStatus.OPENED, menus, timeSlots));
+
+      // given
+      /** command **/
+      Long requesterId = savedRestaurant.getOwnerId();
+      UserRole requesterRole = UserRole.OWNER;
+      String restaurantUuid = savedRestaurant.getRestaurantUuid();
+      // menu
+      String requestModifyMenuUuid = willModifyMenu.getRestaurantMenuUuid();
+      // timeslot
+      String requestModifyTimeslotUuid = willModifyTimeSlot.getRestaurantTimeslotUuid();
+      LocalDate requestModifyTimeSlotAvailableDate = willModifyTimeSlot.getAvailableDate().plusDays(1);
+      LocalTime requestModifyTimeSlotTime = willModifyTimeSlot.getTimeslot().minusHours(1);
+      int requestModifyTimeslotMaxCapacity = willModifyTimeSlot.getMaxCapacity() + 10;
+
+      ModifyRestaurantCommand command = ModifyRestaurantCommand.builder()
+          .requesterId(requesterId)
+          .requesterRole(requesterRole)
+          .restaurantUuid(restaurantUuid)
+          .name("내가 차린 식당")
+          .address("서울특별시 강남구 테헤란로 123")
+          .contactNumber("010-1234-5678")
+          .openingAt(LocalTime.of(10, 0))
+          .closingAt(LocalTime.of(22, 0))
+          .info("신선한 재료만 사용하는 건강한 식당입니다.")
+          .status("INACTIVE")
+          .waitingStatus("INACTIVE")
+          .maxReservationGuestCountPerTeamOnline(4)
+          .menus(List.of(
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(requestModifyMenuUuid)
+                  .name("한지훈이 말아주는 된장찌개")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("SOLDOUT")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("강혜주표 3월 17일에 만든 고기 덮밥")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("INACTIVE")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("황하온의 배달시킨 밀면")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("ACTIVE")
+                  .build()
+          ))
+          .timeslots(List.of(
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(requestModifyTimeslotUuid)
+                  .availableDate(requestModifyTimeSlotAvailableDate)
+                  .timeslot(requestModifyTimeSlotTime)
+                  .maxCapacity(requestModifyTimeslotMaxCapacity)
+                  .build(),
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(null)
+                  .availableDate(LocalDate.of(2025, 4, 18))
+                  .timeslot(LocalTime.of(18, 0))
+                  .maxCapacity(15)
+                  .build()
+          ))
+          .build();
+
+      // when & then
+      assertThatThrownBy(() -> restaurantService.modifyRestaurant(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(RestaurantTimeSlotErrorCode.CANNOT_DELETE_RESERVED_TIMESLOT.getMessage());
+    }
+
+    @DisplayName("예약 인원이 있는 타임 슬롯의 날짜나 시간은 수정할 수 없어 예외가 발생한다.")
+    @Test
+    void fail_cannotModifyDatetimeWhenReservedTimeslot() {
+      RestaurantMenu willModifyMenu = RestaurantMenuFixture.createRandom();
+      RestaurantMenu willDeleteMenu = RestaurantMenuFixture.createRandom();
+      RestaurantTimeSlot willModifyTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      ReflectionTestUtils.setField(willModifyTimeSlot, "curTotalGuestCount", 1);
+      RestaurantTimeSlot willDeleteTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      Set<RestaurantMenu> menus = Set.of(willModifyMenu, willDeleteMenu);
+      Set<RestaurantTimeSlot> timeSlots = Set.of(willModifyTimeSlot, willDeleteTimeSlot);
+      Restaurant savedRestaurant = restaurantRepository.save(
+          RestaurantFixture.createRandomByStatusAndMenusAndTimeSlots(
+              RestaurantStatus.OPENED, menus, timeSlots));
+
+      // given
+      /** command **/
+      Long requesterId = savedRestaurant.getOwnerId();
+      UserRole requesterRole = UserRole.OWNER;
+      String restaurantUuid = savedRestaurant.getRestaurantUuid();
+      // menu
+      String requestModifyMenuUuid = willModifyMenu.getRestaurantMenuUuid();
+      // timeslot
+      String requestModifyTimeslotUuid = willModifyTimeSlot.getRestaurantTimeslotUuid();
+      LocalDate requestModifyTimeSlotAvailableDate = willModifyTimeSlot.getAvailableDate().plusDays(1);
+      LocalTime requestModifyTimeSlotTime = willModifyTimeSlot.getTimeslot().minusHours(1);
+      int requestModifyTimeslotMaxCapacity = willModifyTimeSlot.getMaxCapacity() + 10;
+
+      ModifyRestaurantCommand command = ModifyRestaurantCommand.builder()
+          .requesterId(requesterId)
+          .requesterRole(requesterRole)
+          .restaurantUuid(restaurantUuid)
+          .name("내가 차린 식당")
+          .address("서울특별시 강남구 테헤란로 123")
+          .contactNumber("010-1234-5678")
+          .openingAt(LocalTime.of(10, 0))
+          .closingAt(LocalTime.of(22, 0))
+          .info("신선한 재료만 사용하는 건강한 식당입니다.")
+          .status("INACTIVE")
+          .waitingStatus("INACTIVE")
+          .maxReservationGuestCountPerTeamOnline(4)
+          .menus(List.of(
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(requestModifyMenuUuid)
+                  .name("한지훈이 말아주는 된장찌개")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("SOLDOUT")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("강혜주표 3월 17일에 만든 고기 덮밥")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("INACTIVE")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("황하온의 배달시킨 밀면")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("ACTIVE")
+                  .build()
+          ))
+          .timeslots(List.of(
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(requestModifyTimeslotUuid)
+                  .availableDate(requestModifyTimeSlotAvailableDate)
+                  .timeslot(requestModifyTimeSlotTime)
+                  .maxCapacity(requestModifyTimeslotMaxCapacity)
+                  .build(),
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(null)
+                  .availableDate(LocalDate.of(2025, 4, 18))
+                  .timeslot(LocalTime.of(18, 0))
+                  .maxCapacity(15)
+                  .build()
+          ))
+          .build();
+
+      // when & then
+      assertThatThrownBy(() -> restaurantService.modifyRestaurant(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(RestaurantTimeSlotErrorCode.CANNOT_MODIFY_DATETIME_WHEN_RESERVED_TIMESLOT.getMessage());
+    }
+
+    @DisplayName("현재 예약 인원보다 수용 인원을 작게 설정할 수 없어 예외가 발생한다.")
+    @Test
+    void fail_maxCapacityCannotBeLessThanCurrent() {
+      RestaurantMenu willModifyMenu = RestaurantMenuFixture.createRandom();
+      RestaurantMenu willDeleteMenu = RestaurantMenuFixture.createRandom();
+      RestaurantTimeSlot willModifyTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      RestaurantTimeSlot willDeleteTimeSlot = RestaurantTimeSlotFixture.createRandom();
+      ReflectionTestUtils.setField(willModifyTimeSlot, "curTotalGuestCount", 20);
+      Set<RestaurantMenu> menus = Set.of(willModifyMenu, willDeleteMenu);
+      Set<RestaurantTimeSlot> timeSlots = Set.of(willModifyTimeSlot, willDeleteTimeSlot);
+      Restaurant savedRestaurant = restaurantRepository.save(
+          RestaurantFixture.createRandomByStatusAndMenusAndTimeSlots(
+              RestaurantStatus.OPENED, menus, timeSlots));
+
+      // given
+      /** command **/
+      Long requesterId = savedRestaurant.getOwnerId();
+      UserRole requesterRole = UserRole.OWNER;
+      String restaurantUuid = savedRestaurant.getRestaurantUuid();
+      // menu
+      String requestModifyMenuUuid = willModifyMenu.getRestaurantMenuUuid();
+      // timeslot
+      String requestModifyTimeslotUuid = willModifyTimeSlot.getRestaurantTimeslotUuid();
+      LocalDate requestModifyTimeSlotAvailableDate = willModifyTimeSlot.getAvailableDate();
+      LocalTime requestModifyTimeSlotTime = willModifyTimeSlot.getTimeslot();
+      int requestModifyTimeslotMaxCapacity = willModifyTimeSlot.getCurTotalGuestCount() - 1;
+
+      ModifyRestaurantCommand command = ModifyRestaurantCommand.builder()
+          .requesterId(requesterId)
+          .requesterRole(requesterRole)
+          .restaurantUuid(restaurantUuid)
+          .name("내가 차린 식당")
+          .address("서울특별시 강남구 테헤란로 123")
+          .contactNumber("010-1234-5678")
+          .openingAt(LocalTime.of(10, 0))
+          .closingAt(LocalTime.of(22, 0))
+          .info("신선한 재료만 사용하는 건강한 식당입니다.")
+          .status("INACTIVE")
+          .waitingStatus("INACTIVE")
+          .maxReservationGuestCountPerTeamOnline(4)
+          .menus(List.of(
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(requestModifyMenuUuid)
+                  .name("한지훈이 말아주는 된장찌개")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("SOLDOUT")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("강혜주표 3월 17일에 만든 고기 덮밥")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("INACTIVE")
+                  .build(),
+              ModifyRestaurantCommand.MenuCommand.builder()
+                  .restaurantMenuUuid(null)
+                  .name("황하온의 배달시킨 밀면")
+                  .price(BigDecimal.valueOf(9000))
+                  .status("ACTIVE")
+                  .build()
+          ))
+          .timeslots(List.of(
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(requestModifyTimeslotUuid)
+                  .availableDate(requestModifyTimeSlotAvailableDate)
+                  .timeslot(requestModifyTimeSlotTime)
+                  .maxCapacity(requestModifyTimeslotMaxCapacity)
+                  .build(),
+              ModifyRestaurantCommand.TimeSlotCommand.builder()
+                  .restaurantTimeslotUuid(null)
+                  .availableDate(LocalDate.of(2025, 4, 18))
+                  .timeslot(LocalTime.of(18, 0))
+                  .maxCapacity(15)
+                  .build()
+          ))
+          .build();
+
+      // when & then
+      assertThatThrownBy(() -> restaurantService.modifyRestaurant(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(RestaurantTimeSlotErrorCode.MAX_CAPACITY_CANNOT_BE_LESS_THAN_CURRENT.getMessage());
+    }
+  }
 }

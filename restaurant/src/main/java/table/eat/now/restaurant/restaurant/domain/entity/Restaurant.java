@@ -28,6 +28,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import table.eat.now.common.domain.BaseEntity;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.restaurant.restaurant.domain.entity.vo.ContactInfo;
 import table.eat.now.restaurant.restaurant.domain.entity.vo.OperatingTime;
 
@@ -145,6 +146,32 @@ public class Restaurant extends BaseEntity {
   public void addTimeSlot(RestaurantTimeSlot timeSlot) {
     this.timeSlots.add(timeSlot);
     timeSlot.modifyRestaurant(this);
+  }
+
+  public void modify(
+      String name,
+      String info,
+      Integer maxReservationGuestCountPerTeamOnline,
+      String waitingStatus,
+      String status,
+      String contactNumber,
+      String address,
+      LocalTime openingAt,
+      LocalTime closingAt
+  ) {
+    this.name = name;
+    this.info = info;
+    this.maxReservationGuestCountPerTeamOnline = maxReservationGuestCountPerTeamOnline;
+    this.waitingStatus = WaitingStatus.valueOf(waitingStatus);
+    this.status = RestaurantStatus.valueOf(status);
+    this.contactInfo = ContactInfo.of(contactNumber, address);
+    this.operatingTime = OperatingTime.of(openingAt, closingAt);
+  }
+
+  public boolean isEditableBy(Long userId, UserRole userRole) {
+    if(userRole == UserRole.MASTER) return true;
+    if(userRole == UserRole.OWNER && userId.equals(ownerId)) return true;
+    return false;
   }
 
   @Getter

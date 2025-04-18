@@ -14,8 +14,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -53,15 +53,16 @@ public class RestaurantTimeSlot extends BaseEntity {
 
   @Builder(builderMethodName = "baseBuilder")
   private RestaurantTimeSlot(
+      String restaurantTimeslotUuid,
       LocalDate availableDate,
       Integer maxCapacity,
       Restaurant restaurant,
       LocalTime timeslot
   ) {
+    this.restaurantTimeslotUuid = restaurantTimeslotUuid;
     this.availableDate = availableDate;
     this.maxCapacity = maxCapacity;
     this.restaurant = restaurant;
-    this.restaurantTimeslotUuid = UUID.randomUUID().toString();
     this.timeslot = timeslot;
     this.curTotalGuestCount = 0;
   }
@@ -78,5 +79,15 @@ public class RestaurantTimeSlot extends BaseEntity {
       throw new IllegalArgumentException("curTotalGuestCount 는 maxCapacity 보다 클 수 없습니다.");
     }
     this.curTotalGuestCount = newCount;
+  }
+
+  public void modify(LocalDate availableDate, LocalTime timeslot, Integer maxCapacity) {
+    this.availableDate = availableDate;
+    this.timeslot = timeslot;
+    this.maxCapacity = maxCapacity;
+  }
+
+  public boolean equalsDateTime(LocalDateTime dateTime) {
+    return LocalDateTime.of(availableDate, timeslot).equals(dateTime);
   }
 }
