@@ -35,4 +35,4 @@ review:
   rating:
     update:
       cron: 0 */5 * * * *
-      batch-size: 1000
+      batch-size: 100
