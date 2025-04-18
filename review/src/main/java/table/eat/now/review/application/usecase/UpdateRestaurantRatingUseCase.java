@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -97,8 +96,11 @@ public class UpdateRestaurantRatingUseCase {
     private List<String> extractUniqueRestaurants(List<String> restaurantIds) {
       return restaurantIds.stream()
           .filter(id -> !processedIds.contains(id))
-          .peek(processedIds::add)
-          .collect(Collectors.toList());
+          .map(id -> {
+            processedIds.add(id);
+            return id;
+          })
+          .toList();
     }
 
     private void updateAndPublishRatings(List<String> uniqueRestaurantIds) {
