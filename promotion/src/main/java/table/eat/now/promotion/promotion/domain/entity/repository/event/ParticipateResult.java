@@ -8,4 +8,11 @@ public enum ParticipateResult {
   FAIL,
   SUCCESS,
   SUCCESS_SEND_BATCH
+  ;
+
+  public static ParticipateResult from(Long result) {
+    if (result == null || result == 0L) return FAIL;
+    if (result == 2L) return SUCCESS_SEND_BATCH;
+    return SUCCESS;
+  }
 }

@@ -1,4 +1,4 @@
-package table.eat.now.promotion.promotion.infrastructure.redis;
+package table.eat.now.promotion.promotion.infrastructure.redis.script;
 
 import org.springframework.stereotype.Component;
 
