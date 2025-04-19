@@ -37,7 +37,7 @@ public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
     String key = buildKey(command.promotionName());
 
     RedisScriptCommand scriptCommand = redisScriptCommandFactory
-        .createAddUserCommand(participant, key, maxCount);
+        .createAddUserCommand(command, key, maxCount);
 
     Long result = scriptCommand.execute();
 

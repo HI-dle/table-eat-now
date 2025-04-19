@@ -3,7 +3,7 @@ package table.eat.now.promotion.promotion.infrastructure.redis.script;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipant;
+import table.eat.now.promotion.promotion.infrastructure.dto.request.PromotionUserCommand;
 
 /**
  * @author : hanjihoon
@@ -16,8 +16,8 @@ public class RedisScriptCommandFactory {
   private final RedisTemplate<String, String> redisTemplate;
   private final PromotionLuaScriptProvider scriptProvider;
 
-  public RedisScriptCommand createAddUserCommand(PromotionParticipant participant, String key, int maxCount) {
-    return new AddUserToPromotionCommand(redisTemplate, scriptProvider, participant, key, maxCount);
+  public RedisScriptCommand createAddUserCommand(PromotionUserCommand command, String key, int maxCount) {
+    return new AddUserToPromotionCommand(redisTemplate, scriptProvider, command, key, maxCount);
   }
 }
 
