@@ -18,6 +18,7 @@ import table.eat.now.reservation.reservation.application.client.CouponClient;
 import table.eat.now.reservation.reservation.application.client.PaymentClient;
 import table.eat.now.reservation.reservation.application.client.PromotionClient;
 import table.eat.now.reservation.reservation.application.client.RestaurantClient;
+import table.eat.now.reservation.reservation.application.event.publisher.ReservationEventPublisher;
 
 
 @Import(TearDownExecutor.class)
@@ -43,6 +44,9 @@ public abstract class IntegrationTestSupport {
 
   @MockitoBean
   protected ApplicationEventPublisher eventPublisher;
+
+  @MockitoBean
+  protected ReservationEventPublisher reservationEventPublisher;
 
   @AfterEach
   void tearDown() {

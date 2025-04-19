@@ -1,0 +1,8 @@
+package table.eat.now.reservation.reservation.application.event.publisher;
+
+import table.eat.now.reservation.reservation.application.event.event.ReservationEvent;
+
+public interface ReservationEventPublisher<T extends ReservationEvent> {
+
+  void publish(T event);
+}

@@ -2,7 +2,7 @@
  * @author : jieun(je-pa)
  * @Date : 2025. 04. 17.
  */
-package table.eat.now.reservation.reservation.application.listener.event;
+package table.eat.now.reservation.reservation.application.event.event;
 
 import java.math.BigDecimal;
 import java.util.List;
