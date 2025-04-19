@@ -149,6 +149,7 @@ public class PromotionServiceImpl implements PromotionService{
     return true;
   }
 
+
   //이 부분 너무 고민입니다...PromotionUser로 보낼 때 auditing에 사용될 CurrentUserInfoDto가
   //필요할 것 같은데 이미 프로모션 진행 중에 자동으로 저장되게끔 구성을 해서 CurrentUserInfoDto를
   // controller에서 받아오기엔 1000번째 유저의 아이디가 들어가 버리는 탓에 아래 메서드에서 관리자 값을 하나 두고
