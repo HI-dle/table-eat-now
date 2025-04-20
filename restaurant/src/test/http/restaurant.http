@@ -80,3 +80,9 @@ X-User-Role: MASTER
 GET http://localhost:8082/internal/v1/restaurants/my-restaurant
 X-User-Id: 101
 X-User-Role: STAFF
+
+### 식당 조회
+GET http://localhost:8082/admin/v1/restaurants/38125e11-904b-450e-89ae-3a8145e8cd56
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: MASTER

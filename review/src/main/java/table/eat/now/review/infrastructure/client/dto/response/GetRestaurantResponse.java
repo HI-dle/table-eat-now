@@ -4,41 +4,42 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import lombok.Builder;
 import table.eat.now.review.application.client.dto.GetRestaurantStaffInfo;
 
-public record GetRestaurantResponse(
-    Long id,
+@Builder
+public record GetRestaurantResponse (
     String restaurantUuid,
+    String name,
     Long ownerId,
     Long staffId,
-    String name,
-    String address,
-    String contactNumber,
-    String openingAt,
-    String closingAt,
-    Double reviewRatingAvg,
     String info,
+    BigDecimal reviewRatingAvg,
+    Integer maxReservationGuestCountPerTeamOnline,
+    String contactNumber,
+    String address,
+    LocalTime openingAt,
+    LocalTime closingAt,
     String status,
-    Integer maxReservationGuestCountPerTeam,
-    String waiting_status,
+    String waitingStatus,
     List<Menu> menus,
-    List<Timeslot> timeslots
-) {
-
+    List<TimeSlot> timeSlots
+){
   public record Menu(
       String restaurantMenuUuid,
       String name,
       BigDecimal price,
       String status
-  ) {}
-
-  public record Timeslot(
+  ) {
+  }
+  public record TimeSlot(
       String restaurantTimeslotUuid,
-      LocalDate availableStartDate,
+      LocalDate availableDate,
+      LocalTime timeslot,
       Integer maxCapacity,
-      Integer curTotalGuestCount,
-      LocalTime timeslot
-  ) {}
+      Integer curTotalGuestCount
+  ) {
+  }
 
   public GetRestaurantStaffInfo toInfo(){
     return new GetRestaurantStaffInfo(ownerId, staffId);
