@@ -123,6 +123,23 @@ public class PromotionServiceImpl implements PromotionService{
 
     return participateProcess(info, participateResult);
   }
+  //테스트용
+//
+//  @Override
+//  public void test(ParticipatePromotionUserInfo info) {
+//    for (long userId = 1; userId <= 2001; userId++) {
+//      ParticipatePromotionUserInfo loopInfo = ParticipatePromotionUserInfo.builder()
+//          .userId(userId)
+//          .promotionUuid(info.promotionUuid())
+//          .promotionName(info.promotionName())
+//          .build();
+//
+//      ParticipateResult participateResult = promotionRepository.addUserToPromotion(
+//          loopInfo.toDomain(), MaxParticipate.PARTICIPATE_10000_MAX);
+//
+//      participateProcess(loopInfo, participateResult);
+//    }
+//  }
 
   private boolean participateProcess(ParticipatePromotionUserInfo info,
       ParticipateResult participateResult) {
