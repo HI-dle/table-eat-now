@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-import table.eat.now.reservation.reservation.application.event.event.ReservationCanceledEvent;
+import table.eat.now.reservation.reservation.application.event.event.ReservationCancelledEvent;
 import table.eat.now.reservation.reservation.application.event.event.ReservationEvent;
 import table.eat.now.reservation.reservation.application.event.publisher.ReservationEventPublisher;
 import table.eat.now.reservation.reservation.infrastructure.kafka.config.ReservationKafkaTopicConfig;
@@ -12,12 +12,12 @@ import table.eat.now.reservation.reservation.infrastructure.kafka.config.Reserva
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class KafkaReservationProducer implements ReservationEventPublisher <ReservationCanceledEvent> {
+public class KafkaReservationProducer implements ReservationEventPublisher <ReservationCancelledEvent> {
 
   private final KafkaTemplate<String, ReservationEvent> kafkaTemplate;
 
   @Override
-  public void publish(ReservationCanceledEvent event) {
+  public void publish(ReservationCancelledEvent event) {
     kafkaTemplate.send(ReservationKafkaTopicConfig.TOPIC_NAME, event.reservationUuid(), event);
   }
 }

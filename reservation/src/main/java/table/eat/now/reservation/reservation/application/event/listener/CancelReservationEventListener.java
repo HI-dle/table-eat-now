@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import table.eat.now.reservation.reservation.application.event.event.CancelReservationAfterCommitEvent;
-import table.eat.now.reservation.reservation.application.event.event.ReservationCanceledEvent;
-import table.eat.now.reservation.reservation.application.event.payload.ReservationCanceledPayload;
+import table.eat.now.reservation.reservation.application.event.event.ReservationCancelledEvent;
+import table.eat.now.reservation.reservation.application.event.payload.ReservationCancelledPayload;
 import table.eat.now.reservation.reservation.application.event.publisher.ReservationEventPublisher;
 
 @Component
@@ -23,7 +23,7 @@ public class CancelReservationEventListener {
   public void handleCancelReservationAfterCommitEvent(
       final CancelReservationAfterCommitEvent event) {
     reservationEventPublisher.publish(
-        ReservationCanceledEvent.from(ReservationCanceledPayload.from(event))
+        ReservationCancelledEvent.from(ReservationCancelledPayload.from(event))
     );
   }
 }

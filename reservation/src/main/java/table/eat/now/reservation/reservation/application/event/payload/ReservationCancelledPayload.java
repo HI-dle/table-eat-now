@@ -8,7 +8,7 @@ import lombok.Builder;
 import table.eat.now.reservation.reservation.application.event.event.CancelReservationAfterCommitEvent;
 
 @Builder
-public record ReservationCanceledPayload(
+public record ReservationCancelledPayload(
     String reservationUuid,
 
     // 결제
@@ -29,8 +29,8 @@ public record ReservationCanceledPayload(
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     LocalDateTime processedAt
 ) {
-    public static ReservationCanceledPayload from(CancelReservationAfterCommitEvent event){
-        return ReservationCanceledPayload.builder()
+    public static ReservationCancelledPayload from(CancelReservationAfterCommitEvent event){
+        return ReservationCancelledPayload.builder()
             .reservationUuid(event.reservationUuid())
             .paymentIdempotencyKey(event.paymentIdempotencyKey())
             .cancelAmount(event.cancelAmount())
