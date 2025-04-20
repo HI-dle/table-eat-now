@@ -60,12 +60,13 @@ public record PageResult<T>(
         .totalElements(page.totalElements())
         .totalPages(page.totalPages())
         .pageNumber(page.pageNumber())
+        .pageSize(page.pageSize())
         .build();
   }
 
   public <U> PageResult<U> map(Function<T, U> mapper) {
 
-    return PageResult.from(this, this.contents.<T>stream()
+    return PageResult.from(this, this.contents.stream()
         .map(t -> mapper.apply(t))
         .toList());
   }

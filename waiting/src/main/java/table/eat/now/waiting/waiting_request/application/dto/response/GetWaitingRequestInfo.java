@@ -9,27 +9,31 @@ public record GetWaitingRequestInfo(
     String dailyWaitingUuid,
     String restaurantUuid,
     String restaurantName,
+    Long userId,
     String phone,
     String slackId,
     int seatSize,
     Integer sequence,
+    String status,
     Long rank,
-    long estimatedWaitingMin
+    Long estimatedWaitingMin
 ) {
 
   public static GetWaitingRequestInfo from(
-      WaitingRequest waitingRequest, String restaurantName, Long rank, long estimatedWaitingSec) {
+      WaitingRequest waitingRequest, String restaurantName, Long rank, Long estimatedWaitingMin) {
     return GetWaitingRequestInfo.builder()
         .waitingRequestUuid(waitingRequest.getWaitingRequestUuid())
         .dailyWaitingUuid(waitingRequest.getDailyWaitingUuid())
         .restaurantUuid(waitingRequest.getRestaurantUuid())
         .restaurantName(restaurantName)
+        .userId(waitingRequest.getUserId())
         .phone(waitingRequest.getPhone())
         .slackId(waitingRequest.getSlackId())
         .seatSize(waitingRequest.getSeatSize())
         .sequence(waitingRequest.getSequence())
+        .status(waitingRequest.getStatus().toString())
         .rank(rank)
-        .estimatedWaitingMin(estimatedWaitingSec/60)
+        .estimatedWaitingMin(estimatedWaitingMin)
         .build();
   }
 }

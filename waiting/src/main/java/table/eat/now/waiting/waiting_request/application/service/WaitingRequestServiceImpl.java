@@ -51,7 +51,7 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
     String waitingRequestUuid = UUID.randomUUID().toString();
     Long sequence = generateSequence(command.dailyWaitingUuid());
     Long rank = enqueueWaitingRequestAndGetRank(command.dailyWaitingUuid(), waitingRequestUuid);
-    long estimatedWaitingSec = dailyWaitingInfo.avgWaitingSec() * (rank + 1L);
+    Long estimatedWaitingMin = rank == null ? null : dailyWaitingInfo.avgWaitingSec() * (rank + 1L);
 
     WaitingRequest waitingRequest = command.toEntity(
         waitingRequestUuid, dailyWaitingInfo.restaurantUuid(), userInfo.userId(), sequence);
@@ -59,7 +59,7 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
 
     notifyWaitingRequestCreated(
         command, waitingRequestUuid, dailyWaitingInfo.restaurantName(),
-        sequence, rank, estimatedWaitingSec);
+        sequence, rank, estimatedWaitingMin);
 
     return waitingRequestUuid;
   }
@@ -70,26 +70,38 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
 
     WaitingRequest waitingRequest = getWaitingRequestBy(waitingRequestUuid);
     validateUserPhoneNumber(phone, waitingRequest.getPhone());
+    waitingRequest.updateStatus(WaitingStatus.POSTPONED);
 
     GetDailyWaitingInfo dailyWaitingInfo = waitingClient.getDailyWaitingInfo(
         waitingRequest.getDailyWaitingUuid());
 
     Long rank = enqueueWaitingRequestAndGetRank(waitingRequest.getDailyWaitingUuid(), waitingRequestUuid);
-    long estimatedWaitingSec = dailyWaitingInfo.avgWaitingSec() * (rank + 1L);
-    waitingRequest.updateStatus(WaitingStatus.POSTPONED);
+    Long estimatedWaitingMin = rank == null ? null : dailyWaitingInfo.avgWaitingSec() * (rank + 1L) / 60;
     notifyWaitingRequestPostponed(
-        waitingRequest, dailyWaitingInfo.restaurantName(), rank, estimatedWaitingSec);
+        waitingRequest, dailyWaitingInfo.restaurantName(), rank, estimatedWaitingMin);
+  }
+
+  @Transactional
+  @Override
+  public void cancelWaitingRequest(
+      CurrentUserInfoDto userInfo, String waitingRequestUuid, String phone) {
+
+    WaitingRequest waitingRequest = getWaitingRequestBy(waitingRequestUuid);
+    validateUserPhoneNumber(phone, waitingRequest.getPhone());
+    waitingRequest.updateStatus(WaitingStatus.CANCELED);
+
+    dequeueWaitingRequest(waitingRequest.getDailyWaitingUuid(), waitingRequestUuid);
   }
 
   @Override
   public void processWaitingRequestEntrance(
-      CurrentUserInfoDto userInfo, String waitingRequestsUuid) {
+      CurrentUserInfoDto userInfo, String waitingRequestUuid) {
 
-    WaitingRequest waitingRequest = getWaitingRequestBy(waitingRequestsUuid);
+    WaitingRequest waitingRequest = getWaitingRequestBy(waitingRequestUuid);
     GetRestaurantInfo restaurantInfo = restaurantClient.getRestaurantInfo(waitingRequest.getRestaurantUuid());
     validateRestaurantAuthority(userInfo, restaurantInfo);
-    dequeueWaitingRequest(waitingRequest.getDailyWaitingUuid(), waitingRequestsUuid);
 
+    dequeueWaitingRequest(waitingRequest.getDailyWaitingUuid(), waitingRequestUuid);
     notifyWaitingRequestEntrance(waitingRequest, restaurantInfo.name());
   }
 
@@ -102,11 +114,22 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
 
     GetDailyWaitingInfo dailyWaitingInfo = waitingClient.getDailyWaitingInfo(
         waitingRequest.getDailyWaitingUuid());
+    Long rank = getRankIfWaiting(waitingRequestUuid, waitingRequest);
+    Long estimatedWaitingMin = rank == null ? null : dailyWaitingInfo.avgWaitingSec() * (rank + 1L) / 60;
 
-    Long rank = waitingRequestRepository.getRank(waitingRequest.getDailyWaitingUuid(), waitingRequestUuid);
-    long estimatedWaitingSec = dailyWaitingInfo.avgWaitingSec() * (rank + 1L);
+    return GetWaitingRequestInfo.from(waitingRequest, dailyWaitingInfo.restaurantName(), rank, estimatedWaitingMin);
+  }
 
-    return GetWaitingRequestInfo.from(waitingRequest, dailyWaitingInfo.restaurantName(), rank, estimatedWaitingSec);
+  @Transactional
+  @Override
+  public void updateWaitingRequestStatusAdmin(
+      CurrentUserInfoDto userInfo, String waitingRequestUuid, String type) {
+
+    WaitingRequest waitingRequest = getWaitingRequestBy(waitingRequestUuid);
+    GetRestaurantInfo restaurantInfo = restaurantClient.getRestaurantInfo(waitingRequest.getRestaurantUuid());
+    validateRestaurantAuthority(userInfo, restaurantInfo);
+
+    waitingRequest.updateStatus(type);
   }
 
   @Override
@@ -118,14 +141,31 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
 
     GetDailyWaitingInfo dailyWaitingInfo = waitingClient.getDailyWaitingInfo(
         waitingRequest.getDailyWaitingUuid());
-    Long rank = waitingRequestRepository.getRank(waitingRequest.getDailyWaitingUuid(), waitingRequestUuid);
-    long estimatedWaitingSec = dailyWaitingInfo.avgWaitingSec() * (rank + 1L);
 
-    return GetWaitingRequestInfo.from(waitingRequest, dailyWaitingInfo.restaurantName(), rank, estimatedWaitingSec);
+    Long rank = getRankIfWaiting(waitingRequestUuid, waitingRequest);
+    Long estimatedWaitingMin = rank == null ? null : dailyWaitingInfo.avgWaitingSec() * (rank + 1L) / 60;
+
+    return GetWaitingRequestInfo.from(waitingRequest, dailyWaitingInfo.restaurantName(), rank, estimatedWaitingMin);
   }
 
   @Override
-  public PageResult<GetWaitingRequestInfo> getWaitingRequestsAdmin(
+  public GetWaitingRequestInfo getWaitingRequestInternal(CurrentUserInfoDto userInfo,
+      String waitingRequestUuid) {
+
+    WaitingRequest waitingRequest = getWaitingRequestBy(waitingRequestUuid);
+    validateCustomerUserId(userInfo, waitingRequest.getUserId());
+
+    GetDailyWaitingInfo dailyWaitingInfo = waitingClient.getDailyWaitingInfo(
+        waitingRequest.getDailyWaitingUuid());
+
+    Long rank = getRankIfWaiting(waitingRequestUuid, waitingRequest);
+    Long estimatedWaitingMin = rank == null ? null : dailyWaitingInfo.avgWaitingSec() * (rank + 1L) / 60;
+
+    return GetWaitingRequestInfo.from(waitingRequest, dailyWaitingInfo.restaurantName(), rank, estimatedWaitingMin);
+  }
+
+  @Override
+  public PageResult<GetWaitingRequestInfo> getCurrentWaitingRequestsAdmin(
       CurrentUserInfoDto userInfo, String dailyWaitingUuid, Pageable pageable) {
 
     GetDailyWaitingInfo dailyWaitingInfo = waitingClient.getDailyWaitingInfo(dailyWaitingUuid);
@@ -148,20 +188,20 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
 
   private void notifyWaitingRequestCreated(
       CreateWaitingRequestCommand command, String waitingRequestUuid,
-      String restaurantName, Long sequence, Long rank, long estimatedWaitingSec) {
+      String restaurantName, Long sequence, Long rank, Long estimatedWaitingMin) {
 
     WaitingRequestCreatedInfo createdInfo = WaitingRequestCreatedInfo.of(
-        waitingRequestUuid, command.phone(), command.slackId(), restaurantName, sequence, rank, estimatedWaitingSec);
+        waitingRequestUuid, command.phone(), command.slackId(), restaurantName, sequence, rank, estimatedWaitingMin);
 
     eventPublisher.publish(WaitingRequestCreatedEvent.from(createdInfo));
   }
 
   private void notifyWaitingRequestPostponed(
-      WaitingRequest waitingRequest, String restaurantName, Long rank, long estimatedWaitingSec) {
+      WaitingRequest waitingRequest, String restaurantName, Long rank, Long estimatedWaitingMin) {
 
     WaitingRequestPostponedInfo postponedInfo = WaitingRequestPostponedInfo.of(
         waitingRequest.getWaitingRequestUuid(), waitingRequest.getPhone(), waitingRequest.getSlackId(),
-        restaurantName, waitingRequest.getSequence().longValue(), rank, estimatedWaitingSec);
+        restaurantName, waitingRequest.getSequence().longValue(), rank, estimatedWaitingMin);
 
     eventPublisher.publish(WaitingRequestPostponedEvent.from(postponedInfo));
   }
@@ -186,9 +226,9 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
     return waitingRequestRepository.getRank(dailyWaitingUuid, waitingRequestUuid);
   }
 
-  private void dequeueWaitingRequest(String dailyWaitingUuid, String waitingRequestsUuid) {
+  private void dequeueWaitingRequest(String dailyWaitingUuid, String waitingRequestUuid) {
     boolean result =
-        waitingRequestRepository.dequeueWaitingRequest(dailyWaitingUuid, waitingRequestsUuid);
+        waitingRequestRepository.dequeueWaitingRequest(dailyWaitingUuid, waitingRequestUuid);
     if (!result) {
       throw CustomException.from(WaitingRequestErrorCode.INVALID_WAITING_REQUEST_UUID);
     }
@@ -198,8 +238,16 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
     return waitingRequestRepository.generateNextSequence(dailyWaitingUuid);
   }
 
-  private WaitingRequest getWaitingRequestBy(String waitingRequestsUuid) {
-    return waitingRequestRepository.findByWaitingRequestUuidAndDeletedAtIsNull(waitingRequestsUuid)
+  private Long getRankIfWaiting(String waitingRequestUuid, WaitingRequest waitingRequest) {
+    if (!waitingRequest.isWaiting()) {
+      return null;
+    }
+    return waitingRequestRepository.getRank(
+        waitingRequest.getDailyWaitingUuid(), waitingRequestUuid);
+  }
+
+  private WaitingRequest getWaitingRequestBy(String waitingRequestUuid) {
+    return waitingRequestRepository.findByWaitingRequestUuidAndDeletedAtIsNull(waitingRequestUuid)
         .orElseThrow(
             () -> CustomException.from(WaitingRequestErrorCode.INVALID_WAITING_REQUEST_UUID));
   }
@@ -229,17 +277,30 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
     }
   }
 
+  private static void validateUserPhoneNumber(String phone, String savedPhone) {
+    if (!savedPhone.equals(phone)) {
+      throw CustomException.from(WaitingRequestErrorCode.UNAUTH_REQUEST);
+    }
+  }
+
+  private void validateCustomerUserId(CurrentUserInfoDto userInfo, Long userId) {
+    if (userInfo.role().isMaster()) {
+      return;
+    }
+    if (!isSameCustomer(userInfo, userId)) {
+      throw CustomException.from(WaitingRequestErrorCode.UNAUTH_REQUEST);
+    }
+  }
+
+  private boolean isSameCustomer(CurrentUserInfoDto userInfo, Long userId) {
+    return userInfo.role().isCustomer() && userInfo.userId().equals(userId);
+  }
+
   private boolean isStaffOfRestaurant(CurrentUserInfoDto userInfo, Long staffId) {
     return userInfo.role().isStaff() && staffId.equals(userInfo.userId());
   }
 
   private boolean isOwnerOfRestaurant(CurrentUserInfoDto userInfo, Long ownerId) {
     return userInfo.role().isOwner() && ownerId.equals(userInfo.userId());
-  }
-
-  private static void validateUserPhoneNumber(String phone, String savedPhone) {
-    if (!savedPhone.equals(phone)) {
-      throw CustomException.from(WaitingRequestErrorCode.UNAUTH_REQUEST);
-    }
   }
 }
