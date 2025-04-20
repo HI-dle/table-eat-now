@@ -31,10 +31,10 @@ import table.eat.now.review.application.service.dto.request.SearchAdminReviewQue
 import table.eat.now.review.application.service.dto.request.SearchReviewQuery;
 import table.eat.now.review.application.service.dto.request.UpdateReviewCommand;
 import table.eat.now.review.application.service.dto.response.CreateReviewInfo;
-import table.eat.now.review.application.service.dto.response.GetRestaurantInfo;
-import table.eat.now.review.application.service.dto.response.GetRestaurantStaffInfo;
+import table.eat.now.review.application.client.dto.GetRestaurantInfo;
+import table.eat.now.review.application.client.dto.GetRestaurantStaffInfo;
 import table.eat.now.review.application.service.dto.response.GetReviewInfo;
-import table.eat.now.review.application.service.dto.response.GetServiceInfo;
+import table.eat.now.review.application.client.dto.GetServiceInfo;
 import table.eat.now.review.application.service.dto.response.PaginatedInfo;
 import table.eat.now.review.application.service.dto.response.SearchAdminReviewInfo;
 import table.eat.now.review.application.service.dto.response.SearchReviewInfo;
@@ -86,14 +86,14 @@ class ReviewServiceImplTest {
     @Test
     void 유효한_요청으로_리뷰를_생성하면_저장된_리뷰_정보를_반환한다() {
       // given
-      when(reservationClient.getReservation(serviceId, customerId)).thenReturn(serviceInfo);
+      when(reservationClient.getReservation(serviceId)).thenReturn(serviceInfo);
 
       // when
       CreateReviewInfo result = reviewService.createReview(command);
 
       // then
       assertThat(result.createdAt()).isNotNull();
-      verify(reservationClient).getReservation(serviceId, customerId);
+      verify(reservationClient).getReservation(serviceId);
     }
 
     @Test
@@ -102,7 +102,7 @@ class ReviewServiceImplTest {
       CreateReviewCommand waitingCommand = new CreateReviewCommand(
           restaurantId, serviceId, customerId, "WAITING",
           "맛있는 식당이었습니다.", 4, true, CUSTOMER);
-      when(waitingClient.getWaiting(serviceId, customerId)).thenReturn(serviceInfo);
+      when(waitingClient.getWaiting(serviceId)).thenReturn(serviceInfo);
 
       // when
       CreateReviewInfo result = reviewService.createReview(waitingCommand);
@@ -118,7 +118,7 @@ class ReviewServiceImplTest {
       Long differentCustomerId = 456L;
       GetServiceInfo differentServiceInfo = new GetServiceInfo(restaurantId, differentCustomerId);
 
-      when(reservationClient.getReservation(serviceId, customerId)).thenReturn(
+      when(reservationClient.getReservation(serviceId)).thenReturn(
           differentServiceInfo);
 
       // when & then
@@ -131,7 +131,7 @@ class ReviewServiceImplTest {
     @Test
     void 동일한_참조_정보로_리뷰를_작성시_예외를_발생시킨다() {
       // given
-      when(reservationClient.getReservation(serviceId, customerId)).thenReturn(serviceInfo);
+      when(reservationClient.getReservation(serviceId)).thenReturn(serviceInfo);
       reviewRepository.save(command.toEntity());
 
       // when & then
@@ -181,7 +181,7 @@ class ReviewServiceImplTest {
           CUSTOMER
       );
 
-      when(reservationClient.getReservation(serviceId, customerId)).thenReturn(serviceInfo);
+      when(reservationClient.getReservation(serviceId)).thenReturn(serviceInfo);
       Review review = reviewRepository.save(command.toEntity());
       reviewId = review.getReviewId();
     }
@@ -221,7 +221,7 @@ class ReviewServiceImplTest {
     void 레스토랑_직원이_비공개_리뷰에_접근할_시_리뷰_정보를_반환한다() {
       // given
       GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
-      when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+      when(restaurantClient.getRestaurantStaffs(restaurantId)).thenReturn(staffInfoResponse);
 
       // when
       GetReviewInfo result = reviewService.getReview(reviewId, staffInfo);
@@ -229,14 +229,14 @@ class ReviewServiceImplTest {
       // then
       assertThat(result).isNotNull();
       assertThat(result.reviewUuid()).isEqualTo(reviewId);
-      verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+      verify(restaurantClient).getRestaurantStaffs(restaurantId);
     }
 
     @Test
     void 레스토랑_주인이_비공개_리뷰에_접근할_시_리뷰_정보를_반환한다() {
       // given
       GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
-      when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+      when(restaurantClient.getRestaurantStaffs(restaurantId)).thenReturn(staffInfoResponse);
 
       // when
       GetReviewInfo result = reviewService.getReview(reviewId, ownerInfo);
@@ -244,7 +244,7 @@ class ReviewServiceImplTest {
       // then
       assertThat(result).isNotNull();
       assertThat(result.reviewUuid()).isEqualTo(reviewId);
-      verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+      verify(restaurantClient).getRestaurantStaffs(restaurantId);
     }
 
     @Test
@@ -254,14 +254,14 @@ class ReviewServiceImplTest {
       CurrentUserInfoDto differentStaffInfo = new CurrentUserInfoDto(differentStaffId, STAFF);
 
       GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
-      when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+      when(restaurantClient.getRestaurantStaffs(restaurantId)).thenReturn(staffInfoResponse);
 
       // when & then
       CustomException exception = assertThrows(CustomException.class, () ->
           reviewService.getReview(reviewId, differentStaffInfo));
 
       assertThat(exception.getMessage()).contains("비공개 처리된 리뷰입니다");
-      verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+      verify(restaurantClient).getRestaurantStaffs(restaurantId);
     }
 
     @Test
@@ -275,7 +275,7 @@ class ReviewServiceImplTest {
           CUSTOMER
       );
 
-      when(reservationClient.getReservation(serviceId, customerId)).thenReturn(serviceInfo);
+      when(reservationClient.getReservation(serviceId)).thenReturn(serviceInfo);
       Review publicReview = reviewRepository.save(publicCommand.toEntity());
       String publicReviewId = publicReview.getReviewId();
 
@@ -364,7 +364,7 @@ class ReviewServiceImplTest {
     void 레스토랑_직원이_요청시_리뷰를_숨길_수_있다() {
       // given
       GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
-      when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+      when(restaurantClient.getRestaurantStaffs(restaurantId)).thenReturn(staffInfoResponse);
 
       // when
       GetReviewInfo result = reviewService.hideReview(reviewId, staffInfo);
@@ -373,14 +373,14 @@ class ReviewServiceImplTest {
       assertThat(result).isNotNull();
       assertThat(result.reviewUuid()).isEqualTo(reviewId);
       assertThat(result.isVisible()).isFalse();
-      verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+      verify(restaurantClient).getRestaurantStaffs(restaurantId);
     }
 
     @Test
     void 레스토랑_주인이_요청시_리뷰를_숨길_수_있다() {
       // given
       GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
-      when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+      when(restaurantClient.getRestaurantStaffs(restaurantId)).thenReturn(staffInfoResponse);
 
       // when
       GetReviewInfo result = reviewService.hideReview(reviewId, ownerInfo);
@@ -389,7 +389,7 @@ class ReviewServiceImplTest {
       assertThat(result).isNotNull();
       assertThat(result.reviewUuid()).isEqualTo(reviewId);
       assertThat(result.isVisible()).isFalse();
-      verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+      verify(restaurantClient).getRestaurantStaffs(restaurantId);
     }
 
     @Test
@@ -399,14 +399,14 @@ class ReviewServiceImplTest {
       CurrentUserInfoDto differentStaffInfo = new CurrentUserInfoDto(differentStaffId, STAFF);
 
       GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
-      when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+      when(restaurantClient.getRestaurantStaffs(restaurantId)).thenReturn(staffInfoResponse);
 
       // when & then
       CustomException exception = assertThrows(CustomException.class, () ->
           reviewService.hideReview(reviewId, differentStaffInfo));
 
       assertThat(exception.getMessage()).contains("수정 요청에 대한 권한이 없습니다.");
-      verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+      verify(restaurantClient).getRestaurantStaffs(restaurantId);
     }
 
     @Test
@@ -496,7 +496,7 @@ class ReviewServiceImplTest {
     void 레스토랑_직원이_요청시_리뷰를_공개할_수_있다() {
       // given
       GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
-      when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+      when(restaurantClient.getRestaurantStaffs(restaurantId)).thenReturn(staffInfoResponse);
 
       // when
       GetReviewInfo result = reviewService.showReview(reviewId, staffInfo);
@@ -505,14 +505,14 @@ class ReviewServiceImplTest {
       assertThat(result).isNotNull();
       assertThat(result.reviewUuid()).isEqualTo(reviewId);
       assertThat(result.isVisible()).isTrue();
-      verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+      verify(restaurantClient).getRestaurantStaffs(restaurantId);
     }
 
     @Test
     void 레스토랑_주인이_요청시_리뷰를_공개할_수_있다() {
       // given
       GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
-      when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+      when(restaurantClient.getRestaurantStaffs(restaurantId)).thenReturn(staffInfoResponse);
 
       // when
       GetReviewInfo result = reviewService.showReview(reviewId, ownerInfo);
@@ -521,7 +521,7 @@ class ReviewServiceImplTest {
       assertThat(result).isNotNull();
       assertThat(result.reviewUuid()).isEqualTo(reviewId);
       assertThat(result.isVisible()).isTrue();
-      verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+      verify(restaurantClient).getRestaurantStaffs(restaurantId);
     }
 
     @Test
@@ -531,14 +531,14 @@ class ReviewServiceImplTest {
       CurrentUserInfoDto differentStaffInfo = new CurrentUserInfoDto(differentStaffId, STAFF);
 
       GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
-      when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+      when(restaurantClient.getRestaurantStaffs(restaurantId)).thenReturn(staffInfoResponse);
 
       // when & then
       CustomException exception = assertThrows(CustomException.class, () ->
           reviewService.showReview(reviewId, differentStaffInfo));
 
       assertThat(exception.getMessage()).contains("수정 요청에 대한 권한이 없습니다.");
-      verify(restaurantClient).getRestaurantStaffInfo(restaurantId);
+      verify(restaurantClient).getRestaurantStaffs(restaurantId);
     }
 
     @Test
@@ -569,7 +569,7 @@ class ReviewServiceImplTest {
       // given
       reviewService.showReview(reviewId, customerInfo); // 숨김 상태는 변경이 없어서 공개상태로 변경
       GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
-      when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+      when(restaurantClient.getRestaurantStaffs(restaurantId)).thenReturn(staffInfoResponse);
       reviewService.hideReview(reviewId, staffInfo);
 
       // when & then
@@ -655,7 +655,7 @@ class ReviewServiceImplTest {
       UpdateReviewCommand staffCommand = new UpdateReviewCommand(
           "직원이 수정한 내용", 3, staffInfo);
       GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
-      when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+      when(restaurantClient.getRestaurantStaffs(restaurantId)).thenReturn(staffInfoResponse);
 
       // when
       GetReviewInfo result = reviewService.updateReview(reviewId, staffCommand);
@@ -672,7 +672,7 @@ class ReviewServiceImplTest {
       UpdateReviewCommand staffCommand = new UpdateReviewCommand(
           "주인이 수정한 내용", 3, ownerInfo);
       GetRestaurantStaffInfo staffInfoResponse = new GetRestaurantStaffInfo(staffId, ownerId);
-      when(restaurantClient.getRestaurantStaffInfo(restaurantId)).thenReturn(staffInfoResponse);
+      when(restaurantClient.getRestaurantStaffs(restaurantId)).thenReturn(staffInfoResponse);
 
       // when
       GetReviewInfo result = reviewService.updateReview(reviewId, staffCommand);
@@ -1021,8 +1021,8 @@ class ReviewServiceImplTest {
 
       GetRestaurantInfo restaurantInfo = new GetRestaurantInfo(restaurantId);
 
-      when(restaurantClient.getRestaurantInfo(ownerId)).thenReturn(restaurantInfo);
-      when(restaurantClient.getRestaurantInfo(staffId)).thenReturn(restaurantInfo);
+      when(restaurantClient.getRestaurant(ownerId)).thenReturn(restaurantInfo);
+      when(restaurantClient.getRestaurant(staffId)).thenReturn(restaurantInfo);
 
       query = SearchAdminReviewQuery.builder()
           .orderBy("createdAt")
@@ -1091,7 +1091,7 @@ class ReviewServiceImplTest {
           )
           .doesNotContain(otherPrivateReview.getReviewId());
 
-      verify(restaurantClient).getRestaurantInfo(ownerId);
+      verify(restaurantClient).getRestaurant(ownerId);
     }
 
     @Test
@@ -1111,7 +1111,7 @@ class ReviewServiceImplTest {
           )
           .doesNotContain(otherPrivateReview.getReviewId());
 
-      verify(restaurantClient).getRestaurantInfo(staffId);
+      verify(restaurantClient).getRestaurant(staffId);
     }
 
     @Test
@@ -1187,7 +1187,7 @@ class ReviewServiceImplTest {
       assertThat(result.content()).hasSize(1);
       assertThat(result.content().get(0).reviewUuid()).isEqualTo(myPrivateReview.getReviewId());
       assertThat(result.content().get(0).isVisible()).isFalse();
-      verify(restaurantClient).getRestaurantInfo(ownerId);
+      verify(restaurantClient).getRestaurant(ownerId);
     }
 
     @Test

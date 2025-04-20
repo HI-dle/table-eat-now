@@ -24,9 +24,9 @@ import table.eat.now.review.application.service.dto.request.SearchAdminReviewQue
 import table.eat.now.review.application.service.dto.request.SearchReviewQuery;
 import table.eat.now.review.application.service.dto.request.UpdateReviewCommand;
 import table.eat.now.review.application.service.dto.response.CreateReviewInfo;
-import table.eat.now.review.application.service.dto.response.GetRestaurantStaffInfo;
+import table.eat.now.review.application.client.dto.GetRestaurantStaffInfo;
 import table.eat.now.review.application.service.dto.response.GetReviewInfo;
-import table.eat.now.review.application.service.dto.response.GetServiceInfo;
+import table.eat.now.review.application.client.dto.GetServiceInfo;
 import table.eat.now.review.application.service.dto.response.PaginatedInfo;
 import table.eat.now.review.application.service.dto.response.SearchAdminReviewInfo;
 import table.eat.now.review.application.service.dto.response.SearchReviewInfo;
@@ -60,7 +60,7 @@ public class ReviewServiceImpl implements ReviewService {
 
   private void validateServiceUser(ReviewReference reference) {
     GetServiceInfo serviceInfo = getServiceInfo(
-        reference.getServiceType(), reference.getServiceId(), reference.getCustomerId()
+        reference.getServiceType(), reference.getServiceId()
     );
 
     if (!serviceInfo.customerId().equals(reference.getCustomerId())) {
@@ -69,10 +69,10 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   private GetServiceInfo getServiceInfo(
-      ServiceType serviceType, String serviceId, Long customerId) {
+      ServiceType serviceType, String serviceId) {
     return switch (serviceType) {
-      case WAITING -> waitingClient.getWaiting(serviceId, customerId);
-      case RESERVATION -> reservationClient.getReservation(serviceId, customerId);
+      case WAITING -> waitingClient.getWaiting(serviceId);
+      case RESERVATION -> reservationClient.getReservation(serviceId);
     };
   }
 
@@ -105,7 +105,7 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   private GetRestaurantStaffInfo getStaffInfo(String restaurantId) {
-    return restaurantClient.getRestaurantStaffInfo(restaurantId);
+    return restaurantClient.getRestaurantStaffs(restaurantId);
   }
 
   @Override
@@ -174,7 +174,7 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   private String getRestaurantId(Long staffId) {
-    return restaurantClient.getRestaurantInfo(staffId).restaurantId();
+    return restaurantClient.getRestaurant(staffId).restaurantId();
   }
 
   private boolean isMaster(UserRole role) {
