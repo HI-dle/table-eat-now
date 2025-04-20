@@ -1,3 +1,7 @@
+/**
+ * @author : jieun(je-pa)
+ * @Date : 2025. 04. 20.
+ */
 package table.eat.now.reservation.reservation.infrastructure.kafka.interceptor;
 
 import java.nio.charset.StandardCharsets;
