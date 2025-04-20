@@ -32,9 +32,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.restaurant.global.ControllerTestSupport;
+import table.eat.now.restaurant.restaurant.application.exception.RestaurantErrorCode;
 import table.eat.now.restaurant.restaurant.application.exception.RestaurantTimeSlotErrorCode;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantCriteria;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantInfo;
+import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantSimpleInfo;
 
 class RestaurantInternalControllerTest extends ControllerTestSupport {
 
@@ -159,6 +161,68 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
       mockMvc.perform(patch(baseUrl + "/{restaurantUuid}/timeslot/{timeSlotUuid}/cur-total-guest-count", restaurantUuid, timeSlotUuid)
               .param("delta", String.valueOf(delta)))
           .andExpect(status().isBadRequest());
+    }
+  }
+  @DisplayName("직원 ID로 식당 조회 internal 컨트롤러")
+  @Nested
+  class getRestaurantByStaffId {
+
+    @DisplayName("직원 ID로 식당을 조회할 수 있다.")
+    @Test
+    void success() throws Exception {
+      // given
+      Long staffId = 1L;
+      String restaurantUuid = UUID.randomUUID().toString();
+
+      GetRestaurantSimpleInfo response = GetRestaurantSimpleInfo.builder()
+          .restaurantUuid(restaurantUuid)
+          .name("맛집")
+          .info("한식 전문점")
+          .reviewRatingAvg(BigDecimal.valueOf(4.8))
+          .maxReservationGuestCountPerTeamOnline(4)
+          .contactNumber("010-1234-5678")
+          .address("서울시 강남구")
+          .openingAt(LocalTime.of(9, 0))
+          .closingAt(LocalTime.of(22, 0))
+          .status("OPENED")
+          .waitingStatus("ACTIVE")
+          .build();
+
+      given(restaurantService.getRestaurantByStaffId(eq(staffId)))
+          .willReturn(response);
+
+      // when & then
+      mockMvc.perform(get(baseUrl)
+              .param("staffId", String.valueOf(staffId))
+              .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.restaurantUuid").value(restaurantUuid))
+          .andExpect(jsonPath("$.name").value("맛집"))
+          .andExpect(jsonPath("$.info").value("한식 전문점"))
+          .andExpect(jsonPath("$.reviewRatingAvg").value(4.8))
+          .andExpect(jsonPath("$.maxReservationGuestCountPerTeamOnline").value(4))
+          .andExpect(jsonPath("$.contactNumber").value("010-1234-5678"))
+          .andExpect(jsonPath("$.address").value("서울시 강남구"))
+          .andExpect(jsonPath("$.openingAt").value("09:00:00"))
+          .andExpect(jsonPath("$.closingAt").value("22:00:00"))
+          .andExpect(jsonPath("$.status").value("OPENED"))
+          .andExpect(jsonPath("$.waitingStatus").value("ACTIVE"));
+    }
+
+    @DisplayName("존재하지 않는 직원 ID로 조회 시 404 응답을 반환한다.")
+    @Test
+    void fail_notFound() throws Exception {
+      // given
+      Long nonExistentStaffId = 999L;
+
+      given(restaurantService.getRestaurantByStaffId(eq(nonExistentStaffId)))
+          .willThrow(new CustomException(RestaurantErrorCode.RESTAURANT_NOT_FOUND));
+
+      // when & then
+      mockMvc.perform(get(baseUrl)
+              .param("staffId", String.valueOf(nonExistentStaffId))
+              .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isNotFound());
     }
   }
 }

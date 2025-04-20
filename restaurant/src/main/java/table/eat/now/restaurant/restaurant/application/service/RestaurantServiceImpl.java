@@ -23,6 +23,7 @@ import table.eat.now.restaurant.restaurant.application.service.dto.request.Modif
 import table.eat.now.restaurant.restaurant.application.service.dto.request.ModifyRestaurantCommand.TimeSlotCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.CreateRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantInfo;
+import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantSimpleInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.ModifyRestaurantInfo;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant;
 import table.eat.now.restaurant.restaurant.domain.entity.RestaurantMenu;
@@ -123,6 +124,17 @@ public class RestaurantServiceImpl implements RestaurantService {
         .restaurantUuid(command.restaurantUuid())
         .name(command.name())
         .build();
+  }
+
+  @Override
+  public GetRestaurantSimpleInfo getRestaurantByStaffId(Long staffId) {
+    Restaurant restaurant = getRestaurantByStaffOrOwnerId(staffId);
+    return GetRestaurantSimpleInfo.from(restaurant);
+  }
+
+  private Restaurant getRestaurantByStaffOrOwnerId(Long staffId) {
+    return restaurantRepository.findByStaffIdOrOwnerId(staffId)
+        .orElseThrow(() -> CustomException.from(RestaurantErrorCode.RESTAURANT_NOT_FOUND));
   }
 
   private static void modifyMenus(ModifyRestaurantCommand command, Restaurant restaurant) {
