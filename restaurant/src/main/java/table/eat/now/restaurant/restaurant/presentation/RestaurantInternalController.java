@@ -45,11 +45,11 @@ public class RestaurantInternalController {
     return ResponseEntity.ok().build();
   }
 
-  @GetMapping
+  @GetMapping("/my-restaurant")
   public ResponseEntity<GetRestaurantSimpleResponse> getRestaurantByStaffId(
-      @RequestParam Long staffId) {
+      @CurrentUserInfo CurrentUserInfoDto userInfoDto) {
     return ResponseEntity.ok()
         .body(GetRestaurantSimpleResponse.from(
-            restaurantService.getRestaurantByStaffId(staffId)));
+            restaurantService.getRestaurantByStaffId(userInfoDto.userId())));
   }
 }

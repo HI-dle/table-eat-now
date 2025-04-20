@@ -192,8 +192,9 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
           .willReturn(response);
 
       // when & then
-      mockMvc.perform(get(baseUrl)
-              .param("staffId", String.valueOf(staffId))
+      mockMvc.perform(get(baseUrl+"/my-restaurant")
+              .header(USER_ID_HEADER, staffId)
+              .header(USER_ROLE_HEADER, UserRole.STAFF)
               .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.restaurantUuid").value(restaurantUuid))
@@ -219,8 +220,9 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
           .willThrow(new CustomException(RestaurantErrorCode.RESTAURANT_NOT_FOUND));
 
       // when & then
-      mockMvc.perform(get(baseUrl)
-              .param("staffId", String.valueOf(nonExistentStaffId))
+      mockMvc.perform(get(baseUrl+"/my-restaurant")
+              .header(USER_ID_HEADER, nonExistentStaffId)
+              .header(USER_ROLE_HEADER, UserRole.STAFF)
               .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isNotFound());
     }
