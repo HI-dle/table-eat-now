@@ -17,7 +17,7 @@ public class ReservationKafkaTopicConfig {
   private String minInsyncReplicas;
 
   @Bean
-  public NewTopic createWaitingRequestTopic() {
+  public NewTopic createReservationTopic() {
     return TopicBuilder.name(TOPIC_NAME)
         .partitions(partitions)
         .replicas(replicas)
