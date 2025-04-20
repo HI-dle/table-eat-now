@@ -188,7 +188,7 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
           .waitingStatus("ACTIVE")
           .build();
 
-      given(restaurantService.getRestaurantByStaffId(eq(staffId)))
+      given(restaurantService.getRestaurantByStaffId(staffId))
           .willReturn(response);
 
       // when & then
@@ -216,7 +216,7 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
       // given
       Long nonExistentStaffId = 999L;
 
-      given(restaurantService.getRestaurantByStaffId(eq(nonExistentStaffId)))
+      given(restaurantService.getRestaurantByStaffId(nonExistentStaffId))
           .willThrow(new CustomException(RestaurantErrorCode.RESTAURANT_NOT_FOUND));
 
       // when & then
