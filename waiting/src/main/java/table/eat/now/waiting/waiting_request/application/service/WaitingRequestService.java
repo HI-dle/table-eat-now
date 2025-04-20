@@ -1,8 +1,10 @@
 package table.eat.now.waiting.waiting_request.application.service;
 
+import org.springframework.data.domain.Pageable;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaitingRequestCommand;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
+import table.eat.now.waiting.waiting_request.application.dto.response.PageResult;
 
 public interface WaitingRequestService {
 
@@ -17,4 +19,6 @@ public interface WaitingRequestService {
   GetWaitingRequestInfo getWaitingRequestAdmin(CurrentUserInfoDto userInfo, String string);
 
   void postponeWaitingRequest(CurrentUserInfoDto userInfo, String waitingRequestUuid, String phone);
+
+  PageResult<GetWaitingRequestInfo> getWaitingRequestsAdmin(CurrentUserInfoDto userInfo, String dailyWaitingUuid, Pageable pageable);
 }

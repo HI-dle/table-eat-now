@@ -9,6 +9,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
@@ -28,6 +31,7 @@ import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaiti
 import table.eat.now.waiting.waiting_request.application.dto.response.GetDailyWaitingInfo;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
+import table.eat.now.waiting.waiting_request.application.dto.response.PageResult;
 import table.eat.now.waiting.waiting_request.application.event.EventPublisher;
 import table.eat.now.waiting.waiting_request.application.event.dto.EventType;
 import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestCreatedEvent;
@@ -331,6 +335,66 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
       var histories = modified.getHistories();
       assertThat(histories.get(0).getStatus()).isEqualTo(WaitingStatus.POSTPONED);
     }
+  }
 
+  @DisplayName("admin 대기 요청 목록 조회")
+  @Nested
+  class getWaitingRequestsAdmin {
+
+    private List<WaitingRequest> waitingRequests;
+    private GetDailyWaitingInfo dailyWaitingInfo;
+
+    @BeforeEach
+    void setUp() {
+      waitingRequests = WaitingRequestFixture.createList(waitingRequest.getDailyWaitingUuid(),
+          waitingRequest.getRestaurantUuid(), 10);
+
+      long l = 0L;
+      for (WaitingRequest request : waitingRequests) {
+        waitingRequestRepository.save(request);
+        waitingRequestRepository.enqueueWaitingRequest(
+            request.getDailyWaitingUuid(),
+            request.getWaitingRequestUuid(),
+            TimeProvider.currentTimeMillis() + l);
+        l += 1000L;
+      }
+
+      dailyWaitingInfo = GetDailyWaitingInfo.builder()
+          .dailyWaitingUuid(waitingRequest.getDailyWaitingUuid())
+          .restaurantUuid(waitingRequest.getRestaurantUuid())
+          .waitingDate(LocalDate.now())
+          .avgWaitingSec(600L)
+          .status("AVAILABLE")
+          .build();
+      given(waitingClient.getDailyWaitingInfo(waitingRequest.getDailyWaitingUuid())).willReturn(dailyWaitingInfo);
+
+      GetRestaurantInfo restaurantInfo = GetRestaurantInfo.builder()
+          .restaurantUuid(UUID.randomUUID().toString())
+          .ownerId(3L)
+          .staffId(4L)
+          .build();
+
+      given(restaurantClient.getRestaurantInfo(any())).willReturn(restaurantInfo);
+    }
+
+    @DisplayName("성공")
+    @Test
+    void success() {
+      // given
+      CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(4L, UserRole.STAFF);
+      Pageable pageable = PageRequest.of(0, 10);
+
+      // when
+      PageResult<GetWaitingRequestInfo> pageResult = waitingRequestService.getWaitingRequestsAdmin(
+          userInfo, waitingRequest.getDailyWaitingUuid(), pageable);
+
+      // then
+      assertThat(pageResult.totalElements()).isEqualTo(11);
+      assertThat(pageResult.contents().size()).isEqualTo(10);
+      assertThat(pageResult.totalPages()).isEqualTo(2);
+      assertThat(pageResult.contents().get(0).waitingRequestUuid()).isEqualTo(waitingRequest.getWaitingRequestUuid());
+      assertThat(pageResult.contents().get(1).waitingRequestUuid()).isEqualTo(waitingRequests.get(0).getWaitingRequestUuid());
+      assertThat(pageResult.contents().get(2).waitingRequestUuid()).isEqualTo(waitingRequests.get(1).getWaitingRequestUuid());
+    }
   }
 }

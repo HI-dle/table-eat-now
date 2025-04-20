@@ -2,6 +2,7 @@ package table.eat.now.waiting.waiting_request.application.service;
 
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
@@ -12,6 +13,7 @@ import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaiti
 import table.eat.now.waiting.waiting_request.application.dto.response.GetDailyWaitingInfo;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
+import table.eat.now.waiting.waiting_request.application.dto.response.PageResult;
 import table.eat.now.waiting.waiting_request.application.event.EventPublisher;
 import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestCreatedEvent;
 import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestCreatedInfo;
@@ -22,8 +24,10 @@ import table.eat.now.waiting.waiting_request.application.event.dto.WaitingReques
 import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestPostponedInfo;
 import table.eat.now.waiting.waiting_request.application.exception.WaitingRequestErrorCode;
 import table.eat.now.waiting.waiting_request.application.utils.TimeProvider;
+import table.eat.now.waiting.waiting_request.domain.criteria.CurrentWaitingRequestCriteria;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingStatus;
+import table.eat.now.waiting.waiting_request.domain.info.Paginated;
 import table.eat.now.waiting.waiting_request.domain.repository.WaitingRequestRepository;
 
 @RequiredArgsConstructor
@@ -118,6 +122,28 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
     long estimatedWaitingSec = dailyWaitingInfo.avgWaitingSec() * (rank + 1L);
 
     return GetWaitingRequestInfo.from(waitingRequest, dailyWaitingInfo.restaurantName(), rank, estimatedWaitingSec);
+  }
+
+  @Override
+  public PageResult<GetWaitingRequestInfo> getWaitingRequestsAdmin(
+      CurrentUserInfoDto userInfo, String dailyWaitingUuid, Pageable pageable) {
+
+    GetDailyWaitingInfo dailyWaitingInfo = waitingClient.getDailyWaitingInfo(dailyWaitingUuid);
+    GetRestaurantInfo restaurantInfo = restaurantClient.getRestaurantInfo(dailyWaitingInfo.restaurantUuid());
+    validateRestaurantAuthority(userInfo, restaurantInfo);
+
+    Paginated<WaitingRequest> requests = waitingRequestRepository.getCurrentWaitingRequests(
+        CurrentWaitingRequestCriteria.from(pageable, dailyWaitingUuid));
+
+    PageResult<GetWaitingRequestInfo> requestsInfoPage = PageResult.from(requests)
+        .mapWithIndex(
+            pageable.getOffset(),
+            (request, rank) -> {
+          return GetWaitingRequestInfo.from(request, dailyWaitingInfo.restaurantName(),
+              rank, (rank + 1) * dailyWaitingInfo.avgWaitingSec());
+        });
+
+    return requestsInfoPage;
   }
 
   private void notifyWaitingRequestCreated(
