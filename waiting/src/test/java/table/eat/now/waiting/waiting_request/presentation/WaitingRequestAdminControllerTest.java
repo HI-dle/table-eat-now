@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -60,7 +61,8 @@ class WaitingRequestAdminControllerTest extends ControllerTestSupport {
   void getWaitingRequest() throws Exception {
     // given
     var userInfo = CurrentUserInfoDto.of(2L, UserRole.STAFF);
-    var info = GetWaitingRequestInfoFixture.create(2, UUID.randomUUID().toString(), UUID.randomUUID().toString());
+    var info = GetWaitingRequestInfoFixture.create(
+        2, UUID.randomUUID().toString(), UUID.randomUUID().toString(), "WAITING");
 
     given(waitingRequestService.getWaitingRequestAdmin(
         eq(userInfo), eq(info.waitingRequestUuid())))
@@ -84,7 +86,7 @@ class WaitingRequestAdminControllerTest extends ControllerTestSupport {
 
   @DisplayName("STAFF 사용자의 대기 요청 목록 조회 검증 - 200 응답")
   @Test
-  void getWaitingRequests() throws Exception {
+  void getCurrentWaitingRequestsAdmin() throws Exception {
 
     // given
     var userInfo = CurrentUserInfoDto.of(2L, UserRole.STAFF);
@@ -92,7 +94,7 @@ class WaitingRequestAdminControllerTest extends ControllerTestSupport {
     var requests = GetWaitingRequestInfoFixture.createList(0, 10);
     var dailyWaitingUuid = requests.get(0).dailyWaitingUuid();
     var page = PageResult.of(requests, 100, 10, 1, 10);
-    given(waitingRequestService.getWaitingRequestsAdmin(
+    given(waitingRequestService.getCurrentWaitingRequestsAdmin(
         eq(userInfo), eq(dailyWaitingUuid), eq(pageable)))
         .willReturn(page);
 
@@ -110,6 +112,30 @@ class WaitingRequestAdminControllerTest extends ControllerTestSupport {
         .andExpect(jsonPath("$.pageNumber").value(page.pageNumber()))
         .andExpect(jsonPath("$.waitingRequests[0].dailyWaitingUuid").value(dailyWaitingUuid))
         .andExpect(jsonPath("$.waitingRequests.size()").value(10))
+        .andDo(print());
+  }
+
+  @DisplayName("STAFF 사용자의 대기 상태 변경 요청 검증 - 200 응답")
+  @Test
+  void postponeWaitingRequest() throws Exception {
+    // given
+    var userInfo = CurrentUserInfoDto.of(2L, UserRole.STAFF);
+    var waitingRequestUuid = UUID.randomUUID().toString();
+    var type = "SEATED";
+
+    doNothing().when(waitingRequestService)
+        .updateWaitingRequestStatusAdmin(userInfo, waitingRequestUuid, type);
+
+    // when
+    ResultActions resultActions = mockMvc.perform(
+        patch("/admin/v1/waiting-requests/{waitingRequestUuid}/status", waitingRequestUuid)
+            .param("type", type)
+            .header("Authorization", "Bearer {ACCESS_TOKEN}")
+            .header(USER_ID_HEADER, userInfo.userId())
+            .header(USER_ROLE_HEADER, userInfo.role()));
+
+    // then
+    resultActions.andExpect(status().isOk())
         .andDo(print());
   }
 }

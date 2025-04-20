@@ -24,19 +24,19 @@ X-User-Role: CUSTOMER
   }
 %}
 
-### 대기 입장 요청  # 임시
+### 대기 입장 요청  # 테스트전
 POST localhost:8086/admin/v1/waiting-requests/{{waitingRequestUuid}}/entrance
 Content-Type: application/json
 X-User-Id: 3
 X-User-Role: STAFF
 
-### 대기 요청 목록 조회 # 임시
-PATCH localhost:8086/admin/v1/waiting-requests?dailyWaitingUuid=00000000-0000-0000-0000-000000000001
+### 대기 요청 목록 조회 # 테스트전
+GET localhost:8086/admin/v1/waiting-requests?dailyWaitingUuid=00000000-0000-0000-0000-000000000001
 Content-Type: application/json
 X-User-Id: 3
 X-User-Role: STAFF
 
-### 대기 요청 조회 admin # 임시
+### 대기 요청 조회 admin # 테스트전
 GET localhost:8086/admin/v1/waiting-requests/{{waitingRequestUuid}}
 Content-Type: application/json
 X-User-Id: 3
@@ -49,3 +49,19 @@ Content-Type: application/json
 ### 대기 연기 요청
 PATCH localhost:8086/api/v1/waiting-requests/{{waitingRequestUuid}}/postpone?phone=01000000000
 Content-Type: application/json
+
+### 대기 취소 요청
+PATCH localhost:8086/api/v1/waiting-requests/{{waitingRequestUuid}}/cancel?phone=01000000000
+Content-Type: application/json
+
+### 대기 상태 변경 요청 admin # 테스트전
+PATCH localhost:8086/admin/v1/waiting-requests/{{waitingRequestUuid}}/status?type=LEAVED
+Content-Type: application/json
+X-User-Id: 3
+X-User-Role: STAFF
+
+### 대기 요청 내부 조회
+GET localhost:8086/internal/v1/waiting-requests/{{waitingRequestUuid}}
+Content-Type: application/json
+X-User-Id: 2
+X-User-Role: CUSTOMER

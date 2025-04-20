@@ -25,8 +25,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.helper.ControllerTestSupport;
-import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
 import table.eat.now.waiting.waiting_request.application.service.WaitingRequestService;
+import table.eat.now.waiting.waiting_request.fixture.GetWaitingRequestInfoFixture;
 import table.eat.now.waiting.waiting_request.presentation.dto.request.CreateWaitingRequestRequest;
 
 @WebMvcTest(WaitingRequestApiController.class)
@@ -71,18 +71,8 @@ class WaitingRequestApiControllerTest extends ControllerTestSupport {
   @Test
   void getWaitingRequest() throws Exception {
     // given
-    var info = GetWaitingRequestInfo.builder()
-        .waitingRequestUuid(UUID.randomUUID().toString())
-        .dailyWaitingUuid(UUID.randomUUID().toString())
-        .restaurantUuid(UUID.randomUUID().toString())
-        .restaurantName("혜주네 식당")
-        .phone("01000000000")
-        .slackId("slackId@example.com")
-        .seatSize(3)
-        .sequence(10)
-        .rank(2L)
-        .estimatedWaitingMin(21L)
-        .build();
+    var info = GetWaitingRequestInfoFixture.create(
+        2, UUID.randomUUID().toString(), UUID.randomUUID().toString(), "WAITING");
 
     given(waitingRequestService.getWaitingRequest(
         any(), eq(info.waitingRequestUuid()), eq(info.phone())))
@@ -115,6 +105,26 @@ class WaitingRequestApiControllerTest extends ControllerTestSupport {
     // when
     ResultActions resultActions = mockMvc.perform(
         patch("/api/v1/waiting-requests/{waitingRequestUuid}/postpone", waitingRequestUuid)
+            .param("phone", phone));
+
+    // then
+    resultActions.andExpect(status().isOk())
+        .andDo(print());
+  }
+
+  @DisplayName("대기 취소 요청 검증 - 200 응답")
+  @Test
+  void cancelWaitingRequest() throws Exception {
+    // given
+    var waitingRequestUuid = UUID.randomUUID().toString();
+    var phone = "01000000000";
+
+    doNothing().when(waitingRequestService)
+        .cancelWaitingRequest(null, waitingRequestUuid, phone);
+
+    // when
+    ResultActions resultActions = mockMvc.perform(
+        patch("/api/v1/waiting-requests/{waitingRequestUuid}/cancel", waitingRequestUuid)
             .param("phone", phone));
 
     // then
