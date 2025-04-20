@@ -41,3 +41,13 @@ X-User-Role: CUSTOMER
     }
   ]
 }
+
+### 예약 취소
+PATCH http://localhost:8083/api/v1/reservations/00000000-0000-0000-0000-000000000000/cancel
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+{
+  "cancelReason": "변심"
+}

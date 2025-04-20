@@ -1,0 +1,47 @@
+/**
+ * @author : jieun(je-pa)
+ * @Date : 2025. 04. 11.
+ */
+package table.eat.now.reservation.testdata;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestConstructor;
+import org.springframework.test.context.TestConstructor.AutowireMode;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import table.eat.now.reservation.global.config.TearDownExecutor;
+import table.eat.now.reservation.reservation.application.client.CouponClient;
+import table.eat.now.reservation.reservation.application.client.PaymentClient;
+import table.eat.now.reservation.reservation.application.client.PromotionClient;
+import table.eat.now.reservation.reservation.application.client.RestaurantClient;
+import table.eat.now.reservation.reservation.application.event.publisher.ReservationEventPublisher;
+
+
+@Import(TearDownExecutor.class)
+@SpringBootTest
+@TestConstructor(autowireMode = AutowireMode.ALL)
+public abstract class IntegrationTestDataSupport {
+
+  @Autowired
+  private TearDownExecutor tearDownExecutor;
+
+  @MockitoBean
+  protected CouponClient couponClient;
+
+  @MockitoBean
+  protected PaymentClient paymentClient;
+
+  @MockitoBean
+  protected PromotionClient promotionClient;
+
+  @MockitoBean
+  protected RestaurantClient restaurantClient;
+
+  @MockitoBean
+  protected ApplicationEventPublisher eventPublisher;
+
+  @MockitoBean
+  protected ReservationEventPublisher reservationEventPublisher;
+}
