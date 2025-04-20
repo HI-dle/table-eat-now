@@ -1,6 +1,6 @@
 /**
  * @author : jieun(je-pa)
- * @Date : 2025. 04. 20.
+ * @Date : 2025. 04. 21.
  */
 package table.eat.now.reservation.reservation.application.event.event;
 
