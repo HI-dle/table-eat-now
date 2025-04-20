@@ -8,7 +8,7 @@ X-User-Role: CUSTOMER
   "serviceType": "RESERVATION",
   "restaurantId": "123e4567-e89b-12d3-a456-426614174000",
   "serviceId": "123e4567-e89b-12d3-a456-426614174001",
-  "rating": 4,
+  "rating": 1,
   "content": "음식이 맛있고 서비스가 좋았습니다. 특히 스테이크가 정말 맛있었어요!",
   "isVisible": false
 }

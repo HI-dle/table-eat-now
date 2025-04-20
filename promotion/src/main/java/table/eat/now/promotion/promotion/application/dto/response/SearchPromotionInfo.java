@@ -11,6 +11,7 @@ import table.eat.now.promotion.promotion.domain.entity.repository.search.Promoti
  */
 @Builder
 public record SearchPromotionInfo(Long promotionId,
+                                  String couponUuid,
                                   String promotionUuid,
                                   String promotionName,
                                   String description,
@@ -23,6 +24,7 @@ public record SearchPromotionInfo(Long promotionId,
   public static SearchPromotionInfo from(PromotionSearchCriteriaQuery query) {
     return SearchPromotionInfo.builder()
         .promotionId(query.promotionId())
+        .couponUuid(query.couponUuid())
         .promotionUuid(query.promotionUuid())
         .promotionName(query.promotionName())
         .description(query.description())

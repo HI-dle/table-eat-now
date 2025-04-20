@@ -2,19 +2,24 @@ package table.eat.now.waiting.waiting_request.presentation;
 
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
+import table.eat.now.waiting.waiting_request.application.dto.response.PageResult;
 import table.eat.now.waiting.waiting_request.application.service.WaitingRequestService;
 import table.eat.now.waiting.waiting_request.presentation.dto.response.GetWaitingRequestResponse;
+import table.eat.now.waiting.waiting_request.presentation.dto.response.GetWaitingRequestsResponse;
 
 @RequiredArgsConstructor
 @RequestMapping("/admin/v1/waiting-requests")
@@ -44,5 +49,18 @@ public class WaitingRequestAdminController {
     GetWaitingRequestInfo info =
         waitingRequestService.getWaitingRequestAdmin(userInfo, waitingRequestUuid.toString());
     return ResponseEntity.ok().body(GetWaitingRequestResponse.from(info));
+  }
+
+  @AuthCheck(roles = {UserRole.MASTER, UserRole.OWNER, UserRole.STAFF})
+  @GetMapping
+  public ResponseEntity<GetWaitingRequestsResponse> getWaitingRequests(
+      @CurrentUserInfo CurrentUserInfoDto userInfo,
+      @RequestParam UUID dailyWaitingUuid,
+      @PageableDefault Pageable pageable
+  ) {
+
+    PageResult<GetWaitingRequestInfo> info =
+        waitingRequestService.getWaitingRequestsAdmin(userInfo, dailyWaitingUuid.toString(), pageable);
+    return ResponseEntity.ok().body(GetWaitingRequestsResponse.from(info));
   }
 }

@@ -16,7 +16,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
-import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -51,21 +50,29 @@ public class RestaurantMenu extends BaseEntity {
   @Column(name = "status")
   private MenuStatus status;
 
-  @Builder(builderMethodName = "inactiveMenuBuilder")
+  @Builder(builderMethodName = "fullBuilder")
   private RestaurantMenu(
+      Restaurant restaurant,
+      String restaurantMenuUuid,
       String name,
       BigDecimal price,
-      Restaurant restaurant
+      MenuStatus menuStatus
   ) {
     this.name = name;
     this.price = price;
     this.restaurant = restaurant;
-    this.restaurantMenuUuid = UUID.randomUUID().toString();
-    this.status = MenuStatus.INACTIVE;
+    this.restaurantMenuUuid = restaurantMenuUuid;
+    this.status = menuStatus;
   }
 
   public void modifyRestaurant(Restaurant restaurant) {
     this.restaurant = restaurant;
+  }
+
+  public void modify(String name, BigDecimal price, String status) {
+    this.name = name;
+    this.price = price;
+    this.status = MenuStatus.valueOf(status);
   }
 
   @Getter

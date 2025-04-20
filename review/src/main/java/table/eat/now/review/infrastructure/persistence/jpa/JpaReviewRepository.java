@@ -1,4 +1,4 @@
-package table.eat.now.review.infrastructure.persistence;
+package table.eat.now.review.infrastructure.persistence.jpa;
 
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

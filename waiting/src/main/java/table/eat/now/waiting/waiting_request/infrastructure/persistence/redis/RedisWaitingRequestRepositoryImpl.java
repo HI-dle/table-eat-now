@@ -1,5 +1,10 @@
 package table.eat.now.waiting.waiting_request.infrastructure.persistence.redis;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -17,11 +22,10 @@ public class RedisWaitingRequestRepositoryImpl implements RedisWaitingRequestRep
   }
 
   @Override
-  public boolean addWaitingRequest(
+  public Boolean addWaitingRequest(
       String dailyWaitingUuid, String waitingRequestUuid, long timestamp) {
-    return Boolean.TRUE.equals(
-        redisTemplate.opsForZSet()
-            .add(WAITING_ZSET_PREFIX + dailyWaitingUuid, waitingRequestUuid, timestamp));
+    return redisTemplate.opsForZSet()
+            .add(WAITING_ZSET_PREFIX + dailyWaitingUuid, waitingRequestUuid, timestamp);
   }
 
   @Override
@@ -38,5 +42,23 @@ public class RedisWaitingRequestRepositoryImpl implements RedisWaitingRequestRep
   public boolean removeWaitingRequest(String dailyWaitingUuid, String waitingRequestUuid) {
     Long count = redisTemplate.opsForZSet().remove(WAITING_ZSET_PREFIX + dailyWaitingUuid, waitingRequestUuid);
     return count != null && count > 0;
+  }
+
+  @Override
+  public Set<String> getIdsInRange(String dailyWaitingUuid, long start, long end) {
+
+    return Optional.ofNullable(redisTemplate
+            .opsForZSet()
+            .range(WAITING_ZSET_PREFIX + dailyWaitingUuid, start, end))
+        .orElse(Collections.emptySet())
+        .stream()
+        .filter(o -> o instanceof String)
+        .map(o -> (String) o)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  @Override
+  public Long countCurrentWaitingRequests(String dailyWaitingUuid) {
+    return redisTemplate.opsForZSet().zCard(WAITING_ZSET_PREFIX + dailyWaitingUuid);
   }
 }

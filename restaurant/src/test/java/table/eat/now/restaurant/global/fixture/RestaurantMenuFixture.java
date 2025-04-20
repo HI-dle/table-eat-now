@@ -23,6 +23,17 @@ public class RestaurantMenuFixture {
         .collect(Collectors.toSet());
   }
 
+  public static RestaurantMenu createRandom(){
+    Long num = LongIdGenerator.makeLong();
+    return RestaurantMenuFixture.create(
+        UUID.randomUUID().toString(),
+        "name" + num,
+        BigDecimal.valueOf(num * 1000),
+        null,
+        MenuStatus.INACTIVE
+    );
+  }
+
   public static RestaurantMenu createRandomByStatus(MenuStatus status){
     Long num = LongIdGenerator.makeLong();
     return RestaurantMenuFixture.create(
@@ -42,14 +53,15 @@ public class RestaurantMenuFixture {
       MenuStatus status
   ) {
 
-    RestaurantMenu menu = RestaurantMenu.inactiveMenuBuilder()
+    RestaurantMenu menu = RestaurantMenu.fullBuilder()
         .restaurant(restaurant)
         .name(name)
         .price(price)
+        .restaurantMenuUuid(UUID.randomUUID().toString())
+        .menuStatus(status)
         .build();
 
     ReflectionTestUtils.setField(menu, "restaurantMenuUuid", restaurantMenuUuid);
-    ReflectionTestUtils.setField(menu, "status", status);
 
     return menu;
   }

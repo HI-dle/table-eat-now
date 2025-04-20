@@ -3,7 +3,9 @@ package table.eat.now.waiting.waiting_request.presentation;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -97,6 +99,26 @@ class WaitingRequestApiControllerTest extends ControllerTestSupport {
         .andExpect(jsonPath("$.dailyWaitingUuid").value(info.dailyWaitingUuid()))
         .andExpect(jsonPath("$.restaurantUuid").value(info.restaurantUuid()))
         .andExpect(jsonPath("$.restaurantName").value(info.restaurantName()))
+        .andDo(print());
+  }
+
+  @DisplayName("대기 연기 요청 검증 - 200 응답")
+  @Test
+  void postponeWaitingRequest() throws Exception {
+    // given
+    var waitingRequestUuid = UUID.randomUUID().toString();
+    var phone = "01000000000";
+
+    doNothing().when(waitingRequestService)
+        .postponeWaitingRequest(null, waitingRequestUuid, phone);
+
+    // when
+    ResultActions resultActions = mockMvc.perform(
+        patch("/api/v1/waiting-requests/{waitingRequestUuid}/postpone", waitingRequestUuid)
+            .param("phone", phone));
+
+    // then
+    resultActions.andExpect(status().isOk())
         .andDo(print());
   }
 }

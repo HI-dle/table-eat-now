@@ -11,6 +11,7 @@ import table.eat.now.promotion.promotion.application.dto.response.GetPromotionIn
  */
 @Builder
 public record GetPromotionResponse(Long promotionId,
+                                   String couponUuid,
                                    String promotionUuid,
                                    String promotionName,
                                    String description,
@@ -23,6 +24,7 @@ public record GetPromotionResponse(Long promotionId,
   public static GetPromotionResponse from(GetPromotionInfo getPromotionInfo) {
     return GetPromotionResponse.builder()
         .promotionId(getPromotionInfo.promotionId())
+        .couponUuid(getPromotionInfo.couponUuid())
         .promotionUuid(getPromotionInfo.promotionUuid())
         .promotionName(getPromotionInfo.promotionName())
         .description(getPromotionInfo.description())

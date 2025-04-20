@@ -3,6 +3,7 @@ package table.eat.now.waiting.waiting_request.application.dto.request;
 import lombok.Builder;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequestHistory;
+import table.eat.now.waiting.waiting_request.domain.entity.WaitingStatus;
 
 @Builder
 public record CreateWaitingRequestCommand(
@@ -20,7 +21,7 @@ public record CreateWaitingRequestCommand(
     WaitingRequest waitingRequest = WaitingRequest.of(
         waitingRequestUuid, dailyWaitingUuid, restaurantUuid,
         userId, sequence.intValue(), phone, slackId, seatSize);
-    WaitingRequestHistory history = WaitingRequestHistory.create();
+    WaitingRequestHistory history = WaitingRequestHistory.of(WaitingStatus.WAITING);
     waitingRequest.addHistory(history);
     return waitingRequest;
   }

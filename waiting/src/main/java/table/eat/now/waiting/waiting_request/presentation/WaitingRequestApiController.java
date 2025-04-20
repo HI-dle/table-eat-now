@@ -6,6 +6,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,5 +54,16 @@ public class WaitingRequestApiController {
     GetWaitingRequestInfo info =
         waitingRequestService.getWaitingRequest(userInfo, waitingRequestUuid.toString(), phone);
     return ResponseEntity.ok().body(GetWaitingRequestResponse.from(info));
+  }
+
+  @PatchMapping("/{waitingRequestUuid}/postpone")
+  public ResponseEntity<Void> postponeWaitingRequest(
+      @CurrentUserInfo CurrentUserInfoDto userInfo,
+      @PathVariable UUID waitingRequestUuid,
+      @RequestParam @Valid @Pattern(regexp = "^[0-9]{8,15}$") String phone
+  ) {
+
+    waitingRequestService.postponeWaitingRequest(userInfo, waitingRequestUuid.toString(), phone);
+    return ResponseEntity.ok().build();
   }
 }

@@ -13,7 +13,8 @@ import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotion
  * @author : hanjihoon
  * @Date : 2025. 04. 10.
  */
-public record UpdatePromotionRequest(@Size(max = 500)
+public record UpdatePromotionRequest(String couponUuid,
+                                     @Size(max = 500)
                                      String promotionName,
                                      String description,
                                      @FutureOrPresent(message = "시작 시간은 현재 이후여야 합니다.")
@@ -32,6 +33,7 @@ public record UpdatePromotionRequest(@Size(max = 500)
 
   public UpdatePromotionCommand toApplication() {
     return new UpdatePromotionCommand(
+        couponUuid,
         promotionName,
         description,
         startTime,

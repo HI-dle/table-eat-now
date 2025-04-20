@@ -59,6 +59,9 @@ dependencies {
 	//CONFIG
 //	implementation 'org.springframework.cloud:spring-cloud-starter-config'
 //	implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
+	//KAFKA
+	implementation 'org.springframework.kafka:spring-kafka'
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
 }
 
 def querydslSrcDir = 'src/main/generated'

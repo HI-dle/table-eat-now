@@ -83,4 +83,13 @@ public class WaitingRequest extends BaseEntity {
     history.registerWaitingRequest(this);
     this.histories.add(history);
   }
+
+  public void updateStatus(WaitingStatus status) {
+    if (!this.status.isPossibleToUpdate(status)) {
+      throw new IllegalArgumentException("적절하지 못한 대기 상태 수정입니다.");
+    }
+    this.status = status;
+    WaitingRequestHistory waitingRequestHistory = WaitingRequestHistory.of(this.status);
+    addHistory(waitingRequestHistory);
+  }
 }

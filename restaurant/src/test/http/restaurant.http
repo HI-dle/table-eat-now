@@ -14,3 +14,64 @@ X-User-Role: MASTER
   "info": "고기 맛집입니다.",
   "maxReservationGuestCountPerTeamOnline": 6
 }
+
+> {%
+  const location = response.headers.valueOf("Location")
+  const match = location.match(/[0-9a-fA-F\-]{36}$/)
+
+  if (match) {
+    client.global.set("restaurantUuid", match[0]);
+  }
+%}
+
+###
+PUT http://localhost:8082/admin/v1/restaurants/{{restaurantUuid}}
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: MASTER
+
+{
+  "name": "내가 차린 식당",
+  "address": "서울특별시 강남구 테헤란로 123",
+  "contactNumber": "010-1234-5678",
+  "openingAt": "2025-04-17T10:00:00",
+  "closingAt": "2025-04-17T22:00:00",
+  "info": "신선한 재료만 사용하는 건강한 식당입니다.",
+  "status": "INACTIVE",
+  "waitingStatus": "INACTIVE",
+  "maxReservationGuestCountPerTeamOnline": 4,
+  "menus": [
+    {
+      "restaurantMenuUuid": "2710145b-6523-470f-a85f-6fe0d6d8455a",
+      "name": "한지훈이 말아주는 된장찌개",
+      "price": 9000,
+      "status": "INACTIVE"
+    },
+    {
+      "restaurantMenuUuid": null,
+      "name": "강혜주표 3월 17일에 만든 고기 덮밥",
+      "price": 9000,
+      "status": "INACTIVE"
+    },
+    {
+      "restaurantMenuUuid": null,
+      "name": "황하온의 랜덤 음식",
+      "price": 9000,
+      "status": "INACTIVE"
+    }
+  ],
+  "timeslots": [
+    {
+      "restaurantTimeslotUuid": "e61aeb98-b434-447d-8928-b44cf741ca34",
+      "availableStartDate": "2025-04-18",
+      "maxCapacity": 10,
+      "timeslot": "12:00"
+    },
+    {
+      "restaurantTimeslotUuid": null,
+      "availableStartDate": "2025-04-18",
+      "maxCapacity": 15,
+      "timeslot": "18:00"
+    }
+  ]
+}

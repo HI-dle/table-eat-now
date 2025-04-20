@@ -15,7 +15,8 @@ import table.eat.now.promotion.promotion.application.dto.request.CreatePromotion
  * @author : hanjihoon
  * @Date : 2025. 04. 08.
  */
-public record CreatePromotionRequest(@NotBlank
+public record CreatePromotionRequest(String couponUuid,
+                                     @NotBlank
                                      @Size(max = 500)
                                      String promotionName,
                                      @NotBlank
@@ -26,7 +27,6 @@ public record CreatePromotionRequest(@NotBlank
                                      @NotNull
                                      @Future(message = "현재 시간보다 이후여야 합니다.")
                                      LocalDateTime endTime,
-                                     @NotNull
                                      @DecimalMin(value = "0.0", inclusive = false, message = "할인 금액은 0 이상이어야 합니다.")
                                      BigDecimal discountAmount,
                                      @NotBlank(message = "프로모션 상태는 필수입니다.")
@@ -40,6 +40,7 @@ public record CreatePromotionRequest(@NotBlank
 
   public CreatePromotionCommand toApplication() {
     return new CreatePromotionCommand(
+        couponUuid,
         promotionName,
         description,
         startTime,
