@@ -46,7 +46,11 @@ import table.eat.now.notification.application.dto.response.CreateNotificationInf
 import table.eat.now.notification.application.dto.response.GetNotificationInfo;
 import table.eat.now.notification.application.dto.response.NotificationSearchInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
+import table.eat.now.notification.application.event.EventType;
+import table.eat.now.notification.application.event.dto.NotificationSendEvent;
+import table.eat.now.notification.application.event.dto.NotificationSendPayload;
 import table.eat.now.notification.application.exception.NotificationErrorCode;
+import table.eat.now.notification.application.metric.NotificationMetrics;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategy;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategySelector;
 import table.eat.now.notification.application.strategy.NotificationParamExtractor;
@@ -99,6 +103,9 @@ class NotificationServiceImplTest {
 
   @Mock
   private JavaMailSender mailSender;
+
+  @Mock
+  private NotificationMetrics notificationMetrics;
 
   @InjectMocks
   private NotificationServiceImpl notificationService;
