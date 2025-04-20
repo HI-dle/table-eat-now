@@ -1,11 +1,14 @@
 package table.eat.now.waiting.waiting_request.presentation;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,14 +56,26 @@ public class WaitingRequestAdminController {
 
   @AuthCheck(roles = {UserRole.MASTER, UserRole.OWNER, UserRole.STAFF})
   @GetMapping
-  public ResponseEntity<GetWaitingRequestsResponse> getWaitingRequests(
+  public ResponseEntity<GetWaitingRequestsResponse> getCurrentWaitingRequestsAdmin(
       @CurrentUserInfo CurrentUserInfoDto userInfo,
       @RequestParam UUID dailyWaitingUuid,
       @PageableDefault Pageable pageable
   ) {
 
     PageResult<GetWaitingRequestInfo> info =
-        waitingRequestService.getWaitingRequestsAdmin(userInfo, dailyWaitingUuid.toString(), pageable);
+        waitingRequestService.getCurrentWaitingRequestsAdmin(userInfo, dailyWaitingUuid.toString(), pageable);
     return ResponseEntity.ok().body(GetWaitingRequestsResponse.from(info));
+  }
+
+  @AuthCheck(roles = {UserRole.MASTER, UserRole.OWNER, UserRole.STAFF})
+  @PatchMapping("/{waitingRequestUuid}/status")
+  public ResponseEntity<Void> updateWaitingRequestStatus(
+      @CurrentUserInfo CurrentUserInfoDto userInfo,
+      @PathVariable UUID waitingRequestUuid,
+      @RequestParam @Valid @Pattern(regexp = "^(?i)(SEATED|LEAVED|NO_SHOW)$") String type
+  ) {
+
+    waitingRequestService.updateWaitingRequestStatusAdmin(userInfo, waitingRequestUuid.toString(), type);
+    return ResponseEntity.ok().build();
   }
 }

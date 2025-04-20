@@ -10,11 +10,11 @@ public record WaitingRequestCreatedInfo(
     String restaurantName,
     Long sequence,
     Long remainingCount,
-    long estimatedWaitingMin
+    Long estimatedWaitingMin
 ) {
   public static WaitingRequestCreatedInfo of(
       String waitingRequestUuid, String phone, String slackId, String restaurantName,
-      Long sequence, Long remainingCount, long estimatedWaitingSec) {
+      Long sequence, Long remainingCount, Long estimatedWaitingMin) {
 
     return WaitingRequestCreatedInfo.builder()
         .waitingRequestUuid(waitingRequestUuid)
@@ -23,7 +23,7 @@ public record WaitingRequestCreatedInfo(
         .restaurantName(restaurantName)
         .sequence(sequence)
         .remainingCount(remainingCount)
-        .estimatedWaitingMin(estimatedWaitingSec/60)
+        .estimatedWaitingMin(estimatedWaitingMin)
         .build();
   }
 }

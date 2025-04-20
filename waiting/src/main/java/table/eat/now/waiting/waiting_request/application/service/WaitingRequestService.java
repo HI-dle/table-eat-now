@@ -16,9 +16,16 @@ public interface WaitingRequestService {
   GetWaitingRequestInfo getWaitingRequest(
       CurrentUserInfoDto userInfo, String waitingRequestUuid, String phone);
 
-  GetWaitingRequestInfo getWaitingRequestAdmin(CurrentUserInfoDto userInfo, String string);
+  GetWaitingRequestInfo getWaitingRequestAdmin(CurrentUserInfoDto userInfo, String waitingRequestUuid);
+
+  GetWaitingRequestInfo getWaitingRequestInternal(CurrentUserInfoDto userInfo, String waitingRequestUuid);
 
   void postponeWaitingRequest(CurrentUserInfoDto userInfo, String waitingRequestUuid, String phone);
 
-  PageResult<GetWaitingRequestInfo> getWaitingRequestsAdmin(CurrentUserInfoDto userInfo, String dailyWaitingUuid, Pageable pageable);
+  void cancelWaitingRequest(CurrentUserInfoDto userInfo, String waitingRequestUuid, String phone);
+
+  void updateWaitingRequestStatusAdmin(CurrentUserInfoDto userInfo, String waitingRequestUuid, String type);
+
+  PageResult<GetWaitingRequestInfo> getCurrentWaitingRequestsAdmin(CurrentUserInfoDto userInfo, String dailyWaitingUuid, Pageable pageable);
+
 }

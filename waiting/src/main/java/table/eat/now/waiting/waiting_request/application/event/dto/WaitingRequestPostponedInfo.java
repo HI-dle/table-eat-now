@@ -14,7 +14,7 @@ public record WaitingRequestPostponedInfo(
 ) {
   public static WaitingRequestPostponedInfo of(
       String waitingRequestUuid, String phone, String slackId, String restaurantName,
-      Long sequence, Long remainingCount, long estimatedWaitingSec) {
+      Long sequence, Long remainingCount, Long estimatedWaitingMin) {
 
     return WaitingRequestPostponedInfo.builder()
         .waitingRequestUuid(waitingRequestUuid)
@@ -23,7 +23,7 @@ public record WaitingRequestPostponedInfo(
         .restaurantName(restaurantName)
         .sequence(sequence)
         .remainingCount(remainingCount)
-        .estimatedWaitingMin(estimatedWaitingSec/60)
+        .estimatedWaitingMin(estimatedWaitingMin)
         .build();
   }
 }

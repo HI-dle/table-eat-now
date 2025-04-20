@@ -22,4 +22,8 @@ public enum WaitingStatus {
   public boolean isPossibleToUpdate(WaitingStatus status) {
     return updateRule.test(status);
   }
+
+  public boolean isWaiting() {
+    return this == WAITING;
+  }
 }

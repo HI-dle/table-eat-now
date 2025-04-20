@@ -92,4 +92,13 @@ public class WaitingRequest extends BaseEntity {
     WaitingRequestHistory waitingRequestHistory = WaitingRequestHistory.of(this.status);
     addHistory(waitingRequestHistory);
   }
+
+  public void updateStatus(String type) {
+    WaitingStatus waitingStatus = WaitingStatus.valueOf(type.toUpperCase());
+    this.updateStatus(waitingStatus);
+  }
+
+  public boolean isWaiting() {
+    return this.status.isWaiting();
+  }
 }

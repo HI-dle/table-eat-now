@@ -90,7 +90,7 @@ public class WaitingRequestRepositoryImpl implements WaitingRequestRepository {
         .toList();
 
     long total = 0;
-    if (requests.size() < size) {
+    if (!requests.isEmpty() && requests.size() < size) {
       total = start + requests.size();
     } else {
       total = redisRepository.countCurrentWaitingRequests(criteria.dailyWaitingUuid());
