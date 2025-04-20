@@ -1,8 +1,7 @@
 package table.eat.now.payment.payment.application.event;
 
-import static table.eat.now.payment.payment.application.event.EventType.FAILED;
+import static table.eat.now.payment.payment.application.event.EventType.RESERVATION_PAYMENT_FAILED;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 
 public record PaymentFailedEvent(
@@ -15,6 +14,6 @@ public record PaymentFailedEvent(
   public static PaymentFailedEvent of(
       PaymentFailedPayload payload, CurrentUserInfoDto userInfo) {
     return new PaymentFailedEvent(
-        FAILED, payload.paymentUuid(), payload, userInfo);
+        RESERVATION_PAYMENT_FAILED, payload.paymentUuid(), payload, userInfo);
   }
 }

@@ -1,7 +1,7 @@
 package table.eat.now.payment.payment.application.event;
 
 
-import static table.eat.now.payment.payment.application.event.EventType.SUCCEED;
+import static table.eat.now.payment.payment.application.event.EventType.RESERVATION_PAYMENT_SUCCEED;
 
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 
@@ -16,6 +16,6 @@ public record PaymentSuccessEvent(
       PaymentSuccessPayload payload, CurrentUserInfoDto userInfo) {
 
     return new PaymentSuccessEvent(
-        SUCCEED, payload.paymentUuid(), payload, userInfo);
+        RESERVATION_PAYMENT_SUCCEED, payload.paymentUuid(), payload, userInfo);
   }
 }
