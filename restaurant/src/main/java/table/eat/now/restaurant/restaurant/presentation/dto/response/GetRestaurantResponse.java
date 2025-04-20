@@ -15,6 +15,8 @@ import table.eat.now.restaurant.restaurant.application.service.dto.response.GetR
 public record GetRestaurantResponse (
     String restaurantUuid,
     String name,
+    Long ownerId,
+    Long staffId,
     String info,
     BigDecimal reviewRatingAvg,
     Integer maxReservationGuestCountPerTeamOnline,
@@ -33,6 +35,8 @@ public record GetRestaurantResponse (
     return GetRestaurantResponse.builder()
         .restaurantUuid(restaurant.restaurantUuid())
         .name(restaurant.name())
+        .ownerId(restaurant.ownerId())
+        .staffId(restaurant.staffId())
         .info(restaurant.info())
         .reviewRatingAvg(restaurant.reviewRatingAvg())
         .maxReservationGuestCountPerTeamOnline(restaurant.maxReservationGuestCountPerTeamOnline())

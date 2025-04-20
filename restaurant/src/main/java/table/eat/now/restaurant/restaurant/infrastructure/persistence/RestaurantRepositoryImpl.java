@@ -53,4 +53,9 @@ public class RestaurantRepositoryImpl implements RestaurantRepository {
   public boolean isStaff(Long userId, String restaurantUuid) {
     return jpaRestaurantRepository.isStaffByUserIdAndRestaurantUuid(userId, restaurantUuid);
   }
+
+  @Override
+  public Optional<Restaurant> findByStaffIdOrOwnerId(Long id) {
+    return jpaRestaurantRepository.findByStaffIdOrOwnerIdWithSingleParam(id);
+  }
 }

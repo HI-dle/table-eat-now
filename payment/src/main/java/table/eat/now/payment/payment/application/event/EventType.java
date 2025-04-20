@@ -1,8 +1,9 @@
 package table.eat.now.payment.payment.application.event;
 
 public enum EventType {
-  SUCCEED,
-  FAILED,
-  CANCEL_SUCCEED,
-  CANCEL_FAILED
+  RESERVATION_PAYMENT_SUCCEED,
+  RESERVATION_PAYMENT_FAILED,
+  RESERVATION_PAYMENT_CANCEL_SUCCEED,
+  RESERVATION_PAYMENT_CANCEL_FAILED,
+  ;
 }

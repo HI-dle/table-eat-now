@@ -45,6 +45,7 @@ import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRe
 import table.eat.now.restaurant.restaurant.application.service.dto.request.ModifyRestaurantCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.CreateRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantInfo;
+import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantSimpleInfo;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant.RestaurantStatus;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant.WaitingStatus;
@@ -1255,6 +1256,97 @@ class RestaurantServiceTest extends IntegrationTestSupport {
       assertThatThrownBy(() -> restaurantService.modifyRestaurant(command))
           .isInstanceOf(CustomException.class)
           .hasMessageContaining(RestaurantTimeSlotErrorCode.MAX_CAPACITY_CANNOT_BE_LESS_THAN_CURRENT.getMessage());
+    }
+  }
+  @DisplayName("직원 ID로 식당 조회 서비스")
+  @Nested
+  class getRestaurantByStaffId {
+
+    @DisplayName("직원 ID로 식당을 조회할 수 있다.")
+    @Test
+    void success_staff() {
+      // given
+      // menus
+      Set<RestaurantMenu> menus = Stream.concat(
+              RestaurantMenuFixture.createRandomsByStatus(
+                  MenuStatus.INACTIVE, 2).stream(),
+              RestaurantMenuFixture.createRandomsByStatus(
+                  MenuStatus.ACTIVE, 3).stream())
+          .collect(Collectors.toSet());
+
+      // timeslot
+      Set<RestaurantTimeSlot> timeSlots = RestaurantTimeSlotFixture.createRandoms(5);
+
+      Restaurant restaurant = RestaurantFixture.createRandomByStatusAndMenusAndTimeSlots(
+          RestaurantStatus.OPENED, menus, timeSlots);
+      Long staffId = restaurant.getStaffId();
+      restaurantRepository.save(restaurant);
+
+      // when
+      GetRestaurantSimpleInfo result = restaurantService.getRestaurantByStaffId(staffId);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result)
+          .extracting(
+              GetRestaurantSimpleInfo::name,
+              GetRestaurantSimpleInfo::address,
+              GetRestaurantSimpleInfo::status
+          )
+          .containsExactly(
+              restaurant.getName(),
+              restaurant.getContactInfo().getAddress(),
+              restaurant.getStatus().toString()
+          );
+    }
+
+    @DisplayName("오너 ID로도 식당을 조회할 수 있다.")
+    @Test
+    void success_owner() {
+      // given
+      // menus
+      Set<RestaurantMenu> menus = Stream.concat(
+              RestaurantMenuFixture.createRandomsByStatus(MenuStatus.INACTIVE, 2).stream(),
+              RestaurantMenuFixture.createRandomsByStatus(MenuStatus.ACTIVE, 3).stream())
+          .collect(Collectors.toSet());
+
+      // timeslot
+      Set<RestaurantTimeSlot> timeSlots = RestaurantTimeSlotFixture.createRandoms(5);
+
+      Restaurant restaurant = RestaurantFixture.createRandomByStatusAndMenusAndTimeSlots(
+          RestaurantStatus.OPENED, menus, timeSlots);
+      Long ownerId = restaurant.getOwnerId();
+      restaurantRepository.save(restaurant);
+
+      // when
+      // when
+      GetRestaurantSimpleInfo result = restaurantService.getRestaurantByStaffId(ownerId);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result)
+          .extracting(
+              GetRestaurantSimpleInfo::name,
+              GetRestaurantSimpleInfo::address,
+              GetRestaurantSimpleInfo::status
+          )
+          .containsExactly(
+              restaurant.getName(),
+              restaurant.getContactInfo().getAddress(),
+              restaurant.getStatus().toString()
+          );
+    }
+
+    @DisplayName("존재하지 않는 직원 ID로 조회 시 예외가 발생한다.")
+    @Test
+    void fail_notFound() {
+      // given
+      Long nonExistentStaffId = 999999L;
+
+      // when & then
+      assertThatThrownBy(() -> restaurantService.getRestaurantByStaffId(nonExistentStaffId))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(RestaurantErrorCode.RESTAURANT_NOT_FOUND.getMessage());
     }
   }
 }

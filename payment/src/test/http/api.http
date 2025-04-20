@@ -27,7 +27,7 @@ POST localhost:8088/internal/v1/payments
 Content-Type: application/json
 
 {
-  "reservationUuid": "00000000-0000-0000-0000-000000000027",
+  "reservationUuid": "00000000-0000-0000-0000-000000000029",
   "restaurantUuid": "9882a539-0380-4a5d-bec4-da49d37f06e5",
   "customerId": 123,
   "reservationName": "하이들하신가",

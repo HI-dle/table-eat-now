@@ -12,16 +12,20 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.restaurant.restaurant.application.service.RestaurantService;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantCriteria;
 import table.eat.now.restaurant.restaurant.presentation.dto.response.GetRestaurantResponse;
+import table.eat.now.restaurant.restaurant.presentation.dto.response.GetRestaurantSimpleResponse;
 
 @RestController
 @RequestMapping("/internal/v1/restaurants")
 @RequiredArgsConstructor
 public class RestaurantInternalController {
+
   private final RestaurantService restaurantService;
 
   @GetMapping("/{restaurantUuid}")
@@ -41,5 +45,14 @@ public class RestaurantInternalController {
   ) {
     restaurantService.increaseOrDecreaseTimeSlotGuestCount(restaurantTimeSlotUuid, delta);
     return ResponseEntity.ok().build();
+  }
+
+  @AuthCheck(roles = {UserRole.STAFF, UserRole.OWNER})
+  @GetMapping("/my-restaurant")
+  public ResponseEntity<GetRestaurantSimpleResponse> getRestaurantByStaffId(
+      @CurrentUserInfo CurrentUserInfoDto userInfoDto) {
+    return ResponseEntity.ok()
+        .body(GetRestaurantSimpleResponse.from(
+            restaurantService.getRestaurantByStaffId(userInfoDto.userId())));
   }
 }

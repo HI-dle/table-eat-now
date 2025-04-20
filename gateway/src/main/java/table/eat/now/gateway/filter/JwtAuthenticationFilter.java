@@ -3,6 +3,7 @@ package table.eat.now.gateway.filter;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -13,6 +14,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import table.eat.now.gateway.util.JwtResolver;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
@@ -26,13 +28,19 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
   private static final List<String> EXCLUDED_PATHS = List.of(
       "/api/v1/users/signup",
       "/api/v1/users/login",
-      "/springdoc/"
+      "/springdoc/",
+      "/api/v1/payments/checkout-info",
+      "/api/v1/payments/confirm",
+      "/checkout",
+      "/success",
+      "/fail"
   );
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
     ServerHttpRequest request = exchange.getRequest();
     String path = request.getURI().getPath();
+    log.info("requested path: {}", path);
 
     if (isExcludedPath(path)) {
       return chain.filter(exchange);
