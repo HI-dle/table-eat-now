@@ -50,12 +50,13 @@ public class WaitingRequestServiceImpl implements WaitingRequestService {
 
     String waitingRequestUuid = UUID.randomUUID().toString();
     Long sequence = generateSequence(command.dailyWaitingUuid());
-    Long rank = enqueueWaitingRequestAndGetRank(command.dailyWaitingUuid(), waitingRequestUuid);
-    Long estimatedWaitingMin = rank == null ? null : dailyWaitingInfo.avgWaitingSec() * (rank + 1L);
 
     WaitingRequest waitingRequest = command.toEntity(
         waitingRequestUuid, dailyWaitingInfo.restaurantUuid(), userInfo.userId(), sequence);
     waitingRequestRepository.save(waitingRequest);
+
+    Long rank = enqueueWaitingRequestAndGetRank(command.dailyWaitingUuid(), waitingRequestUuid);
+    Long estimatedWaitingMin = rank == null ? null : dailyWaitingInfo.avgWaitingSec() * (rank + 1L) /60;
 
     notifyWaitingRequestCreated(
         command, waitingRequestUuid, dailyWaitingInfo.restaurantName(),
