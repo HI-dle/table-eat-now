@@ -58,7 +58,7 @@ public class Reservation extends BaseEntity {
   private String restaurantTimeSlotUuid;
 
   @Column(name = "restaurant_uuid", nullable = false, length = 100)
-  private String restaurantId; // todo: 변수명 수정 필요
+  private String restaurantUuid;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "restaurant_timeslot_details", columnDefinition = "json", nullable = false)
@@ -128,7 +128,7 @@ public class Reservation extends BaseEntity {
     this.restaurantTimeSlotUuid = restaurantTimeSlotUuid;
     this.restaurantTimeSlotDetails =
         RestaurantTimeSlotDetails.of(reservationDate, reservationTimeslot);
-    this.restaurantId = restaurantId;
+    this.restaurantUuid = restaurantId;
     this.restaurantDetails =
         RestaurantDetails.of(
             restaurantName,

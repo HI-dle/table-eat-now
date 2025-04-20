@@ -1821,7 +1821,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
               Reservation::getName,
               Reservation::getReserverId,
               Reservation::getRestaurantTimeSlotUuid,
-              Reservation::getRestaurantId,
+              Reservation::getRestaurantUuid,
               Reservation::getStatus,
               Reservation::getSpecialRequest
           )
@@ -2000,7 +2000,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
               Reservation::getName,
               Reservation::getReserverId,
               Reservation::getRestaurantTimeSlotUuid,
-              Reservation::getRestaurantId,
+              Reservation::getRestaurantUuid,
               Reservation::getStatus,
               Reservation::getSpecialRequest
           )
@@ -2172,7 +2172,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
               Reservation::getName,
               Reservation::getReserverId,
               Reservation::getRestaurantTimeSlotUuid,
-              Reservation::getRestaurantId,
+              Reservation::getRestaurantUuid,
               Reservation::getStatus,
               Reservation::getSpecialRequest
           )
