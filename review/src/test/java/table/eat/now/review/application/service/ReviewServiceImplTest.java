@@ -1021,8 +1021,7 @@ class ReviewServiceImplTest {
 
       GetRestaurantInfo restaurantInfo = new GetRestaurantInfo(restaurantId);
 
-      when(restaurantClient.getRestaurant(ownerId)).thenReturn(restaurantInfo);
-      when(restaurantClient.getRestaurant(staffId)).thenReturn(restaurantInfo);
+      when(restaurantClient.getRestaurant()).thenReturn(restaurantInfo);
 
       query = SearchAdminReviewQuery.builder()
           .orderBy("createdAt")
@@ -1091,7 +1090,7 @@ class ReviewServiceImplTest {
           )
           .doesNotContain(otherPrivateReview.getReviewId());
 
-      verify(restaurantClient).getRestaurant(ownerId);
+      verify(restaurantClient).getRestaurant();
     }
 
     @Test
@@ -1111,7 +1110,7 @@ class ReviewServiceImplTest {
           )
           .doesNotContain(otherPrivateReview.getReviewId());
 
-      verify(restaurantClient).getRestaurant(staffId);
+      verify(restaurantClient).getRestaurant();
     }
 
     @Test
@@ -1187,7 +1186,7 @@ class ReviewServiceImplTest {
       assertThat(result.content()).hasSize(1);
       assertThat(result.content().get(0).reviewUuid()).isEqualTo(myPrivateReview.getReviewId());
       assertThat(result.content().get(0).isVisible()).isFalse();
-      verify(restaurantClient).getRestaurant(ownerId);
+      verify(restaurantClient).getRestaurant();
     }
 
     @Test

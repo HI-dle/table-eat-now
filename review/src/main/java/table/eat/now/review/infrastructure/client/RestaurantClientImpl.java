@@ -19,7 +19,7 @@ public class RestaurantClientImpl implements RestaurantClient {
   }
 
   @Override
-  public GetRestaurantInfo getRestaurant(Long staffId) {
+  public GetRestaurantInfo getRestaurant() {
     return restaurantFeignClient.getRestaurantByStaffId().toInfo();
   }
 }

@@ -7,6 +7,6 @@ public interface RestaurantClient {
 
   GetRestaurantStaffInfo getRestaurantStaffs(String restaurantId);
 
-  GetRestaurantInfo getRestaurant(Long userId);
+  GetRestaurantInfo getRestaurant();
 
 }

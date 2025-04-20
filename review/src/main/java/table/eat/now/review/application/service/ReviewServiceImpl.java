@@ -162,7 +162,7 @@ public class ReviewServiceImpl implements ReviewService {
       SearchAdminReviewQuery query, CurrentUserInfoDto userInfo) {
 
     String accessibleRestaurantId =
-        isStaff(userInfo.role()) ? getRestaurantId(userInfo.userId()) : null;
+        isStaff(userInfo.role()) ? getRestaurantId() : null;
 
     return PaginatedInfo.fromAdminResult(
         reviewRepository.searchAdminReviews(
@@ -173,8 +173,8 @@ public class ReviewServiceImpl implements ReviewService {
     return role == OWNER || role == STAFF;
   }
 
-  private String getRestaurantId(Long staffId) {
-    return restaurantClient.getRestaurant(staffId).restaurantId();
+  private String getRestaurantId() {
+    return restaurantClient.getRestaurant().restaurantId();
   }
 
   private boolean isMaster(UserRole role) {
