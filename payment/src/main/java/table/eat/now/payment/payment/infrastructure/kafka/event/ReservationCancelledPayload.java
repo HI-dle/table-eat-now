@@ -2,7 +2,7 @@ package table.eat.now.payment.payment.infrastructure.kafka.event;
 
 import table.eat.now.payment.payment.application.dto.request.CancelPaymentCommand;
 
-public record ReservationCancelingPayload(
+public record ReservationCancelledPayload(
     String reservationUuid,
     String idempotencyKey,
     String cancelReason
