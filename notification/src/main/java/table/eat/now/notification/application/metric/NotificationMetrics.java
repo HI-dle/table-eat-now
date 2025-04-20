@@ -39,6 +39,6 @@ public class NotificationMetrics {
   }
 
   public void recordFetchedScheduledCount(int count) {
-    registry.gauge("notification.scheduled.fetch.count", count);
+    registry.counter("notification.scheduled.fetch.count").increment(count);
   }
 }

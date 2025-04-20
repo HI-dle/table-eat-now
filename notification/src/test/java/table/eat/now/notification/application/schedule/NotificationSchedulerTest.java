@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import table.eat.now.notification.application.metric.NotificationMetrics;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategy;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategySelector;
 import table.eat.now.notification.application.strategy.NotificationParamExtractor;
@@ -54,6 +55,9 @@ class NotificationSchedulerTest {
   @Mock
   private NotificationSenderStrategy senderStrategy;
 
+  @Mock
+  private NotificationMetrics meterRegistry;
+
   private NotificationScheduler scheduler;
 
   @BeforeEach
@@ -62,7 +66,8 @@ class NotificationSchedulerTest {
         notificationRepository,
         formatterSelector,
         sendSelector,
-        paramExtractor
+        paramExtractor,
+        meterRegistry
     );
   }
 

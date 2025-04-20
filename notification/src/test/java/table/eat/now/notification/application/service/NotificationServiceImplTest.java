@@ -5,12 +5,15 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.micrometer.core.instrument.Timer;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +46,7 @@ import table.eat.now.notification.application.dto.response.GetNotificationInfo;
 import table.eat.now.notification.application.dto.response.NotificationSearchInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
 import table.eat.now.notification.application.exception.NotificationErrorCode;
+import table.eat.now.notification.application.metric.NotificationMetrics;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategy;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategySelector;
 import table.eat.now.notification.application.strategy.NotificationParamExtractor;
@@ -95,6 +99,8 @@ class NotificationServiceImplTest {
 
   @Mock
   private JavaMailSender mailSender;
+  @Mock
+  private NotificationMetrics notificationMetrics;
 
   @InjectMocks
   private NotificationServiceImpl notificationService;
@@ -935,5 +941,60 @@ class NotificationServiceImplTest {
     CustomException exception = assertThrows(CustomException.class, () -> selector.select(NotificationType.CONFIRM_CUSTOMER));
     assertThat(exception.getMessage()).isEqualTo("존재하지 않는 알림 타입 입니다.");
   }
+
+  @Test
+  @DisplayName("알림 전송 중 예외가 발생하면 실패 메트릭이 증가하고 CustomException이 발생합니다.")
+  void notification_send_service_test_send_fail() {
+    // given
+    String notificationUuid = UUID.randomUUID().toString();
+
+    Notification notification = Notification.of(
+        1L,
+        NotificationType.REMINDER_1HR,
+        "한지훈",
+        LocalDateTime.now(),
+        "11조 레스토랑",
+        NotificationStatus.PENDING,
+        NotificationMethod.EMAIL,
+        LocalDateTime.now().plusHours(1)
+    );
+    ReflectionTestUtils.setField(notification, "notificationUuid", notificationUuid);
+
+    when(notificationRepository.findByNotificationUuidAndDeletedByIsNull(notificationUuid))
+        .thenReturn(Optional.of(notification));
+
+
+    NotificationFormatterStrategy formatterStrategy = new Reminder1HrFormatter();
+    when(formatterSelector.select(NotificationType.REMINDER_1HR)).thenReturn(formatterStrategy);
+
+
+    NotificationSenderStrategy senderStrategy = new EmailSender(mailSender);
+    when(sendSelector.select(NotificationMethod.EMAIL)).thenReturn(senderStrategy);
+
+
+    doThrow(new RuntimeException("메일 서버 오류")).when(mailSender).send(any(SimpleMailMessage.class));
+
+
+    Timer.Sample sample = mock(Timer.Sample.class);
+    when(notificationMetrics.startSendTimer()).thenReturn(sample);
+    doNothing().when(notificationMetrics).incrementSendFail();
+
+    // when & then
+    CustomException exception = assertThrows(CustomException.class, () ->
+        notificationService.sendNotification(notificationUuid)
+    );
+
+    assertThat(exception.getMessage()).isEqualTo(NotificationErrorCode.NOTIFICATION_SEND_FAIL.getMessage());
+
+
+    verify(notificationMetrics, times(1)).startSendTimer();
+    verify(notificationMetrics, times(1)).incrementSendFail();
+    verify(notificationMetrics, never()).incrementSendSuccess();
+    verify(notificationMetrics, never()).recordSendLatency(any(), any());
+
+
+    verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+  }
+
 
 }
