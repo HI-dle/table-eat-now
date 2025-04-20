@@ -9,6 +9,7 @@ spring:
       - classpath:properties/datasource.yml
       - classpath:properties/jpa.yml
       - classpath:properties/redis.yml
+      - classpath:properties/kafka.yml
       - classpath:properties/cloud.yml
       - classpath:properties/zipkin.yml
   profiles:

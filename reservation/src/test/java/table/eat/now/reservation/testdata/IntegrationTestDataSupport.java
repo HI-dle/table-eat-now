@@ -1,15 +1,13 @@
 /**
  * @author : jieun(je-pa)
- * @Date : 2025. 04. 11.
+ * @Date : 2025. 04. 20.
  */
-package table.eat.now.reservation.global;
+package table.eat.now.reservation.testdata;
 
-import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -22,10 +20,9 @@ import table.eat.now.reservation.reservation.application.event.publisher.Reserva
 
 
 @Import(TearDownExecutor.class)
-@ActiveProfiles("test")
 @SpringBootTest
 @TestConstructor(autowireMode = AutowireMode.ALL)
-public abstract class IntegrationTestSupport {
+public abstract class IntegrationTestDataSupport {
 
   @Autowired
   private TearDownExecutor tearDownExecutor;
@@ -47,9 +44,4 @@ public abstract class IntegrationTestSupport {
 
   @MockitoBean
   protected ReservationEventPublisher reservationEventPublisher;
-
-  @AfterEach
-  void tearDown() {
-    tearDownExecutor.execute();
-  }
 }
