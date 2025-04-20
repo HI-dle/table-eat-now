@@ -2,10 +2,12 @@ package table.eat.now.promotion.promotionuser.infrastructure.persistence.impl;
 
 
 import static table.eat.now.promotion.promotionuser.domain.entity.QPromotionUser.promotionUser;
+import static table.eat.now.promotion.promotionuser.infrastructure.metric.PromotionUserMetricName.PROMOTION_USER_BATCH_SAVE_LATENCY;
 
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -24,21 +26,23 @@ public class JpaPromotionUserRepositoryCustomImpl implements JpaPromotionUserRep
 
   private final JPAQueryFactory queryFactory;
   private final EntityManager entityManager;
+  private final MeterRegistry meterRegistry;
 
 
   @Override
   public void saveAllInBatch(List<PromotionUser> promotionUsers) {
-    int batchSize = 1000;
-    //batchSize만큼 persist 후 flush+clear 반복
-    for (int i = 0; i < promotionUsers.size(); i++) {
-      entityManager.persist(promotionUsers.get(i));
-      if (i % batchSize == 0 && i > 0) {
-        entityManager.flush();
-        entityManager.clear();
+    meterRegistry.timer(PROMOTION_USER_BATCH_SAVE_LATENCY).record(() -> {
+      int batchSize = 1000;
+      for (int i = 0; i < promotionUsers.size(); i++) {
+        entityManager.persist(promotionUsers.get(i));
+        if (i % batchSize == 0 && i > 0) {
+          entityManager.flush();
+          entityManager.clear();
+        }
       }
-    }
-    entityManager.flush();
-    entityManager.clear();
+      entityManager.flush();
+      entityManager.clear();
+    });
   }
 
   @Override

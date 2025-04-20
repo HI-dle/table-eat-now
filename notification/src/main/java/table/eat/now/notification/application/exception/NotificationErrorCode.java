@@ -19,6 +19,8 @@ public enum NotificationErrorCode implements ErrorCode {
       "존재하지 않는 알림 타입 입니다.", HttpStatus.NOT_FOUND),
   UNSUPPORTED_NOTIFICATION_METHOD(
       "존재하지 않는 알림 전송 유형 입니다.", HttpStatus.NOT_FOUND),
+  NOTIFICATION_SEND_FAIL(
+      "알림 전송 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
   ;
 
   private final String message;

@@ -31,15 +31,15 @@ X-User-Role: MASTER
 
 {
   "userId": 1,
-  "notificationType": "CONFIRM_OWNER",
+  "notificationType": "REMINDER_1HR",
   "customerName": "홍길동",
-  "reservationTime": "2025-04-16T15:00:00",
-  "restaurantName": "맛집",
+  "reservationTime": "2025-04-21T18:30:00",
+  "restaurantName": "맛있는 식당",
   "status": "PENDING",
-  "notificationMethod": "EMAIL",
-  "scheduledTime": "2025-04-20T17:00:00"
+  "notificationMethod": "SLACK",
+  "scheduledTime": "2025-04-21T02:20:00"
 }
-}
+
 
 ### 수정
 PUT http://localhost:8089/admin/v1/notifications
@@ -48,12 +48,14 @@ X-User-Id: 1
 X-User-Role: MASTER
 
 {
-  "userId": 2,
-  "notificationType": "CONFIRM_OWNER",
-  "message": "예약이 수정 되었습니다.",
+  "userId": 1,
+  "notificationType": "REMINDER_1HR",
+  "customerName": "홍길동",
+  "reservationTime": "2025-04-21T18:30:00",
+  "restaurantName": "맛있는 식당",
   "status": "PENDING",
   "notificationMethod": "SLACK",
-  "scheduledTime": "2025-04-08T20:00:00"
+  "scheduledTime": "2025-04-21T01:40:00"
 }
 
 ###
