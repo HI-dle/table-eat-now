@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.restaurant.restaurant.application.service.RestaurantService;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantCriteria;
 import table.eat.now.restaurant.restaurant.presentation.dto.response.GetRestaurantResponse;
@@ -45,6 +47,7 @@ public class RestaurantInternalController {
     return ResponseEntity.ok().build();
   }
 
+  @AuthCheck(roles = {UserRole.STAFF, UserRole.OWNER})
   @GetMapping("/my-restaurant")
   public ResponseEntity<GetRestaurantSimpleResponse> getRestaurantByStaffId(
       @CurrentUserInfo CurrentUserInfoDto userInfoDto) {
