@@ -1,12 +1,12 @@
 package table.eat.now.review.application.client;
 
-import table.eat.now.review.application.service.dto.response.GetRestaurantInfo;
-import table.eat.now.review.application.service.dto.response.GetRestaurantStaffInfo;
+import table.eat.now.review.application.client.dto.GetRestaurantInfo;
+import table.eat.now.review.application.client.dto.GetRestaurantStaffInfo;
 
 public interface RestaurantClient {
 
-  GetRestaurantStaffInfo getRestaurantStaffInfo(String restaurantId);
+  GetRestaurantStaffInfo getRestaurantStaffs(String restaurantId);
 
-  GetRestaurantInfo getRestaurantInfo(Long userId);
+  GetRestaurantInfo getRestaurant(Long userId);
 
 }
