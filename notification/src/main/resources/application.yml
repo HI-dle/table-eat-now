@@ -25,6 +25,12 @@ spring:
       host: localhost
       port: ${DEV_REDIS_PORT}
       username: ${DEV_REDIS_USERNAME}
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "*"
   mail:
     host: smtp.gmail.com
     port: 587
