@@ -25,4 +25,6 @@ public interface RestaurantRepository {
   List<Restaurant> findAll();
 
   <S extends Restaurant> List<S> saveAll(Iterable<S> restaurants);
+
+  Optional<Restaurant> findByStaffIdOrOwnerId(Long id);
 }

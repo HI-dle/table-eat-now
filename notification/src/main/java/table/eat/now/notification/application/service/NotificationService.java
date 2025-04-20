@@ -10,6 +10,7 @@ import table.eat.now.notification.application.dto.response.CreateNotificationInf
 import table.eat.now.notification.application.dto.response.GetNotificationInfo;
 import table.eat.now.notification.application.dto.response.NotificationSearchInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
+import table.eat.now.notification.application.event.dto.NotificationSendEvent;
 
 
 /**
@@ -30,4 +31,5 @@ public interface NotificationService {
   void deleteNotification(String notificationsUuid, CurrentUserInfoDto userInfo);
 
   void sendNotification(String notificationUuid);
+  void consumerNotification(NotificationSendEvent notificationSendEvent);
 }

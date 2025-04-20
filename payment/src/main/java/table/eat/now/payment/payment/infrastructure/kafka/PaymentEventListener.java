@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import table.eat.now.payment.payment.application.PaymentService;
 import table.eat.now.payment.payment.infrastructure.kafka.event.PaymentFailedEvent;
 import table.eat.now.payment.payment.infrastructure.kafka.event.PaymentSuccessEvent;
-import table.eat.now.payment.payment.infrastructure.kafka.event.ReservationCancelingEvent;
+import table.eat.now.payment.payment.infrastructure.kafka.event.ReservationCancelledEvent;
 
 @Slf4j
 @Component
@@ -37,9 +37,9 @@ public class PaymentEventListener {
 
   @KafkaListener(
       topics = "reservation-event",
-      containerFactory = "cancelingEventKafkaListenerContainerFactory"
+      containerFactory = "cancelledEventKafkaListenerContainerFactory"
   )
-  public void handleReservationCanceled(ReservationCancelingEvent cancelEvent) {
+  public void handleReservationCanceled(ReservationCancelledEvent cancelEvent) {
     paymentService.cancelPayment(cancelEvent.payload().toCommand(), cancelEvent.userInfo());
   }
 }

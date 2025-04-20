@@ -2,6 +2,7 @@ package table.eat.now.promotion.promotion.infrastructure.redis;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
     Long result = scriptCommand.execute();
 
     return ParticipateResult.from(result);
+
   }
 
 

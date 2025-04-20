@@ -11,6 +11,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.micrometer.core.instrument.Timer;
@@ -46,7 +47,6 @@ import table.eat.now.notification.application.dto.response.GetNotificationInfo;
 import table.eat.now.notification.application.dto.response.NotificationSearchInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
 import table.eat.now.notification.application.exception.NotificationErrorCode;
-import table.eat.now.notification.application.metric.NotificationMetrics;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategy;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategySelector;
 import table.eat.now.notification.application.strategy.NotificationParamExtractor;
@@ -99,8 +99,6 @@ class NotificationServiceImplTest {
 
   @Mock
   private JavaMailSender mailSender;
-  @Mock
-  private NotificationMetrics notificationMetrics;
 
   @InjectMocks
   private NotificationServiceImpl notificationService;
@@ -940,6 +938,108 @@ class NotificationServiceImplTest {
     // when & then
     CustomException exception = assertThrows(CustomException.class, () -> selector.select(NotificationType.CONFIRM_CUSTOMER));
     assertThat(exception.getMessage()).isEqualTo("존재하지 않는 알림 타입 입니다.");
+  }
+
+  @DisplayName("예약 알림이 아닐 경우 알림 정상 발송")
+  @Test
+  void consumerNotification_sendNotificationImmediately_success() {
+    // given
+    Long userId = 1L;
+    String customerName = "11조";
+    String restaurantName = "어마어마한 맛집";
+    LocalDateTime reservationTime = LocalDateTime.now().plusDays(1);
+
+    NotificationSendPayload payload = new NotificationSendPayload(
+        "CONFIRM_CUSTOMER",
+        customerName,
+        reservationTime,
+        restaurantName,
+        "SLACK",
+        null // 즉시 발송
+    );
+
+    CurrentUserInfoDto userInfoDto = new CurrentUserInfoDto(userId, UserRole.MASTER);
+    NotificationSendEvent event = new NotificationSendEvent(EventType.SEND, payload, userInfoDto);
+
+    Notification notification = Notification.of(
+        userId,
+        NotificationType.CONFIRM_CUSTOMER,
+        customerName,
+        reservationTime,
+        restaurantName,
+        NotificationStatus.PENDING,
+        NotificationMethod.SLACK,
+        null
+    );
+
+    NotificationFormatterStrategy formatterStrategy = mock(NotificationFormatterStrategy.class);
+    NotificationSenderStrategy senderStrategy = mock(NotificationSenderStrategy.class);
+
+    when(formatterSelector.select(NotificationType.CONFIRM_CUSTOMER))
+        .thenReturn(formatterStrategy);
+    when(sendSelector.select(NotificationMethod.SLACK))
+        .thenReturn(senderStrategy);
+
+    Map<String, String> paramMap = Map.of(
+        "customerName", customerName,
+        "restaurantName", restaurantName,
+        "reservationTime", reservationTime.toString()
+    );
+    NotificationTemplate template = new NotificationTemplate("제목", "본문");
+
+    when(paramExtractor.extract(any())).thenReturn(paramMap);
+    when(formatterStrategy.format(paramMap)).thenReturn(template);
+
+    // when
+    notificationService.consumerNotification(event);
+
+    // then
+    verify(formatterSelector).select(NotificationType.CONFIRM_CUSTOMER);
+    verify(paramExtractor).extract(any(Notification.class));
+    verify(formatterStrategy).format(paramMap);
+    verify(sendSelector).select(NotificationMethod.SLACK);
+    verify(senderStrategy).send(userId, template);
+  }
+
+  @DisplayName("카프카 컨슈머 scheduledTime이 있는 경우 저장만 수행")
+  @Test
+  void consumerNotification_scheduledNotification_saved() {
+    // given
+    Long userId = 1L;
+    String customerName = "11조";
+    String restaurantName = "어마어마한 맛집";
+    LocalDateTime reservationTime = LocalDateTime.now().plusDays(1);
+    LocalDateTime scheduledTime = LocalDateTime.now().plusHours(3);
+
+    NotificationSendPayload payload = new NotificationSendPayload(
+        "CONFIRM_CUSTOMER",
+        customerName,
+        reservationTime,
+        restaurantName,
+        "EMAIL",
+        scheduledTime
+    );
+
+    CurrentUserInfoDto userInfoDto = new CurrentUserInfoDto(userId, UserRole.MASTER);
+    NotificationSendEvent event = new NotificationSendEvent(EventType.SEND, payload, userInfoDto);
+
+    Notification expectedNotification = Notification.of(
+        userId,
+        NotificationType.CONFIRM_CUSTOMER,
+        customerName,
+        reservationTime,
+        restaurantName,
+        NotificationStatus.PENDING,
+        NotificationMethod.EMAIL,
+        scheduledTime
+    );
+
+    // when
+    notificationService.consumerNotification(event);
+
+    // then
+    verify(notificationRepository, times(1)).save(any(Notification.class));
+    verifyNoInteractions(formatterSelector, sendSelector, paramExtractor);
   }
 
   @Test

@@ -429,7 +429,7 @@ class PaymentServiceImplTest {
 
       PaymentCanceledEvent capturedEvent = eventCaptor.getValue();
       assertThat(capturedEvent.paymentUuid()).isEqualTo(payment.getIdentifier().getPaymentUuid());
-      assertThat(capturedEvent.eventType().name()).isEqualTo("CANCEL_SUCCEED");
+      assertThat(capturedEvent.eventType().name()).isEqualTo("RESERVATION_PAYMENT_CANCEL_SUCCEED");
       assertThat(capturedEvent.userInfo()).isEqualTo(userInfo);
     }
   }

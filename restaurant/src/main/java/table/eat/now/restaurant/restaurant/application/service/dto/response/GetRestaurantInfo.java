@@ -17,6 +17,8 @@ import table.eat.now.restaurant.restaurant.domain.entity.RestaurantTimeSlot;
 public record GetRestaurantInfo(
     String restaurantUuid,
     String name,
+    Long ownerId,
+    Long staffId,
     String info,
     BigDecimal reviewRatingAvg,
     Integer maxReservationGuestCountPerTeamOnline,
@@ -35,6 +37,8 @@ public record GetRestaurantInfo(
     return GetRestaurantInfo.builder()
         .restaurantUuid(restaurant.getRestaurantUuid())
         .name(restaurant.getName())
+        .ownerId(restaurant.getOwnerId())
+        .staffId(restaurant.getStaffId())
         .info(restaurant.getInfo())
         .reviewRatingAvg(restaurant.getReviewRatingAvg())
         .maxReservationGuestCountPerTeamOnline(restaurant.getMaxReservationGuestCountPerTeamOnline())

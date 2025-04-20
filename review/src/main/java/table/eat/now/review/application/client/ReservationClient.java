@@ -1,8 +1,8 @@
 package table.eat.now.review.application.client;
 
-import table.eat.now.review.application.service.dto.response.GetServiceInfo;
+import table.eat.now.review.application.client.dto.GetServiceInfo;
 
 public interface ReservationClient {
 
-  GetServiceInfo getReservation(String reservationId, Long customerId);
+  GetServiceInfo getReservation(String reservationId);
 }

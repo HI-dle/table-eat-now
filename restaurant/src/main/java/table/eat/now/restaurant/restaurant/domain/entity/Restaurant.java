@@ -46,10 +46,10 @@ public class Restaurant extends BaseEntity {
   @Column(name = "restaurant_uuid", nullable = false, unique = true, length = 100)
   private String restaurantUuid;
 
-  @Column(name = "owner_id", nullable = false)
+  @Column(name = "owner_id", nullable = false, unique = true)
   private Long ownerId;
 
-  @Column(name = "staff_id")
+  @Column(name = "staff_id", unique = true)
   private Long staffId;
 
   @Column(name = "name", nullable = false, length = 100)

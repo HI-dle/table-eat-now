@@ -57,13 +57,24 @@ public class WaitingRequestApiController {
   }
 
   @PatchMapping("/{waitingRequestUuid}/postpone")
-  public ResponseEntity<GetWaitingRequestResponse> postponeWaitingRequest(
+  public ResponseEntity<Void> postponeWaitingRequest(
       @CurrentUserInfo CurrentUserInfoDto userInfo,
       @PathVariable UUID waitingRequestUuid,
       @RequestParam @Valid @Pattern(regexp = "^[0-9]{8,15}$") String phone
   ) {
 
     waitingRequestService.postponeWaitingRequest(userInfo, waitingRequestUuid.toString(), phone);
+    return ResponseEntity.ok().build();
+  }
+
+  @PatchMapping("/{waitingRequestUuid}/cancel")
+  public ResponseEntity<Void> cancelWaitingRequest(
+      @CurrentUserInfo CurrentUserInfoDto userInfo,
+      @PathVariable UUID waitingRequestUuid,
+      @RequestParam @Valid @Pattern(regexp = "^[0-9]{8,15}$") String phone
+  ) {
+
+    waitingRequestService.cancelWaitingRequest(userInfo, waitingRequestUuid.toString(), phone);
     return ResponseEntity.ok().build();
   }
 }
