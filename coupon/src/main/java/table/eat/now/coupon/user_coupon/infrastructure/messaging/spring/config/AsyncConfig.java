@@ -1,4 +1,4 @@
-package table.eat.now.coupon.user_coupon.application.listener.config;
+package table.eat.now.coupon.user_coupon.infrastructure.messaging.spring.config;
 
 import java.util.concurrent.Executor;
 import lombok.RequiredArgsConstructor;

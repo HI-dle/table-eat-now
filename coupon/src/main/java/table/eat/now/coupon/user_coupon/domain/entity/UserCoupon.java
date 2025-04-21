@@ -112,5 +112,6 @@ public class UserCoupon extends BaseEntity {
     this.status = UserCouponStatus.ROLLBACK;
     this.reservationUuid = null;
     this.preemptAt = null;
+    this.usedAt = null;
   }
 }

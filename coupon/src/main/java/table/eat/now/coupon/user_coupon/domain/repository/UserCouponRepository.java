@@ -23,4 +23,6 @@ public interface UserCouponRepository {
       Long userId, LocalDateTime now, Pageable pageable);
 
   <S extends UserCoupon> List<S> saveAll(Iterable<S> userCoupons);
+
+  List<UserCoupon> findByReservationUuid(String reservationUuid);
 }

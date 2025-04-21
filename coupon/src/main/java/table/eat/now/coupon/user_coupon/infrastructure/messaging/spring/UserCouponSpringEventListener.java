@@ -1,4 +1,4 @@
-package table.eat.now.coupon.user_coupon.application.listener;
+package table.eat.now.coupon.user_coupon.infrastructure.messaging.spring;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,7 @@ import table.eat.now.coupon.user_coupon.application.service.UserCouponService;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class UserCouponEventListener {
+public class UserCouponSpringEventListener {
   private final UserCouponService userCouponService;
 
   @Async("async-listener")

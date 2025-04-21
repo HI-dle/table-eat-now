@@ -80,4 +80,12 @@ public class UserCouponServiceImpl implements UserCouponService {
         .map(GetUserCouponInfo::from);
     return PageResponse.from(userCouponInfos);
   }
+
+  @Transactional
+  @Override
+  public void cancelUserCoupons(String reservationUuid) {
+
+    List<UserCoupon> userCoupons = userCouponRepository.findByReservationUuid(reservationUuid);
+    userCoupons.forEach(UserCoupon::release);
+  }
 }
