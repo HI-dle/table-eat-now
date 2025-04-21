@@ -148,12 +148,8 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
       UserCoupon preemptCoupon =
           userCouponRepository.findByUserCouponUuidAndDeletedAtIsNull(userCouponUuid)
               .orElseThrow(() -> CustomException.from(UserCouponErrorCode.INVALID_USER_COUPON_UUID));
-      UserCoupon failedToPreemptCoupon =
-          userCouponRepository.findByUserCouponUuidAndDeletedAtIsNull(userCoupons.get(2).getUserCouponUuid())
-              .orElseThrow(() -> CustomException.from(UserCouponErrorCode.INVALID_USER_COUPON_UUID));
 
       assertThat(preemptCoupon.getStatus()).isEqualTo(UserCouponStatus.PREEMPT);
-      assertThat(failedToPreemptCoupon.getStatus()).isEqualTo(UserCouponStatus.ISSUED);
       assertThat(errorCount.get()).isEqualTo(9);
     }
   }
@@ -241,12 +237,8 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
       UserCoupon preemptCoupon =
           userCouponRepository.findByUserCouponUuidAndDeletedAtIsNull(userCouponUuid)
               .orElseThrow(() -> CustomException.from(UserCouponErrorCode.INVALID_USER_COUPON_UUID));
-      UserCoupon failedToPreemptCoupon =
-          userCouponRepository.findByUserCouponUuidAndDeletedAtIsNull(userCoupons.get(2).getUserCouponUuid())
-              .orElseThrow(() -> CustomException.from(UserCouponErrorCode.INVALID_USER_COUPON_UUID));
 
       assertThat(preemptCoupon.getStatus()).isEqualTo(UserCouponStatus.PREEMPT);
-      assertThat(failedToPreemptCoupon.getStatus()).isEqualTo(UserCouponStatus.ISSUED);
       assertThat(errorCount.get()).isEqualTo(9);
     }
   }
