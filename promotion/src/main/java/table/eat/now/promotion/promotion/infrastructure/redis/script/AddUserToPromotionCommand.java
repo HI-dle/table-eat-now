@@ -51,7 +51,7 @@ public class AddUserToPromotionCommand implements RedisScriptCommand {
   public Long execute() {
     long now = System.currentTimeMillis();
     try {
-      return meterRegistry.timer(PROMOTION_PARTICIPATION_LATENCY)
+      Long result = meterRegistry.timer(PROMOTION_PARTICIPATION_LATENCY)
           .record(() -> redisTemplate.execute(
               script,
               Collections.singletonList(key),
@@ -60,12 +60,15 @@ public class AddUserToPromotionCommand implements RedisScriptCommand {
               userId,
               promotionUuid
           ));
+
+      meterRegistry.counter(PROMOTION_PARTICIPATION_SUCCESS).increment();
+
+      return result;
+
     } catch (Exception e) {
       meterRegistry.counter(PROMOTION_PARTICIPATION_FAIL).increment();
       log.error("Redis 스크립트 실행 중 오류 발생: {}", e.getMessage(), e);
       throw CustomException.from(PromotionErrorCode.PROMOTION_LUA_SCRIPT_FAILED);
-    } finally {
-      meterRegistry.counter(PROMOTION_PARTICIPATION_SUCCESS).increment();
     }
   }
 }
