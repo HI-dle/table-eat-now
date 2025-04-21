@@ -54,10 +54,12 @@ public class UserCouponKafkaEventListener {
       ReservationCancelledEvent canceledEvent = record.value();
       userCouponService.cancelUserCoupons(canceledEvent.reservationUuid());
       ack.acknowledge();
-    } catch (Exception e) {
+    } catch (Throwable e) {
       log.error("예약 취소 이벤트 DLT 처리 실패::수동 처리 필요:: "
           + "key: {}, value: {}, partition : {}, offset : {}, errorMessage : {}",
           record.key(), record.value(), partitionId, offset, errorMessage);
+    } finally {
+      ack.acknowledge();
     }
   }
 }
