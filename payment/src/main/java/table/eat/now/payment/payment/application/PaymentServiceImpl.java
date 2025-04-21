@@ -6,6 +6,7 @@ import static table.eat.now.payment.payment.application.exception.PaymentErrorCo
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_NOT_FOUND;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.RESERVATION_NOT_PENDING;
 
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,13 +30,13 @@ import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
 import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
 import table.eat.now.payment.payment.application.dto.response.SearchPaymentsInfo;
-import table.eat.now.payment.payment.application.event.PaymentCanceledEvent;
-import table.eat.now.payment.payment.application.event.PaymentCanceledPayload;
+import table.eat.now.payment.payment.application.event.ReservationPaymentCancelledEvent;
+import table.eat.now.payment.payment.application.event.ReservationPaymentCancelledPayload;
 import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
-import table.eat.now.payment.payment.application.event.PaymentFailedEvent;
-import table.eat.now.payment.payment.application.event.PaymentFailedPayload;
-import table.eat.now.payment.payment.application.event.PaymentSuccessEvent;
-import table.eat.now.payment.payment.application.event.PaymentSuccessPayload;
+import table.eat.now.payment.payment.application.event.ReservationPaymentFailedEvent;
+import table.eat.now.payment.payment.application.event.ReservationPaymentFailedPayload;
+import table.eat.now.payment.payment.application.event.ReservationPaymentSucceedEvent;
+import table.eat.now.payment.payment.application.event.ReservationPaymentSucceedPayload;
 import table.eat.now.payment.payment.application.helper.TransactionalHelper;
 import table.eat.now.payment.payment.domain.entity.Payment;
 import table.eat.now.payment.payment.domain.repository.PaymentRepository;
@@ -116,21 +117,24 @@ public class PaymentServiceImpl implements PaymentService {
       CurrentUserInfoDto userInfo, Payment payment, ConfirmPgPaymentInfo confirmedInfo) {
     payment.confirm(confirmedInfo.toConfirm());
     paymentEventPublisher
-        .publish(PaymentSuccessEvent.of(PaymentSuccessPayload.from(payment), userInfo));
+        .publish(ReservationPaymentSucceedEvent.of(ReservationPaymentSucceedPayload.from(payment), userInfo));
   }
 
   private void rollbackPayment(
       ConfirmPaymentCommand command, CurrentUserInfoDto userInfo, Exception e, Payment payment) {
     String cancelReason = e.getMessage();
-    cancel(command.paymentKey(), cancelReason, payment);
-    paymentEventPublisher.publish(PaymentFailedEvent.of(
-        PaymentFailedPayload.from(payment, cancelReason), userInfo
+    cancel(command.paymentKey(), cancelReason, null, payment);
+    paymentEventPublisher.publish(ReservationPaymentFailedEvent.of(
+        ReservationPaymentFailedPayload.from(payment, cancelReason), userInfo
     ));
   }
 
-  private void cancel(String paymentKey, String cancelReason, Payment payment) {
+  private void cancel(
+      String paymentKey, String cancelReason, BigDecimal cancelAmount, Payment payment) {
     CancelPgPaymentInfo cancelledInfo = pgClient.cancel(
-        CancelPgPaymentCommand.of(paymentKey, cancelReason), payment.getIdempotencyKey());
+        CancelPgPaymentCommand.of(paymentKey, cancelReason, cancelAmount),
+        payment.getIdempotencyKey()
+    );
     log.info("Cancel payment {}", cancelledInfo);
     payment.cancel(cancelledInfo.toCancel());
   }
@@ -139,9 +143,9 @@ public class PaymentServiceImpl implements PaymentService {
   @Transactional
   public void cancelPayment(CancelPaymentCommand command, CurrentUserInfoDto userInfo) {
     Payment payment = getPaymentByReservationId(command.reservationUuid());
-    cancel(command.idempotencyKey(), command.cancelReason(), payment);
-    paymentEventPublisher.publish(PaymentCanceledEvent.of(
-        PaymentCanceledPayload.from(payment), userInfo
+    cancel(payment.getPaymentKey(), command.cancelReason(), command.cancelAmount(), payment);
+    paymentEventPublisher.publish(ReservationPaymentCancelledEvent.of(
+        ReservationPaymentCancelledPayload.from(payment), userInfo
     ));
   }
 

@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-import table.eat.now.payment.payment.application.event.PaymentCanceledEvent;
+import table.eat.now.payment.payment.application.event.ReservationPaymentCancelledEvent;
 import table.eat.now.payment.payment.application.event.PaymentEvent;
 import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
-import table.eat.now.payment.payment.application.event.PaymentFailedEvent;
-import table.eat.now.payment.payment.application.event.PaymentSuccessEvent;
+import table.eat.now.payment.payment.application.event.ReservationPaymentFailedEvent;
+import table.eat.now.payment.payment.application.event.ReservationPaymentSucceedEvent;
 
 @Slf4j
 @Component
@@ -19,19 +19,19 @@ public class KafkaPaymentProducer implements PaymentEventPublisher {
   private final String paymentTopic;
 
   @Override
-  public void publish(PaymentSuccessEvent successEvent) {
+  public void publish(ReservationPaymentSucceedEvent successEvent) {
     kafkaTemplate.send(paymentTopic, successEvent.paymentUuid() ,successEvent);
     logEvent(successEvent);
   }
 
   @Override
-  public void publish(PaymentFailedEvent failedEvent) {
+  public void publish(ReservationPaymentFailedEvent failedEvent) {
     kafkaTemplate.send(paymentTopic, failedEvent.paymentUuid() ,failedEvent);
     logEvent(failedEvent);
   }
 
   @Override
-  public void publish(PaymentCanceledEvent canceledEvent) {
+  public void publish(ReservationPaymentCancelledEvent canceledEvent) {
     kafkaTemplate.send(paymentTopic, canceledEvent.paymentUuid() , canceledEvent);
     logEvent(canceledEvent);
   }

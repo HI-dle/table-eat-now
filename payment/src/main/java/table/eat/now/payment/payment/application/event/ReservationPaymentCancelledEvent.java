@@ -4,17 +4,16 @@ import static table.eat.now.payment.payment.application.event.EventType.RESERVAT
 
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 
-public record PaymentCanceledEvent(
+public record ReservationPaymentCancelledEvent(
     EventType eventType,
     String paymentUuid,
-    PaymentCanceledPayload payload,
+    ReservationPaymentCancelledPayload payload,
     CurrentUserInfoDto userInfo
 ) implements PaymentEvent {
 
-  public static PaymentCanceledEvent of(
-      PaymentCanceledPayload payload, CurrentUserInfoDto userInfo) {
-    return new PaymentCanceledEvent(
+  public static ReservationPaymentCancelledEvent of(
+      ReservationPaymentCancelledPayload payload, CurrentUserInfoDto userInfo) {
+    return new ReservationPaymentCancelledEvent(
         RESERVATION_PAYMENT_CANCEL_SUCCEED, payload.paymentUuid(), payload, userInfo);
   }
-
 }
