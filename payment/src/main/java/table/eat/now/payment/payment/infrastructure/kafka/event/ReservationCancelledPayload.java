@@ -25,6 +25,11 @@ public record ReservationCancelledPayload(
 )  {
 
   public CancelPaymentCommand toCommand() {
-    return new CancelPaymentCommand(reservationUuid, paymentIdempotencyKey, cancelReason);
+    return new CancelPaymentCommand(
+        reservationUuid,
+        paymentIdempotencyKey,
+        cancelAmount,
+        cancelReason
+    );
   }
 }

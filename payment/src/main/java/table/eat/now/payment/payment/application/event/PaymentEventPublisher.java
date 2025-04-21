@@ -2,9 +2,9 @@ package table.eat.now.payment.payment.application.event;
 
 public interface PaymentEventPublisher {
 
-  void publish(PaymentSuccessEvent createdEvent);
+  void publish(ReservationPaymentSucceedEvent createdEvent);
 
-  void publish(PaymentFailedEvent failedEvent);
+  void publish(ReservationPaymentFailedEvent failedEvent);
 
-  void publish(PaymentCanceledEvent canceledEvent);
+  void publish(ReservationPaymentCancelledEvent canceledEvent);
 }

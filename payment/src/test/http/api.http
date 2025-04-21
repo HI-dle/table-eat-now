@@ -60,8 +60,8 @@ Content-Type: application/json
 X-User-Id: 123
 X-User-Role: CUSTOMER
 
-### 토스페이 거래내역 상세조회
-GET https://api.tosspayments.com/v1/payments/orders/00000000-0000-0000-0000-000000000027
+### 토스페이 거래내역 상세조회 (부분취소 결과입니다! - 토스로의 요청이라 확인 바로 가능합니다~!)
+GET https://api.tosspayments.com/v1/payments/orders/00000000-0000-0000-0000-000000000047
 Authorization: Basic dGVzdF9za19BTG5RdkRkMlZKR2s0eUdLR1E5TnJNajdYNDFtOg
 Content-Type: application/json
 

@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import table.eat.now.common.domain.BaseEntity;
@@ -76,13 +77,17 @@ public class Payment extends BaseEntity {
 
   public void cancel(CancelPayment cancelPayment) {
     validatePaymentKey(cancelPayment.paymentKey());
-
+    this.amount = this.amount.cancel(cancelPayment.cancelAmount(), cancelPayment.balanceAmount());
     this.paymentStatus = validateStatus(PaymentStatus.CANCELED);
     this.cancelledAt = cancelPayment.cancelledAt();
   }
 
   public String getIdempotencyKey() {
     return this.identifier.getIdempotencyKey();
+  }
+
+  public BigDecimal getBalancedAmount() {
+    return this.amount.getBalanceAmount();
   }
 
   private Payment(PaymentReference reference, PaymentAmount amount) {

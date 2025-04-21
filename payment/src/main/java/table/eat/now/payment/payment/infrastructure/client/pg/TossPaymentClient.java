@@ -75,6 +75,7 @@ public class TossPaymentClient {
     try {
       return supplier.get();
     } catch (HttpClientErrorException e) {
+      log.error(e.getMessage(), e);
       HttpStatus status = HttpStatus.valueOf(e.getStatusCode().value());
       throw CustomException.of(status, extractErrorMessage(e));
     } catch (Exception e) {

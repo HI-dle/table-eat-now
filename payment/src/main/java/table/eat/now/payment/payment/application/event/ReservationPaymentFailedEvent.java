@@ -4,16 +4,16 @@ import static table.eat.now.payment.payment.application.event.EventType.RESERVAT
 
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 
-public record PaymentFailedEvent(
+public record ReservationPaymentFailedEvent(
     EventType eventType,
     String paymentUuid,
-    PaymentFailedPayload payload,
+    ReservationPaymentFailedPayload payload,
     CurrentUserInfoDto userInfo
 ) implements PaymentEvent {
 
-  public static PaymentFailedEvent of(
-      PaymentFailedPayload payload, CurrentUserInfoDto userInfo) {
-    return new PaymentFailedEvent(
+  public static ReservationPaymentFailedEvent of(
+      ReservationPaymentFailedPayload payload, CurrentUserInfoDto userInfo) {
+    return new ReservationPaymentFailedEvent(
         RESERVATION_PAYMENT_FAILED, payload.paymentUuid(), payload, userInfo);
   }
 }
