@@ -59,7 +59,7 @@ public class PaymentAmount {
         this.originalAmount,
         discountAmount,
         totalAmount,
-        BigDecimal.ZERO,
+        null,
         totalAmount
     );
   }

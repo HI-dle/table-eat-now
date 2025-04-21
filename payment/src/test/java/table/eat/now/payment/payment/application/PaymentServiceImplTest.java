@@ -12,7 +12,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static table.eat.now.common.resolver.dto.UserRole.CUSTOMER;
 import static table.eat.now.common.resolver.dto.UserRole.MASTER;
+import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.CANCEL_AMOUNT_EXCEED_BALANCE;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_ACCESS_DENIED;
+import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_ALREADY_CANCELLED;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_NOT_FOUND;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.RESERVATION_NOT_PENDING;
@@ -50,10 +52,12 @@ import table.eat.now.payment.payment.application.dto.response.CreatePaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
 import table.eat.now.payment.payment.application.dto.response.SearchPaymentsInfo;
-import table.eat.now.payment.payment.application.event.ReservationPaymentCancelledEvent;
 import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
+import table.eat.now.payment.payment.application.event.ReservationPaymentCancelledEvent;
 import table.eat.now.payment.payment.application.event.ReservationPaymentSucceedEvent;
 import table.eat.now.payment.payment.application.helper.TransactionalHelper;
+import table.eat.now.payment.payment.domain.entity.CancelPayment;
+import table.eat.now.payment.payment.domain.entity.ConfirmPayment;
 import table.eat.now.payment.payment.domain.entity.Payment;
 import table.eat.now.payment.payment.domain.entity.PaymentAmount;
 import table.eat.now.payment.payment.domain.entity.PaymentReference;
@@ -377,6 +381,11 @@ class PaymentServiceImplTest {
       PaymentAmount amount = PaymentAmount.create(totalAmount);
       payment = Payment.create(reference, amount);
 
+      ConfirmPayment confirmPayment = new ConfirmPayment(
+          paymentKey, null, totalAmount, LocalDateTime.now());
+
+      payment.confirm(confirmPayment);
+
       CancelPgPaymentInfo cancelPgPaymentInfo = new CancelPgPaymentInfo(
           paymentKey,
           cancelReason,
@@ -436,6 +445,59 @@ class PaymentServiceImplTest {
       assertThat(capturedEvent.paymentUuid()).isEqualTo(payment.getIdentifier().getPaymentUuid());
       assertThat(capturedEvent.eventType().name()).isEqualTo("RESERVATION_PAYMENT_CANCEL_SUCCEED");
       assertThat(capturedEvent.userInfo()).isEqualTo(userInfo);
+    }
+
+    @Test
+    void 취소_금액이_잔액보다_크면_예외를_발생시킨다() {
+      // given
+      BigDecimal excessCancelAmount = BigDecimal.valueOf(60000);
+      String cancelReason = "고객 요청으로 인한 취소";
+
+      CancelPaymentCommand cancelCommand = new CancelPaymentCommand(
+          reservationUuid,
+          command.idempotencyKey(),
+          excessCancelAmount,
+          cancelReason
+      );
+
+      // when & then
+      CustomException exception = assertThrows(CustomException.class, () ->
+          paymentService.cancelPayment(cancelCommand, userInfo));
+
+      assertThat(exception.getMessage()).isEqualTo(CANCEL_AMOUNT_EXCEED_BALANCE.getMessage());
+
+      verify(pgClient, never()).cancel(any(), anyString());
+      verify(paymentEventPublisher, never()).publish(any(ReservationPaymentCancelledEvent.class));
+    }
+
+    @Test
+    void 이미_취소된_결제는_예외를_발생시킨다() {
+      // given
+      CancelPaymentCommand cancelCommand = new CancelPaymentCommand(
+          reservationUuid,
+          command.idempotencyKey(),
+          BigDecimal.valueOf(1000),
+          "고객 요청으로 인한 취소"
+      );
+      CancelPayment cancelPayment = new CancelPayment(
+          payment.getPaymentKey(),
+          cancelCommand.cancelReason(),
+          cancelCommand.cancelAmount(),
+          payment.getBalancedAmount()
+              .subtract(cancelCommand.cancelAmount()),
+          LocalDateTime.now()
+      );
+
+      payment.cancel(cancelPayment);
+
+      // when & then
+      CustomException exception = assertThrows(
+          CustomException.class, () -> paymentService.cancelPayment(cancelCommand, userInfo));
+
+      assertThat(exception.getMessage()).isEqualTo(PAYMENT_ALREADY_CANCELLED.getMessage());
+
+      verify(pgClient, never()).cancel(any(), anyString());
+      verify(paymentEventPublisher, never()).publish(any(ReservationPaymentCancelledEvent.class));
     }
   }
 
@@ -1065,4 +1127,6 @@ class PaymentServiceImplTest {
       assertThat(capturedCriteria.endDate()).isNull();
     }
   }
+
+
 }

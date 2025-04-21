@@ -1,10 +1,13 @@
 package table.eat.now.payment.payment.application;
 
 import static table.eat.now.common.resolver.dto.UserRole.MASTER;
+import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.CANCEL_AMOUNT_EXCEED_BALANCE;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_ACCESS_DENIED;
+import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_ALREADY_CANCELLED;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_NOT_FOUND;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.RESERVATION_NOT_PENDING;
+import static table.eat.now.payment.payment.domain.entity.PaymentStatus.CANCELED;
 
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
@@ -16,23 +19,23 @@ import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.payment.payment.application.client.PgClient;
 import table.eat.now.payment.payment.application.client.ReservationClient;
 import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentCommand;
+import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentInfo;
+import table.eat.now.payment.payment.application.client.dto.ConfirmPgPaymentInfo;
+import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
 import table.eat.now.payment.payment.application.dto.request.CancelPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.ConfirmPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.CreatePaymentCommand;
-import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentInfo;
 import table.eat.now.payment.payment.application.dto.request.SearchMasterPaymentsQuery;
 import table.eat.now.payment.payment.application.dto.request.SearchMyPaymentsQuery;
 import table.eat.now.payment.payment.application.dto.response.ConfirmPaymentInfo;
-import table.eat.now.payment.payment.application.client.dto.ConfirmPgPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.CreatePaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
-import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
 import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
 import table.eat.now.payment.payment.application.dto.response.SearchPaymentsInfo;
+import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
 import table.eat.now.payment.payment.application.event.ReservationPaymentCancelledEvent;
 import table.eat.now.payment.payment.application.event.ReservationPaymentCancelledPayload;
-import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
 import table.eat.now.payment.payment.application.event.ReservationPaymentFailedEvent;
 import table.eat.now.payment.payment.application.event.ReservationPaymentFailedPayload;
 import table.eat.now.payment.payment.application.event.ReservationPaymentSucceedEvent;
@@ -143,10 +146,20 @@ public class PaymentServiceImpl implements PaymentService {
   @Transactional
   public void cancelPayment(CancelPaymentCommand command, CurrentUserInfoDto userInfo) {
     Payment payment = getPaymentByReservationId(command.reservationUuid());
+    validatePaymentRequest(command, payment);
     cancel(payment.getPaymentKey(), command.cancelReason(), command.cancelAmount(), payment);
     paymentEventPublisher.publish(ReservationPaymentCancelledEvent.of(
         ReservationPaymentCancelledPayload.from(payment), userInfo
     ));
+  }
+
+  private static void validatePaymentRequest(CancelPaymentCommand command, Payment payment) {
+    if(payment.getBalancedAmount().compareTo(command.cancelAmount()) < 0 ){
+      throw CustomException.from(CANCEL_AMOUNT_EXCEED_BALANCE);
+    }
+    if(payment.getPaymentStatus() == CANCELED){
+      throw CustomException.from(PAYMENT_ALREADY_CANCELLED);
+    }
   }
 
   @Override
