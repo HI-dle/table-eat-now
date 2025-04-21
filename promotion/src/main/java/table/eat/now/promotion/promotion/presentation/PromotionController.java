@@ -63,4 +63,11 @@ public class PromotionController {
           .body("정원이 마감되었습니다.");
     }
   }
+
+  //테스트용
+//  @GetMapping("/test")
+//  public String test(@RequestBody ParticipatePromotionUserRequest request) {
+//    promotionService.test(request.toApplication());
+//    return "test";
+//  }
 }

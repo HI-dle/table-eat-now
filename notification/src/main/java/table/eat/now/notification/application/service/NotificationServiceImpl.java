@@ -1,6 +1,7 @@
 package table.eat.now.notification.application.service;
 
 
+import io.micrometer.core.instrument.Timer;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import table.eat.now.notification.application.dto.response.NotificationSearchInf
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
 import table.eat.now.notification.application.event.dto.NotificationSendEvent;
 import table.eat.now.notification.application.exception.NotificationErrorCode;
+import table.eat.now.notification.application.metric.NotificationMetrics;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategy;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategySelector;
 import table.eat.now.notification.application.strategy.NotificationParamExtractor;
@@ -42,12 +44,14 @@ public class NotificationServiceImpl implements NotificationService{
   private final NotificationFormatterStrategySelector formatterSelector;
   private final NotificationSenderStrategySelector sendSelector;
   private final NotificationParamExtractor paramExtractor;
+  private final NotificationMetrics metrics;
   private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
 
   @Override
   @Transactional
   public CreateNotificationInfo createNotification(CreateNotificationCommand command) {
+    metrics.incrementCreate();
     return CreateNotificationInfo
         .from(notificationRepository.save(command.toEntity()));
   }
@@ -95,22 +99,28 @@ public class NotificationServiceImpl implements NotificationService{
     notification.delete(userInfo.userId());
   }
 
-  @Override
+
   @Transactional
   public void sendNotification(String notificationUuid) {
-
     Notification notification = findByNotification(notificationUuid);
+    Timer.Sample sample = metrics.startSendTimer();
 
-    NotificationFormatterStrategy strategy = formatterSelector.select(notification.getNotificationType());
-    Map<String, String> params = paramExtractor.extract(notification);
-    NotificationTemplate formattedMessage = strategy.format(params);
+    try {
+      NotificationFormatterStrategy strategy = formatterSelector.select(notification.getNotificationType());
+      Map<String, String> params = paramExtractor.extract(notification);
+      NotificationTemplate formattedMessage = strategy.format(params);
+      NotificationSenderStrategy senderStrategy = sendSelector.select(notification.getNotificationMethod());
 
-    NotificationSenderStrategy senderStrategy = sendSelector.select(
-        notification.getNotificationMethod());
+      senderStrategy.send(notification.getUserId(), formattedMessage);
+      notification.modifyNotificationStatusIsSent();
+      metrics.incrementSendSuccess();
+      metrics.recordSendLatency(sample, "manual");
 
-    senderStrategy.send(notification.getUserId(), formattedMessage);
-
-    notification.modifyNotificationStatusIsSent();
+    } catch (Exception e) {
+      metrics.incrementSendFail();
+      notification.modifyNotificationStatusIsFailed();
+      throw CustomException.from(NotificationErrorCode.NOTIFICATION_SEND_FAIL);
+    }
   }
 
   //일부러 리팩토링할 생각하고 엄청 단순히 짰습니다..!
@@ -160,6 +170,7 @@ public class NotificationServiceImpl implements NotificationService{
         notificationSendEvent.payload().scheduledTime()
     ));
   }
+
 
 
   private Notification findByNotification(String notificationUuid) {

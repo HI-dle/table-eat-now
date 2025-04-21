@@ -32,8 +32,8 @@ X-User-Id: 1
 {
   "promotionName": "봄맞이 할인 프로모션",
   "description": "전 메뉴 3000원 할인",
-  "startTime": "2025-04-20T00:00:00",
-  "endTime": "2025-04-21T00:00:00",
+  "startTime": "2025-04-22T00:00:00",
+  "endTime": "2025-04-30T00:00:00",
   "discountAmount": 3000,
   "promotionStatus": "READY",
   "promotionType": "COUPON"
@@ -86,5 +86,17 @@ X-User-Id: 1
 {
   "userId": 2,
   "promotionUuid": "cb2aefc6-e702-48e6-95fa-a678ac0534c3",
+  "promotionName": "봄맞이 할인 프로모션"
+}
+
+###
+GET http://localhost:8084/api/v1/promotions/test
+Content-Type: application/json
+X-User-Role: MASTER
+X-User-Id: 1
+
+{
+  "userId": 1,
+  "promotionUuid": "5b375351-de57-40a7-b9f0-6632eca33a09",
   "promotionName": "봄맞이 할인 프로모션"
 }

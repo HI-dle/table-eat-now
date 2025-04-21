@@ -123,6 +123,23 @@ public class PromotionServiceImpl implements PromotionService{
 
     return participateProcess(info, participateResult);
   }
+  //테스트용
+//
+//  @Override
+//  public void test(ParticipatePromotionUserInfo info) {
+//    for (long userId = 1; userId <= 2001; userId++) {
+//      ParticipatePromotionUserInfo loopInfo = ParticipatePromotionUserInfo.builder()
+//          .userId(userId)
+//          .promotionUuid(info.promotionUuid())
+//          .promotionName(info.promotionName())
+//          .build();
+//
+//      ParticipateResult participateResult = promotionRepository.addUserToPromotion(
+//          loopInfo.toDomain(), MaxParticipate.PARTICIPATE_10000_MAX);
+//
+//      participateProcess(loopInfo, participateResult);
+//    }
+//  }
 
   private boolean participateProcess(ParticipatePromotionUserInfo info,
       ParticipateResult participateResult) {
@@ -148,6 +165,7 @@ public class PromotionServiceImpl implements PromotionService{
     }
     return true;
   }
+
 
   //이 부분 너무 고민입니다...PromotionUser로 보낼 때 auditing에 사용될 CurrentUserInfoDto가
   //필요할 것 같은데 이미 프로모션 진행 중에 자동으로 저장되게끔 구성을 해서 CurrentUserInfoDto를

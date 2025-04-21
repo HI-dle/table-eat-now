@@ -31,4 +31,7 @@ public interface PromotionService {
   GetPromotionsClientInfo reservationGetPromotions(GetPromotionsFeignCommand command);
 
   boolean participate(ParticipatePromotionUserInfo info);
+
+  //테스트용
+//  void test(ParticipatePromotionUserInfo info);
 }

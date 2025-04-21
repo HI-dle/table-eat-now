@@ -13,3 +13,12 @@ eureka:
     fetch-registry: false  # Eureka 서버로부터 레지스트리 정보 가져오기
   instance:
     hostname: localhost  # 클라이언트 호스트 이름
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'prometheus'
+  endpoint:
+    health:
+      show-details: always
