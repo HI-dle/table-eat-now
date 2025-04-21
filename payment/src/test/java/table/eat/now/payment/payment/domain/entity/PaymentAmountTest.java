@@ -193,4 +193,95 @@ class PaymentAmountTest {
       assertThat(exception.getMessage()).contains("금액은 정수여야 합니다");
     }
   }
+
+  @Nested
+  class cancel_은 {
+
+    @Test
+    void 전액_취소를_할_수_있다() {
+      //given
+      BigDecimal originalAmount = BigDecimal.valueOf(10000);
+      BigDecimal discountAmount = BigDecimal.valueOf(1000);
+      BigDecimal totalAmount = BigDecimal.valueOf(9000);
+      PaymentAmount paymentAmount = PaymentAmount.create(originalAmount)
+          .confirm(discountAmount, totalAmount);
+      BigDecimal cancelAmount = BigDecimal.valueOf(9000);
+      BigDecimal balanceAmount = BigDecimal.ZERO;
+
+      //when
+      PaymentAmount cancelledAmount = assertDoesNotThrow(() ->
+          paymentAmount.cancel(cancelAmount, balanceAmount));
+
+      //then
+      assertThat(cancelledAmount).isNotNull();
+      assertThat(cancelledAmount.getOriginalAmount()).isEqualTo(originalAmount);
+      assertThat(cancelledAmount.getDiscountAmount()).isEqualTo(discountAmount);
+      assertThat(cancelledAmount.getTotalAmount()).isEqualTo(totalAmount);
+      assertThat(cancelledAmount.getCancelAmount()).isEqualTo(cancelAmount);
+      assertThat(cancelledAmount.getBalanceAmount()).isEqualTo(balanceAmount);
+    }
+
+    @Test
+    void 부분_취소를_할_수_있다() {
+      //given
+      BigDecimal originalAmount = BigDecimal.valueOf(10000);
+      BigDecimal discountAmount = BigDecimal.valueOf(1000);
+      BigDecimal totalAmount = BigDecimal.valueOf(9000);
+      PaymentAmount paymentAmount = PaymentAmount.create(originalAmount)
+          .confirm(discountAmount, totalAmount);
+      BigDecimal cancelAmount = BigDecimal.valueOf(5000);
+      BigDecimal balanceAmount = BigDecimal.valueOf(4000);
+
+      //when
+      PaymentAmount cancelledAmount = assertDoesNotThrow(() ->
+          paymentAmount.cancel(cancelAmount, balanceAmount));
+
+      //then
+      assertThat(cancelledAmount).isNotNull();
+      assertThat(cancelledAmount.getOriginalAmount()).isEqualTo(originalAmount);
+      assertThat(cancelledAmount.getDiscountAmount()).isEqualTo(discountAmount);
+      assertThat(cancelledAmount.getTotalAmount()).isEqualTo(totalAmount);
+      assertThat(cancelledAmount.getCancelAmount()).isEqualTo(cancelAmount);
+      assertThat(cancelledAmount.getBalanceAmount()).isEqualTo(balanceAmount);
+    }
+
+    @Test
+    void 취소_금액과_잔액이_null인_경우_정상적으로_처리된다() {
+      //given
+      BigDecimal originalAmount = BigDecimal.valueOf(10000);
+      BigDecimal discountAmount = BigDecimal.valueOf(1000);
+      BigDecimal totalAmount = BigDecimal.valueOf(9000);
+      PaymentAmount paymentAmount = PaymentAmount.create(originalAmount)
+          .confirm(discountAmount, totalAmount);
+
+      //when
+      PaymentAmount cancelledAmount = assertDoesNotThrow(() ->
+          paymentAmount.cancel(null, null));
+
+      //then
+      assertThat(cancelledAmount).isNotNull();
+      assertThat(cancelledAmount.getOriginalAmount()).isEqualTo(originalAmount);
+      assertThat(cancelledAmount.getDiscountAmount()).isEqualTo(discountAmount);
+      assertThat(cancelledAmount.getTotalAmount()).isEqualTo(totalAmount);
+      assertThat(cancelledAmount.getCancelAmount()).isNull();
+      assertThat(cancelledAmount.getBalanceAmount()).isNull();
+    }
+
+    @Test
+    void 원래금액이_null인_경우_취소할_수_있다() {
+      //given
+      PaymentAmount paymentAmount = PaymentAmount.create(BigDecimal.valueOf(10000));
+      BigDecimal cancelAmount = BigDecimal.valueOf(10000);
+      BigDecimal balanceAmount = BigDecimal.ZERO;
+
+      //when
+      PaymentAmount cancelledAmount = assertDoesNotThrow(() ->
+          paymentAmount.cancel(cancelAmount, balanceAmount));
+
+      //then
+      assertThat(cancelledAmount).isNotNull();
+      assertThat(cancelledAmount.getCancelAmount()).isEqualTo(cancelAmount);
+      assertThat(cancelledAmount.getBalanceAmount()).isEqualTo(balanceAmount);
+    }
+  }
 }

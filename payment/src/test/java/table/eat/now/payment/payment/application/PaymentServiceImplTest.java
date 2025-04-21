@@ -50,9 +50,9 @@ import table.eat.now.payment.payment.application.dto.response.CreatePaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
 import table.eat.now.payment.payment.application.dto.response.SearchPaymentsInfo;
-import table.eat.now.payment.payment.application.event.PaymentCanceledEvent;
+import table.eat.now.payment.payment.application.event.ReservationPaymentCancelledEvent;
 import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
-import table.eat.now.payment.payment.application.event.PaymentSuccessEvent;
+import table.eat.now.payment.payment.application.event.ReservationPaymentSucceedEvent;
 import table.eat.now.payment.payment.application.helper.TransactionalHelper;
 import table.eat.now.payment.payment.domain.entity.Payment;
 import table.eat.now.payment.payment.domain.entity.PaymentAmount;
@@ -226,7 +226,7 @@ class PaymentServiceImplTest {
     @Test
     void 유효한_요청으로_결제를_확인하면_확인된_결제_정보를_반환하고_이벤트를_발송한다() {
       // given
-      doNothing().when(paymentEventPublisher).publish(any(PaymentSuccessEvent.class));
+      doNothing().when(paymentEventPublisher).publish(any(ReservationPaymentSucceedEvent.class));
 
       // when
       ConfirmPaymentInfo result = paymentService.confirmPayment(command, userInfo);
@@ -235,7 +235,7 @@ class PaymentServiceImplTest {
       assertThat(result).isNotNull();
       verify(paymentRepository).findByReference_ReservationIdAndDeletedAtNull(reservationUuid);
       verify(pgClient).confirm(eq(command), anyString());
-      verify(paymentEventPublisher).publish(any(PaymentSuccessEvent.class));
+      verify(paymentEventPublisher).publish(any(ReservationPaymentSucceedEvent.class));
     }
 
     @Test
@@ -271,6 +271,8 @@ class PaymentServiceImplTest {
       CancelPgPaymentInfo cancelPgPaymentInfo = new CancelPgPaymentInfo(
           paymentKey,
           "결제 금액 불일치",
+          null,
+          totalAmount,
           LocalDateTime.now()
       );
 
@@ -362,6 +364,7 @@ class PaymentServiceImplTest {
       command = new CancelPaymentCommand(
           reservationUuid,
           idempotencyKey,
+          totalAmount,
           cancelReason
       );
 
@@ -377,6 +380,8 @@ class PaymentServiceImplTest {
       CancelPgPaymentInfo cancelPgPaymentInfo = new CancelPgPaymentInfo(
           paymentKey,
           cancelReason,
+          totalAmount,
+          BigDecimal.ZERO,
           LocalDateTime.now()
       );
 
@@ -384,7 +389,7 @@ class PaymentServiceImplTest {
           .thenReturn(Optional.of(payment));
       when(pgClient.cancel(any(CancelPgPaymentCommand.class), anyString()))
           .thenReturn(cancelPgPaymentInfo);
-      doNothing().when(paymentEventPublisher).publish(any(PaymentCanceledEvent.class));
+      doNothing().when(paymentEventPublisher).publish(any(ReservationPaymentCancelledEvent.class));
     }
 
     @Test
@@ -399,7 +404,7 @@ class PaymentServiceImplTest {
       CancelPgPaymentCommand capturedCommand = commandCaptor.getValue();
       assertThat(capturedCommand.cancelReason()).isEqualTo(cancelReason);
 
-      verify(paymentEventPublisher).publish(any(PaymentCanceledEvent.class));
+      verify(paymentEventPublisher).publish(any(ReservationPaymentCancelledEvent.class));
     }
 
     @Test
@@ -414,7 +419,7 @@ class PaymentServiceImplTest {
 
       assertThat(exception.getMessage()).isEqualTo(PAYMENT_NOT_FOUND.getMessage());
       verify(pgClient, never()).cancel(any(), anyString());
-      verify(paymentEventPublisher, never()).publish(any(PaymentCanceledEvent.class));
+      verify(paymentEventPublisher, never()).publish(any(ReservationPaymentCancelledEvent.class));
     }
 
     @Test
@@ -423,11 +428,11 @@ class PaymentServiceImplTest {
       paymentService.cancelPayment(command, userInfo);
 
       // then
-      ArgumentCaptor<PaymentCanceledEvent> eventCaptor = ArgumentCaptor.forClass(
-          PaymentCanceledEvent.class);
+      ArgumentCaptor<ReservationPaymentCancelledEvent> eventCaptor = ArgumentCaptor.forClass(
+          ReservationPaymentCancelledEvent.class);
       verify(paymentEventPublisher).publish(eventCaptor.capture());
 
-      PaymentCanceledEvent capturedEvent = eventCaptor.getValue();
+      ReservationPaymentCancelledEvent capturedEvent = eventCaptor.getValue();
       assertThat(capturedEvent.paymentUuid()).isEqualTo(payment.getIdentifier().getPaymentUuid());
       assertThat(capturedEvent.eventType().name()).isEqualTo("RESERVATION_PAYMENT_CANCEL_SUCCEED");
       assertThat(capturedEvent.userInfo()).isEqualTo(userInfo);

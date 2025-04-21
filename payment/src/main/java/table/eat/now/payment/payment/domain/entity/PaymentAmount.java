@@ -18,9 +18,15 @@ public class PaymentAmount {
   @Column(name = "total_amount", precision = 8)
   private BigDecimal totalAmount;
 
+  @Column(name = "cancel_amount", precision = 8)
+  private BigDecimal cancelAmount;
+
+  @Column(name = "balance_amount", precision = 8)
+  private BigDecimal balanceAmount;
+
   public static PaymentAmount create(BigDecimal originalAmount) {
     validateAmount(originalAmount);
-    return new PaymentAmount(originalAmount, null, null);
+    return new PaymentAmount(originalAmount, null, null, null, null);
   }
 
   private static void validateAmount(BigDecimal amount) {
@@ -49,7 +55,23 @@ public class PaymentAmount {
     validateDiscountAmount(discountAmount);
     validateTotalAmount(discountAmount, totalAmount);
 
-    return new PaymentAmount(this.originalAmount, discountAmount, totalAmount);
+    return new PaymentAmount(
+        this.originalAmount,
+        discountAmount,
+        totalAmount,
+        BigDecimal.ZERO,
+        totalAmount
+    );
+  }
+
+  public PaymentAmount cancel(BigDecimal cancelAmount, BigDecimal balanceAmount) {
+    return new PaymentAmount(
+        this.originalAmount,
+        discountAmount,
+        totalAmount,
+        cancelAmount,
+        balanceAmount
+    );
   }
 
   private void validateDiscountAmount(BigDecimal discountAmount) {
@@ -74,11 +96,13 @@ public class PaymentAmount {
     }
   }
 
-  private PaymentAmount(
-      BigDecimal originalAmount, BigDecimal discountAmount, BigDecimal totalAmount) {
+  private PaymentAmount(BigDecimal originalAmount, BigDecimal discountAmount,
+      BigDecimal totalAmount, BigDecimal cancelAmount, BigDecimal balanceAmount) {
     this.originalAmount = originalAmount;
     this.discountAmount = discountAmount;
     this.totalAmount = totalAmount;
+    this.cancelAmount = cancelAmount;
+    this.balanceAmount = balanceAmount;
   }
 
   protected PaymentAmount() {
