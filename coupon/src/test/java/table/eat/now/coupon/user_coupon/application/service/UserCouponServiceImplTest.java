@@ -171,7 +171,7 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
         userInfo, pageable);
 
     assertThat(getUserCoupons.contents().get(0).userId()).isEqualTo(2L);
-    assertThat(getUserCoupons.totalElements()).isEqualTo(10);
+    assertThat(getUserCoupons.totalElements()).isEqualTo(20);
     assertThat(getUserCoupons.pageSize()).isEqualTo(pageable.getPageSize());
   }
 
