@@ -7,7 +7,6 @@ package table.eat.now.reservation.reservation.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -16,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -30,7 +30,6 @@ import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.reservation.global.IntegrationTestSupport;
 import table.eat.now.reservation.global.fixture.ReservationFixture;
 import table.eat.now.reservation.global.fixture.ReservationPaymentDetailFixture;
-import table.eat.now.reservation.global.util.UuidMaker;
 import table.eat.now.reservation.reservation.application.client.dto.response.CreatePaymentInfo;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo.Coupon;
@@ -69,76 +68,10 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_invalidPaymentDetailsTotalAmount() {
       // given
-      UUID couponReferenceId = UuidMaker.makeUuid();
-
-      // 제공된 총 금액
-      int providedTotalPrice = 10000;
-
-      // 결제 내용
-      int couponDiscountAmount = 1000;
-      int paymentPrice = 8000;
-
-      // 메뉴가격
-      int menuPrice = 10000;
-      int menuQuantity = 1;
-
-      CreateReservationCommand command = createCommandWithOneCouponAndOnePaymentAndTotalPriceAndMenuInfo(
-          providedTotalPrice,
-          couponReferenceId,
-          couponDiscountAmount,
-          paymentPrice,
-          menuPrice,
-          menuQuantity
-      );
-
-      // when & then
-      assertThatThrownBy(() -> reservationService.createReservation(command))
-          .isInstanceOf(CustomException.class)
-          .hasMessageContaining(
-              ReservationErrorCode.INVALID_PAYMENT_DETAILS_TOTAL_AMOUNT.getMessage());
-    }
-
-    @DisplayName("메뉴의 계산된 값이 제공된 totalPrice와 같지 않으면 예외가 발생한다.")
-    @Test
-    void fail_invalidMenuTotalAmount() {
-      // given
-      UUID couponReferenceId = UuidMaker.makeUuid();
-
-      // 제공된 총 금액
-      int providedTotalPrice = 10000;
-
-      // 결제 내용
-      int couponDiscountAmount = 2000;
-      int paymentPrice = 8000;
-
-      // 메뉴가격
-      int menuPrice = 90000;
-      int menuQuantity = 1;
-
-      CreateReservationCommand command = createCommandWithOneCouponAndOnePaymentAndTotalPriceAndMenuInfo(
-          providedTotalPrice,
-          couponReferenceId,
-          couponDiscountAmount,
-          paymentPrice,
-          menuPrice,
-          menuQuantity
-      );
-
-      // when & then
-      assertThatThrownBy(() -> reservationService.createReservation(command))
-          .isInstanceOf(CustomException.class)
-          .hasMessageContaining(ReservationErrorCode.INVALID_MENU_TOTAL_AMOUNT.getMessage());
-    }
-
-    private CreateReservationCommand createCommandWithOneCouponAndOnePaymentAndTotalPriceAndMenuInfo(
-        int providedTotalPrice,
-        UUID couponReferenceId,
-        int couponDiscountAmount,
-        int paymentPrice,
-        int menuPrice,
-        int menuQuantity
-    ) {
-      return CreateReservationCommand.builder()
+      String couponUuid = UUID.randomUUID().toString();
+      BigDecimal paymentAmount = BigDecimal.valueOf(6000);
+      BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      CreateReservationCommand command = CreateReservationCommand.builder()
           .reserverId(1L)
           .reserverName("홍길동")
           .reserverContact("010-0000-0000")
@@ -147,11 +80,11 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .restaurantMenuUuid(UUID.randomUUID().toString())
           .guestCount(2)
           .specialRequest("창가 자리")
-          .totalPrice(BigDecimal.valueOf(providedTotalPrice))
+          .totalPrice(BigDecimal.valueOf(10000))
           .restaurantMenuDetails(RestaurantMenuDetails.builder()
               .name("비빔밥")
-              .price(BigDecimal.valueOf(menuPrice))
-              .quantity(menuQuantity)
+              .price(BigDecimal.valueOf(10000))
+              .quantity(1)
               .build())
           .restaurantDetails(RestaurantDetails.builder()
               .name("맛있는 식당")
@@ -168,15 +101,196 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .payments(List.of(
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PROMOTION_COUPON,
-                  couponReferenceId.toString(),
-                  BigDecimal.valueOf(couponDiscountAmount)),
+                  couponUuid,
+                  couponAmount),
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PAYMENT,
                   null,
-                  BigDecimal.valueOf(paymentPrice))
+                  paymentAmount)
           ))
           .build();
+
+      // 예약일
+      LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
+          .atTime(command.restaurantTimeSlotDetails().timeslot());
+
+      // 식당 정보 설정
+      GetRestaurantInfo.Timeslot validTimeslot = new GetRestaurantInfo.Timeslot(
+          command.restaurantTimeslotUuid(),
+          command.restaurantTimeSlotDetails().availableDate(),
+          10,
+          0,
+          command.restaurantTimeSlotDetails().timeslot()
+      );
+
+      GetRestaurantInfo.Menu menu = new GetRestaurantInfo.Menu(
+          command.restaurantMenuUuid(),
+          command.restaurantMenuDetails().name(),
+          command.restaurantMenuDetails().price(),
+          "AVAILABLE"
+      );
+
+      GetRestaurantInfo mockRestaurant = GetRestaurantInfo.builder()
+          .restaurantUuid(command.restaurantUuid())
+          .menus(List.of(menu))
+          .timeslots(List.of(validTimeslot))
+          .build();
+
+      when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
+
+      // 쿠폰 정보
+      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
+          .couponUuid(couponUuid)
+          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
+          .startAt(reservationDateTime.minusDays(10))
+          .endAt(reservationDateTime.plusDays(1))
+          .minPurchaseAmount(9999)
+          .amount(3000)
+          .percent(null)
+          .maxDiscountAmount(null)
+          .build();
+
+      Map<String, Coupon> couponMap = Map.of(
+          couponUuid, invalidAmountCoupon
+      );
+
+      when(couponClient.getCoupons(any()))
+          .thenReturn(GetCouponsInfo.builder()
+              .couponMap(couponMap)
+              .build());
+
+      // 프로모션은 없어도 됨
+      when(promotionClient.getPromotions(any()))
+          .thenReturn(new GetPromotionsInfo(Collections.emptyMap()));
+
+      CreatePaymentInfo paymentInfo = new CreatePaymentInfo(
+          UUID.randomUUID().toString(),
+          UUID.randomUUID().toString()
+      );
+
+      when(paymentClient.createPayment(any()))
+          .thenReturn(paymentInfo);
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.createReservation(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(
+              ReservationErrorCode.INVALID_PAYMENT_DETAILS_TOTAL_AMOUNT.getMessage());
     }
+
+    @DisplayName("메뉴의 계산된 값이 제공된 totalPrice와 같지 않으면 예외가 발생한다.")
+    @Test
+    void fail_invalidMenuTotalAmount() {
+      // given
+      String couponUuid = UUID.randomUUID().toString();
+      BigDecimal paymentAmount = BigDecimal.valueOf(7000);
+      BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      CreateReservationCommand command = CreateReservationCommand.builder()
+          .reserverId(1L)
+          .reserverName("홍길동")
+          .reserverContact("010-0000-0000")
+          .restaurantUuid(UUID.randomUUID().toString())
+          .restaurantTimeslotUuid(UUID.randomUUID().toString())
+          .restaurantMenuUuid(UUID.randomUUID().toString())
+          .guestCount(2)
+          .specialRequest("창가 자리")
+          .totalPrice(BigDecimal.valueOf(10000))
+          .restaurantMenuDetails(RestaurantMenuDetails.builder()
+              .name("비빔밥")
+              .price(BigDecimal.valueOf(10000))
+              .quantity(2)
+              .build())
+          .restaurantDetails(RestaurantDetails.builder()
+              .name("맛있는 식당")
+              .address("서울시 강남구")
+              .contactNumber("02-000-0000")
+              .openingTime(LocalTime.of(9, 0))
+              .closingTime(LocalTime.of(21, 0))
+              .build())
+          .restaurantTimeSlotDetails(RestaurantTimeSlotDetails.builder()
+              .availableDate(LocalDate.now())
+              .timeslot(LocalTime.NOON)
+              .build())
+          .reservationDate(LocalDateTime.now())
+          .payments(List.of(
+              new CreateReservationCommand.PaymentDetail(
+                  PaymentType.PROMOTION_COUPON,
+                  couponUuid,
+                  couponAmount),
+              new CreateReservationCommand.PaymentDetail(
+                  PaymentType.PAYMENT,
+                  null,
+                  paymentAmount)
+          ))
+          .build();
+
+      // 예약일
+      LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
+          .atTime(command.restaurantTimeSlotDetails().timeslot());
+
+      // 식당 정보 설정
+      GetRestaurantInfo.Timeslot validTimeslot = new GetRestaurantInfo.Timeslot(
+          command.restaurantTimeslotUuid(),
+          command.restaurantTimeSlotDetails().availableDate(),
+          10,
+          0,
+          command.restaurantTimeSlotDetails().timeslot()
+      );
+
+      GetRestaurantInfo.Menu menu = new GetRestaurantInfo.Menu(
+          command.restaurantMenuUuid(),
+          command.restaurantMenuDetails().name(),
+          command.restaurantMenuDetails().price(),
+          "AVAILABLE"
+      );
+
+      GetRestaurantInfo mockRestaurant = GetRestaurantInfo.builder()
+          .restaurantUuid(command.restaurantUuid())
+          .menus(List.of(menu))
+          .timeslots(List.of(validTimeslot))
+          .build();
+
+      when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
+
+      // 쿠폰 정보
+      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
+          .couponUuid(couponUuid)
+          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
+          .startAt(reservationDateTime.minusDays(10))
+          .endAt(reservationDateTime.plusDays(1))
+          .minPurchaseAmount(9999)
+          .amount(3000)
+          .percent(null)
+          .maxDiscountAmount(null)
+          .build();
+
+      Map<String, Coupon> couponMap = Map.of(
+          couponUuid, invalidAmountCoupon
+      );
+
+      when(couponClient.getCoupons(any()))
+          .thenReturn(GetCouponsInfo.builder()
+              .couponMap(couponMap)
+              .build());
+
+      // 프로모션은 없어도 됨
+      when(promotionClient.getPromotions(any()))
+          .thenReturn(new GetPromotionsInfo(Collections.emptyMap()));
+
+      CreatePaymentInfo paymentInfo = new CreatePaymentInfo(
+          UUID.randomUUID().toString(),
+          UUID.randomUUID().toString()
+      );
+
+      when(paymentClient.createPayment(any()))
+          .thenReturn(paymentInfo);
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.createReservation(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.INVALID_MENU_TOTAL_AMOUNT.getMessage());
+    }
+
   }
 
   @DisplayName("예약 생성 서비스: 식당 검증")
@@ -187,25 +301,51 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_invalidTimeslot() {
       // given
-      String providedRestaurantUuid = UuidMaker.makeUuid().toString();
-      String providedRestaurantTimeslotUuid = UuidMaker.makeUuid().toString();
-      String providedRestaurantMenuUuid = UuidMaker.makeUuid().toString();
-      LocalDate providedAvailableDate = LocalDate.now();
-      LocalTime providedTimeslot = LocalTime.NOON;
-      int providedGuestCount = 2;
-      String menuName = "비빔밥";
-      BigDecimal menuPrice = BigDecimal.valueOf(10000);
+      String couponUuid = UUID.randomUUID().toString();
+      BigDecimal paymentAmount = BigDecimal.valueOf(7000);
+      BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      CreateReservationCommand command = CreateReservationCommand.builder()
+          .reserverId(1L)
+          .reserverName("홍길동")
+          .reserverContact("010-0000-0000")
+          .restaurantUuid(UUID.randomUUID().toString())
+          .restaurantTimeslotUuid(UUID.randomUUID().toString())
+          .restaurantMenuUuid(UUID.randomUUID().toString())
+          .guestCount(2)
+          .specialRequest("창가 자리")
+          .totalPrice(BigDecimal.valueOf(10000))
+          .restaurantMenuDetails(RestaurantMenuDetails.builder()
+              .name("비빔밥")
+              .price(BigDecimal.valueOf(10000))
+              .quantity(1)
+              .build())
+          .restaurantDetails(RestaurantDetails.builder()
+              .name("맛있는 식당")
+              .address("서울시 강남구")
+              .contactNumber("02-000-0000")
+              .openingTime(LocalTime.of(9, 0))
+              .closingTime(LocalTime.of(21, 0))
+              .build())
+          .restaurantTimeSlotDetails(RestaurantTimeSlotDetails.builder()
+              .availableDate(LocalDate.now())
+              .timeslot(LocalTime.NOON)
+              .build())
+          .reservationDate(LocalDateTime.now())
+          .payments(List.of(
+              new CreateReservationCommand.PaymentDetail(
+                  PaymentType.PROMOTION_COUPON,
+                  couponUuid,
+                  couponAmount),
+              new CreateReservationCommand.PaymentDetail(
+                  PaymentType.PAYMENT,
+                  null,
+                  paymentAmount)
+          ))
+          .build();
 
-      CreateReservationCommand command = createCommandWithRequestRestaurantInfo(
-          providedRestaurantUuid,
-          providedRestaurantTimeslotUuid,
-          providedRestaurantMenuUuid,
-          providedAvailableDate,
-          providedTimeslot,
-          providedGuestCount,
-          menuName,
-          menuPrice
-      );
+      // 예약일
+      LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
+          .atTime(command.restaurantTimeSlotDetails().timeslot());
 
       GetRestaurantInfo mockRestaurant = GetRestaurantInfo.builder()
           .restaurantUuid(command.restaurantUuid())
@@ -213,7 +353,40 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .timeslots(List.of()) // 일치하는 타임슬롯 없음
           .build();
 
-      when(restaurantClient.getRestaurant(eq(providedRestaurantUuid))).thenReturn(mockRestaurant);
+      when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
+
+      // 쿠폰 정보
+      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
+          .couponUuid(couponUuid)
+          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
+          .startAt(reservationDateTime.minusDays(10))
+          .endAt(reservationDateTime.plusDays(1))
+          .minPurchaseAmount(9999)
+          .amount(3000)
+          .percent(null)
+          .maxDiscountAmount(null)
+          .build();
+
+      Map<String, Coupon> couponMap = Map.of(
+          couponUuid, invalidAmountCoupon
+      );
+
+      when(couponClient.getCoupons(any()))
+          .thenReturn(GetCouponsInfo.builder()
+              .couponMap(couponMap)
+              .build());
+
+      // 프로모션은 없어도 됨
+      when(promotionClient.getPromotions(any()))
+          .thenReturn(new GetPromotionsInfo(Collections.emptyMap()));
+
+      CreatePaymentInfo paymentInfo = new CreatePaymentInfo(
+          UUID.randomUUID().toString(),
+          UUID.randomUUID().toString()
+      );
+
+      when(paymentClient.createPayment(any()))
+          .thenReturn(paymentInfo);
 
       // when & then
       assertThatThrownBy(() -> reservationService.createReservation(command))
@@ -225,41 +398,108 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_invalidReservationDate() {
       // given
-      String providedRestaurantUuid = UuidMaker.makeUuid().toString();
-      String providedRestaurantTimeslotUuid = UuidMaker.makeUuid().toString();
-      String providedRestaurantMenuUuid = UuidMaker.makeUuid().toString();
-      LocalDate providedAvailableDate = LocalDate.now();
-      LocalTime providedTimeslot = LocalTime.NOON;
-      int providedGuestCount = 2;
-      String menuName = "비빔밥";
-      BigDecimal menuPrice = BigDecimal.valueOf(10000);
+      String couponUuid = UUID.randomUUID().toString();
+      BigDecimal paymentAmount = BigDecimal.valueOf(7000);
+      BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      CreateReservationCommand command = CreateReservationCommand.builder()
+          .reserverId(1L)
+          .reserverName("홍길동")
+          .reserverContact("010-0000-0000")
+          .restaurantUuid(UUID.randomUUID().toString())
+          .restaurantTimeslotUuid(UUID.randomUUID().toString())
+          .restaurantMenuUuid(UUID.randomUUID().toString())
+          .guestCount(2)
+          .specialRequest("창가 자리")
+          .totalPrice(BigDecimal.valueOf(10000))
+          .restaurantMenuDetails(RestaurantMenuDetails.builder()
+              .name("비빔밥")
+              .price(BigDecimal.valueOf(10000))
+              .quantity(1)
+              .build())
+          .restaurantDetails(RestaurantDetails.builder()
+              .name("맛있는 식당")
+              .address("서울시 강남구")
+              .contactNumber("02-000-0000")
+              .openingTime(LocalTime.of(9, 0))
+              .closingTime(LocalTime.of(21, 0))
+              .build())
+          .restaurantTimeSlotDetails(RestaurantTimeSlotDetails.builder()
+              .availableDate(LocalDate.now())
+              .timeslot(LocalTime.NOON)
+              .build())
+          .reservationDate(LocalDateTime.now())
+          .payments(List.of(
+              new CreateReservationCommand.PaymentDetail(
+                  PaymentType.PROMOTION_COUPON,
+                  couponUuid,
+                  couponAmount),
+              new CreateReservationCommand.PaymentDetail(
+                  PaymentType.PAYMENT,
+                  null,
+                  paymentAmount)
+          ))
+          .build();
 
-      CreateReservationCommand command = createCommandWithRequestRestaurantInfo(
-          providedRestaurantUuid,
-          providedRestaurantTimeslotUuid,
-          providedRestaurantMenuUuid,
-          providedAvailableDate,
-          providedTimeslot,
-          providedGuestCount,
-          menuName,
-          menuPrice
-      );
+      // 예약일
+      LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
+          .atTime(command.restaurantTimeSlotDetails().timeslot());
 
-      GetRestaurantInfo.Timeslot wrongDateTimeslot = new GetRestaurantInfo.Timeslot(
-          providedRestaurantTimeslotUuid,
-          providedAvailableDate.plusDays(1), // 날짜 다름
+      // 식당 정보 설정
+      GetRestaurantInfo.Timeslot mockTimeslot = new GetRestaurantInfo.Timeslot(
+          command.restaurantTimeslotUuid(),
+          command.restaurantTimeSlotDetails().availableDate().minusDays(10),
           10,
           0,
           command.restaurantTimeSlotDetails().timeslot()
       );
 
+      GetRestaurantInfo.Menu mockMenu = new GetRestaurantInfo.Menu(
+          command.restaurantMenuUuid(),
+          command.restaurantMenuDetails().name(),
+          command.restaurantMenuDetails().price(),
+          "AVAILABLE"
+      );
+
       GetRestaurantInfo mockRestaurant = GetRestaurantInfo.builder()
           .restaurantUuid(command.restaurantUuid())
-          .menus(List.of())
-          .timeslots(List.of(wrongDateTimeslot))
+          .menus(List.of(mockMenu))
+          .timeslots(List.of(mockTimeslot))
           .build();
 
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
+
+      // 쿠폰 정보
+      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
+          .couponUuid(couponUuid)
+          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
+          .startAt(reservationDateTime.minusDays(10))
+          .endAt(reservationDateTime.plusDays(1))
+          .minPurchaseAmount(9999)
+          .amount(3000)
+          .percent(null)
+          .maxDiscountAmount(null)
+          .build();
+
+      Map<String, Coupon> couponMap = Map.of(
+          couponUuid, invalidAmountCoupon
+      );
+
+      when(couponClient.getCoupons(any()))
+          .thenReturn(GetCouponsInfo.builder()
+              .couponMap(couponMap)
+              .build());
+
+      // 프로모션은 없어도 됨
+      when(promotionClient.getPromotions(any()))
+          .thenReturn(new GetPromotionsInfo(Collections.emptyMap()));
+
+      CreatePaymentInfo paymentInfo = new CreatePaymentInfo(
+          UUID.randomUUID().toString(),
+          UUID.randomUUID().toString()
+      );
+
+      when(paymentClient.createPayment(any()))
+          .thenReturn(paymentInfo);
 
       // when & then
       assertThatThrownBy(() -> reservationService.createReservation(command))
@@ -271,41 +511,108 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_invalidReservationTime() {
       // given
-      String providedRestaurantUuid = UuidMaker.makeUuid().toString();
-      String providedRestaurantTimeslotUuid = UuidMaker.makeUuid().toString();
-      String providedRestaurantMenuUuid = UuidMaker.makeUuid().toString();
-      LocalDate providedAvailableDate = LocalDate.now();
-      LocalTime providedTimeslot = LocalTime.NOON;
-      int providedGuestCount = 2;
-      String menuName = "비빔밥";
-      BigDecimal menuPrice = BigDecimal.valueOf(10000);
+      String couponUuid = UUID.randomUUID().toString();
+      BigDecimal paymentAmount = BigDecimal.valueOf(7000);
+      BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      CreateReservationCommand command = CreateReservationCommand.builder()
+          .reserverId(1L)
+          .reserverName("홍길동")
+          .reserverContact("010-0000-0000")
+          .restaurantUuid(UUID.randomUUID().toString())
+          .restaurantTimeslotUuid(UUID.randomUUID().toString())
+          .restaurantMenuUuid(UUID.randomUUID().toString())
+          .guestCount(2)
+          .specialRequest("창가 자리")
+          .totalPrice(BigDecimal.valueOf(10000))
+          .restaurantMenuDetails(RestaurantMenuDetails.builder()
+              .name("비빔밥")
+              .price(BigDecimal.valueOf(10000))
+              .quantity(1)
+              .build())
+          .restaurantDetails(RestaurantDetails.builder()
+              .name("맛있는 식당")
+              .address("서울시 강남구")
+              .contactNumber("02-000-0000")
+              .openingTime(LocalTime.of(9, 0))
+              .closingTime(LocalTime.of(21, 0))
+              .build())
+          .restaurantTimeSlotDetails(RestaurantTimeSlotDetails.builder()
+              .availableDate(LocalDate.of(2025, 10, 5))
+              .timeslot(LocalTime.NOON)
+              .build())
+          .reservationDate(LocalDateTime.of(2025, 10, 5, 3, 0))
+          .payments(List.of(
+              new CreateReservationCommand.PaymentDetail(
+                  PaymentType.PROMOTION_COUPON,
+                  couponUuid,
+                  couponAmount),
+              new CreateReservationCommand.PaymentDetail(
+                  PaymentType.PAYMENT,
+                  null,
+                  paymentAmount)
+          ))
+          .build();
 
-      CreateReservationCommand command = createCommandWithRequestRestaurantInfo(
-          providedRestaurantUuid,
-          providedRestaurantTimeslotUuid,
-          providedRestaurantMenuUuid,
-          providedAvailableDate,
-          providedTimeslot,
-          providedGuestCount,
-          menuName,
-          menuPrice
-      );
+      // 예약일
+      LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
+          .atTime(command.restaurantTimeSlotDetails().timeslot());
 
-      GetRestaurantInfo.Timeslot wrongTimeTimeslot = new GetRestaurantInfo.Timeslot(
-          providedRestaurantTimeslotUuid,
-          providedAvailableDate,
+      // 식당 정보 설정
+      GetRestaurantInfo.Timeslot mockTimeslot = new GetRestaurantInfo.Timeslot(
+          command.restaurantTimeslotUuid(),
+          command.restaurantTimeSlotDetails().availableDate(),
           10,
           0,
-          LocalTime.of(18, 0) // 시간 다름
+          command.restaurantTimeSlotDetails().timeslot().minusHours(1)
+      );
+
+      GetRestaurantInfo.Menu mockMenu = new GetRestaurantInfo.Menu(
+          command.restaurantMenuUuid(),
+          command.restaurantMenuDetails().name(),
+          command.restaurantMenuDetails().price(),
+          "AVAILABLE"
       );
 
       GetRestaurantInfo mockRestaurant = GetRestaurantInfo.builder()
           .restaurantUuid(command.restaurantUuid())
-          .menus(List.of())
-          .timeslots(List.of(wrongTimeTimeslot))
+          .menus(List.of(mockMenu))
+          .timeslots(List.of(mockTimeslot))
           .build();
 
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
+
+      // 쿠폰 정보
+      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
+          .couponUuid(couponUuid)
+          .type(GetCouponsInfo.Coupon.CouponType.PERCENT_DISCOUNT)
+          .startAt(reservationDateTime.minusDays(10))
+          .endAt(reservationDateTime.plusDays(1))
+          .minPurchaseAmount(9999)
+          .amount(0)
+          .percent(30)
+          .maxDiscountAmount(3000)
+          .build();
+
+      Map<String, Coupon> couponMap = Map.of(
+          couponUuid, invalidAmountCoupon
+      );
+
+      when(couponClient.getCoupons(any()))
+          .thenReturn(GetCouponsInfo.builder()
+              .couponMap(couponMap)
+              .build());
+
+      // 프로모션은 없어도 됨
+      when(promotionClient.getPromotions(any()))
+          .thenReturn(new GetPromotionsInfo(Collections.emptyMap()));
+
+      CreatePaymentInfo paymentInfo = new CreatePaymentInfo(
+          UUID.randomUUID().toString(),
+          UUID.randomUUID().toString()
+      );
+
+      when(paymentClient.createPayment(any()))
+          .thenReturn(paymentInfo);
 
       // when & then
       assertThatThrownBy(() -> reservationService.createReservation(command))
@@ -317,41 +624,109 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_exceedsMaxGuestCapacity() {
       // given
-      String providedRestaurantUuid = UuidMaker.makeUuid().toString();
-      String providedRestaurantTimeslotUuid = UuidMaker.makeUuid().toString();
-      String providedRestaurantMenuUuid = UuidMaker.makeUuid().toString();
-      LocalDate providedAvailableDate = LocalDate.now();
-      LocalTime providedTimeslot = LocalTime.NOON;
-      int providedGuestCount = 2;
-      String menuName = "비빔밥";
-      BigDecimal menuPrice = BigDecimal.valueOf(10000);
+      String couponUuid = UUID.randomUUID().toString();
+      BigDecimal paymentAmount = BigDecimal.valueOf(7000);
+      BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      CreateReservationCommand command = CreateReservationCommand.builder()
+          .reserverId(1L)
+          .reserverName("홍길동")
+          .reserverContact("010-0000-0000")
+          .restaurantUuid(UUID.randomUUID().toString())
+          .restaurantTimeslotUuid(UUID.randomUUID().toString())
+          .restaurantMenuUuid(UUID.randomUUID().toString())
+          .guestCount(11)
+          .specialRequest("창가 자리")
+          .totalPrice(BigDecimal.valueOf(10000))
+          .restaurantMenuDetails(RestaurantMenuDetails.builder()
+              .name("비빔밥")
+              .price(BigDecimal.valueOf(10000))
+              .quantity(1)
+              .build())
+          .restaurantDetails(RestaurantDetails.builder()
+              .name("맛있는 식당")
+              .address("서울시 강남구")
+              .contactNumber("02-000-0000")
+              .openingTime(LocalTime.of(9, 0))
+              .closingTime(LocalTime.of(21, 0))
+              .build())
+          .restaurantTimeSlotDetails(RestaurantTimeSlotDetails.builder()
+              .availableDate(LocalDate.of(2025, 10, 5))
+              .timeslot(LocalTime.NOON)
+              .build())
+          .reservationDate(LocalDateTime.of(2025, 10, 5, 3, 0))
+          .payments(List.of(
+              new CreateReservationCommand.PaymentDetail(
+                  PaymentType.PROMOTION_COUPON,
+                  couponUuid,
+                  couponAmount),
+              new CreateReservationCommand.PaymentDetail(
+                  PaymentType.PAYMENT,
+                  null,
+                  paymentAmount)
+          ))
+          .build();
 
-      CreateReservationCommand command = createCommandWithRequestRestaurantInfo(
-          providedRestaurantUuid,
-          providedRestaurantTimeslotUuid,
-          providedRestaurantMenuUuid,
-          providedAvailableDate,
-          providedTimeslot,
-          providedGuestCount,
-          menuName,
-          menuPrice
+      // 예약일
+      LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
+          .atTime(command.restaurantTimeSlotDetails().timeslot());
+
+      // 식당 정보 설정
+      GetRestaurantInfo.Timeslot mockTimeslot = new GetRestaurantInfo.Timeslot(
+          command.restaurantTimeslotUuid(),
+          command.restaurantTimeSlotDetails().availableDate(),
+          10,
+          0,
+          command.restaurantTimeSlotDetails().timeslot()
       );
 
-      GetRestaurantInfo.Timeslot fullTimeslot = new GetRestaurantInfo.Timeslot(
-          providedRestaurantTimeslotUuid,
-          providedAvailableDate,
-          3, // 최대 수용 인원
-          2, // 현재 인원
-          providedTimeslot
+      GetRestaurantInfo.Menu mockMenu = new GetRestaurantInfo.Menu(
+          command.restaurantMenuUuid(),
+          command.restaurantMenuDetails().name(),
+          command.restaurantMenuDetails().price(),
+          "AVAILABLE"
       );
 
       GetRestaurantInfo mockRestaurant = GetRestaurantInfo.builder()
           .restaurantUuid(command.restaurantUuid())
-          .menus(List.of())
-          .timeslots(List.of(fullTimeslot))
+          .menus(List.of(mockMenu))
+          .timeslots(List.of(mockTimeslot))
           .build();
 
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
+
+      // 쿠폰 정보
+      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
+          .couponUuid(couponUuid)
+          .type(GetCouponsInfo.Coupon.CouponType.PERCENT_DISCOUNT)
+          .startAt(reservationDateTime.minusDays(10))
+          .endAt(reservationDateTime.plusDays(1))
+          .minPurchaseAmount(9999)
+          .amount(0)
+          .percent(30)
+          .maxDiscountAmount(3000)
+          .build();
+
+      Map<String, Coupon> couponMap = Map.of(
+          couponUuid, invalidAmountCoupon
+      );
+
+      when(couponClient.getCoupons(any()))
+          .thenReturn(GetCouponsInfo.builder()
+              .couponMap(couponMap)
+              .build());
+
+      // 프로모션은 없어도 됨
+      when(promotionClient.getPromotions(any()))
+          .thenReturn(new GetPromotionsInfo(Collections.emptyMap()));
+
+      CreatePaymentInfo paymentInfo = new CreatePaymentInfo(
+          UUID.randomUUID().toString(),
+          UUID.randomUUID().toString()
+      );
+
+      when(paymentClient.createPayment(any()))
+          .thenReturn(paymentInfo);
+
 
       // when & then
       assertThatThrownBy(() -> reservationService.createReservation(command))
@@ -363,79 +738,22 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_invalidMenuSelection() {
       // given
-      String providedRestaurantUuid = UuidMaker.makeUuid().toString();
-      String providedRestaurantTimeslotUuid = UuidMaker.makeUuid().toString();
-      String providedRestaurantMenuUuid = UuidMaker.makeUuid().toString();
-      LocalDate providedAvailableDate = LocalDate.now();
-      LocalTime providedTimeslot = LocalTime.NOON;
-      int providedGuestCount = 2;
-      String menuName = "비빔밥";
-      BigDecimal menuPrice = BigDecimal.valueOf(10000);
-
-      CreateReservationCommand command = createCommandWithRequestRestaurantInfo(
-          providedRestaurantUuid,
-          providedRestaurantTimeslotUuid,
-          providedRestaurantMenuUuid,
-          providedAvailableDate,
-          providedTimeslot,
-          providedGuestCount,
-          menuName,
-          menuPrice
-      );
-
-      GetRestaurantInfo.Timeslot validTimeslot = new GetRestaurantInfo.Timeslot(
-          providedRestaurantTimeslotUuid,
-          command.restaurantTimeSlotDetails().availableDate(),
-          10,
-          0,
-          command.restaurantTimeSlotDetails().timeslot()
-      );
-
-      // 이름이나 price가 다르게 설정됨
-      GetRestaurantInfo.Menu mismatchedMenu = new GetRestaurantInfo.Menu(
-          command.restaurantMenuUuid(),
-          "된장찌개", // 이름 다름
-          BigDecimal.valueOf(8000),     // 가격 다름
-          "AVAILABLE"
-      );
-
-      GetRestaurantInfo mockRestaurant = GetRestaurantInfo.builder()
-          .restaurantUuid(command.restaurantUuid())
-          .menus(List.of(mismatchedMenu))
-          .timeslots(List.of(validTimeslot))
-          .build();
-
-      when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
-
-      // when & then
-      assertThatThrownBy(() -> reservationService.createReservation(command))
-          .isInstanceOf(CustomException.class)
-          .hasMessageContaining(ReservationErrorCode.INVALID_MENU_SELECTION.getMessage());
-    }
-
-    private CreateReservationCommand createCommandWithRequestRestaurantInfo(
-        String restaurantUuid,
-        String restaurantTimeslotUuid,
-        String restaurantMenuUuid,
-        LocalDate availableDate,
-        LocalTime timeslot,
-        int guestCount,
-        String menuName,
-        BigDecimal menuPrice
-    ) {
-      return CreateReservationCommand.builder()
+      String couponUuid = UUID.randomUUID().toString();
+      BigDecimal paymentAmount = BigDecimal.valueOf(7000);
+      BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      CreateReservationCommand command = CreateReservationCommand.builder()
           .reserverId(1L)
           .reserverName("홍길동")
           .reserverContact("010-0000-0000")
-          .restaurantUuid(restaurantUuid)
-          .restaurantTimeslotUuid(restaurantTimeslotUuid)
-          .restaurantMenuUuid(restaurantMenuUuid)
-          .guestCount(guestCount)
+          .restaurantUuid(UUID.randomUUID().toString())
+          .restaurantTimeslotUuid(UUID.randomUUID().toString())
+          .restaurantMenuUuid(UUID.randomUUID().toString())
+          .guestCount(2)
           .specialRequest("창가 자리")
           .totalPrice(BigDecimal.valueOf(10000))
           .restaurantMenuDetails(RestaurantMenuDetails.builder()
-              .name(menuName)
-              .price(menuPrice)
+              .name("비빔밥")
+              .price(BigDecimal.valueOf(10000))
               .quantity(1)
               .build())
           .restaurantDetails(RestaurantDetails.builder()
@@ -446,31 +764,87 @@ class ReservationServiceTest extends IntegrationTestSupport {
               .closingTime(LocalTime.of(21, 0))
               .build())
           .restaurantTimeSlotDetails(RestaurantTimeSlotDetails.builder()
-              .availableDate(availableDate)
-              .timeslot(timeslot)
+              .availableDate(LocalDate.of(2025, 10, 5))
+              .timeslot(LocalTime.NOON)
               .build())
-          .reservationDate(LocalDateTime.now())
+          .reservationDate(LocalDateTime.of(2025, 10, 5, 3, 0))
           .payments(List.of(
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PROMOTION_COUPON,
-                  UUID.randomUUID().toString(),
-                  BigDecimal.valueOf(1000)),
-              new CreateReservationCommand.PaymentDetail(
-                  PaymentType.PROMOTION_EVENT,
-                  UUID.randomUUID().toString(),
-                  BigDecimal.valueOf(2000)),
+                  couponUuid,
+                  couponAmount),
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PAYMENT,
                   null,
-                  BigDecimal.valueOf(7000))
+                  paymentAmount)
           ))
           .build();
+
+      // 예약일
+      LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
+          .atTime(command.restaurantTimeSlotDetails().timeslot());
+
+      // 식당 정보 설정
+      GetRestaurantInfo.Timeslot mockTimeslot = new GetRestaurantInfo.Timeslot(
+          command.restaurantTimeslotUuid(),
+          command.restaurantTimeSlotDetails().availableDate(),
+          10,
+          0,
+          command.restaurantTimeSlotDetails().timeslot()
+      );
+
+      GetRestaurantInfo mockRestaurant = GetRestaurantInfo.builder()
+          .restaurantUuid(command.restaurantUuid())
+          .menus(List.of())
+          .timeslots(List.of(mockTimeslot))
+          .build();
+
+      when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
+
+      // 쿠폰 정보
+      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
+          .couponUuid(couponUuid)
+          .type(GetCouponsInfo.Coupon.CouponType.PERCENT_DISCOUNT)
+          .startAt(reservationDateTime.minusDays(10))
+          .endAt(reservationDateTime.plusDays(1))
+          .minPurchaseAmount(9999)
+          .amount(0)
+          .percent(30)
+          .maxDiscountAmount(3000)
+          .build();
+
+      Map<String, Coupon> couponMap = Map.of(
+          couponUuid, invalidAmountCoupon
+      );
+
+      when(couponClient.getCoupons(any()))
+          .thenReturn(GetCouponsInfo.builder()
+              .couponMap(couponMap)
+              .build());
+
+      // 프로모션은 없어도 됨
+      when(promotionClient.getPromotions(any()))
+          .thenReturn(new GetPromotionsInfo(Collections.emptyMap()));
+
+      CreatePaymentInfo paymentInfo = new CreatePaymentInfo(
+          UUID.randomUUID().toString(),
+          UUID.randomUUID().toString()
+      );
+
+      when(paymentClient.createPayment(any()))
+          .thenReturn(paymentInfo);
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.createReservation(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.INVALID_MENU_SELECTION.getMessage());
     }
+
   }
 
-  @DisplayName("예약 생성 서비스: 할인 정책 검증")
+  @DisplayName("예약 생성 서비스: 결제 정책 검증")
   @Nested
-  class create_valid_discount {
+  class create_valid_payment {
 
     @DisplayName("쿠폰 사용 개수가 2개를 초과하면 예외가 발생한다.")
     @Test
@@ -514,8 +888,10 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_promotionUsageLimitExceeded() {
       // given
+      String promotionUuid1 = UUID.randomUUID().toString();
+      String promotionUuid2 = UUID.randomUUID().toString();
       CreateReservationCommand command = createCommandWithPromotions(List.of(
-          UUID.randomUUID().toString(), UUID.randomUUID().toString() // 총 2개로 초과
+          promotionUuid1, promotionUuid2 // 총 2개로 초과
       ));
 
       GetRestaurantInfo.Timeslot validTimeslot = new GetRestaurantInfo.Timeslot(
@@ -541,10 +917,152 @@ class ReservationServiceTest extends IntegrationTestSupport {
 
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
+      // 프로모션 정보
+      GetPromotionsInfo.Promotion promotion1 = GetPromotionsInfo.Promotion.builder()
+          .promotionUuid(promotionUuid1)
+          .discountPrice(BigDecimal.valueOf(3000))
+          .promotionStatus(PromotionStatus.READY)
+          .promotionRestaurantUuid(command.restaurantUuid())
+          .build();
+      GetPromotionsInfo.Promotion promotion2 = GetPromotionsInfo.Promotion.builder()
+          .promotionUuid(promotionUuid1)
+          .discountPrice(BigDecimal.valueOf(3000))
+          .promotionStatus(PromotionStatus.READY)
+          .promotionRestaurantUuid(command.restaurantUuid())
+          .build();
+
+      Map<String, Promotion> promotionMap = new HashMap<>();
+      promotionMap.put(promotionUuid1, promotion1);
+      promotionMap.put(promotionUuid2, promotion2);
+
+      // 쿠폰 없어도 됨
+      when(couponClient.getCoupons(any()))
+          .thenReturn(GetCouponsInfo.builder()
+              .couponMap((Collections.emptyMap()))
+              .build());
+
+      when(promotionClient.getPromotions(any())).thenReturn(new GetPromotionsInfo(promotionMap));
+
       // when & then
       assertThatThrownBy(() -> reservationService.createReservation(command))
           .isInstanceOf(CustomException.class)
-          .hasMessageContaining(ReservationErrorCode.PROMOTION_USAGE_LIMIT_EXCEEDED.getMessage());
+          .hasMessageContaining(ReservationErrorCode.PROMOTION_EVENT_USAGE_LIMIT_EXCEEDED.getMessage());
+    }
+
+    @DisplayName("프로모션 할인 개수가 1개를 초과하면 예외가 발생한다.")
+    @Test
+    void fail_paymentLimitExceeded() {
+      // given
+      String couponUuid = UUID.randomUUID().toString();
+      BigDecimal paymentAmount = BigDecimal.valueOf(7000);
+      BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      CreateReservationCommand command = CreateReservationCommand.builder()
+          .reserverId(1L)
+          .reserverName("홍길동")
+          .reserverContact("010-0000-0000")
+          .restaurantUuid(UUID.randomUUID().toString())
+          .restaurantTimeslotUuid(UUID.randomUUID().toString())
+          .restaurantMenuUuid(UUID.randomUUID().toString())
+          .guestCount(2)
+          .specialRequest("창가 자리")
+          .totalPrice(BigDecimal.valueOf(10000))
+          .restaurantMenuDetails(RestaurantMenuDetails.builder()
+              .name("비빔밥")
+              .price(BigDecimal.valueOf(10000))
+              .quantity(1)
+              .build())
+          .restaurantDetails(RestaurantDetails.builder()
+              .name("맛있는 식당")
+              .address("서울시 강남구")
+              .contactNumber("02-000-0000")
+              .openingTime(LocalTime.of(9, 0))
+              .closingTime(LocalTime.of(21, 0))
+              .build())
+          .restaurantTimeSlotDetails(RestaurantTimeSlotDetails.builder()
+              .availableDate(LocalDate.now())
+              .timeslot(LocalTime.NOON)
+              .build())
+          .reservationDate(LocalDateTime.now())
+          .payments(List.of(
+              new CreateReservationCommand.PaymentDetail(
+                  PaymentType.PROMOTION_COUPON,
+                  couponUuid,
+                  couponAmount),
+              new CreateReservationCommand.PaymentDetail(
+                  PaymentType.PAYMENT,
+                  null,
+                  paymentAmount),
+              new CreateReservationCommand.PaymentDetail(
+                  PaymentType.PAYMENT,
+                  null,
+                  paymentAmount)
+          ))
+          .build();
+
+      // 예약일
+      LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
+          .atTime(command.restaurantTimeSlotDetails().timeslot());
+
+      // 식당 정보 설정
+      GetRestaurantInfo.Timeslot validTimeslot = new GetRestaurantInfo.Timeslot(
+          command.restaurantTimeslotUuid(),
+          command.restaurantTimeSlotDetails().availableDate(),
+          10,
+          0,
+          command.restaurantTimeSlotDetails().timeslot()
+      );
+
+      GetRestaurantInfo.Menu menu = new GetRestaurantInfo.Menu(
+          command.restaurantMenuUuid(),
+          command.restaurantMenuDetails().name(),
+          command.restaurantMenuDetails().price(),
+          "AVAILABLE"
+      );
+
+      GetRestaurantInfo mockRestaurant = GetRestaurantInfo.builder()
+          .restaurantUuid(command.restaurantUuid())
+          .menus(List.of(menu))
+          .timeslots(List.of(validTimeslot))
+          .build();
+
+      when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
+
+      // 쿠폰 정보
+      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
+          .couponUuid(couponUuid)
+          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
+          .startAt(reservationDateTime.minusDays(10))
+          .endAt(reservationDateTime.plusDays(1))
+          .minPurchaseAmount(9999)
+          .amount(3000)
+          .percent(null)
+          .maxDiscountAmount(null)
+          .build();
+
+      Map<String, Coupon> couponMap = Map.of(
+          couponUuid, invalidAmountCoupon
+      );
+
+      when(couponClient.getCoupons(any()))
+          .thenReturn(GetCouponsInfo.builder()
+              .couponMap(couponMap)
+              .build());
+
+      // 프로모션은 없어도 됨
+      when(promotionClient.getPromotions(any()))
+          .thenReturn(new GetPromotionsInfo(Collections.emptyMap()));
+
+      CreatePaymentInfo paymentInfo = new CreatePaymentInfo(
+          UUID.randomUUID().toString(),
+          UUID.randomUUID().toString()
+      );
+
+      when(paymentClient.createPayment(any())).thenReturn(paymentInfo);
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.createReservation(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.PAYMENT_LIMIT_EXCEEDED.getMessage());
     }
 
     @DisplayName("유효하지 않는 쿠폰이면 예외가 발생한다.")
@@ -1391,10 +1909,10 @@ class ReservationServiceTest extends IntegrationTestSupport {
               .closingTime(LocalTime.of(21, 0))
               .build())
           .restaurantTimeSlotDetails(RestaurantTimeSlotDetails.builder()
-              .availableDate(LocalDate.now())
+              .availableDate(LocalDate.of(2025, 10, 5))
               .timeslot(LocalTime.NOON)
               .build())
-          .reservationDate(LocalDateTime.now())
+          .reservationDate(LocalDateTime.of(2025, 10, 5, 3, 0))
           .payments(List.of(
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PROMOTION_COUPON,
@@ -1412,7 +1930,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .atTime(command.restaurantTimeSlotDetails().timeslot());
 
       // 식당 정보 설정
-      GetRestaurantInfo.Timeslot validTimeslot = new GetRestaurantInfo.Timeslot(
+      GetRestaurantInfo.Timeslot mockTimeslot = new GetRestaurantInfo.Timeslot(
           command.restaurantTimeslotUuid(),
           command.restaurantTimeSlotDetails().availableDate(),
           10,
@@ -1420,7 +1938,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           command.restaurantTimeSlotDetails().timeslot()
       );
 
-      GetRestaurantInfo.Menu menu = new GetRestaurantInfo.Menu(
+      GetRestaurantInfo.Menu mockMenu = new GetRestaurantInfo.Menu(
           command.restaurantMenuUuid(),
           command.restaurantMenuDetails().name(),
           command.restaurantMenuDetails().price(),
@@ -1429,8 +1947,8 @@ class ReservationServiceTest extends IntegrationTestSupport {
 
       GetRestaurantInfo mockRestaurant = GetRestaurantInfo.builder()
           .restaurantUuid(command.restaurantUuid())
-          .menus(List.of(menu))
-          .timeslots(List.of(validTimeslot))
+          .menus(List.of(mockMenu))
+          .timeslots(List.of(mockTimeslot))
           .build();
 
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
