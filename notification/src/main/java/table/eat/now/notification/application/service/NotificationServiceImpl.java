@@ -118,6 +118,7 @@ public class NotificationServiceImpl implements NotificationService{
 
     } catch (Exception e) {
       metrics.incrementSendFail();
+      notification.modifyNotificationStatusIsFailed();
       throw CustomException.from(NotificationErrorCode.NOTIFICATION_SEND_FAIL);
     }
   }

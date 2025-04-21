@@ -1,6 +1,7 @@
 package table.eat.now.notification.application.schedule;
 
 import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.Timer.Sample;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -49,17 +50,7 @@ public class NotificationScheduler {
     for (Notification notification : notifications) {
       Timer.Sample sample = metrics.startSendTimer();
       try {
-        NotificationFormatterStrategy strategy = formatterSelector.select(
-            notification.getNotificationType());
-        Map<String, String> params = paramExtractor.extract(notification);
-        NotificationTemplate formattedMessage = strategy.format(params);
-        NotificationSenderStrategy senderStrategy = sendSelector.select(
-            notification.getNotificationMethod());
-
-        senderStrategy.send(notification.getUserId(), formattedMessage);
-        notification.modifyNotificationStatusIsSent();
-        metrics.incrementSendSuccess();
-        metrics.recordSendLatency(sample, "scheduled");
+        scheduleProcess(notification, sample);
 
       } catch (Exception e) {
         log.error("스케줄링 알림 전송 실패: {}", notification.getId(), e);
@@ -67,5 +58,19 @@ public class NotificationScheduler {
         metrics.incrementSendFail();
       }
     }
+  }
+
+  private void scheduleProcess(Notification notification, Sample sample) {
+    NotificationFormatterStrategy strategy = formatterSelector.select(
+        notification.getNotificationType());
+    Map<String, String> params = paramExtractor.extract(notification);
+    NotificationTemplate formattedMessage = strategy.format(params);
+    NotificationSenderStrategy senderStrategy = sendSelector.select(
+        notification.getNotificationMethod());
+
+    senderStrategy.send(notification.getUserId(), formattedMessage);
+    notification.modifyNotificationStatusIsSent();
+    metrics.incrementSendSuccess();
+    metrics.recordSendLatency(sample, "scheduled");
   }
 }
