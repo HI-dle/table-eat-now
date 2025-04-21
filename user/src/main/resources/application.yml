@@ -3,13 +3,13 @@ server:
 
 spring:
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:.env.user[.properties]
   application:
     name: user
   datasource:
-    url: ${USER_DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${LOCAL_DB_URL}
+    username: ${LOCAL_DB_USERNAME}
+    password: ${LOCAL_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -28,7 +28,7 @@ eureka:
   instance:
     prefer-ip-address: true
 
-JWT:
-  SECRET: ${JWT_SECRET}
-  ACCESS:
-    EXPIRATION: ${JWT_ACCESS_EXPIRATION}
+jwt:
+  secret: ${JWT_SECRET}
+  access:
+    expiration: ${JWT_ACCESS_EXPIRATION}
