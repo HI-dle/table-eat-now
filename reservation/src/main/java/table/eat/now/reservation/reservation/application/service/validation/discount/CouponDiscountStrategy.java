@@ -2,22 +2,27 @@
  * @author : jieun(je-pa)
  * @Date : 2025. 04. 11.
  */
-package table.eat.now.reservation.reservation.application.service.discount;
+package table.eat.now.reservation.reservation.application.service.validation.discount;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo.Coupon;
 import table.eat.now.reservation.reservation.application.exception.ReservationErrorCode;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail;
+import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
 
+@Component
 @RequiredArgsConstructor
-public class CouponDiscountStrategy implements DiscountStrategy {
+public class CouponDiscountStrategy extends AbstractContextAwareDiscountStrategy {
 
-  private final Map<String, Coupon> couponMap;
+  @Override
+  public boolean supports(PaymentDetail paymentDetail) {
+    return paymentDetail.type() == PaymentType.PROMOTION_COUPON;
+  }
 
   @Override
   public void validate(BigDecimal totalPrice, PaymentDetail paymentDetail,

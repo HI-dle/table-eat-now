@@ -48,7 +48,7 @@ public enum ReservationErrorCode implements ErrorCode {
   PROMOTION_NOT_FOUND("유효하지 않은 프로모션입니다.", HttpStatus.BAD_REQUEST),
   PROMOTION_INVALID_RUNNING("진행중인 프로모션이 아닙니다.", HttpStatus.BAD_REQUEST),
   INVALID_PROMOTION_DISCOUNT("적용된 프로모션 할인 금액이 실제 할인 금액과 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
-  PROMOTION_USAGE_LIMIT_EXCEEDED("프로모션 최대 사용 개수를 초과합니다.", HttpStatus.BAD_REQUEST),
+  PROMOTION_EVENT_USAGE_LIMIT_EXCEEDED("프로모션 최대 사용 개수를 초과합니다.", HttpStatus.BAD_REQUEST),
 
   /**
    * FORBIDDEN
