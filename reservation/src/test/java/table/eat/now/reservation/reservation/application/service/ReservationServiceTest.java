@@ -347,22 +347,6 @@ class ReservationServiceTest extends IntegrationTestSupport {
       LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
           .atTime(command.restaurantTimeSlotDetails().timeslot());
 
-      // 식당 정보 설정
-      GetRestaurantInfo.Timeslot validTimeslot = new GetRestaurantInfo.Timeslot(
-          command.restaurantTimeslotUuid(),
-          command.restaurantTimeSlotDetails().availableDate(),
-          10,
-          0,
-          command.restaurantTimeSlotDetails().timeslot()
-      );
-
-      GetRestaurantInfo.Menu menu = new GetRestaurantInfo.Menu(
-          command.restaurantMenuUuid(),
-          command.restaurantMenuDetails().name(),
-          command.restaurantMenuDetails().price(),
-          "AVAILABLE"
-      );
-
       GetRestaurantInfo mockRestaurant = GetRestaurantInfo.builder()
           .restaurantUuid(command.restaurantUuid())
           .menus(List.of())
