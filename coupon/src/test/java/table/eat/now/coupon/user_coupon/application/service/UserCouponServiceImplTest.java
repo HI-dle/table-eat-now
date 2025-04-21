@@ -82,6 +82,7 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
         .containsExactly(2L, "4월 정기할인쿠폰", UserCouponStatus.ISSUED);
   }
 
+
   @DisplayName("일반 사용자 쿠폰 선점시 비관락 적용한 경우 검증")
   @Nested
   class preemptUserCoupons {
@@ -240,6 +241,29 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
 
       assertThat(preemptCoupon.getStatus()).isEqualTo(UserCouponStatus.PREEMPT);
       assertThat(errorCount.get()).isEqualTo(9);
+    }
+  }
+
+  @DisplayName("사용자 쿠폰 사용 취소 검증 - 예약 취소 이벤트 처리시 동작")
+  @Nested
+  class cancelUserCoupons {
+
+    @DisplayName("성공")
+    @Test
+    void success() {
+      // given
+      String reservationUuid = UUID.randomUUID().toString();
+      userCoupon.preempt(reservationUuid);
+      userCouponRepository.save(userCoupon);
+
+      // when, then
+      assertThatNoException().isThrownBy(() -> userCouponService.cancelUserCoupons(reservationUuid));
+
+      UserCoupon modified =
+          userCouponRepository.findByUserCouponUuidAndDeletedAtIsNull(userCoupon.getUserCouponUuid())
+          .orElseThrow(() ->  CustomException.from(UserCouponErrorCode.INVALID_USER_COUPON_UUID));
+      assertThat(modified.getPreemptAt()).isNull();
+      assertThat(modified.getStatus()).isEqualTo(UserCouponStatus.ROLLBACK);
     }
   }
 }

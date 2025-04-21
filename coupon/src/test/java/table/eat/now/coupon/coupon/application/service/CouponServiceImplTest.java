@@ -42,7 +42,7 @@ import table.eat.now.coupon.coupon.domain.entity.Coupon;
 import table.eat.now.coupon.coupon.domain.repository.CouponRepository;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
-import table.eat.now.coupon.user_coupon.application.listener.UserCouponEventListener;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.spring.UserCouponSpringEventListener;
 
 @RecordApplicationEvents
 class CouponServiceImplTest extends IntegrationTestSupport {
@@ -57,7 +57,7 @@ class CouponServiceImplTest extends IntegrationTestSupport {
   ApplicationEvents applicationEvents;
 
   @MockitoBean
-  UserCouponEventListener userCouponEventListener;
+  UserCouponSpringEventListener userCouponSpringEventListener;
 
   private List<Coupon> coupons;
 
@@ -259,6 +259,6 @@ class CouponServiceImplTest extends IntegrationTestSupport {
     // 이벤트 발행이 잘 되었는지 확인
     assertThat(applicationEvents.stream(IssueUserCouponEvent.class).count()).isEqualTo(1);
     ArgumentCaptor<IssueUserCouponEvent> captor = ArgumentCaptor.forClass(IssueUserCouponEvent.class);
-    verify(userCouponEventListener).listenIssueUserCouponEvent(captor.capture());
+    verify(userCouponSpringEventListener).listenIssueUserCouponEvent(captor.capture());
   }
 }

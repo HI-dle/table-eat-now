@@ -15,13 +15,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import table.eat.now.coupon.coupon.application.dto.event.IssueUserCouponEvent;
 import table.eat.now.coupon.user_coupon.application.service.UserCouponService;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.spring.UserCouponSpringEventListener;
 
 @ExtendWith(SpringExtension.class)
-@Import({UserCouponEventListener.class})
-class UserCouponEventListenerTest {
+@Import({UserCouponSpringEventListener.class})
+class UserCouponKafkaEventListenerTest {
 
   @Autowired
-  private UserCouponEventListener userCouponEventListener;
+  private UserCouponSpringEventListener userCouponEventListener;
 
   @MockitoBean
   private UserCouponService userCouponService;
