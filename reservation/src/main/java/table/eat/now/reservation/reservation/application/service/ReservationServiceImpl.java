@@ -68,7 +68,7 @@ public class ReservationServiceImpl implements ReservationService {
 
     // 쿠폰 정보 조회
     Set<String> couponUuids = extractCouponUuids(command.payments());
-    Map<String, Coupon> couponMap = null;
+    Map<String, Coupon> couponMap = Collections.emptyMap();
     if (!couponUuids.isEmpty()) {
       couponMap = Optional.ofNullable(couponClient.getCoupons(couponUuids))
           .map(GetCouponsInfo::couponMap)
@@ -77,7 +77,7 @@ public class ReservationServiceImpl implements ReservationService {
 
     // 프로모션 정보 조회
     Set<String> promotionIds = extractPromotionIds(command.payments());
-    Map<String, Promotion> promotionsMap = null;
+    Map<String, Promotion> promotionsMap = Collections.emptyMap();
     if (!promotionIds.isEmpty()) {
       promotionsMap = Optional.ofNullable(promotionClient.getPromotions(
           GetPromotionsCriteria.of(promotionIds, command.restaurantUuid())))
