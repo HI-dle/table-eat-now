@@ -15,6 +15,6 @@ public class ReleaseUserCouponUsecase {
   @Transactional
   public void execute() {
     LocalDateTime tenMinutesAgo = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES).minusMinutes(10);
-    userCouponRepository.releasePreemptionsAfter10m(tenMinutesAgo);
+    userCouponRepository.releasePreemptionAfter10m(tenMinutesAgo);
   }
 }

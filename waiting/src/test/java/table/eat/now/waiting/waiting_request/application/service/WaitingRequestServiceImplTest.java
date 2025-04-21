@@ -402,7 +402,7 @@ class WaitingRequestServiceImplTest extends IntegrationTestSupport {
   @Nested
   class cancelWaitingRequest {
 
-    @Transactional
+    @Transactional // 레이지 로딩을 위해 적용
     @DisplayName("성공")
     @Test
     void success() {

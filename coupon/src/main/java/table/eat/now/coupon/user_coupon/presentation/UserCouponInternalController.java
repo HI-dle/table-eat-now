@@ -1,11 +1,9 @@
 package table.eat.now.coupon.user_coupon.presentation;
 
 import jakarta.validation.Valid;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,14 +21,13 @@ public class UserCouponInternalController {
   private final UserCouponService userCouponService;
 
   @AuthCheck(roles = {UserRole.CUSTOMER, UserRole.MASTER})
-  @PatchMapping("/{userCouponUuid}/preempt")
-  public ResponseEntity<Void> preemptUserCoupon(
+  @PatchMapping("/preempt")
+  public ResponseEntity<Void> preemptUserCoupons(
       @CurrentUserInfo CurrentUserInfoDto userInfoDto,
-      @PathVariable UUID userCouponUuid,
-      @Valid @RequestBody PreemptUserCouponRequest request
+      @RequestBody @Valid PreemptUserCouponRequest request
   ) {
 
-    userCouponService.preemptUserCoupon(userInfoDto, userCouponUuid.toString(), request.toCommand());
+    userCouponService.preemptUserCoupons(userInfoDto, request.toCommand());
     return ResponseEntity.ok().build();
   }
 }
