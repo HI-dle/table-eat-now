@@ -10,7 +10,7 @@ import table.eat.now.promotion.promotion.domain.entity.Promotion;
 @Builder
 public record PromotionUserCouponSaveEvent(
     EventType eventType,
-    PromotionUserSavePayload payloads,
+    PromotionUserSavePayload payload,
     CurrentUserInfoDto userInfo,
     String couponUuid
 ) implements PromotionEvent {
@@ -18,7 +18,7 @@ public record PromotionUserCouponSaveEvent(
   public static PromotionUserCouponSaveEvent of(Promotion promotion, CurrentUserInfoDto userInfo) {
     return PromotionUserCouponSaveEvent.builder()
         .eventType(EventType.SUCCEED)
-        .payloads(PromotionUserSavePayload.from(promotion.getId(), promotion.getCouponUuid()))
+        .payload(PromotionUserSavePayload.from(promotion.getId(), promotion.getCouponUuid()))
         .userInfo(userInfo)
         .couponUuid(promotion.getCouponUuid())
         .build();
