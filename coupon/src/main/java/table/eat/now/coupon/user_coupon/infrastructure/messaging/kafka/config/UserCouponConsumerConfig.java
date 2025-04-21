@@ -55,6 +55,7 @@ public class UserCouponConsumerConfig {
     JsonDeserializer<T> jsonDeserializer = new JsonDeserializer<>(targetType);
     jsonDeserializer.setUseTypeHeaders(false);
     jsonDeserializer.setRemoveTypeHeaders(true);
+    jsonDeserializer.addTrustedPackages("table.eat.now.**");
 
     return new DefaultKafkaConsumerFactory<>(
         props,
@@ -81,6 +82,7 @@ public class UserCouponConsumerConfig {
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(consumerFactory);
     factory.setRecordFilterStrategy(createEventTypeFilter(eventTypeName));
+    factory.setAckDiscarded(true);
     return factory;
   }
 
@@ -128,7 +130,7 @@ public class UserCouponConsumerConfig {
 
   @Bean
   public NewTopic reservationDltTopic() {
-    return TopicBuilder.name("reservation-event-dlt")
+    return TopicBuilder.name(RESERVATION_EVENT_DLT)
         .partitions(3)
         .replicas(1)
         .config("min.insync.replicas", "1")

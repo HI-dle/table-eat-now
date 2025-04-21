@@ -19,10 +19,10 @@ import table.eat.now.coupon.user_coupon.infrastructure.messaging.spring.UserCoup
 
 @ExtendWith(SpringExtension.class)
 @Import({UserCouponSpringEventListener.class})
-class UserCouponKafkaEventListenerTest {
+class UserCouponSpringEventListenerTest {
 
   @Autowired
-  private UserCouponSpringEventListener userCouponEventListener;
+  private UserCouponSpringEventListener userCouponSpringEventListener;
 
   @MockitoBean
   private UserCouponService userCouponService;
@@ -48,7 +48,7 @@ class UserCouponKafkaEventListenerTest {
     doNothing().when(userCouponService).createUserCoupon(issueUserCouponEvent.toCommand());
 
     // when
-    userCouponEventListener.listenIssueUserCouponEvent(issueUserCouponEvent);
+    userCouponSpringEventListener.listenIssueUserCouponEvent(issueUserCouponEvent);
 
     // then
     verify(userCouponService).createUserCoupon(issueUserCouponEvent.toCommand());
