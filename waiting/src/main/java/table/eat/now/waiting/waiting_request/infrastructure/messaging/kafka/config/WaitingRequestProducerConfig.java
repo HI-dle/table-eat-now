@@ -1,4 +1,4 @@
-package table.eat.now.waiting.waiting_request.infrastructure.event.kafka.config;
+package table.eat.now.waiting.waiting_request.infrastructure.messaging.kafka.config;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,10 +11,10 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestEvent;
-import table.eat.now.waiting.waiting_request.infrastructure.event.kafka.interceptor.EventTypeHeaderInterceptor;
+import table.eat.now.waiting.waiting_request.infrastructure.messaging.kafka.interceptor.EventTypeHeaderInterceptor;
 
 @Configuration
-public class ProducerConfig {
+public class WaitingRequestProducerConfig {
 
   @Value("${spring.kafka.bootstrap-servers}")
   private String bootstrapServers;

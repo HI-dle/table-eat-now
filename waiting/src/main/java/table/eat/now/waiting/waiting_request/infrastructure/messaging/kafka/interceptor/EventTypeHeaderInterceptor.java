@@ -1,4 +1,4 @@
-package table.eat.now.waiting.waiting_request.infrastructure.event.kafka.interceptor;
+package table.eat.now.waiting.waiting_request.infrastructure.messaging.kafka.interceptor;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
