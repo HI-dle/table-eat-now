@@ -25,9 +25,10 @@ public class RedissonLockProvider implements LockProvider {
   public <T> T execute(List<String> keys, LockTime lockTime, Supplier<T> proceedingSupplier) {
 
     RLock rLock = getRLock(keys);
+    boolean available = false;
     //validateTransaction();
     try {
-      boolean available = rLock.tryLock(lockTime.waitTime(), lockTime.leaseTime(), lockTime.timeUnit());
+      available = rLock.tryLock(lockTime.waitTime(), lockTime.leaseTime(), lockTime.timeUnit());
       if (!available) {
         throw new InterruptedException();
       }
@@ -37,7 +38,9 @@ public class RedissonLockProvider implements LockProvider {
       log.error("Redisson Lock 획득 실패 오류 {}", e.getMessage());
       throw new CustomException(UserCouponInfraErrorCode.LOCK_PROBLEM);
     } finally {
-      unlock(keys, rLock);
+      if (available) {
+        unlock(keys, rLock);
+      }
     }
   }
 

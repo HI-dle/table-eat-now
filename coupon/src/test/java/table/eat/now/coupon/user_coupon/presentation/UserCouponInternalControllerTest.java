@@ -42,7 +42,7 @@ class UserCouponInternalControllerTest extends ControllerTestSupport {
         .userCouponUuids(Set.of(UUID.randomUUID(), UUID.randomUUID()))
         .build();
 
-    doNothing().when(userCouponService).preemptUserCoupon(userInfo, request.toCommand());
+    doNothing().when(userCouponService).preemptUserCoupons(userInfo, request.toCommand());
 
     // when
     ResultActions resultActions = mockMvc.perform(

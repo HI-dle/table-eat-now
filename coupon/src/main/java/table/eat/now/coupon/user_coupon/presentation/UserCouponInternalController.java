@@ -22,12 +22,12 @@ public class UserCouponInternalController {
 
   @AuthCheck(roles = {UserRole.CUSTOMER, UserRole.MASTER})
   @PatchMapping("/preempt")
-  public ResponseEntity<Void> preemptUserCoupon(
+  public ResponseEntity<Void> preemptUserCoupons(
       @CurrentUserInfo CurrentUserInfoDto userInfoDto,
       @RequestBody @Valid PreemptUserCouponRequest request
   ) {
 
-    userCouponService.preemptUserCoupon(userInfoDto, request.toCommand());
+    userCouponService.preemptUserCoupons(userInfoDto, request.toCommand());
     return ResponseEntity.ok().build();
   }
 }

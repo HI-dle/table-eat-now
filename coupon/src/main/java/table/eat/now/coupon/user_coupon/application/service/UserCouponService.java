@@ -11,9 +11,9 @@ public interface UserCouponService {
 
   void createUserCoupon(IssueUserCouponCommand command);
 
-  void preemptUserCoupon(CurrentUserInfoDto userInfoDto, PreemptUserCouponCommand command);
+  void preemptUserCoupons(CurrentUserInfoDto userInfoDto, PreemptUserCouponCommand command);
 
-  void preemptUserCouponWithDistributedLock(
+  void preemptUserCouponsWithDistributedLock(
       CurrentUserInfoDto userInfoDto, PreemptUserCouponCommand command);
 
   PageResponse<GetUserCouponInfo> getUserCouponsByUserId(

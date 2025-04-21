@@ -39,7 +39,7 @@ public class DistributedLockAspect {
       try {
         return joinPoint.proceed();
       } catch (Throwable e) {
-        throw new RuntimeException(e);
+        throw e instanceof RuntimeException ? (RuntimeException) e : new RuntimeException(e);
       }
     };
   }

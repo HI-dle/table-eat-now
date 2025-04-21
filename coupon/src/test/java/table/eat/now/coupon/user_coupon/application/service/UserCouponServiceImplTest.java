@@ -84,7 +84,7 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
 
   @DisplayName("일반 사용자 쿠폰 선점시 비관락 적용한 경우 검증")
   @Nested
-  class preemptUserCoupon {
+  class preemptUserCoupons {
 
     @DisplayName("선점 성공")
     @Test
@@ -99,7 +99,7 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
           .build();
 
       // when
-      userCouponService.preemptUserCoupon(userInfo, command);
+      userCouponService.preemptUserCoupons(userInfo, command);
 
       // then
       UserCoupon userCoupon =
@@ -132,7 +132,7 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
                 .reservationUuid(UUID.randomUUID().toString())
                 .userCouponUuids(Set.of(userCouponUuid, userCouponUuid2))
                 .build();
-            userCouponService.preemptUserCoupon(userInfo, command);
+            userCouponService.preemptUserCoupons(userInfo, command);
           } catch (Exception e) {
             log.error(e.getMessage());
             errorCount.incrementAndGet();
@@ -173,7 +173,7 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
 
   @DisplayName("일반 사용자 쿠폰 선점시 분산락 적용한 경우 검증")
   @Nested
-  class preemptUserCouponWithDistributedLock {
+  class preemptUserCouponsWithDistributedLock {
 
     @DisplayName("선점 성공")
     @Test
@@ -189,7 +189,7 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
 
       // when, then
       assertThatNoException()
-          .isThrownBy(() -> userCouponService.preemptUserCouponWithDistributedLock(userInfo, command));
+          .isThrownBy(() -> userCouponService.preemptUserCouponsWithDistributedLock(userInfo, command));
 
       UserCoupon userCoupon =
           userCouponRepository.findByUserCouponUuidAndDeletedAtIsNull(userCouponUuid)
@@ -221,7 +221,7 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
                 .reservationUuid(UUID.randomUUID().toString())
                 .userCouponUuids(Set.of(userCouponUuid, userCouponUuid2))
                 .build();
-            userCouponService.preemptUserCouponWithDistributedLock(userInfo, command);
+            userCouponService.preemptUserCouponsWithDistributedLock(userInfo, command);
           } catch (Exception e) {
             log.error(e.getMessage());
             errorCount.incrementAndGet();

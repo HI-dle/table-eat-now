@@ -1,6 +1,8 @@
 package table.eat.now.coupon.user_coupon.application.service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,17 +33,14 @@ public class UserCouponServiceImpl implements UserCouponService {
 
   @Transactional
   @Override
-  public void preemptUserCoupon(
+  public void preemptUserCoupons(
       CurrentUserInfoDto userInfoDto, PreemptUserCouponCommand command) {
 
-    command.userCouponUuids()
-        .stream()
-        .sorted()
-        .forEach(userCouponUuid -> {
-          UserCoupon userCoupon =
-              userCouponRepository.findByUserCouponUuidAndDeletedAtIsNullWithLock(userCouponUuid)
-                  .orElseThrow(() -> CustomException.from(UserCouponErrorCode.INVALID_USER_COUPON_UUID));
-
+    List<UserCoupon> userCoupons =
+        userCouponRepository.findByUserCouponUuidsInAndDeletedAtIsNullWithLock(command.userCouponUuids());
+    userCoupons.stream()
+        .sorted(Comparator.comparing(UserCoupon::getUserCouponUuid))
+        .forEach(userCoupon -> {
           if (userInfoDto.role() == UserRole.CUSTOMER) {
             userCoupon.isOwnedBy(userInfoDto.userId());
           }
@@ -52,7 +51,7 @@ public class UserCouponServiceImpl implements UserCouponService {
 
   @DistributedLock(key = "#command.userCouponUuids")
   @Override
-  public void preemptUserCouponWithDistributedLock(
+  public void preemptUserCouponsWithDistributedLock(
       CurrentUserInfoDto userInfoDto, PreemptUserCouponCommand command) {
 
     command.userCouponUuids()
