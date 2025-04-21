@@ -75,7 +75,7 @@ public class ValidRestaurantAvailability implements ValidItem<CreateReservationV
     boolean validMenu = restaurant.menus().stream().anyMatch(menu ->
         menu.restaurantMenuUuid().equals(command.restaurantMenuUuid()) &&
             menu.name().equals(command.restaurantMenuDetails().name()) &&
-            menu.price().equals(command.restaurantMenuDetails().price())
+            menu.price().compareTo(command.restaurantMenuDetails().price()) == 0
     );
     if (!validMenu) {
       throw CustomException.from(ReservationErrorCode.INVALID_MENU_SELECTION);
