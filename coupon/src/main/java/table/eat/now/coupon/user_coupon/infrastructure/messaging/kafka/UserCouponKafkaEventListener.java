@@ -30,8 +30,7 @@ public class UserCouponKafkaEventListener {
     try {
       ReservationCancelledEvent canceledEvent = record.value();
       userCouponService.cancelUserCoupons(canceledEvent.reservationUuid());
-      throw new RuntimeException("exception test!!!!!");
-      //ack.acknowledge();
+      ack.acknowledge();
     } catch (Throwable e) {
       log.warn("예약 취소 이벤트 처리 예외 발생: {}", record.value(), e);
       throw e;
