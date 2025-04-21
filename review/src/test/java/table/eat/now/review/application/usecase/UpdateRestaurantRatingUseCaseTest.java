@@ -137,7 +137,7 @@ class UpdateRestaurantRatingUseCaseTest {
       verify(reviewRepository, times(3))
           .calculateRestaurantRatings(anyList());
 
-      verify(reviewEventPublisher, times(3))
+      verify(reviewEventPublisher, times(7))
           .publish(any(RestaurantRatingUpdateEvent.class));
     }
 
@@ -240,7 +240,7 @@ class UpdateRestaurantRatingUseCaseTest {
       verify(reviewRepository).calculateRestaurantRatings(eq(Collections.singletonList("4")));
       verify(reviewRepository, times(2)).calculateRestaurantRatings(anyList());
 
-      verify(reviewEventPublisher, times(2))
+      verify(reviewEventPublisher, times(4))
           .publish(any(RestaurantRatingUpdateEvent.class));
     }
 
@@ -322,7 +322,7 @@ class UpdateRestaurantRatingUseCaseTest {
       verify(reviewRepository, times(1))
           .calculateRestaurantRatings(anyList());
 
-      verify(reviewEventPublisher, times(1))
+      verify(reviewEventPublisher, times(3))
           .publish(any(RestaurantRatingUpdateEvent.class));
     }
   }
