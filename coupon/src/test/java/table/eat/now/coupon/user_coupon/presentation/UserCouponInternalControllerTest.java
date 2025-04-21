@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,16 +37,16 @@ class UserCouponInternalControllerTest extends ControllerTestSupport {
   void preemptUserCoupon() throws Exception {
     // given
     CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(2L, UserRole.CUSTOMER);
-    String userCouponUuid = UUID.randomUUID().toString();
     PreemptUserCouponRequest request = PreemptUserCouponRequest.builder()
         .reservationUuid(UUID.randomUUID())
+        .userCouponUuids(Set.of(UUID.randomUUID(), UUID.randomUUID()))
         .build();
 
-    doNothing().when(userCouponService).preemptUserCoupon(userInfo, userCouponUuid, request.toCommand());
+    doNothing().when(userCouponService).preemptUserCoupon(userInfo, request.toCommand());
 
     // when
     ResultActions resultActions = mockMvc.perform(
-        patch("/internal/v1/user-coupons/{userCouponUuid}/preempt", userCouponUuid)
+        patch("/internal/v1/user-coupons/preempt")
             .header("Authorization", "Bearer {ACCESS_TOKEN}")
             .header(USER_ID_HEADER, userInfo.userId())
             .header(USER_ROLE_HEADER, userInfo.role())

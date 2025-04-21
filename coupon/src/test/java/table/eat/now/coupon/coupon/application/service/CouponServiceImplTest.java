@@ -170,7 +170,6 @@ class CouponServiceImplTest extends IntegrationTestSupport {
     assertThat(coupons.totalElements()).isEqualTo(9);
   }
 
-
   @DisplayName("쿠폰 다건 조회 검증 - 조회 성공")
   @Test
   void getCouponsInternal() {
