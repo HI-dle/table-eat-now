@@ -22,6 +22,7 @@ import table.eat.now.reservation.reservation.application.client.PromotionClient;
 import table.eat.now.reservation.reservation.application.client.RestaurantClient;
 import table.eat.now.reservation.reservation.application.client.dto.request.CreatePaymentCommand;
 import table.eat.now.reservation.reservation.application.client.dto.request.GetPromotionsCriteria;
+import table.eat.now.reservation.reservation.application.client.dto.request.PreemptCouponCommand;
 import table.eat.now.reservation.reservation.application.client.dto.response.CreatePaymentInfo;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo.Coupon;
@@ -87,17 +88,16 @@ public class ReservationServiceImpl implements ReservationService {
       CreateReservationValidationContext.from(command, restaurant, couponMap, promotionsMap)
     );
 
+    // 예약 uuid 생성
+    String reservationUuid = UUID.randomUUID().toString();
+
     // 쿠폰 선점 처리
-    for (String userCouponUuid : couponUuids) {
-      couponClient.preemptCoupon(userCouponUuid, command.restaurantUuid());
-    }
+    couponClient.preemptCoupon(
+        PreemptCouponCommand.from(reservationUuid, couponUuids.stream().toList()));
 
     // 식당 현재 예약 인원 수정
     restaurantClient.modifyRestaurantCurTotalGuestCount(
         command.guestCount(), command.restaurantTimeslotUuid(), command.restaurantUuid());
-
-    // 예약 uuid 생성
-    String reservationUuid = UUID.randomUUID().toString();
 
     // 결제 생성
     String reservationName = command.getReservationName();

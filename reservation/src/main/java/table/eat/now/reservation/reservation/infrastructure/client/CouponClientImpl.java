@@ -8,8 +8,10 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import table.eat.now.reservation.reservation.application.client.CouponClient;
+import table.eat.now.reservation.reservation.application.client.dto.request.PreemptCouponCommand;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo;
 import table.eat.now.reservation.reservation.infrastructure.client.feign.CouponFeignClient;
+import table.eat.now.reservation.reservation.infrastructure.client.feign.dto.request.PreemptCouponRequest;
 import table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response.GetCouponsResponse;
 
 @Component
@@ -25,7 +27,8 @@ public class CouponClientImpl implements CouponClient {
   }
 
   @Override
-  public void preemptCoupon(String reservationId, String userCouponUuid) {
-    couponFeignClient.preemptCoupon(reservationId, userCouponUuid);
+  public void preemptCoupon(PreemptCouponCommand command) {
+    couponFeignClient.preemptCoupon(
+        PreemptCouponRequest.from(command.reservationId(), command.userCouponUuids()));
   }
 }
