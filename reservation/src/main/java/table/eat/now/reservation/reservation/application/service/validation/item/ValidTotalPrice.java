@@ -24,14 +24,17 @@ public class ValidTotalPrice implements ValidItem<CreateReservationValidationCon
         .multiply(BigDecimal.valueOf(ctx.command().restaurantMenuDetails().quantity()));
     BigDecimal paymentsTotal = calculateExpectedTotalAmount(ctx.command().payments());
 
-    boolean invalidPaymentDetailsTotalAmount = !providedTotal.equals(paymentsTotal);
-    if (invalidPaymentDetailsTotalAmount) {
-      throw CustomException.from(ReservationErrorCode.INVALID_PAYMENT_DETAILS_TOTAL_AMOUNT);
-    }
+    validateTotalPrice(providedTotal, paymentsTotal,
+        ReservationErrorCode.INVALID_PAYMENT_DETAILS_TOTAL_AMOUNT);
 
-    boolean invalidMenuTotalAmount = !providedTotal.equals(menuTotalPrice);
-    if (invalidMenuTotalAmount) {
-      throw CustomException.from(ReservationErrorCode.INVALID_MENU_TOTAL_AMOUNT);
+    validateTotalPrice(providedTotal, menuTotalPrice,
+        ReservationErrorCode.INVALID_MENU_TOTAL_AMOUNT);
+  }
+
+  private static void validateTotalPrice(BigDecimal providedTotal, BigDecimal menuTotalPrice,
+      ReservationErrorCode invalidMenuTotalAmount) {
+    if (!providedTotal.equals(menuTotalPrice)) {
+      throw CustomException.from(invalidMenuTotalAmount);
     }
   }
 

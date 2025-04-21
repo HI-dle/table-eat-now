@@ -4,6 +4,8 @@
  */
 package table.eat.now.reservation.reservation.application.service.validation.item;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -33,27 +35,43 @@ public class ValidRestaurantAvailability implements ValidItem<CreateReservationV
     }
 
     // 날짜 확인
+    validateDate(timeslot, command.restaurantTimeSlotDetails().availableDate());
+
+    // 시간 확인
+    validateTime(timeslot, command.restaurantTimeSlotDetails().timeslot());
+
+    // 인원 수 확인
+    validateGuestCapacity(timeslot, command.guestCount());
+
+    // 메뉴 확인
+    validateRestaurantMenu(restaurant, command);
+  }
+
+  private static void validateDate(Timeslot timeslot, LocalDate commandAvailableDate) {
     boolean isDateMatch = timeslot.availableDate()
-        .equals(command.restaurantTimeSlotDetails().availableDate());
+        .equals(commandAvailableDate);
     if (!isDateMatch) {
       throw CustomException.from(ReservationErrorCode.INVALID_RESERVATION_DATE);
     }
+  }
 
-    // 시간 확인
+  private static void validateTime(Timeslot timeslot, LocalTime commandTimeSlot) {
     boolean isTimeMatch = timeslot.timeslot()
-        .equals(command.restaurantTimeSlotDetails().timeslot());
+        .equals(commandTimeSlot);
     if (!isTimeMatch) {
       throw CustomException.from(ReservationErrorCode.INVALID_RESERVATION_TIME);
     }
+  }
 
-    // 인원 수 확인
+  private static void validateGuestCapacity(Timeslot timeslot, Integer guestCount) {
     boolean exceedsCapacity =
-        command.guestCount() + timeslot.curTotalGuestCount() > timeslot.maxCapacity();
+        guestCount + timeslot.curTotalGuestCount() > timeslot.maxCapacity();
     if (exceedsCapacity) {
       throw CustomException.from(ReservationErrorCode.EXCEEDS_MAX_GUEST_CAPACITY);
     }
+  }
 
-    // 메뉴 확인
+  private static void validateRestaurantMenu(GetRestaurantInfo restaurant, CreateReservationCommand command) {
     boolean validMenu = restaurant.menus().stream().anyMatch(menu ->
         menu.restaurantMenuUuid().equals(command.restaurantMenuUuid()) &&
             menu.name().equals(command.restaurantMenuDetails().name()) &&

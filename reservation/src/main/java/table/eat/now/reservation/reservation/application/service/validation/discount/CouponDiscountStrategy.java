@@ -31,20 +31,32 @@ public class CouponDiscountStrategy extends AbstractContextAwareDiscountStrategy
         .orElseThrow(() -> CustomException.from(ReservationErrorCode.COUPON_NOT_FOUND));
 
     // 1. 예약날짜 유효성
+    validateCouponPeriod(reservationDate, coupon);
+
+    // 2. 최소 구매 금액
+    validateMinPurchaseAmount(totalPrice, coupon);
+
+    // 3. 할인 금액 검증
+    validateDiscountAmount(totalPrice, paymentDetail, coupon);
+  }
+
+  private static void validateCouponPeriod(LocalDateTime reservationDate, Coupon coupon) {
     boolean isOutOfCouponPeriod =
         reservationDate.isBefore(coupon.startAt()) || reservationDate.isAfter(coupon.endAt());
     if (isOutOfCouponPeriod) {
       throw CustomException.from(ReservationErrorCode.COUPON_INVALID_PERIOD);
     }
+  }
 
-    // 2. 최소 구매 금액
+  private static void validateMinPurchaseAmount(BigDecimal totalPrice, Coupon coupon) {
     boolean isTotalPriceUnderThanMinPurchaseAmount
         = totalPrice.compareTo(BigDecimal.valueOf(coupon.minPurchaseAmount())) < 0;
     if (isTotalPriceUnderThanMinPurchaseAmount) {
       throw CustomException.from(ReservationErrorCode.COUPON_MIN_PURCHASE_NOT_MET);
     }
+  }
 
-    // 3. 할인 금액 검증
+  private static void validateDiscountAmount(BigDecimal totalPrice, PaymentDetail paymentDetail, Coupon coupon) {
     BigDecimal expectedDiscount;
     switch (coupon.type()) {
       case PERCENT_DISCOUNT -> {
