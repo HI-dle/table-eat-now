@@ -18,4 +18,6 @@ public interface UserCouponService {
 
   PageResponse<GetUserCouponInfo> getUserCouponsByUserId(
       CurrentUserInfoDto userInfoDto, Pageable pageable);
+
+  void cancelUserCoupons(String reservationUuid);
 }
