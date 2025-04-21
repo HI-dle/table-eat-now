@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 public record RestaurantRatingResult(
-    String restaurantId,
+    String restaurantUuid,
     BigDecimal averageRating
 ) {
 

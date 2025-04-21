@@ -20,9 +20,7 @@ public class ReviewKafkaProducerConfig {
   @Value("${spring.kafka.bootstrap-servers}")
   private String bootstrapServers;
 
-  @Bean
-  public ProducerFactory<String, ReviewEvent> producerFactory() {
-
+  private Map<String, Object> getCommonProducerProps() {
     Map<String, Object> props = new HashMap<>();
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -32,11 +30,32 @@ public class ReviewKafkaProducerConfig {
     props.put(ProducerConfig.RETRIES_CONFIG, 3);
     props.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, EventTypeHeaderInterceptor.class.getName());
 
-    return new DefaultKafkaProducerFactory<>(props);
+    return props;
+  }
+
+  @Bean
+  public ProducerFactory<String, ReviewEvent> producerFactory() {
+    return new DefaultKafkaProducerFactory<>(getCommonProducerProps());
   }
 
   @Bean
   public KafkaTemplate<String, ReviewEvent> kafkaTemplate() {
     return new KafkaTemplate<>(producerFactory());
+  }
+
+  @Bean
+  public ProducerFactory<String, ReviewEvent> batchProducerFactory() {
+    Map<String, Object> props = getCommonProducerProps();
+
+    props.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384 * 4);
+    props.put(ProducerConfig.LINGER_MS_CONFIG, 100);
+    props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
+    props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean
+  public KafkaTemplate<String, ReviewEvent> batchKafkaTemplate() {
+    return new KafkaTemplate<>(batchProducerFactory());
   }
 }

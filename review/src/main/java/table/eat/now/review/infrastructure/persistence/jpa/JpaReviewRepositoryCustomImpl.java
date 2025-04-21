@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import table.eat.now.review.domain.entity.ServiceType;
 import table.eat.now.review.domain.repository.search.PaginatedResult;
@@ -30,14 +31,17 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
   public List<String> findRecentlyUpdatedRestaurantIds
       (LocalDateTime startTime, LocalDateTime endTime, long offset, int limit) {
     return queryFactory
-        .select(review.reference.restaurantId)
+        .select(review.reference.restaurantId, review.updatedAt.max())
         .from(review)
         .where(betweenUpdatedAt(startTime, endTime))
         .groupBy(review.reference.restaurantId)
-        .orderBy(review.updatedAt.asc(), review.reference.restaurantId.asc())
+        .orderBy(review.updatedAt.max().asc(), review.reference.restaurantId.asc())
         .offset(offset)
         .limit(limit)
-        .fetch();
+        .fetch()
+        .stream()
+        .map(tuple -> tuple.get(review.reference.restaurantId))
+        .collect(Collectors.toList());
   }
 
   private BooleanExpression betweenUpdatedAt(
