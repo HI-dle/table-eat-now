@@ -157,12 +157,11 @@ public class PromotionServiceImpl implements PromotionService{
           savePayloadList, createCurrentUserInfoDto());
 
       promotionEventPublisher.publish(promotionUserSaveEvent);
-
-      Promotion promotion = findByPromotion(info.promotionUuid());
-
-      promotionEventPublisher.publish(PromotionUserCouponSaveEvent.of(
-          promotionUserSaveEvent, promotion.getCouponUuid()));
     }
+    Promotion promotion = findByPromotion(info.promotionUuid());
+
+    promotionEventPublisher.publish(PromotionUserCouponSaveEvent.of(
+        promotion, createCurrentUserInfoDto()));
     return true;
   }
 

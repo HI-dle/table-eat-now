@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -20,6 +22,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -40,6 +43,7 @@ import table.eat.now.promotion.promotion.application.dto.response.GetPromotionIn
 import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsClientInfo;
 import table.eat.now.promotion.promotion.application.dto.response.SearchPromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
+import table.eat.now.promotion.promotion.application.event.PromotionEvent;
 import table.eat.now.promotion.promotion.application.event.PromotionEventPublisher;
 import table.eat.now.promotion.promotion.application.event.produce.PromotionUserCouponSaveEvent;
 import table.eat.now.promotion.promotion.application.event.produce.PromotionUserSaveEvent;
@@ -507,12 +511,27 @@ class PromotionServiceImplTest {
   @Test
   void participate_success_without_batch() {
     // given
-    ParticipatePromotionUserInfo info = new ParticipatePromotionUserInfo(
-        3L,
-        UUID.randomUUID().toString(),
-        "일반 참여 프로모션"
+    Promotion savedPromotion = Promotion.of(
+        "sample-coupon-uuid",
+        "취침 프로모션",
+        "자고 싶다...",
+        LocalDateTime.now(),
+        LocalDateTime.now().plusDays(1),
+        BigDecimal.valueOf(1000),
+        PromotionStatus.RUNNING,
+        PromotionType.COUPON
     );
 
+    lenient().when(promotionRepository.save(any(Promotion.class))).thenReturn(savedPromotion);
+    when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(savedPromotion.getPromotionUuid()))
+        .thenReturn(Optional.of(savedPromotion));
+
+
+    ParticipatePromotionUserInfo info = new ParticipatePromotionUserInfo(
+        3L,
+        savedPromotion.getPromotionUuid(),
+        savedPromotion.getDetails().getPromotionName()
+    );
 
 
     when(promotionRepository.addUserToPromotion(any(PromotionParticipant.class)
@@ -526,7 +545,16 @@ class PromotionServiceImplTest {
     assertThat(result).isTrue();
     verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_10000_MAX));
     verify(promotionRepository, never()).getPromotionUsers(anyString());
-    verifyNoInteractions(promotionEventPublisher);
+
+
+    verify(promotionEventPublisher, never()).publish(
+        (PromotionEvent) argThat((ArgumentMatcher<Object>) event -> event instanceof PromotionUserSaveEvent)
+    );
+
+
+    verify(promotionEventPublisher).publish(
+        argThat(event -> event instanceof PromotionUserCouponSaveEvent)
+    );
   }
 
 

@@ -14,4 +14,10 @@ public record PromotionUserSavePayload(
         .promotionUuid(dto.promotionUuid())
         .build();
   }
+  public static PromotionUserSavePayload from(Long userId, String promotionUuid) {
+    return PromotionUserSavePayload.builder()
+        .userId(userId)
+        .promotionUuid(promotionUuid)
+        .build();
+  }
 }
