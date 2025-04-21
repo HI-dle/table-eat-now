@@ -9,6 +9,6 @@ import table.eat.now.payment.payment.infrastructure.client.dto.response.GetReser
 @FeignClient(name = "reservation", configuration = FeignConfig.class)
 public interface ReservationFeignClient {
 
-  @GetMapping("/api/v1/reservations/{reservationUuid}")
+  @GetMapping("/internal/v1/reservations/{reservationUuid}")
   GetReservationResponse getReservation(@PathVariable String reservationUuid);
 }

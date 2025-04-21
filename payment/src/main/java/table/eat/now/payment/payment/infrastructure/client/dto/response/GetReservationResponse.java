@@ -9,6 +9,7 @@ import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
 public record GetReservationResponse(
     String reservationUuid,
     String name,
+    Long reserverId,
     String reserverName,
     String reserverContact,
     int guestCount,

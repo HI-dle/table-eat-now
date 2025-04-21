@@ -16,8 +16,6 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import table.eat.now.payment.payment.infrastructure.kafka.event.EventType;
-import table.eat.now.payment.payment.infrastructure.kafka.event.PaymentFailedEvent;
-import table.eat.now.payment.payment.infrastructure.kafka.event.PaymentSuccessEvent;
 import table.eat.now.payment.payment.infrastructure.kafka.event.ReservationCancelledEvent;
 
 @EnableKafka
@@ -77,38 +75,16 @@ public class PaymentKafkaConsumerConfig {
     return factory;
   }
 
-  // PaymentSuccessEvent 관련 컨슈머 팩토리들
-  @Bean
-  public ConsumerFactory<String, PaymentSuccessEvent> successEventConsumerFactory() {
-    return createConsumerFactory(PaymentSuccessEvent.class, "payment-success-consumer");
-  }
-
-  @Bean
-  public ConcurrentKafkaListenerContainerFactory<String, PaymentSuccessEvent>
-  successEventKafkaListenerContainerFactory() {
-    return createContainerFactory(successEventConsumerFactory(), EventType.RESERVATION_PAYMENT_SUCCEED.name());
-  }
-
-  // PaymentFailedEvent 관련 컨슈머 팩토리들
-  @Bean
-  public ConsumerFactory<String, PaymentFailedEvent> failedEventConsumerFactory() {
-    return createConsumerFactory(PaymentFailedEvent.class, "payment-failed-consumer");
-  }
-
-  @Bean
-  public ConcurrentKafkaListenerContainerFactory<String, PaymentFailedEvent>
-  failedEventKafkaListenerContainerFactory() {
-    return createContainerFactory(failedEventConsumerFactory(), EventType.RESERVATION_PAYMENT_FAILED.name());
-  }
-
   @Bean
   public ConsumerFactory<String, ReservationCancelledEvent> cancelledEventConsumerFactory() {
-    return createConsumerFactory(ReservationCancelledEvent.class, "reservation-cancelled-consumer");
+    return createConsumerFactory(
+        ReservationCancelledEvent.class, "reservation-cancelled-consumer");
   }
 
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, ReservationCancelledEvent>
   cancelledEventKafkaListenerContainerFactory() {
-    return createContainerFactory(cancelledEventConsumerFactory(), EventType.RESERVATION_CANCELLED.name());
+    return createContainerFactory(
+        cancelledEventConsumerFactory(), EventType.RESERVATION_CANCELLED.name());
   }
 }

@@ -1,4 +1,4 @@
-package table.eat.now.review.infrastructure.persistence.config;
+package table.eat.now.review.application.scheduler.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
