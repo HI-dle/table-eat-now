@@ -54,11 +54,10 @@ public class ValidPaymentDetails implements ValidItem<CreateReservationValidatio
     );
   }
 
-  private static void validateExceededPaymentDetailSize(List<PaymentDetail> ctx,
-      PaymentType promotionEvent, int x, ReservationErrorCode promotionEventUsageLimitExceeded) {
-    if (ctx.stream()
-        .filter(p -> p.type() == promotionEvent).toList().size() > x) {
-      throw CustomException.from(promotionEventUsageLimitExceeded);
+  private static void validateExceededPaymentDetailSize(List<PaymentDetail> paymentDetails,
+      PaymentType paymentType, int x, ReservationErrorCode errorCode) {
+    if (paymentDetails.stream().filter(p -> p.type() == paymentType).toList().size() > x) {
+      throw CustomException.from(errorCode);
     }
   }
 
@@ -69,8 +68,11 @@ public class ValidPaymentDetails implements ValidItem<CreateReservationValidatio
       Map<String, Promotion> stringPromotionMap,
       List<PaymentDetail> payments
   ) {
-    for (PaymentDetail paymentDetail : payments) {
-      if (paymentDetail.type() == PaymentType.PAYMENT) continue;
+    List<PaymentDetail> discountPayments = payments.stream()
+        .filter(p -> p.type() != PaymentType.PAYMENT)
+        .toList();
+
+    for (PaymentDetail paymentDetail : discountPayments) {
 
       DiscountStrategy strategy = strategyFactory
           .getStrategy(paymentDetail, stringCouponMap, stringPromotionMap);
