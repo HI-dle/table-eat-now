@@ -165,6 +165,10 @@ public class Reservation extends BaseEntity {
     return false;
   }
 
+  public boolean isValidStatusForConfirmation() {
+    return this.status == ReservationStatus.PENDING_PAYMENT;
+  }
+
   public boolean isEditableBy(Long userId, UserRole role) {
     return isAccessibleBy(userId, role);
   }
@@ -176,6 +180,10 @@ public class Reservation extends BaseEntity {
   public void cancelWithReason(String reason) {
     this.status = ReservationStatus.CANCELLED;
     this.cancelReason = reason;
+  }
+
+  public void confirm() {
+    this.status = ReservationStatus.CONFIRMED;
   }
 
   @Getter

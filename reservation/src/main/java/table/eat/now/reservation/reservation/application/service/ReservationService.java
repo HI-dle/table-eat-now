@@ -9,7 +9,6 @@ import table.eat.now.reservation.reservation.application.service.dto.request.Cre
 import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
 import table.eat.now.reservation.reservation.application.service.dto.response.CancelReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.ConfirmReservationCommand;
-import table.eat.now.reservation.reservation.application.service.dto.response.ConfirmReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.CreateReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetReservationInfo;
 
@@ -19,7 +18,7 @@ public interface ReservationService {
 
   GetReservationInfo getReservation(GetReservationCriteria criteria);
 
-  ConfirmReservationInfo confirmReservation(ConfirmReservationCommand command);
+  void confirmReservation(ConfirmReservationCommand command);
 
   CancelReservationInfo cancelReservation(CancelReservationCommand command);
 }

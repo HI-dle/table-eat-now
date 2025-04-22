@@ -29,6 +29,7 @@ import table.eat.now.reservation.reservation.application.client.dto.response.Get
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo.Promotion;
 import table.eat.now.reservation.reservation.application.event.event.CancelReservationAfterCommitEvent;
+import table.eat.now.reservation.reservation.application.event.event.ConfirmReservationAfterCommitEvent;
 import table.eat.now.reservation.reservation.application.exception.ReservationErrorCode;
 import table.eat.now.reservation.reservation.application.service.dto.request.CancelReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand;
@@ -37,13 +38,14 @@ import table.eat.now.reservation.reservation.application.service.dto.request.Cre
 import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
 import table.eat.now.reservation.reservation.application.service.dto.response.CancelReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.ConfirmReservationCommand;
-import table.eat.now.reservation.reservation.application.service.dto.response.ConfirmReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.CreateReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.reservation.reservation.application.service.validation.context.CancelReservationValidationContext;
+import table.eat.now.reservation.reservation.application.service.validation.context.ConfirmReservationValidationContext;
 import table.eat.now.reservation.reservation.application.service.validation.context.CreateReservationValidationContext;
 import table.eat.now.reservation.reservation.application.service.validation.policy.CancelReservationValidationPolicy;
+import table.eat.now.reservation.reservation.application.service.validation.policy.ConfirmReservationValidationPolicy;
 import table.eat.now.reservation.reservation.application.service.validation.policy.CreateReservationValidationPolicy;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
 import table.eat.now.reservation.reservation.domain.repository.ReservationRepository;
@@ -58,8 +60,10 @@ public class ReservationServiceImpl implements ReservationService {
   private final PromotionClient promotionClient;
   private final RestaurantClient restaurantClient;
   private final ApplicationEventPublisher eventPublisher;
+  // todo: 이것도 리펙토링..
   private final CreateReservationValidationPolicy createReservationValidationPolicy;
   private final CancelReservationValidationPolicy cancelReservationValidationPolicy;
+  private final ConfirmReservationValidationPolicy confirmReservationValidationPolicy;
 
   @Override
   @Transactional
@@ -134,11 +138,13 @@ public class ReservationServiceImpl implements ReservationService {
   }
 
   @Override
-  public ConfirmReservationInfo confirmReservation(ConfirmReservationCommand command) {
+  @Transactional
+  public void confirmReservation(ConfirmReservationCommand command) {
     Reservation reservation =
         getReservationByPaymentIdempotencyKeyOrElseThrow(command.idempotencyKey());
-
-    return null;
+    confirmReservationValidationPolicy.validate(ConfirmReservationValidationContext.from(reservation));
+    reservation.confirm();
+    eventPublisher.publishEvent(ConfirmReservationAfterCommitEvent.from(reservation));
   }
 
   private Reservation getReservationByPaymentIdempotencyKeyOrElseThrow(String idempotencyKey) {

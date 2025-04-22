@@ -5,11 +5,11 @@
 package table.eat.now.reservation.reservation.infrastructure.persistence;
 
 import static table.eat.now.reservation.reservation.domain.entity.QReservation.reservation;
+import static table.eat.now.reservation.reservation.domain.entity.QReservationPaymentDetail.reservationPaymentDetail;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import table.eat.now.reservation.reservation.domain.entity.QReservationPaymentDetail;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
 
 @RequiredArgsConstructor
@@ -23,8 +23,19 @@ public class ReservationRepositoryCustomImpl implements ReservationRepositoryCus
         queryFactory
         .selectFrom(reservation)
         .leftJoin(reservation.paymentDetails.values,
-            QReservationPaymentDetail.reservationPaymentDetail).fetchJoin()
+            reservationPaymentDetail).fetchJoin()
         .where(reservation.reservationUuid.eq(reservationUuid))
         .fetchOne());
+  }
+
+  @Override
+  public Optional<Reservation> findWithDetailsByPaymentIdempotency(String idempotencyKey) {
+    return Optional.ofNullable(
+        queryFactory
+            .selectFrom(reservation)
+            .leftJoin(reservation.paymentDetails.values,
+                reservationPaymentDetail).fetchJoin()
+            .where(reservationPaymentDetail.detailReferenceId.eq(idempotencyKey))
+            .fetchOne());
   }
 }
