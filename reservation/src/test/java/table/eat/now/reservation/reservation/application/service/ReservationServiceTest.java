@@ -19,10 +19,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
@@ -45,6 +49,7 @@ import table.eat.now.reservation.reservation.application.service.dto.request.Cre
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.RestaurantTimeSlotDetails;
 import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
 import table.eat.now.reservation.reservation.application.service.dto.response.CancelReservationInfo;
+import table.eat.now.reservation.reservation.application.service.dto.response.ConfirmReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
@@ -2751,5 +2756,110 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .hasMessageContaining(ReservationErrorCode.NO_CANCEL_PERMISSION.getMessage());
     }
 
+  }
+
+  @DisplayName("예약 확정 서비스")
+  @Nested
+  class confirm {
+
+    @DisplayName("예약을 확정할 수 있다.")
+    @Test
+    void success() {
+      // given
+      // reservation
+      ReservationPaymentDetail paymentDetail = ReservationPaymentDetailFixture.createRandomByType(
+          ReservationPaymentDetail.PaymentType.PAYMENT);
+      String idempotencyKey = UUID.randomUUID().toString();
+      ReflectionTestUtils.setField(paymentDetail, "detailReferenceId", idempotencyKey);
+
+      Reservation pendingPaymentReservation = ReservationFixture.createRandomByPaymentDetails(List.of(
+          ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PROMOTION_COUPON),
+          paymentDetail
+      ));
+      ReflectionTestUtils.setField(pendingPaymentReservation, "status", ReservationStatus.PENDING_PAYMENT);
+      reservationRepository.saveAll(List.of(pendingPaymentReservation));
+
+      ConfirmReservationCommand command = ConfirmReservationCommand.builder()
+          .idempotencyKey(idempotencyKey)
+          .build();
+
+      // when
+      reservationService.confirmReservation(command);
+
+      // then
+      List<Reservation> all = reservationRepository.findAll();
+      assertThat(all).isNotNull();
+      assertThat(all).isNotEmpty();
+      Reservation result = all.get(0);
+      // 기본 정보 검증
+      assertThat(result.getStatus()).isEqualTo(ReservationStatus.CONFIRMED);
+    }
+
+    @DisplayName("없는 예약을 확정하려고 하면 예외가 발생한다.")
+    @Test
+    void fail_notFound() {
+      // given
+      // reservation
+      ReservationPaymentDetail paymentDetail = ReservationPaymentDetailFixture.createRandomByType(
+          ReservationPaymentDetail.PaymentType.PAYMENT);
+      String idempotencyKey = UUID.randomUUID().toString();
+      ReflectionTestUtils.setField(paymentDetail, "detailReferenceId", idempotencyKey);
+
+      Reservation pendingPaymentReservation = ReservationFixture.createRandomByPaymentDetails(List.of(
+          ReservationPaymentDetailFixture.createRandomByType(
+              ReservationPaymentDetail.PaymentType.PROMOTION_COUPON),
+          paymentDetail
+      ));
+      ReflectionTestUtils.setField(pendingPaymentReservation, "status", ReservationStatus.PENDING_PAYMENT);
+      reservationRepository.saveAll(List.of(pendingPaymentReservation));
+
+      ConfirmReservationCommand command = ConfirmReservationCommand.builder()
+          .idempotencyKey("invalid-key")
+          .build();
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.confirmReservation(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.NOT_FOUND.getMessage());
+    }
+  }
+
+  public static Stream<Arguments> provideInvalidStatusForConfirmationForCheckingConfirmReservation() {
+    return Stream.of(
+        Arguments.of(ReservationStatus.CONFIRMED),
+        Arguments.of(ReservationStatus.CANCELLED)
+    );
+  }
+
+  @MethodSource("provideInvalidStatusForConfirmationForCheckingConfirmReservation")
+  @ParameterizedTest(name = "{index}: ''{0}''는 예약 확정 가능한 상태가 아니다.")
+  @DisplayName("예약 가능한 상태가 아닌 예약을 확정하려고 하면 예외가 발생한다.")
+//  @CsvSource({"CONFIRMED", "CANCELLED"})
+//  @ParameterizedTest(name = "{index}: ''{0}''는 예약 확정 가능한 상태가 아니다.")
+  void fail_invalidStatus(ReservationStatus status) throws InterruptedException {
+    Thread.sleep(1000);
+    // given
+    // reservation
+    ReservationPaymentDetail paymentDetail = ReservationPaymentDetailFixture.createRandomByType(
+        ReservationPaymentDetail.PaymentType.PAYMENT);
+    String idempotencyKey = UUID.randomUUID().toString();
+    ReflectionTestUtils.setField(paymentDetail, "detailReferenceId", idempotencyKey);
+
+    Reservation pendingPaymentReservation = ReservationFixture.createRandomByPaymentDetails(List.of(
+        ReservationPaymentDetailFixture.createRandomByType(
+            ReservationPaymentDetail.PaymentType.PROMOTION_COUPON),
+        paymentDetail
+    ));
+    ReflectionTestUtils.setField(pendingPaymentReservation, "status", status);
+    reservationRepository.saveAll(List.of(pendingPaymentReservation));
+
+    ConfirmReservationCommand command = ConfirmReservationCommand.builder()
+        .idempotencyKey(idempotencyKey)
+        .build();
+    // when & then
+    assertThatThrownBy(() -> reservationService.confirmReservation(command))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(ReservationErrorCode.INVALID_STATUS_FOR_CONFIRMATION.getMessage());
   }
 }
