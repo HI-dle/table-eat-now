@@ -24,7 +24,7 @@ jobs:
           changed_modules=$(echo "$changed_files" | cut -d/ -f1 | sort -u)
           
           if echo "$changed_modules" | grep -q '^common$'; then
-            modules=$(find . -maxdepth 1 -type d | \
+            modules=$(find . -maxdepth 1 -type d ! -name '.' | \
               sed 's|^\./||' | \
               grep -Ev '^(\.git|\.github|gradle|ten-private)$' | \
               jq -R -s -c 'split("\n") | map(select(length > 0))')
@@ -32,7 +32,8 @@ jobs:
             echo "modules=$modules" >> "$GITHUB_OUTPUT"
           else
             excluded_dirs="\.github|gradle|ten-private|common"
-            pattern=$(find . -maxdepth 1 -type d | sed 's|^\./||' \
+            pattern=$(find . -maxdepth 1 -type d ! -name '.' \
+              | sed 's|^\./||' \
               | grep -vE "^($excluded_dirs)$" \
               | paste -sd'|' - \
               | awk '{ print "^(" $0 ")$" }')
