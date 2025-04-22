@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -142,7 +143,7 @@ class UpdateRestaurantRatingUseCaseTest {
     }
 
     @Test
-    void 평점계산_중_에러가_발생해도_나머지_식당은_계속_처리한다() {
+    void 이벤트_발행_중_에러가_발생해도_나머지_식당은_계속_처리한다() {
       // given
       int batchSize = 3;
       List<String> batch1 = Collections.singletonList("1");
@@ -166,8 +167,9 @@ class UpdateRestaurantRatingUseCaseTest {
           LocalDateTime.class),any(LocalDateTime.class), eq(2L),
           eq(batchSize))).thenReturn(Collections.emptyList());
 
-      when(reviewRepository.calculateRestaurantRatings(eq(batch1)))
-          .thenThrow(new RuntimeException("테스트 예외"));
+
+      doThrow(new RuntimeException("테스트 예외"))
+          .when(reviewEventPublisher).publish(any(RestaurantRatingUpdateEvent.class));
       when(reviewRepository.calculateRestaurantRatings(eq(batch2)))
           .thenReturn(result2);
 

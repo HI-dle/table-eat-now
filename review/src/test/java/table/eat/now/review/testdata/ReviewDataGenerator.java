@@ -1,5 +1,6 @@
 package table.eat.now.review.testdata;
 
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -25,6 +26,9 @@ public class ReviewDataGenerator {
   @Autowired
   private ReviewRepository reviewRepository;
 
+  @Autowired
+  private EntityManager entityManager;
+
   private static final int BATCH_SIZE = 1000;
   private static final int TOTAL_RECORDS = 1_000_000;
   private static final Random random = new Random();
@@ -35,7 +39,7 @@ public class ReviewDataGenerator {
 
     @DisplayName("리뷰데이터 100만건 생성")
     @Test
-    void generateMillionReviews() throws InterruptedException {
+    void generateMillionReviews() {
       List<String> restaurantIds = generateIds(500);
       List<String> serviceIds = generateIds(5000);
 
@@ -62,7 +66,7 @@ public class ReviewDataGenerator {
           Long customerId = 10000L + random.nextInt(10000);
           ServiceType serviceType = random.nextBoolean() ? ServiceType.WAITING : ServiceType.RESERVATION;
           String content = reviewContents.get(random.nextInt(reviewContents.size()));
-          int rating = random.nextInt(6);
+          int rating = random.nextInt(5) + 1;
           boolean isVisible = random.nextBoolean();
 
           ReviewReference reference = ReviewReference.create(
@@ -81,14 +85,8 @@ public class ReviewDataGenerator {
           reviewBatch.add(review);
         }
 
-        reviewRepository.saveAll(reviewBatch);
-        System.out.printf("Saved %d/%d reviews\n",
-            Math.min(i + BATCH_SIZE, TOTAL_RECORDS), TOTAL_RECORDS);
-
-        if ((i / BATCH_SIZE) % 10 == 0) {
-          System.gc();
-          Thread.sleep(1000);
-        }
+        reviewRepository.saveAllAndFlush(reviewBatch);
+        entityManager.clear();
       }
     }
   }

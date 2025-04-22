@@ -31,5 +31,5 @@ public interface ReviewRepository {
 
   long countRecentlyUpdatedRestaurants(LocalDateTime startTime, LocalDateTime endTime);
 
-  <S extends Review> List<S> saveAll(Iterable<S> entities);
+  <S extends Review> List<S> saveAllAndFlush(Iterable<S> entities);
 }

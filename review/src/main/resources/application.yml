@@ -37,3 +37,4 @@ review:
     update:
       cron: 0 */5 * * * *
       batch-size: 100
+      recent-minutes: 5

@@ -21,9 +21,10 @@ import table.eat.now.review.domain.repository.search.RestaurantRatingResult;
 @RequiredArgsConstructor
 public class UpdateRestaurantRatingUseCase {
 
-  @Value("${review.rating.update.batch-size}")
+  @Value("${review.rating.update.batch-size:100}")
   private int batchSize;
-  private static final int RECENT_MINUTES = 300;
+  @Value("${review.rating.update.recent-minutes:5}")
+  private int recentMinutes;
 
   private final ReviewRepository reviewRepository;
   private final ReviewEventPublisher reviewEventPublisher;
@@ -31,7 +32,7 @@ public class UpdateRestaurantRatingUseCase {
   @Transactional(readOnly = true)
   public void execute() {
     LocalDateTime endTime = LocalDateTime.now();
-    LocalDateTime startTime = endTime.minusMinutes(RECENT_MINUTES);
+    LocalDateTime startTime = endTime.minusMinutes(recentMinutes);
 
     long totalCount = reviewRepository.countRecentlyUpdatedRestaurants(startTime, endTime);
 
@@ -120,7 +121,7 @@ public class UpdateRestaurantRatingUseCase {
         );
 
         logPublish(results);
-        processedCount += batch.size();
+        processedCount += uniqueIds.size();
         logProgress();
       }
       logCompletion();
