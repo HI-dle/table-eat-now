@@ -11,15 +11,16 @@ import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
-import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
-import table.eat.now.waiting.waiting_request.application.service.WaitingRequestService;
+import table.eat.now.waiting.waiting_request.application.router.UsecaseRouter;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.query.GetWaitingRequestInternalQuery;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.response.GetWaitingRequestInfo;
 import table.eat.now.waiting.waiting_request.presentation.dto.response.GetWaitingRequestResponse;
 
 @RequiredArgsConstructor
 @RequestMapping("/internal/v1/waiting-requests")
 @RestController
 public class WaitingRequestInternalController {
-  private final WaitingRequestService waitingRequestService;
+  private final UsecaseRouter router;
 
   @AuthCheck(roles = {UserRole.MASTER, UserRole.CUSTOMER})
   @GetMapping("/{waitingRequestUuid}")
@@ -28,8 +29,9 @@ public class WaitingRequestInternalController {
       @PathVariable UUID waitingRequestUuid
   ) {
 
-    GetWaitingRequestInfo info =
-        waitingRequestService.getWaitingRequestInternal(userInfo, waitingRequestUuid.toString());
+    GetWaitingRequestInternalQuery query = GetWaitingRequestInternalQuery.of(
+        userInfo.userId(), userInfo.role(), waitingRequestUuid.toString());
+    GetWaitingRequestInfo info = router.execute(query);
     return ResponseEntity.ok().body(GetWaitingRequestResponse.from(info));
   }
 }

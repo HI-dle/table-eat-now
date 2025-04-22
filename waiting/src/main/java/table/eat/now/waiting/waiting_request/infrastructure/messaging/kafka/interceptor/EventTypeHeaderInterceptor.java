@@ -5,7 +5,7 @@ import java.util.Map;
 import org.apache.kafka.clients.producer.ProducerInterceptor;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestEvent;
+import table.eat.now.waiting.waiting_request.application.messaging.dto.WaitingRequestEvent;
 
 public class EventTypeHeaderInterceptor implements ProducerInterceptor<String, WaitingRequestEvent> {
 

@@ -2,7 +2,6 @@ package table.eat.now.waiting.waiting_request.presentation;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -23,15 +22,19 @@ import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.helper.ControllerTestSupport;
-import table.eat.now.waiting.waiting_request.application.dto.response.PageResult;
-import table.eat.now.waiting.waiting_request.application.service.WaitingRequestService;
+import table.eat.now.waiting.waiting_request.application.router.UsecaseRouter;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.command.UpdateWaitingRequestStatusAdminCommand;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.command.WaitingRequestEntranceAdminCommand;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.query.GetCurrentWaitingRequestsAdminQuery;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.query.GetWaitingRequestAdminQuery;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.response.PageResult;
 import table.eat.now.waiting.waiting_request.fixture.GetWaitingRequestInfoFixture;
 
 @WebMvcTest(WaitingRequestAdminController.class)
 class WaitingRequestAdminControllerTest extends ControllerTestSupport {
 
   @MockitoBean
-  private WaitingRequestService waitingRequestService;
+  private UsecaseRouter router;
 
   @DisplayName("대기 요청 입장 처리 요청 - 200 성공 응답")
   @Test
@@ -39,9 +42,10 @@ class WaitingRequestAdminControllerTest extends ControllerTestSupport {
     // given
     var waitingRequestUuid = UUID.randomUUID().toString();
     var userInfo = CurrentUserInfoDto.of(2L, UserRole.STAFF);
+    var command = WaitingRequestEntranceAdminCommand.of(
+        userInfo.userId(), userInfo.role(), waitingRequestUuid);
 
-    doNothing().when(waitingRequestService)
-        .processWaitingRequestEntrance(userInfo, waitingRequestUuid);
+    given(router.execute(eq(command))).willReturn(null);
 
     // when
     ResultActions resultActions = mockMvc.perform(
@@ -63,10 +67,10 @@ class WaitingRequestAdminControllerTest extends ControllerTestSupport {
     var userInfo = CurrentUserInfoDto.of(2L, UserRole.STAFF);
     var info = GetWaitingRequestInfoFixture.create(
         2, UUID.randomUUID().toString(), UUID.randomUUID().toString(), "WAITING");
+    var query = GetWaitingRequestAdminQuery.of(
+        userInfo.userId(), userInfo.role(), info.waitingRequestUuid());
 
-    given(waitingRequestService.getWaitingRequestAdmin(
-        eq(userInfo), eq(info.waitingRequestUuid())))
-        .willReturn(info);
+    given(router.execute(eq(query))).willReturn(info);
 
     // when
     ResultActions resultActions = mockMvc.perform(
@@ -93,10 +97,13 @@ class WaitingRequestAdminControllerTest extends ControllerTestSupport {
     var pageable = PageRequest.of(0, 10);
     var requests = GetWaitingRequestInfoFixture.createList(0, 10);
     var dailyWaitingUuid = requests.get(0).dailyWaitingUuid();
+
+    var query = GetCurrentWaitingRequestsAdminQuery.of(
+        userInfo.userId(), userInfo.role(), dailyWaitingUuid,
+        pageable.getPageNumber(), pageable.getPageSize(), pageable.getOffset());
     var page = PageResult.of(requests, 100, 10, 1, 10);
-    given(waitingRequestService.getCurrentWaitingRequestsAdmin(
-        eq(userInfo), eq(dailyWaitingUuid), eq(pageable)))
-        .willReturn(page);
+
+    given(router.execute(eq(query))).willReturn(page);
 
     // when
     ResultActions resultActions = mockMvc.perform(
@@ -123,8 +130,10 @@ class WaitingRequestAdminControllerTest extends ControllerTestSupport {
     var waitingRequestUuid = UUID.randomUUID().toString();
     var type = "SEATED";
 
-    doNothing().when(waitingRequestService)
-        .updateWaitingRequestStatusAdmin(userInfo, waitingRequestUuid, type);
+    var command = UpdateWaitingRequestStatusAdminCommand.of(
+        userInfo.userId(), userInfo.role(), waitingRequestUuid, type);
+
+    given(router.execute(eq(command))).willReturn(null);
 
     // when
     ResultActions resultActions = mockMvc.perform(

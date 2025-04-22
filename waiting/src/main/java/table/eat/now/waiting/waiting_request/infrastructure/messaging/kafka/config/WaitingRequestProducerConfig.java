@@ -10,7 +10,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import table.eat.now.waiting.waiting_request.application.event.dto.WaitingRequestEvent;
+import table.eat.now.waiting.waiting_request.application.messaging.dto.WaitingRequestEvent;
 import table.eat.now.waiting.waiting_request.infrastructure.messaging.kafka.interceptor.EventTypeHeaderInterceptor;
 
 @Configuration

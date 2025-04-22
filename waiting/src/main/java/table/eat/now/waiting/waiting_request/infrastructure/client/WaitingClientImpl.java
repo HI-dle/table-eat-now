@@ -3,7 +3,7 @@ package table.eat.now.waiting.waiting_request.infrastructure.client;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import table.eat.now.waiting.waiting_request.application.client.WaitingClient;
-import table.eat.now.waiting.waiting_request.application.dto.response.GetDailyWaitingInfo;
+import table.eat.now.waiting.waiting_request.application.client.dto.response.GetDailyWaitingInfo;
 import table.eat.now.waiting.waiting_request.infrastructure.client.feign.WaitingFeignClient;
 
 @RequiredArgsConstructor

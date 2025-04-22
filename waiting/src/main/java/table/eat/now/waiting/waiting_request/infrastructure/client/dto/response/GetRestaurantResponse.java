@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import table.eat.now.waiting.waiting_request.application.dto.response.GetRestaurantInfo;
+import table.eat.now.waiting.waiting_request.application.client.dto.response.GetRestaurantInfo;
 
 public record GetRestaurantResponse(
     Long id,

@@ -1,6 +1,5 @@
 package table.eat.now.waiting.waiting_request.presentation;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -19,14 +18,15 @@ import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.helper.ControllerTestSupport;
-import table.eat.now.waiting.waiting_request.application.service.WaitingRequestService;
+import table.eat.now.waiting.waiting_request.application.router.UsecaseRouter;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.query.GetWaitingRequestInternalQuery;
 import table.eat.now.waiting.waiting_request.fixture.GetWaitingRequestInfoFixture;
 
 @WebMvcTest(WaitingRequestInternalController.class)
 class WaitingRequestInternalControllerTest extends ControllerTestSupport {
 
   @MockitoBean
-  private WaitingRequestService waitingRequestService;
+  private UsecaseRouter router;
 
   @DisplayName("대기 요청 내부 조회 - 200 성공")
   @Test
@@ -35,9 +35,9 @@ class WaitingRequestInternalControllerTest extends ControllerTestSupport {
     var userInfo = CurrentUserInfoDto.of(2L, UserRole.CUSTOMER);
     var info = GetWaitingRequestInfoFixture.create(
         2, UUID.randomUUID().toString(), UUID.randomUUID().toString(), "SEATED");
+    var query = GetWaitingRequestInternalQuery.of(userInfo.userId(), userInfo.role(), info.waitingRequestUuid());
 
-    given(waitingRequestService.getWaitingRequestInternal(
-        any(), eq(info.waitingRequestUuid()))).willReturn(info);
+    given(router.execute(eq(query))).willReturn(info);
 
     // when
     ResultActions resultActions = mockMvc.perform(

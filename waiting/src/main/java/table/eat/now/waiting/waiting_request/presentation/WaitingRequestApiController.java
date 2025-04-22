@@ -16,8 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
-import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
-import table.eat.now.waiting.waiting_request.application.service.WaitingRequestService;
+import table.eat.now.waiting.waiting_request.application.router.UsecaseRouter;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.command.CancelWaitingRequestCommand;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.command.CreateWaitingRequestCommand;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.command.PostponeWaitingRequestCommand;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.query.GetWaitingRequestQuery;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.response.GetWaitingRequestInfo;
 import table.eat.now.waiting.waiting_request.presentation.dto.request.CreateWaitingRequestRequest;
 import table.eat.now.waiting.waiting_request.presentation.dto.response.GetWaitingRequestResponse;
 
@@ -25,8 +29,7 @@ import table.eat.now.waiting.waiting_request.presentation.dto.response.GetWaitin
 @RequestMapping("/api/v1/waiting-requests")
 @RestController
 public class WaitingRequestApiController {
-
-  private final WaitingRequestService waitingRequestService;
+  private final UsecaseRouter router;
 
   @PostMapping
   public ResponseEntity<Void> createWaitingRequest(
@@ -34,7 +37,8 @@ public class WaitingRequestApiController {
       @RequestBody CreateWaitingRequestRequest request
   ) {
 
-    String waitingRequestUuid = waitingRequestService.createWaitingRequest(userInfo, request.toCommand());
+    CreateWaitingRequestCommand command = request.toCommand(userInfo);
+    String waitingRequestUuid = router.execute(command);
     return ResponseEntity.created(
         ServletUriComponentsBuilder
             .fromCurrentRequestUri()
@@ -51,8 +55,9 @@ public class WaitingRequestApiController {
       @RequestParam @Valid @Pattern(regexp = "^[0-9]{8,15}$") String phone
   ) {
 
-    GetWaitingRequestInfo info =
-        waitingRequestService.getWaitingRequest(userInfo, waitingRequestUuid.toString(), phone);
+    GetWaitingRequestQuery query = GetWaitingRequestQuery.of(
+        userInfo.userId(), userInfo.role(), waitingRequestUuid.toString(), phone);
+    GetWaitingRequestInfo info = router.execute(query);
     return ResponseEntity.ok().body(GetWaitingRequestResponse.from(info));
   }
 
@@ -63,7 +68,9 @@ public class WaitingRequestApiController {
       @RequestParam @Valid @Pattern(regexp = "^[0-9]{8,15}$") String phone
   ) {
 
-    waitingRequestService.postponeWaitingRequest(userInfo, waitingRequestUuid.toString(), phone);
+    PostponeWaitingRequestCommand command = PostponeWaitingRequestCommand.of(
+        userInfo.userId(), userInfo.role(), waitingRequestUuid.toString(), phone);
+    router.execute(command);
     return ResponseEntity.ok().build();
   }
 
@@ -74,7 +81,9 @@ public class WaitingRequestApiController {
       @RequestParam @Valid @Pattern(regexp = "^[0-9]{8,15}$") String phone
   ) {
 
-    waitingRequestService.cancelWaitingRequest(userInfo, waitingRequestUuid.toString(), phone);
+    CancelWaitingRequestCommand command = CancelWaitingRequestCommand.of(
+        userInfo.userId(), userInfo.role(), waitingRequestUuid.toString(), phone);
+    router.execute(command);
     return ResponseEntity.ok().build();
   }
 }

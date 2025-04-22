@@ -2,8 +2,8 @@ package table.eat.now.waiting.waiting_request.presentation.dto.response;
 
 import java.util.List;
 import lombok.Builder;
-import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
-import table.eat.now.waiting.waiting_request.application.dto.response.PageResult;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.response.GetWaitingRequestInfo;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.response.PageResult;
 
 @Builder
 public record GetWaitingRequestsResponse(

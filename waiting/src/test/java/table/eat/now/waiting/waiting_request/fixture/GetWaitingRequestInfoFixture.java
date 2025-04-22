@@ -3,7 +3,7 @@ package table.eat.now.waiting.waiting_request.fixture;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
-import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.response.GetWaitingRequestInfo;
 
 public class GetWaitingRequestInfoFixture {
 

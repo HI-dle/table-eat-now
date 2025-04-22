@@ -18,9 +18,13 @@ import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
-import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
-import table.eat.now.waiting.waiting_request.application.dto.response.PageResult;
-import table.eat.now.waiting.waiting_request.application.service.WaitingRequestService;
+import table.eat.now.waiting.waiting_request.application.router.UsecaseRouter;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.command.UpdateWaitingRequestStatusAdminCommand;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.command.WaitingRequestEntranceAdminCommand;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.query.GetCurrentWaitingRequestsAdminQuery;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.query.GetWaitingRequestAdminQuery;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.response.GetWaitingRequestInfo;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.response.PageResult;
 import table.eat.now.waiting.waiting_request.presentation.dto.response.GetWaitingRequestResponse;
 import table.eat.now.waiting.waiting_request.presentation.dto.response.GetWaitingRequestsResponse;
 
@@ -28,7 +32,7 @@ import table.eat.now.waiting.waiting_request.presentation.dto.response.GetWaitin
 @RequestMapping("/admin/v1/waiting-requests")
 @RestController
 public class WaitingRequestAdminController {
-  private final WaitingRequestService waitingRequestService;
+  private final UsecaseRouter router;
 
   @AuthCheck(roles = {UserRole.MASTER, UserRole.OWNER, UserRole.STAFF})
   @PostMapping("/{waitingRequestsUuid}/entrance")
@@ -37,8 +41,9 @@ public class WaitingRequestAdminController {
       @PathVariable UUID waitingRequestsUuid
   ) {
 
-    waitingRequestService.processWaitingRequestEntrance(
-        userInfo, waitingRequestsUuid.toString());
+    WaitingRequestEntranceAdminCommand command = WaitingRequestEntranceAdminCommand.of(
+        userInfo.userId(), userInfo.role(), waitingRequestsUuid.toString());
+    router.execute(command);
     return ResponseEntity.ok().build();
   }
 
@@ -49,8 +54,9 @@ public class WaitingRequestAdminController {
       @PathVariable UUID waitingRequestUuid
   ) {
 
-    GetWaitingRequestInfo info =
-        waitingRequestService.getWaitingRequestAdmin(userInfo, waitingRequestUuid.toString());
+    GetWaitingRequestAdminQuery query = GetWaitingRequestAdminQuery.of(
+        userInfo.userId(), userInfo.role(), waitingRequestUuid.toString());
+    GetWaitingRequestInfo info = router.execute(query);
     return ResponseEntity.ok().body(GetWaitingRequestResponse.from(info));
   }
 
@@ -62,8 +68,10 @@ public class WaitingRequestAdminController {
       @PageableDefault Pageable pageable
   ) {
 
-    PageResult<GetWaitingRequestInfo> info =
-        waitingRequestService.getCurrentWaitingRequestsAdmin(userInfo, dailyWaitingUuid.toString(), pageable);
+    GetCurrentWaitingRequestsAdminQuery query = GetCurrentWaitingRequestsAdminQuery.of(
+        userInfo.userId(), userInfo.role(), dailyWaitingUuid.toString(),
+        pageable.getPageNumber(), pageable.getPageSize(), pageable.getOffset());
+    PageResult<GetWaitingRequestInfo> info = router.execute(query);
     return ResponseEntity.ok().body(GetWaitingRequestsResponse.from(info));
   }
 
@@ -75,7 +83,9 @@ public class WaitingRequestAdminController {
       @RequestParam @Valid @Pattern(regexp = "^(?i)(SEATED|LEAVED|NO_SHOW)$") String type
   ) {
 
-    waitingRequestService.updateWaitingRequestStatusAdmin(userInfo, waitingRequestUuid.toString(), type);
+    UpdateWaitingRequestStatusAdminCommand command = UpdateWaitingRequestStatusAdminCommand.of(
+        userInfo.userId(), userInfo.role(), waitingRequestUuid.toString(), type);
+    router.execute(command);
     return ResponseEntity.ok().build();
   }
 }
