@@ -234,7 +234,7 @@ class UpdateRestaurantRatingUseCaseTest {
       verify(reviewRepository, times(1))
           .countRecentlyUpdatedRestaurants(any(LocalDateTime.class), any(LocalDateTime.class));
 
-      verify(reviewRepository, times(2))
+      verify(reviewRepository, times(3))
           .findRecentlyUpdatedRestaurantIds(
               any(LocalDateTime.class), any(LocalDateTime.class), anyLong(), eq(batchSize));
 
