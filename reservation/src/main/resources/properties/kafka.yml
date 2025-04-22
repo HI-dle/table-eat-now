@@ -2,6 +2,9 @@ spring:
   config.activate.on-profile: local
   kafka:
     bootstrap-servers: ${LOCAL_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
 
 kafka:
   topic:
@@ -12,16 +15,27 @@ kafka:
       replicas: 3
       # 데이터 손실 방지를 위한 최소 동기화 복제본 수
       min-insync-replicas: 2
+    reservation-dlt:
+      partitions: 3
+      replicas: 3
+      min-insync-replicas: 2
 
 ---
 spring:
   config.activate.on-profile: test
   kafka:
     bootstrap-servers: ${LOCAL_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
 
 kafka:
   topic:
     reservation:
+      partitions: 3
+      replicas: 3
+      min-insync-replicas: 2
+    reservation-dlt:
       partitions: 3
       replicas: 3
       min-insync-replicas: 2
@@ -31,11 +45,17 @@ spring:
   config.activate.on-profile: develop
   kafka:
     bootstrap-servers: ${DEV_KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
 
 kafka:
   topic:
     reservation:
-      name: reservation-event
+      partitions: 3
+      replicas: 3
+      min-insync-replicas: 2
+    reservation-dlt:
       partitions: 3
       replicas: 3
       min-insync-replicas: 2

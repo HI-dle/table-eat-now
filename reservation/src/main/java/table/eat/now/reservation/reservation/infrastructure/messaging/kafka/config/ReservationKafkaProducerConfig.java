@@ -2,7 +2,7 @@
  * @author : jieun(je-pa)
  * @Date : 2025. 04. 20.
  */
-package table.eat.now.reservation.reservation.infrastructure.kafka.config;
+package table.eat.now.reservation.reservation.infrastructure.messaging.kafka.config;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +16,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import table.eat.now.reservation.reservation.application.event.event.ReservationEvent;
-import table.eat.now.reservation.reservation.infrastructure.kafka.interceptor.EventTypeHeaderInterceptor;
+import table.eat.now.reservation.reservation.infrastructure.messaging.kafka.interceptor.EventTypeHeaderInterceptor;
 
 @Configuration
 public class ReservationKafkaProducerConfig {

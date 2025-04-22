@@ -20,4 +20,6 @@ public interface ReservationRepository {
   List<Reservation> findAll();
 
   <S extends Reservation> List<S> saveAll(Iterable<S> entities);
+
+  Optional<Reservation> findWithDetailsByPaymentIdempotency(String idempotencyKey);
 }

@@ -2,7 +2,9 @@
  * @author : jieun(je-pa)
  * @Date : 2025. 04. 20.
  */
-package table.eat.now.reservation.reservation.infrastructure.kafka.producer;
+package table.eat.now.reservation.reservation.infrastructure.messaging.kafka.producer;
+
+import static table.eat.now.reservation.reservation.infrastructure.messaging.kafka.config.ReservationKafkaTopicConfig.TopicName.RESERVATION_EVENT;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +12,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import table.eat.now.reservation.reservation.application.event.event.ReservationEvent;
 import table.eat.now.reservation.reservation.application.event.publisher.ReservationEventPublisher;
-import table.eat.now.reservation.reservation.infrastructure.kafka.config.ReservationKafkaTopicConfig;
 
 @Slf4j
 @Component
@@ -21,7 +22,7 @@ public class KafkaReservationProducer implements ReservationEventPublisher <Rese
 
   @Override
   public void publish(ReservationEvent event) {
-    kafkaTemplate.send(ReservationKafkaTopicConfig.TOPIC_NAME, event.reservationUuid(), event);
+    kafkaTemplate.send(RESERVATION_EVENT, event.reservationUuid(), event);
   }
 
 }

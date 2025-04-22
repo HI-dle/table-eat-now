@@ -9,4 +9,6 @@ import table.eat.now.reservation.reservation.domain.entity.Reservation;
 
 public interface ReservationRepositoryCustom {
   Optional<Reservation> findWithDetailsByReservationUuid(String reservationUuid);
+
+  Optional<Reservation> findWithDetailsByPaymentIdempotency(String idempotencyKey);
 }

@@ -36,6 +36,8 @@ import table.eat.now.reservation.reservation.application.service.dto.request.Cre
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
 import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
 import table.eat.now.reservation.reservation.application.service.dto.response.CancelReservationInfo;
+import table.eat.now.reservation.reservation.application.service.dto.response.ConfirmReservationCommand;
+import table.eat.now.reservation.reservation.application.service.dto.response.ConfirmReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.CreateReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
@@ -124,11 +126,24 @@ public class ReservationServiceImpl implements ReservationService {
   @Override
   @Transactional(readOnly = true)
   public GetReservationInfo getReservation(GetReservationCriteria criteria) {
-    Reservation reservation = getReservationOrElseThrow(criteria);
+    Reservation reservation = getReservationOrElseThrow(criteria.reservationUuid());
     if(!reservation.isAccessibleBy(criteria.userId(), criteria.role())){
       throw CustomException.from(ReservationErrorCode.NOT_FOUND);
     }
     return GetReservationInfo.from(reservation);
+  }
+
+  @Override
+  public ConfirmReservationInfo confirmReservation(ConfirmReservationCommand command) {
+    Reservation reservation =
+        getReservationByPaymentIdempotencyKeyOrElseThrow(command.idempotencyKey());
+
+    return null;
+  }
+
+  private Reservation getReservationByPaymentIdempotencyKeyOrElseThrow(String idempotencyKey) {
+    return reservationRepository.findWithDetailsByPaymentIdempotency(idempotencyKey)
+        .orElseThrow(() -> CustomException.from(ReservationErrorCode.NOT_FOUND));
   }
 
   @Override
@@ -162,9 +177,8 @@ public class ReservationServiceImpl implements ReservationService {
     return reservation;
   }
 
-  private Reservation getReservationOrElseThrow(GetReservationCriteria criteria) {
-    return reservationRepository.findWithDetailsByReservationUuid(
-            criteria.reservationUuid())
+  private Reservation getReservationOrElseThrow(String reservationUuid) {
+    return reservationRepository.findWithDetailsByReservationUuid(reservationUuid)
         .orElseThrow(() -> CustomException.from(ReservationErrorCode.NOT_FOUND));
   }
 
