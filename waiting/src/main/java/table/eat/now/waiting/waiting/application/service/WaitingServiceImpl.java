@@ -9,6 +9,7 @@ import table.eat.now.waiting.waiting.domain.repository.WaitingRepository;
 @RequiredArgsConstructor
 @Service
 public class WaitingServiceImpl implements WaitingService {
+
   private final WaitingRepository waitingRepository;
 
   @Override
