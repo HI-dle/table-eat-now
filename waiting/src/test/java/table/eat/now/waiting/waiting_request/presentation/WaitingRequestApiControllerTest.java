@@ -1,9 +1,7 @@
 package table.eat.now.waiting.waiting_request.presentation;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -25,7 +23,10 @@ import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.helper.ControllerTestSupport;
-import table.eat.now.waiting.waiting_request.application.service.WaitingRequestService;
+import table.eat.now.waiting.waiting_request.application.router.UsecaseRouter;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.command.CancelWaitingRequestCommand;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.command.PostponeWaitingRequestCommand;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.query.GetWaitingRequestQuery;
 import table.eat.now.waiting.waiting_request.fixture.GetWaitingRequestInfoFixture;
 import table.eat.now.waiting.waiting_request.presentation.dto.request.CreateWaitingRequestRequest;
 
@@ -33,7 +34,7 @@ import table.eat.now.waiting.waiting_request.presentation.dto.request.CreateWait
 class WaitingRequestApiControllerTest extends ControllerTestSupport {
 
   @MockitoBean
-  private WaitingRequestService waitingRequestService;
+  private UsecaseRouter router;
 
   @DisplayName("대기 요청 생성 검증 - 201 응답")
   @Test
@@ -47,9 +48,9 @@ class WaitingRequestApiControllerTest extends ControllerTestSupport {
         .seatSize(3)
         .build();
     var waitingRequestUuid = UUID.randomUUID().toString();
+    var command = request.toCommand(userInfo);
 
-    given(waitingRequestService.createWaitingRequest(eq(userInfo), eq(request.toCommand())))
-        .willReturn(waitingRequestUuid);
+    given(router.execute(eq(command))).willReturn(waitingRequestUuid);
 
     // when
     ResultActions resultActions = mockMvc.perform(post("/api/v1/waiting-requests")
@@ -73,10 +74,9 @@ class WaitingRequestApiControllerTest extends ControllerTestSupport {
     // given
     var info = GetWaitingRequestInfoFixture.create(
         2, UUID.randomUUID().toString(), UUID.randomUUID().toString(), "WAITING");
+    var query = GetWaitingRequestQuery.of(null, null, info.waitingRequestUuid(), info.phone());
 
-    given(waitingRequestService.getWaitingRequest(
-        any(), eq(info.waitingRequestUuid()), eq(info.phone())))
-        .willReturn(info);
+    given(router.execute(eq(query))).willReturn(info);
 
     // when
     ResultActions resultActions = mockMvc.perform(
@@ -98,9 +98,9 @@ class WaitingRequestApiControllerTest extends ControllerTestSupport {
     // given
     var waitingRequestUuid = UUID.randomUUID().toString();
     var phone = "01000000000";
+    var command = PostponeWaitingRequestCommand.of(null, null, waitingRequestUuid, phone);
 
-    doNothing().when(waitingRequestService)
-        .postponeWaitingRequest(null, waitingRequestUuid, phone);
+    given(router.execute(eq(command))).willReturn(null);
 
     // when
     ResultActions resultActions = mockMvc.perform(
@@ -118,9 +118,9 @@ class WaitingRequestApiControllerTest extends ControllerTestSupport {
     // given
     var waitingRequestUuid = UUID.randomUUID().toString();
     var phone = "01000000000";
+    var command = CancelWaitingRequestCommand.of(null, null, waitingRequestUuid, phone);
 
-    doNothing().when(waitingRequestService)
-        .cancelWaitingRequest(null, waitingRequestUuid, phone);
+    given(router.execute(eq(command))).willReturn(null);
 
     // when
     ResultActions resultActions = mockMvc.perform(

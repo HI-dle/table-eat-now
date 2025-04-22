@@ -32,7 +32,7 @@ public class CurrentUserInfoResolver implements HandlerMethodArgumentResolver {
     if (userId != null && role != null) {
       return CurrentUserInfoDto.of(Long.valueOf(userId), UserRole.valueOf(role));
     }
-    return null;
+    return CurrentUserInfoDto.of(null, null);
   }
 }
 

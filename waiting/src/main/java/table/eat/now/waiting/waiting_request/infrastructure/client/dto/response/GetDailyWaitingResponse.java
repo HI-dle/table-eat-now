@@ -2,7 +2,7 @@ package table.eat.now.waiting.waiting_request.infrastructure.client.dto.response
 
 import java.time.LocalDate;
 import lombok.Builder;
-import table.eat.now.waiting.waiting_request.application.dto.response.GetDailyWaitingInfo;
+import table.eat.now.waiting.waiting_request.application.client.dto.response.GetDailyWaitingInfo;
 
 @Builder
 public record GetDailyWaitingResponse(

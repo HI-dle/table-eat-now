@@ -1,7 +1,7 @@
 package table.eat.now.waiting.waiting_request.presentation.dto.response;
 
 import lombok.Builder;
-import table.eat.now.waiting.waiting_request.application.dto.response.GetWaitingRequestInfo;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.response.GetWaitingRequestInfo;
 
 @Builder
 public record GetWaitingRequestResponse(

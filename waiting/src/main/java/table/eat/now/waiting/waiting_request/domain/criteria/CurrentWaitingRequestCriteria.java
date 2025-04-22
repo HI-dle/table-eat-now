@@ -1,7 +1,7 @@
 package table.eat.now.waiting.waiting_request.domain.criteria;
 
 import lombok.Builder;
-import org.springframework.data.domain.Pageable;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.query.GetCurrentWaitingRequestsAdminQuery;
 
 @Builder
 public record CurrentWaitingRequestCriteria(
@@ -10,11 +10,11 @@ public record CurrentWaitingRequestCriteria(
     String dailyWaitingUuid
 ) {
 
-  public static CurrentWaitingRequestCriteria from(Pageable pageable, String dailyWaitingUuid) {
+  public static CurrentWaitingRequestCriteria from(GetCurrentWaitingRequestsAdminQuery query) {
     return CurrentWaitingRequestCriteria.builder()
-        .page(pageable.getPageNumber())
-        .size(pageable.getPageSize())
-        .dailyWaitingUuid(dailyWaitingUuid)
+        .page(query.page())
+        .size(query.size())
+        .dailyWaitingUuid(query.dailyWaitingUuid())
         .build();
   }
 }

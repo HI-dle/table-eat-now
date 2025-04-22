@@ -7,7 +7,8 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import java.util.UUID;
 import lombok.Builder;
-import table.eat.now.waiting.waiting_request.application.dto.request.CreateWaitingRequestCommand;
+import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.waiting.waiting_request.application.usecase.dto.command.CreateWaitingRequestCommand;
 
 @Builder
 public record CreateWaitingRequestRequest(
@@ -17,8 +18,10 @@ public record CreateWaitingRequestRequest(
     @NotNull @Positive int seatSize
 ) {
 
-  public CreateWaitingRequestCommand toCommand() {
+  public CreateWaitingRequestCommand toCommand(CurrentUserInfoDto userInfo) {
     return CreateWaitingRequestCommand.builder()
+        .userId(userInfo.userId())
+        .userRole(userInfo.role())
         .dailyWaitingUuid(dailyWaitingUuid.toString())
         .phone(phone)
         .slackId(slackId)

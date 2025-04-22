@@ -15,10 +15,10 @@ import org.springframework.test.context.ActiveProfiles;
 public abstract class IntegrationTestSupport {
 
   @Autowired
-  private DatabaseCleanUp databaseCleanUp;
+  RedisTemplate<String, Object> redisTemplate;
 
   @Autowired
-  private RedisTemplate<String, Object> redisTemplate;
+  private DatabaseCleanUp databaseCleanUp;
 
   @AfterEach
   void tearDown() {
