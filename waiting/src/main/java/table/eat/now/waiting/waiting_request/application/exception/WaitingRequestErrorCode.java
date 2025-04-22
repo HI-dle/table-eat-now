@@ -17,7 +17,8 @@ public enum WaitingRequestErrorCode implements ErrorCode {
   UNAUTH_REQUEST(
       "권한이 없는 요청입니다.", HttpStatus.FORBIDDEN),
   UNAVAILABLE_WAITING(
-      "현재 대기가 불가능한 식당입니다.", HttpStatus.UNPROCESSABLE_ENTITY),;
+      "현재 대기가 불가능한 식당입니다.", HttpStatus.UNPROCESSABLE_ENTITY),
+  ;
 
   private final String message;
   private final HttpStatus status;
