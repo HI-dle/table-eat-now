@@ -28,7 +28,7 @@ jobs:
               sed 's|^\./||' | \
               grep -Ev '^(\.git|\.github|gradle|ten-private)$' | \
               jq -R -s -c 'split("\n") | map(select(length > 0))')
-              
+
             echo "modules=$modules" >> "$GITHUB_OUTPUT"
           else
             excluded_dirs="\.github|gradle|ten-private|common"
@@ -72,8 +72,8 @@ jobs:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
-      - name: Build and analyze ${{ matrix.module }}
+      - name: Test and analyze ${{ matrix.module }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # PR 정보를 가져오려면 필요합니다.
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew ${{ matrix.module }}:build ${{ matrix.module }}:sonar --info
+        run: ./gradlew ${{ matrix.module }}:test ${{ matrix.module }}:sonar --info

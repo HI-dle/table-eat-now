@@ -35,4 +35,3 @@ public class CurrentUserInfoResolver implements HandlerMethodArgumentResolver {
     return CurrentUserInfoDto.of(null, null);
   }
 }
-
