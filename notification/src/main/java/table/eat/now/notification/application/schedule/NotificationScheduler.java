@@ -36,28 +36,29 @@ public class NotificationScheduler {
   private final NotificationParamExtractor paramExtractor;
   private final NotificationMetrics metrics;
 
-  @Scheduled(cron = "0 */10 * * * *")
+  @Scheduled(cron = "0 */1 * * * *")
   @Transactional
   public void sendScheduledNotifications() {
-    LocalDateTime now = LocalDateTime.now();
+    metrics.recordSchedulerExecution(() -> {
+      LocalDateTime now = LocalDateTime.now();
 
-    List<Notification> notifications = notificationRepository
+      List<Notification> notifications = notificationRepository
         .findByStatusAndScheduledTimeLessThanEqualAndDeletedByIsNull(
             NotificationStatus.PENDING, now);
 
-    metrics.recordFetchedScheduledCount(notifications.size());
+      metrics.recordFetchedScheduledCount(notifications.size());
 
-    for (Notification notification : notifications) {
-      Timer.Sample sample = metrics.startSendTimer();
-      try {
-        scheduleProcess(notification, sample);
-
-      } catch (Exception e) {
-        log.error("스케줄링 알림 전송 실패: {}", notification.getId(), e);
-        notification.modifyNotificationStatusIsFailed();
-        metrics.incrementSendFail();
+      for (Notification notification : notifications) {
+        Timer.Sample sample = metrics.startSendTimer();
+        try {
+          scheduleProcess(notification, sample);
+        } catch (Exception e) {
+          log.error("스케줄링 알림 전송 실패: {}", notification.getId(), e);
+          notification.modifyNotificationStatusIsFailed();
+          metrics.incrementSendFail();
+        }
       }
-    }
+    });
   }
 
   private void scheduleProcess(Notification notification, Sample sample) {

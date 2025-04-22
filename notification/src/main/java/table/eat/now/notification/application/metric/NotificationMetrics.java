@@ -41,4 +41,12 @@ public class NotificationMetrics {
   public void recordFetchedScheduledCount(int count) {
     registry.counter("notification.scheduled.fetch.count").increment(count);
   }
+
+  public void recordSchedulerExecution(Runnable runnable) {
+    Timer timer = Timer.builder("notification.scheduler.execution.duration")
+        .description("스케줄러 전체 실행 시간")
+        .register(registry);
+    timer.record(runnable);
+  }
+
 }
