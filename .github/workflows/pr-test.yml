@@ -1,8 +1,6 @@
 name: SonarQube
 on:
   pull_request:
-    branches:
-      - develop
     types: [opened, synchronize, reopened]
 jobs:
   detect-changes:
@@ -21,7 +19,7 @@ jobs:
             echo "Initial push or force push. Building all modules."
             changed_files=$(find . -type f)
           else
-            changed_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }}))
+            changed_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
           fi
           changed_modules=$(echo "$changed_files" | cut -d/ -f1 | sort -u)
           
