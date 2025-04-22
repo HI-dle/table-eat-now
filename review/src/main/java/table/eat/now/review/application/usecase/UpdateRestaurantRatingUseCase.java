@@ -130,9 +130,13 @@ public class UpdateRestaurantRatingUseCase {
     private void calculateAndPublishRatings(List<String> restaurantIds) {
       List<RestaurantRatingResult> results =
           reviewRepository.calculateRestaurantRatings(restaurantIds);
+
       if (!results.isEmpty()) {
-        reviewEventPublisher.publish(
-            RestaurantRatingUpdateEvent.of(RestaurantRatingUpdatePayload.from(results)));
+        results.forEach(result -> reviewEventPublisher.publish(
+            RestaurantRatingUpdateEvent.of(
+                RestaurantRatingUpdatePayload.from(result)
+            )
+        ));
         logPublish(results);
       }
     }

@@ -13,12 +13,12 @@ import table.eat.now.review.application.event.ReviewEventPublisher;
 @RequiredArgsConstructor
 public class KafkaReviewProducer implements ReviewEventPublisher {
 
-  private final KafkaTemplate<String, ReviewEvent> kafkaTemplate;
+  private final KafkaTemplate<String, ReviewEvent> batchKafkaTemplate;
   private final String reviewTopic;
 
   @Override
   public void publish(RestaurantRatingUpdateEvent ratingUpdateEvent) {
-    kafkaTemplate.send(reviewTopic, ratingUpdateEvent.eventId() ,ratingUpdateEvent);
+    batchKafkaTemplate.send(reviewTopic, ratingUpdateEvent.restaurantUuid() ,ratingUpdateEvent);
     logEvent(ratingUpdateEvent);
   }
 
