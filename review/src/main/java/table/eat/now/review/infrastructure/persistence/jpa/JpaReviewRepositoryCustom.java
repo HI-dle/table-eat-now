@@ -19,6 +19,4 @@ public interface JpaReviewRepositoryCustom {
 
   List<String> findRecentlyUpdatedRestaurantIds(
       LocalDateTime startTime, LocalDateTime endTime, long offset, int limit);
-
-  long countRecentlyUpdatedRestaurants(LocalDateTime startTime, LocalDateTime endTime);
 }

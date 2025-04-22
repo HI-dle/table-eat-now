@@ -30,4 +30,6 @@ public interface ReviewRepository {
       LocalDateTime startTime, LocalDateTime endTime, long offset, int limit);
 
   long countRecentlyUpdatedRestaurants(LocalDateTime startTime, LocalDateTime endTime);
+
+  <S extends Review> List<S> saveAll(Iterable<S> entities);
 }

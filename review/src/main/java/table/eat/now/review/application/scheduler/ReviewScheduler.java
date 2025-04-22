@@ -17,10 +17,26 @@ public class ReviewScheduler {
   @Scheduled(cron = "${review.rating.update.cron}")
   public void updateRestaurantRatings() {
     try {
+      long startTime = System.nanoTime();
+      logStartBatch();
       updateRestaurantRatingUseCase.execute();
-      log.info("리뷰 평점 일괄 업데이트 작업 종료");
+      long endTime = System.nanoTime();
+      logCompleteBatch(endTime, startTime);
     } catch (Exception e) {
-      log.error("평점 업데이트 작업 중 오류 발생: {}", e.getMessage(), e);
+      logError(e);
     }
+  }
+
+  private static void logCompleteBatch(long endTime, long startTime) {
+    long duration = (endTime - startTime) / 1_000_000;
+    log.info("리뷰 평점 일괄 업데이트 작업 종료. 소요 시간: {}ms ({}초)", duration, duration / 1000.0);
+  }
+
+  private static void logError(Exception e) {
+    log.error("평점 업데이트 작업 중 오류 발생: {}", e.getMessage(), e);
+  }
+
+  private static void logStartBatch() {
+    log.info("리뷰 평점 일괄 업데이트 작업 시작");
   }
 }
