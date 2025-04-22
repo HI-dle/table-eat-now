@@ -65,3 +65,5 @@ management:
   zipkin:
     tracing:
       endpoint: http://localhost:9411/api/v2/spans
+
+redis-key: notification:delay-queue

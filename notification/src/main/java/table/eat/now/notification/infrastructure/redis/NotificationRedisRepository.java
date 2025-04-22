@@ -9,6 +9,6 @@ import java.util.List;
  */
 public interface NotificationRedisRepository {
 
-  void addToDelayQueue(Long notificationId, LocalDateTime scheduledTime);
-  List<Long> popDueNotifications(int maxCount);
+  void addToDelayQueue(String notificationUuId, LocalDateTime scheduledTime);
+  List<String> popDueNotifications(int maxCount);
 }

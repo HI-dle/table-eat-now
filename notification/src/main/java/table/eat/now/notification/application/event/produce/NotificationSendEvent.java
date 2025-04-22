@@ -1,4 +1,4 @@
-package table.eat.now.notification.application.event.dto;
+package table.eat.now.notification.application.event.produce;
 
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.notification.application.event.EventType;

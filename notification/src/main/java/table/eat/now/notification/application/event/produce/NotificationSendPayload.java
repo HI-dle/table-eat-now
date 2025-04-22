@@ -1,4 +1,4 @@
-package table.eat.now.notification.application.event.dto;
+package table.eat.now.notification.application.event.produce;
 
 import java.time.LocalDateTime;
 

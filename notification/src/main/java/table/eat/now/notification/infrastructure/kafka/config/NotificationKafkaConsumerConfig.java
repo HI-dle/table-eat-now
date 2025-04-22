@@ -16,7 +16,8 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import table.eat.now.notification.application.event.EventType;
-import table.eat.now.notification.application.event.dto.NotificationSendEvent;
+import table.eat.now.notification.application.event.produce.NotificationScheduleSendEvent;
+import table.eat.now.notification.application.event.produce.NotificationSendEvent;
 
 @EnableKafka
 @Configuration
@@ -76,13 +77,25 @@ public class NotificationKafkaConsumerConfig {
   }
   //NotificationSendEvent 컨슈머 팩토리
   @Bean
-  public ConsumerFactory<String, NotificationSendEvent> successEventConsumerFactory() {
+  public ConsumerFactory<String, NotificationSendEvent> sendEventConsumerFactory() {
     return createConsumerFactory(NotificationSendEvent.class, "Notification-send-consumer");
   }
 
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, NotificationSendEvent>
   sendNotificationEventKafkaListenerContainerFactory() {
-    return createContainerFactory(successEventConsumerFactory(), EventType.SEND.name());
+    return createContainerFactory(sendEventConsumerFactory(), EventType.SEND.name());
+  }
+
+  //NotificationScheduleSendEvent 컨슈머 팩토리
+  @Bean
+  public ConsumerFactory<String, NotificationScheduleSendEvent> scheduleSendEventConsumerFactory() {
+    return createConsumerFactory(NotificationScheduleSendEvent.class, "Notification-send-consumer");
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, NotificationScheduleSendEvent>
+  ScheduleSendNotificationEventKafkaListenerContainerFactory() {
+    return createContainerFactory(scheduleSendEventConsumerFactory(), EventType.Schedule_SEND.name());
   }
 }

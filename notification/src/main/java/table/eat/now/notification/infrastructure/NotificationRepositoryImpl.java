@@ -46,4 +46,19 @@ public class NotificationRepositoryImpl implements NotificationRepository {
       NotificationStatus status, LocalDateTime localDateTime) {
     return null;
   }
+
+  @Override
+  public void addToDelayQueue(String notificationUuId, LocalDateTime scheduledTime) {
+    notificationRedisRepository.addToDelayQueue(notificationUuId, scheduledTime);
+  }
+
+  @Override
+  public List<String> popDueNotifications(int maxCount) {
+    return notificationRedisRepository.popDueNotifications(maxCount);
+  }
+
+  @Override
+  public List<Notification> findByNotificationUuidIn(List<String> notificationIds) {
+    return jpaNotificationRepository.findByNotificationUuidIn(notificationIds);
+  }
 }

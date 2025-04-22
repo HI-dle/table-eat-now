@@ -17,7 +17,8 @@ import table.eat.now.notification.application.dto.response.CreateNotificationInf
 import table.eat.now.notification.application.dto.response.GetNotificationInfo;
 import table.eat.now.notification.application.dto.response.NotificationSearchInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
-import table.eat.now.notification.application.event.dto.NotificationSendEvent;
+import table.eat.now.notification.application.event.produce.NotificationScheduleSendEvent;
+import table.eat.now.notification.application.event.produce.NotificationSendEvent;
 import table.eat.now.notification.application.exception.NotificationErrorCode;
 import table.eat.now.notification.application.metric.NotificationMetrics;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategy;
@@ -123,7 +124,7 @@ public class NotificationServiceImpl implements NotificationService{
     }
   }
 
-  //일부러 리팩토링할 생각하고 엄청 단순히 짰습니다..!
+
   @Override
   @Transactional
   public void consumerNotification(NotificationSendEvent notificationSendEvent) {
@@ -156,6 +157,25 @@ public class NotificationServiceImpl implements NotificationService{
 
       notification.modifyNotificationStatusIsSent();
     }
+  }
+
+  @Override
+  public void consumerScheduleSendNotification(NotificationScheduleSendEvent event) {
+    NotificationFormatterStrategy strategy =
+        formatterSelector.select(NotificationType.valueOf(event.payload().notificationType()));
+
+    Map<String, String> params = paramExtractor.extractEvent(event);
+
+    NotificationTemplate formattedMessage = strategy.format(params);
+
+    NotificationSenderStrategy senderStrategy = sendSelector.select(
+        NotificationMethod.valueOf(event.payload().notificationMethod()));
+
+    senderStrategy.send(event.payload().userId(), formattedMessage);
+
+    Notification notification = findByNotification(event.payload().notificationUuid());
+
+    notification.modifyNotificationStatusIsSent();
   }
 
   private void hasScheduleTimeToSaveNotification(NotificationSendEvent notificationSendEvent) {

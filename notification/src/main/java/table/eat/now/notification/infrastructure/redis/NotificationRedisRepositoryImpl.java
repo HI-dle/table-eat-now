@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Repository;
@@ -19,34 +20,47 @@ import org.springframework.stereotype.Repository;
 public class NotificationRedisRepositoryImpl implements NotificationRedisRepository{
 
   private final RedisTemplate<String, String> redisTemplate;
-  private static final String DELAY_QUEUE_KEY = "notification:delay-queue";
 
-  private static final DefaultRedisScript<List> POP_DUE_SCRIPT = new DefaultRedisScript<>();
+  private final DefaultRedisScript<List> popDueScript;
 
-  static {
-    POP_DUE_SCRIPT.setScriptText(
-        "local results = redis.call('ZRANGEBYSCORE', KEYS[1], 0, ARGV[1], 'LIMIT', 0, ARGV[2]) " +
-            "for i, v in ipairs(results) do redis.call('ZREM', KEYS[1], v) end " +
-            "return results"
-    );
-    POP_DUE_SCRIPT.setResultType(List.class);
-  }
+  @Value("${redis-key}")
+  private String delayQueue;
+
+
   @Override
-  public void addToDelayQueue(Long notificationId, LocalDateTime scheduledTime) {
+  public void addToDelayQueue(String notificationUuId, LocalDateTime scheduledTime) {
     long score = scheduledTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-    redisTemplate.opsForZSet().add(DELAY_QUEUE_KEY, String.valueOf(notificationId), score);
+    redisTemplate.opsForZSet().add(delayQueue, notificationUuId, score);
   }
 
+
   @Override
-  public List<Long> popDueNotifications(int maxCount) {
+  public List<String> popDueNotifications(int maxCount) {
     long now = System.currentTimeMillis();
+    // 스크립트를 실행하고 결과를 String 리스트로 받음
     List<String> result = redisTemplate.execute(
-        POP_DUE_SCRIPT,
-        List.of(DELAY_QUEUE_KEY),
+        popDueScript,
+        List.of(delayQueue),
         String.valueOf(now), String.valueOf(maxCount)
     );
 
-    if (result == null) return List.of();
-    return result.stream().map(Long::valueOf).toList();
+    return validResult(result); // String 리스트를 그대로 반환
   }
+
+  private static List<String> validResult(List<String> result) {
+    // 결과가 null 이거나 빈 리스트일 경우, 빈 리스트를 반환
+    if (result == null || result.isEmpty()) {
+      log.info("처리한 알림이 없거나 스크립트에 문제가 생겼습니다.");
+      return List.of();
+    }
+
+    try {
+      // 정상적으로 결과를 String 리스트로 반환
+      return result;
+    } catch (Exception e) {
+      log.error("처리 중 오류 발생 {}", result, e);
+      return List.of();
+    }
+  }
+
 }
