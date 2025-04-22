@@ -1,8 +1,5 @@
 name: SonarQube
 on:
-  push:
-    branches:
-      - feat/#185
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
@@ -16,14 +13,13 @@ jobs:
           fetch-depth: 0
       - name: Detect changed modules
         id: set-modules
-        # ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
         run: |
           git fetch origin develop
-          if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+          if [ "${{ github.event.pull_request.base.sha }}" = "0000000000000000000000000000000000000000" ]; then
             echo "Initial push or force push. Building all modules."
             changed_files=$(find . -type f)
           else
-            changed_files=$(git diff --name-only origin/develop...HEAD)
+            changed_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }}))
           fi
           changed_modules=$(echo "$changed_files" | cut -d/ -f1 | sort -u)
           
