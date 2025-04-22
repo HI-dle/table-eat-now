@@ -63,7 +63,7 @@ class GetWaitingRequestUsecaseTest extends IntegrationTestSupport {
         TimeProvider.currentTimeMillis());
 
     GetRestaurantInfo restaurantInfo = GetRestaurantInfo.builder()
-        .restaurantUuid(UUID.randomUUID().toString())
+        .restaurantUuid(waitingRequest.getRestaurantUuid())
         .ownerId(3L)
         .staffId(4L)
         .build();
@@ -92,6 +92,7 @@ class GetWaitingRequestUsecaseTest extends IntegrationTestSupport {
     assertThat(info.restaurantUuid()).isEqualTo(waitingRequest.getRestaurantUuid());
     assertThat(info.rank()).isEqualTo(0);
     assertThat(info.restaurantName()).isEqualTo(dailyWaitingInfo.restaurantName());
-    assertThat(info.estimatedWaitingMin()).isEqualTo((info.rank() + 1L) * dailyWaitingInfo.avgWaitingSec() / 60L);
+    Long expectedWaitingMin = (info.rank() + 1L) * dailyWaitingInfo.avgWaitingSec() / 60L;
+    assertThat(info.estimatedWaitingMin()).isEqualTo(expectedWaitingMin);
   }
 }

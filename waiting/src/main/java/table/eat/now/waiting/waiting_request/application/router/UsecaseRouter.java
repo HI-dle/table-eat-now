@@ -28,10 +28,18 @@ public class UsecaseRouter {
   }
 
   public <C extends Command, R> R execute(C command) {
-    return ((CommandUsecase<C, R>) commandHandlers.get(command.getClass())).execute(command);
+    CommandUsecase<C, R> handler = (CommandUsecase<C, R>) commandHandlers.get(command.getClass());
+    if (handler == null) {
+      throw new IllegalArgumentException("해당하는 Command 핸들러를 찾을 수 없습니다: " + command.getClass().getName());
+    }
+    return handler.execute(command);
   }
 
   public <Q extends Query, R> R execute(Q query) {
-    return ((QueryUsecase<Q, R>) queryHandlers.get(query.getClass())).execute(query);
+    QueryUsecase<Q, R> handler = (QueryUsecase<Q, R>) queryHandlers.get(query.getClass());
+    if (handler == null) {
+      throw new IllegalArgumentException("해당하는 Query 핸들러를 찾을 수 없습니다: " + query.getClass().getName());
+    }
+    return handler.execute(query);
   }
 }

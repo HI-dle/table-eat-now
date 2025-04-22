@@ -50,7 +50,7 @@ public class CreateWaitingRequestUsecase implements CommandUsecase<CreateWaiting
 
     store.enqueueWaitingRequest(command.dailyWaitingUuid(), waitingRequestUuid);
     Long rank = reader.getRank(command.dailyWaitingUuid(), waitingRequestUuid);
-    Long estimatedWaitingMin = domainService.calculateEstimatedWaitingMin(dailyWaitingInfo.avgWaitingSec(), rank);;
+    Long estimatedWaitingMin = domainService.calculateEstimatedWaitingMin(dailyWaitingInfo.avgWaitingSec(), rank);
 
     notifyHandler.notifyCreated(
         command, waitingRequestUuid, dailyWaitingInfo.restaurantName(),

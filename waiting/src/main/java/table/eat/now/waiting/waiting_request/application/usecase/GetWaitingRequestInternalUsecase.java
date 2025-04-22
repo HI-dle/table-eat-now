@@ -15,7 +15,7 @@ import table.eat.now.waiting.waiting_request.domain.service.WaitingRequestDomain
 
 @RequiredArgsConstructor
 @Service
-public class GetWaitingRequestInternalUsecase implements QueryUsecase<GetWaitingRequestInternalQuery, GetWaitingRequestInfo>{
+public class GetWaitingRequestInternalUsecase implements QueryUsecase<GetWaitingRequestInternalQuery, GetWaitingRequestInfo> {
 
   private final WaitingClient waitingClient;
   private final WaitingRequestDomainService domainService;

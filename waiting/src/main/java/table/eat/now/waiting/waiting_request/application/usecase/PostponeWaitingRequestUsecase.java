@@ -45,7 +45,7 @@ public class PostponeWaitingRequestUsecase implements CommandUsecase<PostponeWai
         waitingRequest.getDailyWaitingUuid());
     store.enqueueWaitingRequest(waitingRequest.getDailyWaitingUuid(), command.waitingRequestUuid());
     Long rank = reader.getRank(waitingRequest.getDailyWaitingUuid(), command.waitingRequestUuid());
-    Long estimatedWaitingMin = domainService.calculateEstimatedWaitingMin(dailyWaitingInfo.avgWaitingSec(), rank);;
+    Long estimatedWaitingMin = domainService.calculateEstimatedWaitingMin(dailyWaitingInfo.avgWaitingSec(), rank);
 
     notifyHandler.notifyPostponed(
         waitingRequest, dailyWaitingInfo.restaurantName(), rank, estimatedWaitingMin);

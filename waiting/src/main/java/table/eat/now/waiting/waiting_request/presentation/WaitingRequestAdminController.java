@@ -68,9 +68,8 @@ public class WaitingRequestAdminController {
       @PageableDefault Pageable pageable
   ) {
 
-    GetCurrentWaitingRequestsAdminQuery query = GetCurrentWaitingRequestsAdminQuery.of(
-        userInfo.userId(), userInfo.role(), dailyWaitingUuid.toString(),
-        pageable.getPageNumber(), pageable.getPageSize(), pageable.getOffset());
+    GetCurrentWaitingRequestsAdminQuery query = getGetCurrentWaitingRequestsAdminQuery(
+        userInfo, dailyWaitingUuid, pageable);
     PageResult<GetWaitingRequestInfo> info = router.execute(query);
     return ResponseEntity.ok().body(GetWaitingRequestsResponse.from(info));
   }
@@ -87,5 +86,13 @@ public class WaitingRequestAdminController {
         userInfo.userId(), userInfo.role(), waitingRequestUuid.toString(), type);
     router.execute(command);
     return ResponseEntity.ok().build();
+  }
+
+  private GetCurrentWaitingRequestsAdminQuery getGetCurrentWaitingRequestsAdminQuery(
+      CurrentUserInfoDto userInfo, UUID dailyWaitingUuid, Pageable pageable) {
+
+    return GetCurrentWaitingRequestsAdminQuery.of(
+        userInfo.userId(), userInfo.role(), dailyWaitingUuid.toString(),
+        pageable.getPageNumber(), pageable.getPageSize(), pageable.getOffset());
   }
 }

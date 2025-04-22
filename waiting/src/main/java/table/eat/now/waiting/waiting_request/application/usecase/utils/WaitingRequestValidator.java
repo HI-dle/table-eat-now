@@ -55,7 +55,7 @@ public class WaitingRequestValidator {
     return userRole.isStaff() && staffId.equals(userId);
   }
 
-  private static boolean isOwnerOfRestaurant(Long userId, UserRole userRole,  Long ownerId) {
+  private static boolean isOwnerOfRestaurant(Long userId, UserRole userRole, Long ownerId) {
     return userRole.isOwner() && ownerId.equals(userId);
   }
 }
