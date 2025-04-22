@@ -13,6 +13,7 @@ import table.eat.now.reservation.reservation.application.service.dto.response.Ge
 public record GetReservationResponse(
     String reservationUuid,
     String name,
+    Long reserverId,
     String reserverName,
     String reserverContact,
     int guestCount,
@@ -33,6 +34,7 @@ public record GetReservationResponse(
     return new GetReservationResponse(
         info.reservationUuid(),
         info.name(),
+        info.reserverId(),
         info.reserverName(),
         info.reserverContact(),
         info.guestCount(),

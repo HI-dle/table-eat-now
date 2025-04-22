@@ -19,10 +19,12 @@ import table.eat.now.common.resolver.CustomPageableArgumentResolver;
 import table.eat.now.reservation.reservation.application.service.ReservationService;
 import table.eat.now.reservation.reservation.presentation.ReservationAdminController;
 import table.eat.now.reservation.reservation.presentation.ReservationApiController;
+import table.eat.now.reservation.reservation.presentation.ReservationInternalController;
 
 @WebMvcTest(controllers = {
     ReservationApiController.class,
-    ReservationAdminController.class
+    ReservationAdminController.class,
+    ReservationInternalController.class
 })
 @Import({
     WebConfig.class,

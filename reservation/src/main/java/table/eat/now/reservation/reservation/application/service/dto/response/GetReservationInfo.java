@@ -16,6 +16,7 @@ import table.eat.now.reservation.reservation.domain.entity.ReservationPaymentDet
 public record GetReservationInfo(
     String reservationUuid,
     String name,
+    Long reserverId,
     String reserverName,
     String reserverContact,
     int guestCount,
@@ -37,6 +38,7 @@ public record GetReservationInfo(
     return new GetReservationInfo(
         reservation.getReservationUuid(),
         reservation.getName(),
+        reservation.getReserverId(),
         reservation.getGuestInfo().getReserverName(),
         reservation.getGuestInfo().getReserverContact(),
         reservation.getGuestInfo().getGuestCount(),
