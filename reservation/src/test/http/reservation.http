@@ -1,5 +1,5 @@
 ### 에약 생성(아직 테스트 안됨)
-POST http://localhost:8083/api/v1/reservations
+POST {{reservationUrl}}/api/v1/reservations
 Content-Type: application/json
 X-User-Id: 1
 X-User-Role: CUSTOMER
@@ -43,7 +43,7 @@ X-User-Role: CUSTOMER
 }
 
 ### 예약 취소
-PATCH http://localhost:8083/api/v1/reservations/00000000-0000-0000-0000-000000000000/cancel
+PATCH {{reservationUrl}}/api/v1/reservations/{{reservationUuid}}/cancel
 Content-Type: application/json
 X-User-Id: 1
 X-User-Role: CUSTOMER
