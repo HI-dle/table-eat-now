@@ -98,8 +98,10 @@ public class ReservationServiceImpl implements ReservationService {
     String reservationUuid = UUID.randomUUID().toString();
 
     // 쿠폰 선점 처리
-    couponClient.preemptCoupon(
-        PreemptCouponCommand.from(reservationUuid, couponUuids.stream().toList()));
+    if (!couponUuids.isEmpty()) {
+      couponClient.preemptCoupon(
+          PreemptCouponCommand.from(reservationUuid, couponUuids.stream().toList()));
+    }
 
     // 식당 현재 예약 인원 수정
     restaurantClient.modifyRestaurantCurTotalGuestCount(
