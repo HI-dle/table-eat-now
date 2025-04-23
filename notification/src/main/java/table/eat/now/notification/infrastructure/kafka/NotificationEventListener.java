@@ -25,9 +25,9 @@ public class NotificationEventListener {
 
   @KafkaListener(
       topics = "notification-event",
-      containerFactory = "ScheduleSendNotificationEventKafkaListenerContainerFactory"
+      containerFactory = "scheduleSendNotificationEventKafkaListenerContainerFactory"
   )
-  public void handleNotificationSend(NotificationScheduleSendEvent event) {
+  public void handleNotificationScheduleSend(NotificationScheduleSendEvent event) {
     notificationService.consumerScheduleSendNotification(event);
   }
 }

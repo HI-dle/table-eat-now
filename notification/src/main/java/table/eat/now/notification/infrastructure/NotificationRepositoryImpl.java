@@ -44,12 +44,14 @@ public class NotificationRepositoryImpl implements NotificationRepository {
   @Override
   public List<Notification> findByStatusAndScheduledTimeLessThanEqualAndDeletedByIsNull(
       NotificationStatus status, LocalDateTime localDateTime) {
-    return null;
+    return jpaNotificationRepository.findByStatusAndScheduledTimeLessThanEqualAndDeletedByIsNull(
+        status, localDateTime
+    );
   }
 
   @Override
-  public void addToDelayQueue(String notificationUuId, LocalDateTime scheduledTime) {
-    notificationRedisRepository.addToDelayQueue(notificationUuId, scheduledTime);
+  public void addToDelayQueue(String notificationUuid, LocalDateTime scheduledTime) {
+    notificationRedisRepository.addToDelayQueue(notificationUuid, scheduledTime);
   }
 
   @Override

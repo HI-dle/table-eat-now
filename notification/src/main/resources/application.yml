@@ -66,7 +66,8 @@ management:
     tracing:
       endpoint: http://localhost:9411/api/v2/spans
 
-redis-key: notification:delay-queue
+notification:
+  delay-queue-key: notification:delay-queue
 
 scheduler:
   max-dispatch-count: 1000

@@ -17,7 +17,7 @@ public record NotificationScheduleSendEvent(
 
   public static NotificationScheduleSendEvent from(Notification notification) {
     return NotificationScheduleSendEvent.builder()
-        .eventType(EventType.Schedule_SEND)
+        .eventType(EventType.SCHEDULE_SEND)
         .payload(NotificationScheduleSendPayload.from(notification))
         .build();
   }

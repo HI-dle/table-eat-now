@@ -95,7 +95,7 @@ public class NotificationKafkaConsumerConfig {
 
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, NotificationScheduleSendEvent>
-  ScheduleSendNotificationEventKafkaListenerContainerFactory() {
-    return createContainerFactory(scheduleSendEventConsumerFactory(), EventType.Schedule_SEND.name());
+  scheduleSendNotificationEventKafkaListenerContainerFactory() {
+    return createContainerFactory(scheduleSendEventConsumerFactory(), EventType.SCHEDULE_SEND.name());
   }
 }

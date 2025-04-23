@@ -1127,7 +1127,7 @@ class NotificationServiceImplTest {
         .build();
 
     NotificationScheduleSendEvent event = NotificationScheduleSendEvent.builder()
-        .eventType(EventType.Schedule_SEND)
+        .eventType(EventType.SCHEDULE_SEND)
         .payload(payload)
         .build();
 
@@ -1184,7 +1184,7 @@ class NotificationServiceImplTest {
         .build();
 
     NotificationScheduleSendEvent event = NotificationScheduleSendEvent.builder()
-        .eventType(EventType.Schedule_SEND)
+        .eventType(EventType.SCHEDULE_SEND)
         .payload(payload)
         .build();
 

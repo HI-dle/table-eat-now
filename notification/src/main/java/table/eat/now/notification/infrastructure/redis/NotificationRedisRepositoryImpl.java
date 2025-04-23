@@ -23,7 +23,7 @@ public class NotificationRedisRepositoryImpl implements NotificationRedisReposit
 
   private final DefaultRedisScript<List> popDueScript;
 
-  @Value("${redis-key}")
+  @Value("${notification.delay-queue-key}")
   private String delayQueue;
 
 
@@ -54,13 +54,7 @@ public class NotificationRedisRepositoryImpl implements NotificationRedisReposit
       return List.of();
     }
 
-    try {
-      // 정상적으로 결과를 String 리스트로 반환
-      return result;
-    } catch (Exception e) {
-      log.error("처리 중 오류 발생 {}", result, e);
-      return List.of();
-    }
+    return result;
   }
 
 }

@@ -195,6 +195,7 @@ public class NotificationServiceImpl implements NotificationService{
 
     } catch (Exception e) {
       log.error("알림 발송 실패: {}", event.payload().notificationUuid(), e);
+      metrics.recordSendLatency(sample, "scheduled");
       metrics.incrementSendFail();
     }
   }

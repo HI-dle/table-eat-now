@@ -1,6 +1,5 @@
 package table.eat.now.notification.application.schedule;
 
-import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +29,6 @@ public class NotificationDelayQueueScheduler {
   private int maxDispatchCount;
 
   @Scheduled(fixedDelay = 1000)
-  @Transactional
   public void pollAndDispatch() {
     List<String> notificationIds = notificationRepository.popDueNotifications(maxDispatchCount);
 
