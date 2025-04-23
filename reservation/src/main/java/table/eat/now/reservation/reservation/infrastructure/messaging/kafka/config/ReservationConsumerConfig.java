@@ -152,6 +152,6 @@ public class ReservationConsumerConfig {
   public static class ListenerContainerFactoryName {
 
     public static final String RESERVATION_PAYMENT_SUCCEED_EVENT = "reservationPaymentSucceedEventKafkaListenerContainerFactory";
-    public static final String RESERVATION_PAYMENT_SUCCEED_EVENT_DLT = "reservationPaymentSucceedEventKafkaListenerContainerFactory";
+    public static final String RESERVATION_PAYMENT_SUCCEED_EVENT_DLT = "reservationPaymentSucceedEventDltKafkaListenerContainerFactory";
   }
 }
