@@ -14,8 +14,8 @@ public class PaymentKafkaTopicConfig {
   public NewTopic createTopic() {
     return TopicBuilder.name(PAYMENT_TOPIC_NAME)
         .partitions(3)
-        .replicas(3)
-        .config("min.insync.replicas", "2")
+        .replicas(1)
+        .config("min.insync.replicas", "1")
         .build();
   }
 

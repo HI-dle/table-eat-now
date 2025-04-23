@@ -12,13 +12,13 @@ kafka:
       # 처리량 확장을 위한 파티션 수
       partitions: 3
       # 고가용성을 위한 복제본 수
-      replicas: 3
+      replicas: 1
       # 데이터 손실 방지를 위한 최소 동기화 복제본 수
-      min-insync-replicas: 2
+      min-insync-replicas: 1
     reservation-dlt:
       partitions: 3
-      replicas: 3
-      min-insync-replicas: 2
+      replicas: 1
+      min-insync-replicas: 1
 
 ---
 spring:
@@ -33,12 +33,12 @@ kafka:
   topic:
     reservation:
       partitions: 3
-      replicas: 3
-      min-insync-replicas: 2
+      replicas: 1
+      min-insync-replicas: 1
     reservation-dlt:
       partitions: 3
-      replicas: 3
-      min-insync-replicas: 2
+      replicas: 1
+      min-insync-replicas: 1
 
 ---
 spring:
@@ -53,9 +53,9 @@ kafka:
   topic:
     reservation:
       partitions: 3
-      replicas: 3
-      min-insync-replicas: 2
+      replicas: 1
+      min-insync-replicas: 1
     reservation-dlt:
       partitions: 3
-      replicas: 3
-      min-insync-replicas: 2
+      replicas: 1
+      min-insync-replicas: 1

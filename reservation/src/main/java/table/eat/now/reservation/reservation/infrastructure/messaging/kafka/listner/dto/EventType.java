@@ -6,6 +6,8 @@ package table.eat.now.reservation.reservation.infrastructure.messaging.kafka.lis
 
 public enum EventType {
   RESERVATION_PAYMENT_SUCCEED,
+
   RESERVATION_PAYMENT_FAILED,
+  RESERVATION_PAYMENT_CANCEL_SUCCEED
   ;
 }

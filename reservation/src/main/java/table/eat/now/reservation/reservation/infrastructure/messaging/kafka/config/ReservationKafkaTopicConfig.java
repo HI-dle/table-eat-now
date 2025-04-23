@@ -15,9 +15,9 @@ public class ReservationKafkaTopicConfig {
 
   @Value("${kafka.topic.reservation.partitions:3}")
   private int partitions;
-  @Value("${kafka.topic.reservation.replicas:3}")
+  @Value("${kafka.topic.reservation.replicas:1}")
   private int replicas;
-  @Value("${kafka.topic.reservation.min-insync-replicas:2}")
+  @Value("${kafka.topic.reservation.min-insync-replicas:1}")
   private String reservationMinInsyncReplicas;
 
   @Value("${kafka.topic.reservation-dlt.partitions:3}")
