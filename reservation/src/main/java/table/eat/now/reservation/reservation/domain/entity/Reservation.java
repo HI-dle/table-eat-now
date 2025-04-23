@@ -104,7 +104,7 @@ public class Reservation extends BaseEntity {
       String restaurantTimeSlotUuid,
       LocalDate reservationDate,
       LocalTime reservationTimeslot,
-      String restaurantId,
+      String restaurantUuid,
       String restaurantAddress,
       LocalTime restaurantClosingTime,
       Long ownerId,
@@ -128,7 +128,7 @@ public class Reservation extends BaseEntity {
     this.restaurantTimeSlotUuid = restaurantTimeSlotUuid;
     this.restaurantTimeSlotDetails =
         RestaurantTimeSlotDetails.of(reservationDate, reservationTimeslot);
-    this.restaurantUuid = restaurantId;
+    this.restaurantUuid = restaurantUuid;
     this.restaurantDetails =
         RestaurantDetails.of(
             restaurantName,
