@@ -25,4 +25,5 @@ public interface UserCouponRepository {
   <S extends UserCoupon> List<S> saveAll(Iterable<S> userCoupons);
 
   List<UserCoupon> findByReservationUuid(String reservationUuid);
+
 }

@@ -24,7 +24,7 @@ import table.eat.now.coupon.user_coupon.domain.exception.UserCouponException;
 public class UserCoupon extends BaseEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
   private Long id;
 
   @Column(nullable = false, length = 100)
