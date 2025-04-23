@@ -27,7 +27,7 @@ public class ReservationKafkaListener {
       topics = TopicName.PAYMENT_EVENT,
       containerFactory = ListenerContainerFactoryName.RESERVATION_PAYMENT_SUCCEED_EVENT
   )
-  public void listenReservationCanceledEvent(
+  public void listenReservationPaymentSucceedEvent(
       ConsumerRecord<String, ReservationPaymentSucceedEvent> record, Acknowledgment ack) {
     log.info("예약 결제 성공 이벤트 처리: {}", record);
     try {
