@@ -62,6 +62,8 @@ dependencies {
 	//KAFKA
 	implementation 'org.springframework.kafka:spring-kafka'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
+	//REDISSON
+	implementation 'org.redisson:redisson:3.45.0'
 }
 
 def querydslSrcDir = 'src/main/generated'
