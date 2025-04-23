@@ -45,7 +45,7 @@ public record CreateReservationCommand(
         .restaurantTimeSlotUuid(restaurantTimeslotUuid)
         .reservationDate(restaurantTimeSlotDetails.availableDate())
         .reservationTimeslot(restaurantTimeSlotDetails.timeslot())
-        .restaurantId(restaurantUuid)
+        .restaurantUuid(restaurantUuid)
         .restaurantName(restaurantDetails.name())
         .restaurantAddress(restaurantDetails.address())
         .ownerId(ownerId)

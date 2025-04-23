@@ -75,7 +75,7 @@ public class ReservationFixture {
       String restaurantTimeSlotUuid,
       LocalDate reservationDate,
       LocalTime reservationTimeslot,
-      String restaurantId,
+      String restaurantUuid,
       String restaurantAddress,
       LocalTime restaurantClosingTime,
       Long ownerId,
@@ -101,7 +101,7 @@ public class ReservationFixture {
         .restaurantTimeSlotUuid(restaurantTimeSlotUuid)
         .reservationDate(reservationDate)
         .reservationTimeslot(reservationTimeslot)
-        .restaurantId(restaurantId)
+        .restaurantUuid(restaurantUuid)
         .restaurantName(restaurantName)
         .restaurantAddress(restaurantAddress)
         .restaurantContactNumber(restaurantContactNumber)
