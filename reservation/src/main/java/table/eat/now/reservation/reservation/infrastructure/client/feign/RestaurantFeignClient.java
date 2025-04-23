@@ -19,7 +19,7 @@ public interface RestaurantFeignClient {
   @GetMapping("/internal/v1/restaurants/{restaurantUuid}")
   ResponseEntity<GetRestaurantResponse> getRestaurant(@PathVariable String restaurantUuid);
 
-  @PatchMapping("/internal/v1/restaurant/{restaurantUuid}/timeslot/{restaurantTimeSlotUuid}/cur-total-guest-count")
+  @PatchMapping("/internal/v1/restaurants/{restaurantUuid}/timeslot/{restaurantTimeSlotUuid}/cur-total-guest-count")
   ResponseEntity<ModifyRestaurantCurTotalGuestCountResponse> modifyRestaurantCurTotalGuestCount(
       @RequestBody int delta, @PathVariable String restaurantTimeSlotUuid,
       @PathVariable String restaurantUuid);
