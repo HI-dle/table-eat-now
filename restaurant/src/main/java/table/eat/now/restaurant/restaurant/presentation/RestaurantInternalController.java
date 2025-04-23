@@ -9,8 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
@@ -41,7 +41,7 @@ public class RestaurantInternalController {
   public ResponseEntity<Void> modifyGuestCount(
       @PathVariable String restaurantUuid,
       @PathVariable String restaurantTimeSlotUuid,
-      @RequestParam int delta
+      @RequestBody int delta
   ) {
     restaurantService.increaseOrDecreaseTimeSlotGuestCount(restaurantTimeSlotUuid, delta);
     return ResponseEntity.ok().build();
