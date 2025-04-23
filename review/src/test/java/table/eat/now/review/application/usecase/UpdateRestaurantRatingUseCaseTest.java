@@ -167,7 +167,7 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
 
       doThrow(new RuntimeException("테스트 예외"))
           .when(reviewEventPublisher).publish(any(RestaurantRatingUpdateEvent.class));
-      when(reviewRepository.calculateRestaurantRatings(eq(batch2)))
+      when(reviewRepository.calculateRestaurantRatings(batch2))
           .thenReturn(result2);
 
       // when
@@ -219,9 +219,9 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
           any(LocalDateTime.class), any(LocalDateTime.class), eq(5L), eq(batchSize)))
           .thenReturn(Collections.emptyList());
 
-      when(reviewRepository.calculateRestaurantRatings(eq(Arrays.asList("1", "2", "3"))))
+      when(reviewRepository.calculateRestaurantRatings(Arrays.asList("1", "2", "3")))
           .thenReturn(result1);
-      when(reviewRepository.calculateRestaurantRatings(eq(Collections.singletonList("4"))))
+      when(reviewRepository.calculateRestaurantRatings(Collections.singletonList("4")))
           .thenReturn(result2);
 
       // when
@@ -235,8 +235,8 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
           .findRecentlyUpdatedRestaurantIds(
               any(LocalDateTime.class), any(LocalDateTime.class), anyLong(), eq(batchSize));
 
-      verify(reviewRepository).calculateRestaurantRatings(eq(Arrays.asList("1", "2", "3")));
-      verify(reviewRepository).calculateRestaurantRatings(eq(Collections.singletonList("4")));
+      verify(reviewRepository).calculateRestaurantRatings(Arrays.asList("1", "2", "3"));
+      verify(reviewRepository).calculateRestaurantRatings(Collections.singletonList("4"));
       verify(reviewRepository, times(2)).calculateRestaurantRatings(anyList());
 
       verify(reviewEventPublisher, times(4))

@@ -12,13 +12,12 @@ public class RedisTestContainerExtension implements BeforeAllCallback {
 
   @Override
   public void beforeAll(ExtensionContext context) {
-    GenericContainer<?> REDIS_CONTAINER =
-        new GenericContainer<>(DockerImageName.parse(REDIS_IMAGE))
-            .withExposedPorts(REDIS_PORT);
-    //.withCommand("redis-server --requirepass systempass");
-    REDIS_CONTAINER.start();
+    GenericContainer<?> redisContainer =
+        new GenericContainer<>(DockerImageName.parse(REDIS_IMAGE)).withExposedPorts(REDIS_PORT);
 
-    System.setProperty("spring.data.redis.host", REDIS_CONTAINER.getHost());
-    System.setProperty("spring.data.redis.port", REDIS_CONTAINER.getMappedPort(6379).toString());
+    redisContainer.start();
+
+    System.setProperty("spring.data.redis.host", redisContainer.getHost());
+    System.setProperty("spring.data.redis.port", redisContainer.getMappedPort(6379).toString());
   }
 }
