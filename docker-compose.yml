@@ -80,8 +80,9 @@ services:
       KAFKA_LISTENERS: INSIDE://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: false
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ./kafka_data:/var/lib/kafka/data
 
   kafka-ui:
     container_name: ten-kafka-ui
