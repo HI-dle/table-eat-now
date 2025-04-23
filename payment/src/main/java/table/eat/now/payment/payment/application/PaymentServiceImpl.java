@@ -4,9 +4,7 @@ import static table.eat.now.common.resolver.dto.UserRole.MASTER;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.CANCEL_AMOUNT_EXCEED_BALANCE;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_ACCESS_DENIED;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_ALREADY_CANCELLED;
-import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_NOT_FOUND;
-import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.RESERVATION_NOT_PENDING;
 import static table.eat.now.payment.payment.domain.entity.PaymentStatus.CANCELED;
 
 import java.math.BigDecimal;
@@ -17,11 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.payment.payment.application.client.PgClient;
-import table.eat.now.payment.payment.application.client.ReservationClient;
 import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentCommand;
 import table.eat.now.payment.payment.application.client.dto.CancelPgPaymentInfo;
 import table.eat.now.payment.payment.application.client.dto.ConfirmPgPaymentInfo;
-import table.eat.now.payment.payment.application.client.dto.GetReservationInfo;
 import table.eat.now.payment.payment.application.dto.request.CancelPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.ConfirmPaymentCommand;
 import table.eat.now.payment.payment.application.dto.request.CreatePaymentCommand;
@@ -50,7 +46,6 @@ import table.eat.now.payment.payment.domain.repository.PaymentRepository;
 public class PaymentServiceImpl implements PaymentService {
 
   private final PaymentRepository paymentRepository;
-  private final ReservationClient reservationClient;
   private final TransactionalHelper transactionalHelper;
   private final PaymentEventPublisher paymentEventPublisher;
   private final PgClient pgClient;
@@ -58,23 +53,7 @@ public class PaymentServiceImpl implements PaymentService {
   @Override
   @Transactional
   public CreatePaymentInfo createPayment(CreatePaymentCommand command) {
-    validateReservation(command);
     return CreatePaymentInfo.from(paymentRepository.save(command.toEntity()));
-  }
-
-  private void validateReservation(CreatePaymentCommand command) {
-    GetReservationInfo reservationInfo = getReservationInfo(command);
-
-    if (reservationInfo.totalAmount().compareTo(command.originalAmount()) != 0) {
-      throw CustomException.from(PAYMENT_AMOUNT_MISMATCH);
-    }
-    if (!reservationInfo.status().equals("PENDING_PAYMENT")) {
-      throw CustomException.from(RESERVATION_NOT_PENDING);
-    }
-  }
-
-  private GetReservationInfo getReservationInfo(CreatePaymentCommand command) {
-    return reservationClient.getReservation(command.reservationUuid());
   }
 
   @Override
