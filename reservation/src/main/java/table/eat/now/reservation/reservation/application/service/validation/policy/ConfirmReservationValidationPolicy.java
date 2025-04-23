@@ -10,11 +10,11 @@ import table.eat.now.reservation.reservation.application.service.validation.item
 @RequiredArgsConstructor
 public class ConfirmReservationValidationPolicy implements ValidPolicy<ConfirmReservationValidationContext> {
 
-  private final List<ValidItem<ConfirmReservationValidationContext>> policies;
+  private final List<ValidItem<ConfirmReservationValidationContext>> validItems;
 
   @Override
   public void validate(ConfirmReservationValidationContext context) {
-    for (ValidItem<ConfirmReservationValidationContext> policy : policies) {
+    for (ValidItem<ConfirmReservationValidationContext> policy : validItems) {
       policy.validate(context);
     }
   }
