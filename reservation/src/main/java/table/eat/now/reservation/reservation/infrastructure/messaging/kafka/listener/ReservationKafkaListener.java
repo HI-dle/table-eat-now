@@ -2,7 +2,7 @@
  * @author : jieun(je-pa)
  * @Date : 2025. 04. 22.
  */
-package table.eat.now.reservation.reservation.infrastructure.messaging.kafka.listner;
+package table.eat.now.reservation.reservation.infrastructure.messaging.kafka.listener;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import table.eat.now.reservation.reservation.application.service.ReservationService;
 import table.eat.now.reservation.reservation.infrastructure.messaging.kafka.config.ReservationConsumerConfig.ListenerContainerFactoryName;
 import table.eat.now.reservation.reservation.infrastructure.messaging.kafka.config.ReservationConsumerConfig.TopicName;
-import table.eat.now.reservation.reservation.infrastructure.messaging.kafka.listner.dto.ReservationPaymentSucceedEvent;
+import table.eat.now.reservation.reservation.infrastructure.messaging.kafka.listener.dto.ReservationPaymentSucceedEvent;
 
 @Slf4j
 @Component

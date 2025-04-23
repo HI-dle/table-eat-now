@@ -25,8 +25,8 @@ import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
 import table.eat.now.reservation.reservation.application.event.event.ReservationEvent;
-import table.eat.now.reservation.reservation.infrastructure.messaging.kafka.listner.dto.EventType;
-import table.eat.now.reservation.reservation.infrastructure.messaging.kafka.listner.dto.ReservationPaymentSucceedEvent;
+import table.eat.now.reservation.reservation.infrastructure.messaging.kafka.listener.dto.EventType;
+import table.eat.now.reservation.reservation.infrastructure.messaging.kafka.listener.dto.ReservationPaymentSucceedEvent;
 
 @Configuration
 public class ReservationConsumerConfig {

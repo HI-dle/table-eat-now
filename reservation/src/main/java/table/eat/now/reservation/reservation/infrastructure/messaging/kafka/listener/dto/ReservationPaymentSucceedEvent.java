@@ -1,4 +1,4 @@
-package table.eat.now.reservation.reservation.infrastructure.messaging.kafka.listner.dto;
+package table.eat.now.reservation.reservation.infrastructure.messaging.kafka.listener.dto;
 
 
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;

@@ -1,4 +1,4 @@
-package table.eat.now.reservation.reservation.infrastructure.messaging.kafka.listner.dto;
+package table.eat.now.reservation.reservation.infrastructure.messaging.kafka.listener.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
