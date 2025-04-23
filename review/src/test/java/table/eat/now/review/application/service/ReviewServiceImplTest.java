@@ -17,34 +17,29 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.review.application.client.ReservationClient;
 import table.eat.now.review.application.client.RestaurantClient;
 import table.eat.now.review.application.client.WaitingClient;
+import table.eat.now.review.application.client.dto.GetRestaurantInfo;
+import table.eat.now.review.application.client.dto.GetRestaurantStaffInfo;
+import table.eat.now.review.application.client.dto.GetServiceInfo;
 import table.eat.now.review.application.service.dto.request.CreateReviewCommand;
 import table.eat.now.review.application.service.dto.request.SearchAdminReviewQuery;
 import table.eat.now.review.application.service.dto.request.SearchReviewQuery;
 import table.eat.now.review.application.service.dto.request.UpdateReviewCommand;
 import table.eat.now.review.application.service.dto.response.CreateReviewInfo;
-import table.eat.now.review.application.client.dto.GetRestaurantInfo;
-import table.eat.now.review.application.client.dto.GetRestaurantStaffInfo;
 import table.eat.now.review.application.service.dto.response.GetReviewInfo;
-import table.eat.now.review.application.client.dto.GetServiceInfo;
 import table.eat.now.review.application.service.dto.response.PaginatedInfo;
 import table.eat.now.review.application.service.dto.response.SearchAdminReviewInfo;
 import table.eat.now.review.application.service.dto.response.SearchReviewInfo;
 import table.eat.now.review.domain.entity.Review;
 import table.eat.now.review.domain.repository.ReviewRepository;
+import table.eat.now.review.helper.IntegrationTestSupport;
 
-@SpringBootTest
-@Transactional
-@ActiveProfiles("test")
-class ReviewServiceImplTest {
+class ReviewServiceImplTest extends IntegrationTestSupport {
 
   @Autowired
   private ReviewService reviewService;

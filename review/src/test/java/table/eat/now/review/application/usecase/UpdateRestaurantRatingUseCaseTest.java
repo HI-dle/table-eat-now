@@ -19,21 +19,18 @@ import java.util.List;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import table.eat.now.review.application.event.RestaurantRatingUpdateEvent;
 import table.eat.now.review.application.event.ReviewEventPublisher;
 import table.eat.now.review.domain.repository.ReviewRepository;
 import table.eat.now.review.domain.repository.search.RestaurantRatingResult;
+import table.eat.now.review.helper.IntegrationTestSupport;
 
-@SpringBootTest
-@ActiveProfiles("test")
 @TestPropertySource(properties = {
     "review.rating.update.batch-size=3"
 })
-class UpdateRestaurantRatingUseCaseTest {
+class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
 
   @MockitoBean
   private ReviewRepository reviewRepository;
