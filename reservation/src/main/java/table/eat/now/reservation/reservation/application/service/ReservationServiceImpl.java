@@ -32,12 +32,12 @@ import table.eat.now.reservation.reservation.application.event.event.CancelReser
 import table.eat.now.reservation.reservation.application.event.event.ConfirmReservationAfterCommitEvent;
 import table.eat.now.reservation.reservation.application.exception.ReservationErrorCode;
 import table.eat.now.reservation.reservation.application.service.dto.request.CancelReservationCommand;
+import table.eat.now.reservation.reservation.application.service.dto.request.ConfirmReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
 import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
 import table.eat.now.reservation.reservation.application.service.dto.response.CancelReservationInfo;
-import table.eat.now.reservation.reservation.application.service.dto.response.ConfirmReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.response.CreateReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;

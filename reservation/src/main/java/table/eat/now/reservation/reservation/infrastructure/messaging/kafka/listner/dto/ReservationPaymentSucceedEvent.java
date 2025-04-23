@@ -2,7 +2,7 @@ package table.eat.now.reservation.reservation.infrastructure.messaging.kafka.lis
 
 
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
-import table.eat.now.reservation.reservation.application.service.dto.response.ConfirmReservationCommand;
+import table.eat.now.reservation.reservation.application.service.dto.request.ConfirmReservationCommand;
 
 public record ReservationPaymentSucceedEvent(
     EventType eventType,
