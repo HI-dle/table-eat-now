@@ -10,7 +10,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         show_sql: true
@@ -37,3 +37,4 @@ review:
     update:
       cron: 0 */5 * * * *
       batch-size: 100
+      recent-minutes: 5

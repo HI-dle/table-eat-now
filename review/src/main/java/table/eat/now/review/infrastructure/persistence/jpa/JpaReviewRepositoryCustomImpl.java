@@ -50,17 +50,6 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
   }
 
   @Override
-  public long countRecentlyUpdatedRestaurants(LocalDateTime startTime, LocalDateTime endTime) {
-    Long count = queryFactory
-        .select(review.reference.restaurantId.countDistinct())
-        .from(review)
-        .where(betweenUpdatedAt(startTime, endTime))
-        .fetchOne();
-
-    return count != null ? count : 0L;
-  }
-
-  @Override
   public List<RestaurantRatingResult> calculateRestaurantRatings(List<String> restaurantIds) {
     return queryFactory
         .select(Projections.constructor(RestaurantRatingResult.class,

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,9 +21,10 @@ import table.eat.now.review.domain.repository.search.RestaurantRatingResult;
 @RequiredArgsConstructor
 public class UpdateRestaurantRatingUseCase {
 
-  @Value("${review.rating.update.batch-size}")
+  @Value("${review.rating.update.batch-size:100}")
   private int batchSize;
-  private static final int RECENT_MINUTES = 5;
+  @Value("${review.rating.update.recent-minutes:5}")
+  private int recentMinutes;
 
   private final ReviewRepository reviewRepository;
   private final ReviewEventPublisher reviewEventPublisher;
@@ -30,9 +32,9 @@ public class UpdateRestaurantRatingUseCase {
   @Transactional(readOnly = true)
   public void execute() {
     LocalDateTime endTime = LocalDateTime.now();
-    LocalDateTime startTime = endTime.minusMinutes(RECENT_MINUTES);
+    LocalDateTime startTime = endTime.minusMinutes(recentMinutes);
 
-    long totalCount = getRecentlyUpdatedRestaurantCounts(startTime, endTime);
+    long totalCount = reviewRepository.countRecentlyUpdatedRestaurants(startTime, endTime);
 
     if (totalCount == 0) {
       logNoRestaurantsToUpdate();
@@ -40,14 +42,15 @@ public class UpdateRestaurantRatingUseCase {
     }
 
     logStartBatchUpdate(totalCount);
-    BatchProcessor processor =
-        new BatchProcessor(totalCount, batchSize, startTime, endTime);
-    processor.process();
-  }
 
-  private long getRecentlyUpdatedRestaurantCounts(
-      LocalDateTime startTime, LocalDateTime endTime) {
-    return reviewRepository.countRecentlyUpdatedRestaurants(startTime, endTime);
+    BatchProcessor.builder()
+        .reviewRepository(reviewRepository)
+        .reviewEventPublisher(reviewEventPublisher)
+        .totalCount(totalCount)
+        .batchSize(batchSize)
+        .startTime(startTime)
+        .endTime(endTime)
+        .build().process();
   }
 
   private void logNoRestaurantsToUpdate() {
@@ -58,7 +61,7 @@ public class UpdateRestaurantRatingUseCase {
     log.info("총 {}개 레스토랑의 평점을 배치 단위로 업데이트합니다.", totalCount);
   }
 
-  private class BatchProcessor {
+  private static class BatchProcessor {
 
     private final long totalCount;
     private final int batchSize;
@@ -66,9 +69,20 @@ public class UpdateRestaurantRatingUseCase {
     private final LocalDateTime endTime;
     private final Set<String> processedIds;
     private long processedCount;
+    private final ReviewRepository reviewRepository;
+    private final ReviewEventPublisher reviewEventPublisher;
 
+    @Builder
     BatchProcessor(
-        long totalCount, int batchSize, LocalDateTime startTime, LocalDateTime endTime) {
+        ReviewRepository reviewRepository,
+        ReviewEventPublisher reviewEventPublisher,
+        long totalCount,
+        int batchSize,
+        LocalDateTime startTime,
+        LocalDateTime endTime
+    ) {
+      this.reviewRepository = reviewRepository;
+      this.reviewEventPublisher = reviewEventPublisher;
       this.totalCount = totalCount;
       this.batchSize = batchSize;
       this.startTime = startTime;
@@ -79,66 +93,38 @@ public class UpdateRestaurantRatingUseCase {
 
     void process() {
       while (processedCount < totalCount) {
-        if (processBatch()) {
-          logProgress();
+        List<String> batch = reviewRepository
+            .findRecentlyUpdatedRestaurantIds(
+                startTime, endTime, processedCount, batchSize);
+
+        if (batch.isEmpty()) {
+          break;
         }
-        else break;
+
+        List<String> uniqueIds = batch.stream()
+            .filter(id -> !processedIds.contains(id))
+            .peek(processedIds::add)
+            .toList();
+
+        List<RestaurantRatingResult> results =
+            reviewRepository.calculateRestaurantRatings(uniqueIds);
+
+        results.forEach(result -> {
+              try {
+                reviewEventPublisher.publish(
+                    RestaurantRatingUpdateEvent.of(
+                        RestaurantRatingUpdatePayload.from(result)));
+              } catch (Exception e) {
+                logPublishError(e);
+              }
+            }
+        );
+
+        logPublish(results);
+        processedCount += uniqueIds.size();
+        logProgress();
       }
       logCompletion();
-    }
-
-    private boolean processBatch() {
-      List<String> batch = fetchBatch();
-      if (batch.isEmpty()) {
-        return false;
-      }
-      processRestaurantBatchUpdate(batch);
-      processedCount += batch.size();
-      return true;
-    }
-
-    private List<String> fetchBatch() {
-      return reviewRepository
-          .findRecentlyUpdatedRestaurantIds(startTime, endTime, processedCount, batchSize);
-    }
-
-    private void processRestaurantBatchUpdate(List<String> batch) {
-      List<String> uniqueIds = extractUniqueRestaurantIds(batch);
-      if (!uniqueIds.isEmpty()) {
-        updateAndPublishRatings(uniqueIds);
-      }
-    }
-
-    private List<String> extractUniqueRestaurantIds(List<String> restaurantIds) {
-      return restaurantIds.stream()
-          .filter(id -> !processedIds.contains(id))
-          .map(id -> {
-            processedIds.add(id);
-            return id;
-          })
-          .toList();
-    }
-
-    private void updateAndPublishRatings(List<String> uniqueRestaurantIds) {
-      try {
-        calculateAndPublishRatings(uniqueRestaurantIds);
-      } catch (Exception e) {
-        logPublishError(e);
-      }
-    }
-
-    private void calculateAndPublishRatings(List<String> restaurantIds) {
-      List<RestaurantRatingResult> results =
-          reviewRepository.calculateRestaurantRatings(restaurantIds);
-
-      if (!results.isEmpty()) {
-        results.forEach(result -> reviewEventPublisher.publish(
-            RestaurantRatingUpdateEvent.of(
-                RestaurantRatingUpdatePayload.from(result)
-            )
-        ));
-        logPublish(results);
-      }
     }
 
     private void logPublishError(Exception e) {
