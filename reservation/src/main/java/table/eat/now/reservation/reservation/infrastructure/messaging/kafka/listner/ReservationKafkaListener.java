@@ -56,7 +56,6 @@ public class ReservationKafkaListener {
     try {
       ReservationPaymentSucceedEvent event = record.value();
       reservationService.confirmReservation(event.toCommand());
-      ack.acknowledge();
     } catch (Throwable e) {
       log.error("예약 결제 성공 이벤트 DLT 처리 실패::수동 처리 필요:: "
               + "key: {}, value: {}, partition : {}, offset : {}, errorMessage : {}",
