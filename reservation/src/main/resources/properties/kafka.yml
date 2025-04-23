@@ -2,6 +2,9 @@ spring:
   config.activate.on-profile: local
   kafka:
     bootstrap-servers: ${LOCAL_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
 
 kafka:
   topic:
@@ -9,33 +12,50 @@ kafka:
       # 처리량 확장을 위한 파티션 수
       partitions: 3
       # 고가용성을 위한 복제본 수
-      replicas: 3
+      replicas: 1
       # 데이터 손실 방지를 위한 최소 동기화 복제본 수
-      min-insync-replicas: 2
+      min-insync-replicas: 1
+    reservation-dlt:
+      partitions: 3
+      replicas: 1
+      min-insync-replicas: 1
 
 ---
 spring:
   config.activate.on-profile: test
   kafka:
     bootstrap-servers: ${LOCAL_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
 
 kafka:
   topic:
     reservation:
       partitions: 3
-      replicas: 3
-      min-insync-replicas: 2
+      replicas: 1
+      min-insync-replicas: 1
+    reservation-dlt:
+      partitions: 3
+      replicas: 1
+      min-insync-replicas: 1
 
 ---
 spring:
   config.activate.on-profile: develop
   kafka:
     bootstrap-servers: ${DEV_KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
 
 kafka:
   topic:
     reservation:
-      name: reservation-event
       partitions: 3
-      replicas: 3
-      min-insync-replicas: 2
+      replicas: 1
+      min-insync-replicas: 1
+    reservation-dlt:
+      partitions: 3
+      replicas: 1
+      min-insync-replicas: 1

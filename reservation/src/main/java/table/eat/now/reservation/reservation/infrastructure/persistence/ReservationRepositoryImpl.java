@@ -41,4 +41,9 @@ public class ReservationRepositoryImpl implements ReservationRepository {
   public <S extends Reservation> List<S> saveAll(Iterable<S> entities) {
     return jpaReservationRepository.saveAll(entities);
   }
+
+  @Override
+  public Optional<Reservation> findWithDetailsByPaymentIdempotency(String idempotencyKey) {
+    return jpaReservationRepository.findWithDetailsByPaymentIdempotency(idempotencyKey);
+  }
 }

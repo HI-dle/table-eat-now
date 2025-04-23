@@ -29,8 +29,10 @@ import table.eat.now.reservation.reservation.application.client.dto.response.Get
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo.Promotion;
 import table.eat.now.reservation.reservation.application.event.event.CancelReservationAfterCommitEvent;
+import table.eat.now.reservation.reservation.application.event.event.ConfirmReservationAfterCommitEvent;
 import table.eat.now.reservation.reservation.application.exception.ReservationErrorCode;
 import table.eat.now.reservation.reservation.application.service.dto.request.CancelReservationCommand;
+import table.eat.now.reservation.reservation.application.service.dto.request.ConfirmReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
@@ -40,8 +42,10 @@ import table.eat.now.reservation.reservation.application.service.dto.response.Cr
 import table.eat.now.reservation.reservation.application.service.dto.response.GetReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.reservation.reservation.application.service.validation.context.CancelReservationValidationContext;
+import table.eat.now.reservation.reservation.application.service.validation.context.ConfirmReservationValidationContext;
 import table.eat.now.reservation.reservation.application.service.validation.context.CreateReservationValidationContext;
 import table.eat.now.reservation.reservation.application.service.validation.policy.CancelReservationValidationPolicy;
+import table.eat.now.reservation.reservation.application.service.validation.policy.ConfirmReservationValidationPolicy;
 import table.eat.now.reservation.reservation.application.service.validation.policy.CreateReservationValidationPolicy;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
 import table.eat.now.reservation.reservation.domain.repository.ReservationRepository;
@@ -56,8 +60,10 @@ public class ReservationServiceImpl implements ReservationService {
   private final PromotionClient promotionClient;
   private final RestaurantClient restaurantClient;
   private final ApplicationEventPublisher eventPublisher;
+  // todo: 이것도 리펙토링..
   private final CreateReservationValidationPolicy createReservationValidationPolicy;
   private final CancelReservationValidationPolicy cancelReservationValidationPolicy;
+  private final ConfirmReservationValidationPolicy confirmReservationValidationPolicy;
 
   @Override
   @Transactional
@@ -92,8 +98,10 @@ public class ReservationServiceImpl implements ReservationService {
     String reservationUuid = UUID.randomUUID().toString();
 
     // 쿠폰 선점 처리
-    couponClient.preemptCoupon(
-        PreemptCouponCommand.from(reservationUuid, couponUuids.stream().toList()));
+    if (!couponUuids.isEmpty()) {
+      couponClient.preemptCoupon(
+          PreemptCouponCommand.from(reservationUuid, couponUuids.stream().toList()));
+    }
 
     // 식당 현재 예약 인원 수정
     restaurantClient.modifyRestaurantCurTotalGuestCount(
@@ -124,11 +132,26 @@ public class ReservationServiceImpl implements ReservationService {
   @Override
   @Transactional(readOnly = true)
   public GetReservationInfo getReservation(GetReservationCriteria criteria) {
-    Reservation reservation = getReservationOrElseThrow(criteria);
+    Reservation reservation = getReservationOrElseThrow(criteria.reservationUuid());
     if(!reservation.isAccessibleBy(criteria.userId(), criteria.role())){
       throw CustomException.from(ReservationErrorCode.NOT_FOUND);
     }
     return GetReservationInfo.from(reservation);
+  }
+
+  @Override
+  @Transactional
+  public void confirmReservation(ConfirmReservationCommand command) {
+    Reservation reservation =
+        getReservationByPaymentIdempotencyKeyOrElseThrow(command.idempotencyKey());
+    confirmReservationValidationPolicy.validate(ConfirmReservationValidationContext.from(reservation));
+    reservation.confirm();
+    eventPublisher.publishEvent(ConfirmReservationAfterCommitEvent.from(reservation));
+  }
+
+  private Reservation getReservationByPaymentIdempotencyKeyOrElseThrow(String idempotencyKey) {
+    return reservationRepository.findWithDetailsByPaymentIdempotency(idempotencyKey)
+        .orElseThrow(() -> CustomException.from(ReservationErrorCode.NOT_FOUND));
   }
 
   @Override
@@ -162,9 +185,8 @@ public class ReservationServiceImpl implements ReservationService {
     return reservation;
   }
 
-  private Reservation getReservationOrElseThrow(GetReservationCriteria criteria) {
-    return reservationRepository.findWithDetailsByReservationUuid(
-            criteria.reservationUuid())
+  private Reservation getReservationOrElseThrow(String reservationUuid) {
+    return reservationRepository.findWithDetailsByReservationUuid(reservationUuid)
         .orElseThrow(() -> CustomException.from(ReservationErrorCode.NOT_FOUND));
   }
 

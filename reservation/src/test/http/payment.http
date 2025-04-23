@@ -1,0 +1,4 @@
+### 결제
+http://localhost:8088/checkout?idempotencyKey={{idempotencyKey}}
+
+### 이후 예약 취소 가능

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response.GetRestaurantResponse;
-import table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response.ModifyRestaurantCurTotalGuestCountResponse;
 
 @FeignClient(name = "restaurant")
 public interface RestaurantFeignClient {
@@ -19,8 +18,8 @@ public interface RestaurantFeignClient {
   @GetMapping("/internal/v1/restaurants/{restaurantUuid}")
   ResponseEntity<GetRestaurantResponse> getRestaurant(@PathVariable String restaurantUuid);
 
-  @PatchMapping("/internal/v1/restaurant/{restaurantUuid}/timeslot/{restaurantTimeSlotUuid}/cur-total-guest-count")
-  ResponseEntity<ModifyRestaurantCurTotalGuestCountResponse> modifyRestaurantCurTotalGuestCount(
+  @PatchMapping("/internal/v1/restaurants/{restaurantUuid}/timeslot/{restaurantTimeSlotUuid}/cur-total-guest-count")
+  ResponseEntity<Void> modifyRestaurantCurTotalGuestCount(
       @RequestBody int delta, @PathVariable String restaurantTimeSlotUuid,
       @PathVariable String restaurantUuid);
 }

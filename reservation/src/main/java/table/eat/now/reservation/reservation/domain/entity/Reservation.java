@@ -58,7 +58,7 @@ public class Reservation extends BaseEntity {
   private String restaurantTimeSlotUuid;
 
   @Column(name = "restaurant_uuid", nullable = false, length = 100)
-  private String restaurantId; // todo: 변수명 수정 필요
+  private String restaurantUuid;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "restaurant_timeslot_details", columnDefinition = "json", nullable = false)
@@ -104,7 +104,7 @@ public class Reservation extends BaseEntity {
       String restaurantTimeSlotUuid,
       LocalDate reservationDate,
       LocalTime reservationTimeslot,
-      String restaurantId,
+      String restaurantUuid,
       String restaurantAddress,
       LocalTime restaurantClosingTime,
       Long ownerId,
@@ -128,7 +128,7 @@ public class Reservation extends BaseEntity {
     this.restaurantTimeSlotUuid = restaurantTimeSlotUuid;
     this.restaurantTimeSlotDetails =
         RestaurantTimeSlotDetails.of(reservationDate, reservationTimeslot);
-    this.restaurantId = restaurantId;
+    this.restaurantUuid = restaurantUuid;
     this.restaurantDetails =
         RestaurantDetails.of(
             restaurantName,
@@ -165,6 +165,10 @@ public class Reservation extends BaseEntity {
     return false;
   }
 
+  public boolean isValidStatusForConfirmation() {
+    return this.status == ReservationStatus.PENDING_PAYMENT;
+  }
+
   public boolean isEditableBy(Long userId, UserRole role) {
     return isAccessibleBy(userId, role);
   }
@@ -176,6 +180,10 @@ public class Reservation extends BaseEntity {
   public void cancelWithReason(String reason) {
     this.status = ReservationStatus.CANCELLED;
     this.cancelReason = reason;
+  }
+
+  public void confirm() {
+    this.status = ReservationStatus.CONFIRMED;
   }
 
   @Getter

@@ -74,6 +74,7 @@ public record CreateReservationRequest(
         .restaurantMenuUuid(restaurantMenuUuid)
         .guestCount(guestCount)
         .specialRequest(specialRequest)
+        .totalPrice(totalPrice)
         .restaurantTimeSlotDetails(restaurantTimeSlotDetails.toCommandRestaurantTimeSlotDetails())
         .restaurantDetails(restaurantDetails.toCommandRestaurantDetails())
         .restaurantMenuDetails(restaurantMenuDetails.toCommandRestaurantMenuDetails())

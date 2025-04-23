@@ -5,6 +5,7 @@
 package table.eat.now.reservation.reservation.application.service;
 
 import table.eat.now.reservation.reservation.application.service.dto.request.CancelReservationCommand;
+import table.eat.now.reservation.reservation.application.service.dto.request.ConfirmReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.GetReservationCriteria;
 import table.eat.now.reservation.reservation.application.service.dto.response.CancelReservationInfo;
@@ -16,6 +17,8 @@ public interface ReservationService {
   CreateReservationInfo createReservation(CreateReservationCommand command);
 
   GetReservationInfo getReservation(GetReservationCriteria criteria);
+
+  void confirmReservation(ConfirmReservationCommand command);
 
   CancelReservationInfo cancelReservation(CancelReservationCommand command);
 }

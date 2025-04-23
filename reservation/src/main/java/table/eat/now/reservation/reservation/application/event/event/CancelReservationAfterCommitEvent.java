@@ -51,7 +51,7 @@ public record CancelReservationAfterCommitEvent(
         .paymentIdempotencyKey(paymentDetail.getReservationPaymentDetailUuid())
         .cancelAmount(paymentDetail.getAmount())
         .cancelReason(reservation.getCancelReason())
-        .restaurantUuid(reservation.getRestaurantId())
+        .restaurantUuid(reservation.getRestaurantUuid())
         .guestCount(reservation.getGuestInfo().getGuestCount())
         .couponUuids(couponUuids)
         .reserverId(reservation.getReserverId())

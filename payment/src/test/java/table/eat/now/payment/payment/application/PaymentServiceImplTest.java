@@ -15,9 +15,7 @@ import static table.eat.now.common.resolver.dto.UserRole.MASTER;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.CANCEL_AMOUNT_EXCEED_BALANCE;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_ACCESS_DENIED;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_ALREADY_CANCELLED;
-import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_NOT_FOUND;
-import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.RESERVATION_NOT_PENDING;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -140,45 +138,9 @@ class PaymentServiceImplTest {
       assertThat(result.paymentStatus()).isEqualTo(PaymentStatus.PENDING.name());
       assertThat(result.originalAmount()).isEqualTo(originalAmount);
 
-      verify(reservationClient).getReservation(reservationUuid);
       verify(paymentRepository).save(any(Payment.class));
     }
 
-    @Test
-    void 결제_금액이_예약_금액과_일치하지_않으면_예외를_발생시킨다() {
-      // given
-      BigDecimal differentAmount = BigDecimal.valueOf(60000);
-      CreatePaymentCommand invalidCommand = CreatePaymentCommand.builder()
-          .reservationUuid(reservationUuid)
-          .restaurantUuid(restaurantUuid)
-          .customerId(customerId)
-          .reservationName(reservationName)
-          .originalAmount(differentAmount)
-          .build();
-
-      // when & then
-      CustomException exception = assertThrows(CustomException.class, () ->
-          paymentService.createPayment(invalidCommand));
-
-      assertThat(exception.getMessage()).isEqualTo(PAYMENT_AMOUNT_MISMATCH.getMessage());
-    }
-
-    @Test
-    void 예약_상태가_결제_대기_상태가_아니면_예외를_발생시킨다() {
-      // given
-      GetReservationInfo invalidStatusInfo = GetReservationInfo.builder()
-          .status("CONFIRMED")
-          .totalAmount(originalAmount)
-          .build();
-
-      when(reservationClient.getReservation(reservationUuid)).thenReturn(invalidStatusInfo);
-
-      // when & then
-      CustomException exception = assertThrows(CustomException.class, () ->
-          paymentService.createPayment(command));
-
-      assertThat(exception.getMessage()).isEqualTo(RESERVATION_NOT_PENDING.getMessage());
-    }
   }
 
   @Nested

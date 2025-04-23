@@ -1,0 +1,129 @@
+### 식당 생성
+POST {{restaurantUrl}}/admin/v1/restaurants
+Content-Type: application/json
+X-User-Id: {{masterId}}
+X-User-Role: {{masterRole}}
+
+{
+  "ownerId": 101,
+  "name": "청춘고기",
+  "address": "서울특별시 강남구 테헤란로 123",
+  "contactNumber": "02-1234-5678",
+  "openingAt": "09:00:00",
+  "closingAt": "22:00:00",
+  "info": "고기 맛집입니다.",
+  "maxReservationGuestCountPerTeamOnline": 6
+}
+
+> {%
+  const location = response.headers.valueOf("Location")
+  const match = location.match(/[0-9a-fA-F\-]{36}$/)
+
+  if (match) {
+    client.global.set("restaurantUuid", match[0]);
+  }
+%}
+
+### 식당 수정
+PUT {{restaurantUrl}}/admin/v1/restaurants/{{restaurantUuid}}
+Content-Type: application/json
+X-User-Id: {{masterId}}
+X-User-Role: {{masterRole}}
+
+{
+  "name": "내가 차린 식당",
+  "address": "서울특별시 강남구 테헤란로 123",
+  "contactNumber": "010-1234-5678",
+  "openingAt": "2025-04-17T10:00:00",
+  "closingAt": "2025-04-17T22:00:00",
+  "info": "신선한 재료만 사용하는 건강한 식당입니다.",
+  "status": "CLOSED",
+  "waitingStatus": "OPENED",
+  "maxReservationGuestCountPerTeamOnline": 4,
+  "menus": [
+    {
+      "restaurantMenuUuid": "{{restaurantMenuUuid}}",
+      "name": "한지훈이 말아주는 된장찌개",
+      "price": 9000,
+      "status": "ACTIVE"
+    },
+    {
+      "restaurantMenuUuid": "e61aeb98-b434-447d-8928-b44c00000000",
+      "name": "강혜주표 3월 17일에 만든 고기 덮밥",
+      "price": 9000,
+      "status": "INACTIVE"
+    },
+    {
+      "restaurantMenuUuid": "e61aeb98-b434-447d-8928-b44111111111",
+      "name": "황하온의 랜덤 음식",
+      "price": 9000,
+      "status": "INACTIVE"
+    }
+  ],
+  "timeslots": [
+    {
+      "restaurantTimeslotUuid": "e61aeb98-b434-447d-8928-b44cf741ca34",
+      "availableDate": "2025-04-18",
+      "maxCapacity": 10,
+      "timeslot": "12:00"
+    },
+    {
+      "restaurantTimeslotUuid": "{{restaurantTimeslotUuid}}",
+      "availableDate": "{{availableDate}}",
+      "maxCapacity": 15,
+      "timeslot": "{{timeslot}}"
+    }
+  ]
+}
+
+### 에약 생성
+POST {{reservationUrl}}/api/v1/reservations
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: CUSTOMER
+
+{
+  "reserverId": 1,
+  "reserverName": "박지은",
+  "reserverContact": "010-1234-5678",
+  "restaurantUuid": "{{restaurantUuid}}",
+  "restaurantTimeslotUuid": "{{restaurantTimeslotUuid}}",
+  "restaurantMenuUuid": "{{restaurantMenuUuid}}",
+  "guestCount": 2,
+  "specialRequest": "창가 자리 부탁드립니다.",
+  "totalPrice": 9000,
+  "restaurantTimeSlotDetails": {
+    "availableDate": "{{availableDate}}",
+    "timeslot": "{{timeslot}}"
+  },
+  "restaurantDetails": {
+    "name": "Hi-dle 식당",
+    "address": "하온특별시 지훈구 혜주란로 123",
+    "contactNumber": "02-123-4567",
+    "openingTime": "11:00",
+    "closingTime": "22:00"
+  },
+  "restaurantMenuDetails": {
+    "name": "한지훈이 말아주는 된장찌개",
+    "price": 9000,
+    "quantity": 1
+  },
+  "payments": [
+    {
+      "detailReferenceId": "",
+      "type": "PAYMENT",
+      "amount": 9000
+    }
+  ]
+}
+
+> {%
+  const location = response.headers.valueOf("Location")
+  const match = location.match(/[0-9a-fA-F\-]{36}$/)
+
+  if (match) {
+    client.global.set("reservationUuid", match[0]);
+  }
+%}
+
+### 이후 클라이언트 결제 진행

@@ -43,7 +43,7 @@ public class PendingPaymentReservationTestDataSaver extends IntegrationTestDataS
             .restaurantTimeSlotUuid("timeslot-0000-0000-0000-"+ String.format("%012d",i))
             .reservationDate(LocalDate.now().plusDays(30))
             .reservationTimeslot(LocalTime.of(12, 0))
-            .restaurantId("restaura-0000-0000-0000-"+ String.format("%012d",i))
+            .restaurantUuid("restaura-0000-0000-0000-"+ String.format("%012d",i))
             .restaurantName("맛있는 식당")
             .restaurantAddress("서울시 강남구")
             .restaurantContactNumber("02-000-0000")

@@ -5,6 +5,7 @@
 package table.eat.now.reservation.reservation.application.event.event;
 
 public enum EventType {
+  RESERVATION_CONFIRMED,
   RESERVATION_CANCELLED,
   ;
 }

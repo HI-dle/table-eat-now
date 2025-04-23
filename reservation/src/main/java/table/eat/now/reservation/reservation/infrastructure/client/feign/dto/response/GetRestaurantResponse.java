@@ -26,7 +26,7 @@ public record GetRestaurantResponse(
     Integer maxReservationGuestCountPerTeam,
     String waiting_status,
     List<Menu> menus,
-    List<Timeslot> timeslots
+    List<Timeslot> timeSlots
 ) {
 
   public record Menu(
@@ -38,10 +38,10 @@ public record GetRestaurantResponse(
 
   public record Timeslot(
       String restaurantTimeslotUuid,
-      LocalDate availableStartDate,
+      LocalDate availableDate,
+      LocalTime timeslot,
       Integer maxCapacity,
-      Integer curTotalGuestCount,
-      LocalTime timeslot
+      Integer curTotalGuestCount
   ) {}
 
   public GetRestaurantInfo toInfo() {
@@ -54,10 +54,10 @@ public record GetRestaurantResponse(
         ))
         .toList();
 
-    List<GetRestaurantInfo.Timeslot> infoTimeslots = timeslots.stream()
+    List<GetRestaurantInfo.Timeslot> infoTimeslots = timeSlots.stream()
         .map(timeslot -> new GetRestaurantInfo.Timeslot(
             timeslot.restaurantTimeslotUuid(),
-            timeslot.availableStartDate(),
+            timeslot.availableDate(),
             timeslot.maxCapacity(),
             timeslot.curTotalGuestCount(),
             timeslot.timeslot()

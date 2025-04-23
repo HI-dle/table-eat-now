@@ -20,7 +20,9 @@ import jakarta.ws.rs.core.MediaType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
@@ -132,16 +134,20 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
     void modifyGuestCount_success() throws Exception {
       // given
       String restaurantUuid = UUID.randomUUID().toString();
-      String timeSlotUuid = UUID.randomUUID().toString();
+      String restaurantTimeSlotUuid = UUID.randomUUID().toString();
       int delta = 1;
 
       // restaurantService 호출이 정상 수행되도록 설정
       doNothing().when(restaurantService)
-          .increaseOrDecreaseTimeSlotGuestCount(eq(timeSlotUuid), eq(delta));
+          .increaseOrDecreaseTimeSlotGuestCount(eq(restaurantTimeSlotUuid), eq(delta));
 
       // when & then
-      mockMvc.perform(patch(baseUrl + "/{restaurantUuid}/timeslot/{timeSlotUuid}/cur-total-guest-count", restaurantUuid, timeSlotUuid)
-              .param("delta", String.valueOf(delta)))
+      Map<String, Integer> requestBody = new HashMap<>();
+      requestBody.put("delta", delta);
+
+      mockMvc.perform(patch(baseUrl + "/{restaurantUuid}/timeslot/{restaurantTimeSlotUuid}/cur-total-guest-count", restaurantUuid, restaurantTimeSlotUuid)
+              .content(String.valueOf(delta))
+              .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk());
     }
 
@@ -159,7 +165,8 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
 
       // when & then
       mockMvc.perform(patch(baseUrl + "/{restaurantUuid}/timeslot/{timeSlotUuid}/cur-total-guest-count", restaurantUuid, timeSlotUuid)
-              .param("delta", String.valueOf(delta)))
+              .content(String.valueOf(delta))
+              .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isBadRequest());
     }
   }
