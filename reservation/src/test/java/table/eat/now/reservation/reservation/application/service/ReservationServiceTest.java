@@ -2835,10 +2835,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
   @MethodSource("provideInvalidStatusForConfirmationForCheckingConfirmReservation")
   @ParameterizedTest(name = "{index}: ''{0}''는 예약 확정 가능한 상태가 아니다.")
   @DisplayName("예약 가능한 상태가 아닌 예약을 확정하려고 하면 예외가 발생한다.")
-//  @CsvSource({"CONFIRMED", "CANCELLED"})
-//  @ParameterizedTest(name = "{index}: ''{0}''는 예약 확정 가능한 상태가 아니다.")
   void fail_invalidStatus(ReservationStatus status) throws InterruptedException {
-    Thread.sleep(1000);
     // given
     // reservation
     ReservationPaymentDetail paymentDetail = ReservationPaymentDetailFixture.createRandomByType(
