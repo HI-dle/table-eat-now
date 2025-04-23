@@ -2,9 +2,9 @@ package table.eat.now.notification.application.service;
 
 
 import io.micrometer.core.instrument.Timer;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
@@ -39,6 +39,7 @@ import table.eat.now.notification.domain.repository.NotificationRepository;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationServiceImpl implements NotificationService{
 
   private final NotificationRepository notificationRepository;
@@ -46,15 +47,22 @@ public class NotificationServiceImpl implements NotificationService{
   private final NotificationSenderStrategySelector sendSelector;
   private final NotificationParamExtractor paramExtractor;
   private final NotificationMetrics metrics;
-  private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
 
+  //부하 테스트를 위해서 생성 메서드에서 레디스 큐에 넣습니다.
+  //차후 여러 서비스에서 알림 처리를 받게 될 때 수정하겠습니다.
   @Override
   @Transactional
   public CreateNotificationInfo createNotification(CreateNotificationCommand command) {
     metrics.incrementCreate();
-    return CreateNotificationInfo
+
+    CreateNotificationInfo createNotificationInfo = CreateNotificationInfo
         .from(notificationRepository.save(command.toEntity()));
+
+    notificationRepository.addToDelayQueue(
+        createNotificationInfo.notificationUuid(), createNotificationInfo.scheduledTime());
+
+    return createNotificationInfo;
   }
 
 
@@ -160,22 +168,35 @@ public class NotificationServiceImpl implements NotificationService{
   }
 
   @Override
+  @Transactional
   public void consumerScheduleSendNotification(NotificationScheduleSendEvent event) {
-    NotificationFormatterStrategy strategy =
-        formatterSelector.select(NotificationType.valueOf(event.payload().notificationType()));
+    Timer.Sample sample = metrics.startSendTimer();
 
-    Map<String, String> params = paramExtractor.extractEvent(event);
+    try {
+      NotificationFormatterStrategy strategy =
+          formatterSelector.select(NotificationType.valueOf(event.payload().notificationType()));
 
-    NotificationTemplate formattedMessage = strategy.format(params);
+      Map<String, String> params = paramExtractor.extractEvent(event);
 
-    NotificationSenderStrategy senderStrategy = sendSelector.select(
-        NotificationMethod.valueOf(event.payload().notificationMethod()));
+      NotificationTemplate formattedMessage = strategy.format(params);
 
-    senderStrategy.send(event.payload().userId(), formattedMessage);
+      NotificationSenderStrategy senderStrategy = sendSelector.select(
+          NotificationMethod.valueOf(event.payload().notificationMethod()));
 
-    Notification notification = findByNotification(event.payload().notificationUuid());
+      senderStrategy.send(event.payload().userId(), formattedMessage);
 
-    notification.modifyNotificationStatusIsSent();
+      Notification notification = findByNotification(event.payload().notificationUuid());
+
+      notification.modifyNotificationStatusIsSent();
+      log.info("수정 완료 :{} ", notification.getStatus());
+
+      metrics.incrementSendSuccess();
+      metrics.recordSendLatency(sample, "scheduled");
+
+    } catch (Exception e) {
+      log.error("알림 발송 실패: {}", event.payload().notificationUuid(), e);
+      metrics.incrementSendFail();
+    }
   }
 
   private void hasScheduleTimeToSaveNotification(NotificationSendEvent notificationSendEvent) {

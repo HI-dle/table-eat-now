@@ -105,4 +105,26 @@ class NotificationMetricsTest {
 
     verify(counter).increment(5);
   }
+
+  @Test
+  void testRecordSchedulerExecution() {
+    try (MockedStatic<Timer> mockedTimer = mockStatic(Timer.class)) {
+      // given
+      Timer.Builder builder = mock(Timer.Builder.class);
+      Timer timer = mock(Timer.class);
+      Runnable runnable = mock(Runnable.class);
+
+      mockedTimer.when(() -> Timer.builder("notification.scheduler.execution.duration"))
+          .thenReturn(builder);
+      when(builder.description("스케줄러 전체 실행 시간")).thenReturn(builder);
+      when(builder.register(meterRegistry)).thenReturn(timer);
+
+      // when
+      notificationMetrics.recordSchedulerExecution(runnable);
+
+      // then
+      verify(timer).record(runnable);
+    }
+  }
+
 }

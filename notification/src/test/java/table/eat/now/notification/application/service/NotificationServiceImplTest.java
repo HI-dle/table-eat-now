@@ -16,10 +16,12 @@ import static org.mockito.Mockito.when;
 
 import io.micrometer.core.instrument.Timer;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,6 +49,8 @@ import table.eat.now.notification.application.dto.response.GetNotificationInfo;
 import table.eat.now.notification.application.dto.response.NotificationSearchInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
 import table.eat.now.notification.application.event.EventType;
+import table.eat.now.notification.application.event.produce.NotificationScheduleSendEvent;
+import table.eat.now.notification.application.event.produce.NotificationScheduleSendPayload;
 import table.eat.now.notification.application.event.produce.NotificationSendEvent;
 import table.eat.now.notification.application.event.produce.NotificationSendPayload;
 import table.eat.now.notification.application.exception.NotificationErrorCode;
@@ -82,6 +86,7 @@ import table.eat.now.notification.infrastructure.sender.SlackSender;
  * @Date : 2025. 04. 08.
  */
 @ExtendWith(MockitoExtension.class)
+@Slf4j
 class NotificationServiceImplTest {
 
   @Mock
@@ -97,6 +102,9 @@ class NotificationServiceImplTest {
   private NotificationSenderStrategySelector sendSelector;
 
   private final NotificationParamExtractor extractor = new NotificationParamExtractor();
+
+
+  private DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
   @Mock
   private NotificationParamExtractor paramExtractor;
@@ -1102,6 +1110,121 @@ class NotificationServiceImplTest {
 
     verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
   }
+
+  @Test
+  @DisplayName("정상적인 알림 스케줄 이벤트 처리 시 모든 전략이 실행되고 메트릭이 기록된다.")
+  void consumerScheduleSendNotification_success() {
+    // given
+    NotificationScheduleSendPayload payload = NotificationScheduleSendPayload.builder()
+        .userId(1L)
+        .notificationUuid("uuid-123")
+        .notificationType(NotificationType.REMINDER_1HR.toString())
+        .customerName("홍길동")
+        .reservationTime(LocalDateTime.of(2025, 4, 25, 9, 0))
+        .restaurantName("11조")
+        .notificationMethod(NotificationMethod.SLACK.toString())
+        .scheduledTime(LocalDateTime.of(2025, 4, 24, 8, 55))
+        .build();
+
+    NotificationScheduleSendEvent event = NotificationScheduleSendEvent.builder()
+        .eventType(EventType.Schedule_SEND)
+        .payload(payload)
+        .build();
+
+    NotificationFormatterStrategy strategy = mock(NotificationFormatterStrategy.class);
+    NotificationSenderStrategy senderStrategy = mock(NotificationSenderStrategy.class);
+    Notification notification = mock(Notification.class);
+    Timer.Sample sample = mock(Timer.Sample.class);
+
+
+    Map<String, String> paramMap = Map.of(
+        "customerName", event.payload().customerName(),
+        "reservationTime", event.payload().reservationTime().format(FORMATTER),
+        "restaurantName", event.payload().restaurantName()
+    );
+
+    NotificationTemplate template = new NotificationTemplate("제목", "본문");
+
+    when(formatterSelector.select(NotificationType.REMINDER_1HR)).thenReturn(strategy);
+    when(paramExtractor.extractEvent(event)).thenReturn(paramMap);
+    when(strategy.format(paramMap)).thenReturn(template);
+    when(sendSelector.select(NotificationMethod.SLACK)).thenReturn(senderStrategy);
+    when(notificationRepository.findByNotificationUuidAndDeletedByIsNull("uuid-123"))
+        .thenReturn(Optional.of(notification));
+    when(notificationMetrics.startSendTimer()).thenReturn(sample);
+
+    // when
+    notificationService.consumerScheduleSendNotification(event);
+
+    // then
+    verify(formatterSelector).select(NotificationType.REMINDER_1HR);
+    verify(paramExtractor).extractEvent(event);
+    verify(strategy).format(paramMap);
+    verify(sendSelector).select(NotificationMethod.SLACK);
+    verify(senderStrategy).send(payload.userId(), template);
+    verify(notificationRepository).findByNotificationUuidAndDeletedByIsNull("uuid-123");
+    verify(notification).modifyNotificationStatusIsSent();
+    verify(notificationMetrics).incrementSendSuccess();
+    verify(notificationMetrics).recordSendLatency(sample, "scheduled");
+  }
+
+  @Test
+  @DisplayName("알림 발송 실패 시 예외가 처리되고 메트릭이 기록된다.")
+  void consumerScheduleSendNotification_failure() {
+    // given
+    NotificationScheduleSendPayload payload = NotificationScheduleSendPayload.builder()
+        .userId(1L)
+        .notificationUuid("uuid-123")
+        .notificationType(NotificationType.REMINDER_1HR.toString())
+        .customerName("홍길동")
+        .reservationTime(LocalDateTime.of(2025, 4, 25, 9, 0))
+        .restaurantName("11조")
+        .notificationMethod(NotificationMethod.SLACK.toString())
+        .scheduledTime(LocalDateTime.of(2025, 4, 24, 8, 55))
+        .build();
+
+    NotificationScheduleSendEvent event = NotificationScheduleSendEvent.builder()
+        .eventType(EventType.Schedule_SEND)
+        .payload(payload)
+        .build();
+
+    NotificationFormatterStrategy strategy = mock(NotificationFormatterStrategy.class);
+    NotificationSenderStrategy senderStrategy = mock(NotificationSenderStrategy.class);
+    Notification notification = mock(Notification.class);
+    Timer.Sample sample = mock(Timer.Sample.class);
+
+    Map<String, String> paramMap = Map.of(
+        "customerName", payload.customerName(),
+        "restaurantName", payload.restaurantName(),
+        "reservationTime", payload.reservationTime().toString()
+    );
+
+    NotificationTemplate template = new NotificationTemplate("제목", "본문");
+
+    when(formatterSelector.select(NotificationType.REMINDER_1HR)).thenReturn(strategy);
+    when(paramExtractor.extractEvent(event)).thenReturn(paramMap);
+    when(strategy.format(paramMap)).thenReturn(template);
+    when(sendSelector.select(NotificationMethod.SLACK)).thenReturn(senderStrategy);
+
+    doThrow(new RuntimeException("발송 실패")).when(senderStrategy).send(payload.userId(), template);
+
+    when(notificationMetrics.startSendTimer()).thenReturn(sample);
+
+    // when
+    notificationService.consumerScheduleSendNotification(event);
+
+    // then
+    verify(formatterSelector).select(NotificationType.REMINDER_1HR);
+    verify(paramExtractor).extractEvent(event);
+    verify(strategy).format(paramMap);
+    verify(sendSelector).select(NotificationMethod.SLACK);
+    verify(senderStrategy).send(payload.userId(), template);
+    verify(notification, never()).modifyNotificationStatusIsSent();
+    verify(notificationMetrics).incrementSendFail();
+  }
+
+
+
 
 
 }

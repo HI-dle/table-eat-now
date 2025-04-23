@@ -44,13 +44,13 @@ public class NotificationRedisRepositoryImpl implements NotificationRedisReposit
         String.valueOf(now), String.valueOf(maxCount)
     );
 
-    return validResult(result); // String 리스트를 그대로 반환
+    return validResult(result);
   }
 
   private static List<String> validResult(List<String> result) {
     // 결과가 null 이거나 빈 리스트일 경우, 빈 리스트를 반환
     if (result == null || result.isEmpty()) {
-      log.info("처리한 알림이 없거나 스크립트에 문제가 생겼습니다.");
+      log.debug("처리한 알림이 없거나 스크립트에 문제가 생겼습니다.");
       return List.of();
     }
 

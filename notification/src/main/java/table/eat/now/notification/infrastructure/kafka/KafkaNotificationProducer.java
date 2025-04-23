@@ -19,7 +19,6 @@ public class KafkaNotificationProducer implements NotificationEventPublisher {
   @Override
   public void publish(NotificationEvent event) {
     kafkaTemplate.send(notificationTopic, event);
-    logEvent(event);
   }
 
   private static void logEvent(NotificationEvent notificationEvent) {
