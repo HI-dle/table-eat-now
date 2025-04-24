@@ -27,7 +27,6 @@ public class ReviewKafkaProducerConfig {
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
     props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
     props.put(ProducerConfig.ACKS_CONFIG, "all");
-    props.put(ProducerConfig.RETRIES_CONFIG, 3);
     props.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, EventTypeHeaderInterceptor.class.getName());
 
     return props;
@@ -51,6 +50,9 @@ public class ReviewKafkaProducerConfig {
     props.put(ProducerConfig.LINGER_MS_CONFIG, 100);
     props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
     props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
+    props.put(ProducerConfig.RETRIES_CONFIG, 1); //리트라이 횟수 : 1회
+    props.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, 500); // 리트라이 간격 : 0.5초
+    props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 1500); // 최대 리트라이까지의 대기시간 : 1.5초
     return new DefaultKafkaProducerFactory<>(props);
   }
 
