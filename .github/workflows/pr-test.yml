@@ -112,5 +112,5 @@ jobs:
           SONAR_TEST_INCLUSIONS=$(echo $MODULES | tr ',' '\n' | sed 's|$|/src/test/java/**/*Test.java|' | paste -sd "," -)
           
           ./gradlew sonar \
-            -Dsonar.sources=$SONAR_SOURCES \
+            -Dsonar.modules=$MODULES \
             -Dsonar.java.binaries=$BINARIES
