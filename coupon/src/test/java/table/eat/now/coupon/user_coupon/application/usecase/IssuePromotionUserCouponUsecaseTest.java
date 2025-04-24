@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.BiFunction;
+import java.util.function.BiConsumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.Getter;
@@ -16,7 +16,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.runner.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
 import table.eat.now.coupon.user_coupon.application.dto.request.IssueUserCouponCommand;
@@ -81,22 +80,16 @@ class IssuePromotionUserCouponUsecaseTest extends IntegrationTestSupport {
   @Getter
   @RequiredArgsConstructor
   enum IssueMethod {
-    JDBC("JJdbcTemplate 활용",
-        (usecase,  commands) -> {
-      usecase.execute(commands);
-      return new Result();
-    }),
+    JDBC("JdbcTemplate 활용",
+        (usecase,  commands) -> usecase.execute(commands)),
     JPA("EntityManager 활용",
-        (usecase,  commands) -> {
-      usecase.execute(commands);
-      return new Result();
-    });
+        (usecase,  commands) -> usecase.execute2(commands));
 
     final String description;
-    final BiFunction<IssuePromotionUserCouponUsecase, List<IssueUserCouponCommand>, Result> executor;
+    final BiConsumer<IssuePromotionUserCouponUsecase, List<IssueUserCouponCommand>> consumer;
 
-    public Result executeWith(IssuePromotionUserCouponUsecase usecase, List<IssueUserCouponCommand> commands) {
-      return executor.apply(usecase, commands);
+    public void executeWith(IssuePromotionUserCouponUsecase usecase, List<IssueUserCouponCommand> commands) {
+      consumer.accept(usecase, commands);
     }
 
     @Override
