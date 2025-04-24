@@ -63,7 +63,7 @@ public class AvailablePeriod {
       return expireAt;
     }
     LocalDate today = LocalDate.now();
-    return today.plusDays(validDays).atStartOfDay();
+    return today.plusDays(validDays + 1).atStartOfDay();
   }
 
   private void validatePeriod(LocalDateTime issueStartAt, LocalDateTime issueEndAt,
