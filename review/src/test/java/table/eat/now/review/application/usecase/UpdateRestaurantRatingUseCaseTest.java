@@ -19,21 +19,18 @@ import java.util.List;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import table.eat.now.review.application.event.RestaurantRatingUpdateEvent;
 import table.eat.now.review.application.event.ReviewEventPublisher;
 import table.eat.now.review.domain.repository.ReviewRepository;
 import table.eat.now.review.domain.repository.search.RestaurantRatingResult;
+import table.eat.now.review.helper.IntegrationTestSupport;
 
-@SpringBootTest
-@ActiveProfiles("test")
 @TestPropertySource(properties = {
     "review.rating.update.batch-size=3"
 })
-class UpdateRestaurantRatingUseCaseTest {
+class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
 
   @MockitoBean
   private ReviewRepository reviewRepository;
@@ -170,7 +167,7 @@ class UpdateRestaurantRatingUseCaseTest {
 
       doThrow(new RuntimeException("테스트 예외"))
           .when(reviewEventPublisher).publish(any(RestaurantRatingUpdateEvent.class));
-      when(reviewRepository.calculateRestaurantRatings(eq(batch2)))
+      when(reviewRepository.calculateRestaurantRatings(batch2))
           .thenReturn(result2);
 
       // when
@@ -222,9 +219,9 @@ class UpdateRestaurantRatingUseCaseTest {
           any(LocalDateTime.class), any(LocalDateTime.class), eq(5L), eq(batchSize)))
           .thenReturn(Collections.emptyList());
 
-      when(reviewRepository.calculateRestaurantRatings(eq(Arrays.asList("1", "2", "3"))))
+      when(reviewRepository.calculateRestaurantRatings(Arrays.asList("1", "2", "3")))
           .thenReturn(result1);
-      when(reviewRepository.calculateRestaurantRatings(eq(Collections.singletonList("4"))))
+      when(reviewRepository.calculateRestaurantRatings(Collections.singletonList("4")))
           .thenReturn(result2);
 
       // when
@@ -238,8 +235,8 @@ class UpdateRestaurantRatingUseCaseTest {
           .findRecentlyUpdatedRestaurantIds(
               any(LocalDateTime.class), any(LocalDateTime.class), anyLong(), eq(batchSize));
 
-      verify(reviewRepository).calculateRestaurantRatings(eq(Arrays.asList("1", "2", "3")));
-      verify(reviewRepository).calculateRestaurantRatings(eq(Collections.singletonList("4")));
+      verify(reviewRepository).calculateRestaurantRatings(Arrays.asList("1", "2", "3"));
+      verify(reviewRepository).calculateRestaurantRatings(Collections.singletonList("4"));
       verify(reviewRepository, times(2)).calculateRestaurantRatings(anyList());
 
       verify(reviewEventPublisher, times(4))

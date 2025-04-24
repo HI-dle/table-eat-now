@@ -17,6 +17,12 @@ spring:
         format_sql: true
   kafka:
     bootstrap-servers: ${LOCAL_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  data:
+    redis:
+      host: localhost
+      port: 6380
+      username: default
+#      password: systempass
 
 kafka-config:
   topic:
@@ -38,3 +44,8 @@ review:
       cron: 0 */5 * * * *
       batch-size: 100
       recent-minutes: 5
+
+distributed-lock:
+  wait-time: 0
+  lease-time: 3
+  time-unit: MINUTES
