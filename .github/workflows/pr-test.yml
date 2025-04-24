@@ -78,5 +78,5 @@ jobs:
       - name: Test and analyze ${{ matrix.module }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # PR 정보를 가져오려면 필요합니다.
-          SONAR_TOKEN: $SONAR_TOKEN
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
         run: ./gradlew ${{ matrix.module }}:test ${{ matrix.module }}:sonar --info
