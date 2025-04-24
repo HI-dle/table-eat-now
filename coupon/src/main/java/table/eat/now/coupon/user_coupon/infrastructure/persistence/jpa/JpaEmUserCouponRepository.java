@@ -19,12 +19,14 @@ public class JpaEmUserCouponRepository {
 
     for (int i = 0; i < userCoupons.size(); i++) {
       em.persist(userCoupons.get(i));
-      if (i % chunkSize == 0) {
+      if (i > 0 && i % chunkSize == 0) {
         em.flush();
         em.clear();
       }
     }
-    em.flush();
-    em.clear();
+    if (userCoupons.size() % chunkSize != 0) {
+      em.flush();
+      em.clear();
+    }
   }
 }

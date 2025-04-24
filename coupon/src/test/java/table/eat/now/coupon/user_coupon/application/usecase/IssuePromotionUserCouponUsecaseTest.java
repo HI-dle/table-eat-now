@@ -6,12 +6,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.runner.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
 import table.eat.now.coupon.user_coupon.application.dto.request.IssueUserCouponCommand;
 import table.eat.now.coupon.user_coupon.domain.entity.UserCoupon;
@@ -19,6 +25,7 @@ import table.eat.now.coupon.user_coupon.domain.entity.UserCouponStatus;
 import table.eat.now.coupon.user_coupon.domain.repository.UserCouponRepository;
 import table.eat.now.coupon.user_coupon.domain.store.UserCouponStore;
 
+@Slf4j
 class IssuePromotionUserCouponUsecaseTest extends IntegrationTestSupport {
 
   @Autowired
@@ -28,17 +35,12 @@ class IssuePromotionUserCouponUsecaseTest extends IntegrationTestSupport {
   UserCouponStore store;
 
   @Autowired
-  JdbcTemplate jdbcTemplate;
-
-  @Autowired
   UserCouponRepository repository;
 
   private List<IssueUserCouponCommand> commands;
 
   @BeforeEach
   void setUp() {
-
-    jdbcTemplate.execute("ALTER TABLE p_user_coupon ALTER COLUMN id SET DEFAULT NEXT VALUE FOR p_user_coupon_seq");
 
     String couponUuid = UUID.randomUUID().toString();
     commands = IntStream.range(0, 1000)
@@ -52,15 +54,20 @@ class IssuePromotionUserCouponUsecaseTest extends IntegrationTestSupport {
         .toList();
   }
 
-  @DisplayName("프로모션 쿠폰 발행 배치 처리::jdbc 템플릿 사용 - 성공")
-  @Test
-  void execute() {
+  public static Stream<IssueMethod> methodProvider() {
+    return Stream.of(IssueMethod.JDBC, IssueMethod.JPA);
+  }
+
+  @DisplayName("프로모션 쿠폰 발행 배치 처리 - 성공")
+  @MethodSource("methodProvider")
+  @ParameterizedTest(name = "{index} : 수행 방식 - {0}")
+  void execute(IssueMethod method) {
     // given
     // when
     long start = System.nanoTime();
-    usecase.execute(commands);
+    method.executeWith(usecase, commands);
     long end = System.nanoTime();
-    System.out.println("수행 시간(ms): " + (end - start) / 1_000_000);
+    log.info("수행 시간(ms): {}", (end - start) / 1_000_000);
 
     // then
     UserCoupon userCoupon = repository.findByUserCouponUuidAndDeletedAtIsNull(
@@ -71,22 +78,30 @@ class IssuePromotionUserCouponUsecaseTest extends IntegrationTestSupport {
     assertThat(userCoupon.getExpiresAt()).isEqualTo(commands.get(0).expiresAt());
   }
 
-  @DisplayName("프로모션 쿠폰 발행 배치 처리::엔티티 매니저 사용 - 성공")
-  @Test
-  void execute2() {
-    // given
-    // when
-    long start = System.nanoTime();
-    usecase.execute2(commands);
-    long end = System.nanoTime();
-    System.out.println("수행 시간(ms): " + (end - start) / 1_000_000);
+  @Getter
+  @RequiredArgsConstructor
+  enum IssueMethod {
+    JDBC("JJdbcTemplate 활용",
+        (usecase,  commands) -> {
+      usecase.execute(commands);
+      return new Result();
+    }),
+    JPA("EntityManager 활용",
+        (usecase,  commands) -> {
+      usecase.execute(commands);
+      return new Result();
+    });
 
-    // then
-    UserCoupon userCoupon = repository.findByUserCouponUuidAndDeletedAtIsNull(
-            commands.get(0).userCouponUuid())
-        .orElseThrow(RuntimeException::new);
+    final String description;
+    final BiFunction<IssuePromotionUserCouponUsecase, List<IssueUserCouponCommand>, Result> executor;
 
-    assertThat(userCoupon.getStatus()).isEqualTo(UserCouponStatus.ISSUED);
-    assertThat(userCoupon.getExpiresAt()).isEqualTo(commands.get(0).expiresAt());
+    public Result executeWith(IssuePromotionUserCouponUsecase usecase, List<IssueUserCouponCommand> commands) {
+      return executor.apply(usecase, commands);
+    }
+
+    @Override
+    public String toString() {
+      return description;
+    }
   }
 }

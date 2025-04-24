@@ -79,8 +79,8 @@ public class Coupon extends BaseEntity {
       String name, String type, String label, LocalDateTime startAt, LocalDateTime endAt, Integer validDays,
       Integer count, Boolean allowDuplicate) {
 
-    CouponType typeE = CouponType.valueOf(type.toUpperCase());
-    CouponLabel labelE = CouponLabel.valueOf(label.toUpperCase());
+    CouponType typeE = CouponType.parse(type.toUpperCase());
+    CouponLabel labelE = CouponLabel.parse(label.toUpperCase());
 
     return new Coupon(name, typeE, labelE, startAt, endAt, validDays, count, allowDuplicate);
   }

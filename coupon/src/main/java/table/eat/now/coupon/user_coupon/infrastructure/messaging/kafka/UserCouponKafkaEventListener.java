@@ -32,7 +32,7 @@ public class UserCouponKafkaEventListener {
       topics = RESERVATION_EVENT,
       containerFactory = "reservationCancelledEventKafkaListenerContainerFactory"
   )
-  public void listen(
+  public void listenReservationCanceledEvent(
       ConsumerRecord<String, ReservationCancelledEvent> record, Acknowledgment ack) {
     log.info("예약 취소 이벤트 처리: {}", record);
     try {
@@ -49,7 +49,7 @@ public class UserCouponKafkaEventListener {
       topics = RESERVATION_EVENT_DLT,
       containerFactory = "reservationCancelledEventDltKafkaListenerContainerFactory"
   )
-  public void listen(
+  public void listenReservationCanceledEventDlt(
       ConsumerRecord<String, ReservationCancelledEvent> record,
       Acknowledgment ack,
       @Header(KafkaHeaders.RECEIVED_PARTITION) int partitionId,
@@ -75,7 +75,7 @@ public class UserCouponKafkaEventListener {
       topics = PROMOTION_EVENT,
       containerFactory = "promotionParticipatedCouponEventKafkaListenerContainerFactory"
   )
-  public void listen(
+  public void listenPromotionParticipatedCouponEvent(
       List<ConsumerRecord<String, PromotionParticipatedCouponEvent>> records, Acknowledgment ack) {
     log.info("프로모션 참여 쿠폰 발행 이벤트 처리: from: {}, to: {}",
         records.get(0).offset(),

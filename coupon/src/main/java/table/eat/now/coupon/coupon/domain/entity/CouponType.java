@@ -10,4 +10,13 @@ public enum CouponType {
   ;
 
   private final String description;
+
+  public static CouponType parse(String type) {
+
+    try {
+      return CouponType.valueOf(type.toUpperCase());
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("지원하지 않는 쿠폰 타입입니다: " + type);
+    }
+  }
 }

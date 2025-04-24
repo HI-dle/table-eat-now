@@ -7,7 +7,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 
+@Sql(statements = "ALTER TABLE p_user_coupon ALTER COLUMN id SET DEFAULT NEXT VALUE FOR p_user_coupon_seq")
 @ExtendWith(RedisTestContainerExtension.class)
 @Import(DatabaseCleanUp.class)
 @ActiveProfiles("test")
@@ -18,14 +20,13 @@ public abstract class IntegrationTestSupport {
   private DatabaseCleanUp databaseCleanUp;
 
   @Autowired
-  private RedisTemplate<String, Object> redisTemplate;
+  protected RedisTemplate<String, Object> redisTemplate;
 
   @AfterEach
   void tearDown() {
     databaseCleanUp.afterPropertiesSet();
     databaseCleanUp.execute();
     clearRedis();
-
   }
 
   void clearRedis() {

@@ -21,6 +21,11 @@ public class UserCouponProducerConfig {
   @Value("${spring.kafka.bootstrap-servers}")
   private String bootstrapServers;
 
+  private static final int BATCH_SIZE = 16384 * 5; // 80KB
+  private static final int LINGER_MS = 20;
+  private static final int BUFFER_MEMORY = 33554432; // 32MB
+  private static final String COMPRESSION_TYPE = "snappy";
+
   private Map<String, Object> getCommonProducerProps() {
     Map<String, Object> props = new HashMap<>();
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -41,10 +46,10 @@ public class UserCouponProducerConfig {
   public <T> ProducerFactory<String, T> batchProducerFactory() {
     Map<String, Object> props = getCommonProducerProps();
 
-    props.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384 * 5); // 16KB
-    props.put(ProducerConfig.LINGER_MS_CONFIG, 20);
-    props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432); // 32MB
-    props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
+    props.put(ProducerConfig.BATCH_SIZE_CONFIG, BATCH_SIZE);
+    props.put(ProducerConfig.LINGER_MS_CONFIG, LINGER_MS);
+    props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, BUFFER_MEMORY);
+    props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, COMPRESSION_TYPE);
     return new DefaultKafkaProducerFactory<>(props);
   }
 
