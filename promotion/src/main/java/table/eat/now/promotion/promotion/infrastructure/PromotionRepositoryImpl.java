@@ -1,5 +1,6 @@
 package table.eat.now.promotion.promotion.infrastructure;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -57,5 +58,15 @@ public class PromotionRepositoryImpl implements PromotionRepository {
   @Override
   public List<PromotionParticipantDto> getPromotionUsers(String promotionName) {
     return promotionRedisRepository.getPromotionUsers(promotionName);
+  }
+
+  @Override
+  public List<String> pollDueEvents(){
+    return promotionRedisRepository.pollScheduleQueue();
+  }
+
+  @Override
+  public void addScheduleQueue(String promotionUuid, LocalDateTime triggerTime) {
+    promotionRedisRepository.addScheduleQueue(promotionUuid, triggerTime);
   }
 }

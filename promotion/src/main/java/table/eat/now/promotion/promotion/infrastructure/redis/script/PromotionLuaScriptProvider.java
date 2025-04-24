@@ -37,5 +37,17 @@ public class PromotionLuaScriptProvider {
 
     """;
   }
+
+  public String getPollScheduleQueueScript() {
+    return """
+    local key = KEYS[1]
+    local now = tonumber(ARGV[1])
+    local values = redis.call('ZRANGEBYSCORE', key, 0, now)
+    if #values > 0 then
+      redis.call('ZREM', key, unpack(values))
+    end
+    return values
+  """;
+  }
 }
 

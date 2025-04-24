@@ -30,9 +30,9 @@ X-User-Id: 1
 #Authorization: {{access_token}}
 
 {
-  "promotionName": "봄맞이 할인 프로모션",
-  "description": "전 메뉴 3000원 할인",
-  "startTime": "2025-04-22T00:00:00",
+  "promotionName": "자리 eat now 오픈 프로모션",
+  "description": "전 메뉴 3000원 할인 쿠폰",
+  "startTime": "2025-04-25T00:00:00",
   "endTime": "2025-04-30T00:00:00",
   "discountAmount": 3000,
   "promotionStatus": "READY",
