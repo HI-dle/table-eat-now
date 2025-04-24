@@ -24,19 +24,39 @@ spring:
       username: default
 #      password: systempass
 
+
 kafka-config:
   topic:
     partitions: 3
-    replicas: 3
-    min-insync-replicas: 2
+    replicas: 1
+    min-insync-replicas: 1
 
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
 
+
+
 server:
   port: 8087
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+  tracing:
+    sampling:
+      probability: 1.0
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_URL:http://localhost:9411/api/v2/spans}
+
 
 review:
   rating:
@@ -49,3 +69,4 @@ distributed-lock:
   wait-time: 0
   lease-time: 3
   time-unit: MINUTES
+
