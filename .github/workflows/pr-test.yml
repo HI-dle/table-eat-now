@@ -96,5 +96,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           MODULES=$(echo ${{ needs.detect-changes.outputs.modules }} | jq -r '.[]' | paste -sd "," -) \
+          echo "MODULES = $MODULES" \
+          BINARIES=$(echo $MODULES | tr ',' '\n' | sed 's|$|/build/classes/java/main|' | paste -sd ":" -) \          
           ./gradlew sonar \
-            -Dsonar.sources=$MODULES
+            -Dsonar.sources=$MODULES \
+            -Dsonar.java.binaries=$BINARIES
