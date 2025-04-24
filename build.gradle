@@ -1,7 +1,7 @@
 plugins {
 	id 'java'
 	id 'jacoco'
-    id "org.sonarqube" version "6.0.1.5171" apply false
+    id "org.sonarqube" version "6.0.1.5171" //apply false
 }
 
 group = 'idle.table.eat.now'
@@ -107,5 +107,21 @@ subprojects {
                 })
             )
         }
+    }
+}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "HI-dle_table-eat-now"
+        property "sonar.organization", "hi-dle"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property 'sonar.sources', 'src'
+        property 'sonar.language', 'java'
+        property 'sonar.sourceEncoding', 'UTF-8'
+        property 'sonar.exclusions', rootProject.ext.excludePatterns.join(',')
+        property 'sonar.test.inclusions', '**/*Test*.java'
+        property 'sonar.java.coveragePlugin', 'jacoco'
+        property 'sonar.java.binaries', "build/classes"
+        property 'sonar.coverage.jacoco.xmlReportPaths', "build/reports/jacoco/jacocoTestReport.xml"
     }
 }

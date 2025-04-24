@@ -36,20 +36,42 @@ jobs:
             modules=$(echo "$changed_modules" | grep -E "$pattern" | jq -R -s -c 'split("\n") | map(select(length > 0))')
             echo "modules=$modules" >> "$GITHUB_OUTPUT"
           fi
-  build:
+  test:
     needs: detect-changes
-    name: Build and analyze
+    name: test
     runs-on: ubuntu-latest
     if: ${{ needs.detect-changes.outputs.modules != '[]' && needs.detect-changes.outputs.modules != '' }}
     strategy:
       matrix:
         module: ${{ fromJson(needs.detect-changes.outputs.modules) }}
-      fail-fast: true  # 첫 번째 실패가 발생하면 실패
+      fail-fast: false  # 첫 번째 실패가 발생해도 나머지 작업들은 계속 진행됨
     steps:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.ACTION_TOKEN }}
           submodules: true
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'zulu' # Alternative distribution options are available
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+      - name: Test ${{ matrix.module }}
+        run: ./gradlew ${{ matrix.module }}:test
+  sonar:
+    needs: test
+    name: Analyze with SonarCloud
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.modules != '[]' && needs.detect-changes.outputs.modules != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -62,22 +84,11 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-      - name: Set module-specific token
-        run: |
-          if [[ "${{ matrix.module }}" == "waiting" || "${{ matrix.module }}" == "server" ]]; then
-            echo "SONAR_TOKEN=${{ secrets.SONAR_TOKEN }}" >> $GITHUB_ENV
-          elif [[ "${{ matrix.module }}" == "coupon" ]]; then
-            echo "SONAR_TOKEN=${{ secrets.SONAR_TOKEN_RESTAURANT }}" >> $GITHUB_ENV
-          fi
       - name: Test and analyze ${{ matrix.module }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # PR 정보를 가져오려면 필요합니다.
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
-        run: ./gradlew ${{ matrix.module }}:test ${{ matrix.module }}:sonar --info
-        
+        run: |
+          MODULES=$(echo ${{ needs.detect-changes.outputs.modules }} | jq -r '.[]' | paste -sd "," -) \
+          ./gradlew sonar \
+            -Dsonar.sources=$MODULES
