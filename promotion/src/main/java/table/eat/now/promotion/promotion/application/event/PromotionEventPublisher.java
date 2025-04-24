@@ -1,5 +1,6 @@
 package table.eat.now.promotion.promotion.application.event;
 
+import table.eat.now.promotion.promotion.application.event.produce.PromotionScheduleEvent;
 import table.eat.now.promotion.promotion.application.event.produce.PromotionUserCouponSaveEvent;
 
 /**
@@ -11,4 +12,5 @@ public interface PromotionEventPublisher {
   void publish(PromotionEvent event);
   void publish(PromotionUserCouponSaveEvent event);
 
+  void publish(PromotionScheduleEvent event);
 }

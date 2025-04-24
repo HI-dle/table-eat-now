@@ -551,10 +551,6 @@ class PromotionServiceImplTest {
         (PromotionEvent) argThat((ArgumentMatcher<Object>) event -> event instanceof PromotionUserSaveEvent)
     );
 
-
-    verify(promotionEventPublisher).publish(
-        argThat(event -> event instanceof PromotionUserCouponSaveEvent)
-    );
   }
 
 

@@ -91,4 +91,11 @@ public class Promotion extends BaseEntity {
     this.promotionStatus = promotionStatus;
     this.promotionType = promotionType;
   }
+
+  public void modifyPromotionStatus(Promotion promotion) {
+    switch (promotion.getPromotionStatus()) {
+      case READY -> this.promotionStatus = PromotionStatus.RUNNING;
+      case RUNNING ->this.promotionStatus = PromotionStatus.CLOSED;
+    }
+  }
 }

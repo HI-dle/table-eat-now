@@ -6,6 +6,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import table.eat.now.promotion.promotion.application.event.PromotionEvent;
 import table.eat.now.promotion.promotion.application.event.PromotionEventPublisher;
+import table.eat.now.promotion.promotion.application.event.produce.PromotionScheduleEvent;
 import table.eat.now.promotion.promotion.application.event.produce.PromotionUserCouponSaveEvent;
 
 @Slf4j
@@ -26,6 +27,12 @@ public class KafkaPromotionProducer implements PromotionEventPublisher {
 
   @Override
   public void publish(PromotionUserCouponSaveEvent event) {
+    kafkaTemplate.send(promotionTopic, event);
+    logEvent(event);
+  }
+
+  @Override
+  public void publish(PromotionScheduleEvent event) {
     kafkaTemplate.send(promotionTopic, event);
     logEvent(event);
   }

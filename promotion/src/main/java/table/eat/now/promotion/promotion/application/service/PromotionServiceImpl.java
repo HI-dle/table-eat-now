@@ -54,7 +54,12 @@ public class PromotionServiceImpl implements PromotionService{
   @Override
   @Transactional
   public CreatePromotionInfo createPromotion(CreatePromotionCommand command) {
-    return CreatePromotionInfo.from(promotionRepository.save(command.toEntity()));
+    CreatePromotionInfo createPromotionInfo = CreatePromotionInfo.from(
+        promotionRepository.save(command.toEntity()));
+
+    schedulePromotion(createPromotionInfo);
+
+    return createPromotionInfo;
   }
 
   @Override
@@ -182,6 +187,11 @@ public class PromotionServiceImpl implements PromotionService{
     return promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid)
         .orElseThrow(() ->
             CustomException.from(PromotionErrorCode.INVALID_PROMOTION_UUID));
+  }
+
+  private void schedulePromotion(CreatePromotionInfo info) {
+    promotionRepository.addScheduleQueue(info.promotionUuid(), info.startTime());
+    promotionRepository.addScheduleQueue(info.promotionUuid(), info.endTime());
   }
 
 }

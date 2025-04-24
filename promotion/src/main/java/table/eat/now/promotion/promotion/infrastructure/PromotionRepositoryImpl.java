@@ -61,7 +61,7 @@ public class PromotionRepositoryImpl implements PromotionRepository {
   }
 
   @Override
-  public List<String> pollDueEvents(){
+  public List<String> pollScheduleQueue(){
     return promotionRedisRepository.pollScheduleQueue();
   }
 

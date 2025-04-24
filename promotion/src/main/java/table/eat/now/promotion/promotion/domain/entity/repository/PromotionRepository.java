@@ -29,7 +29,7 @@ public interface PromotionRepository {
 
   List<PromotionParticipantDto> getPromotionUsers(String promotionName);
 
-  List<String> pollDueEvents();
+  List<String> pollScheduleQueue();
   void addScheduleQueue(String promotionUuid, LocalDateTime triggerTime);
 
 }

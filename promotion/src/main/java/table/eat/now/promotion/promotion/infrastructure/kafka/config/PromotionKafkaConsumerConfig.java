@@ -1,12 +1,15 @@
 package table.eat.now.promotion.promotion.infrastructure.kafka.config;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -14,6 +17,8 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import table.eat.now.promotion.promotion.application.event.EventType;
+import table.eat.now.promotion.promotion.application.event.produce.PromotionScheduleEvent;
 
 @EnableKafka
 @Configuration
@@ -49,26 +54,41 @@ public class PromotionKafkaConsumerConfig {
   }
 
   // 이벤트 타입 헤더 필터 생성 메서드
-  private <T> RecordFilterStrategy<String, T> createEventTypeFilter(String eventTypeName) {
+  // 이벤트 타입 헤더 필터 생성 메서드 (여러 이벤트 타입 처리)
+  private <T> RecordFilterStrategy<String, T> createEventTypeFilter(List<String> eventTypeNames) {
     return record -> {
       Header eventTypeHeader = record.headers().lastHeader("eventType");
       if (eventTypeHeader == null) {
         return true; // 헤더가 없으면 필터링
       }
       String eventTypeValue = new String(eventTypeHeader.value(), StandardCharsets.UTF_8);
-      return !eventTypeValue.equals(eventTypeName); // 지정된 이벤트 타입만 통과
+      // 지정된 이벤트 타입만 통과
+      return !eventTypeNames.contains(eventTypeValue);
     };
   }
 
-  // 타입별 컨테이너 팩토리 생성 메서드
+  // 타입별 컨테이너 팩토리 생성 메서드 (여러 이벤트 타입 처리)
   private <T> ConcurrentKafkaListenerContainerFactory<String, T> createContainerFactory(
-      ConsumerFactory<String, T> consumerFactory, String eventTypeName) {
+      ConsumerFactory<String, T> consumerFactory, List<String> eventTypeNames) {
 
     ConcurrentKafkaListenerContainerFactory<String, T> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(consumerFactory);
-    factory.setRecordFilterStrategy(createEventTypeFilter(eventTypeName));
+    factory.setRecordFilterStrategy(createEventTypeFilter(eventTypeNames));
 
     return factory;
+  }
+
+  //promotionSchedule 컨슈머 팩토리
+  @Bean
+  public ConsumerFactory<String, PromotionScheduleEvent> scheduleEventConsumerFactory() {
+    return createConsumerFactory(PromotionScheduleEvent.class, "promotion-schedule-consumer");
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, PromotionScheduleEvent>
+  promotionScheduleEventKafkaListenerContainerFactory() {
+    return createContainerFactory(scheduleEventConsumerFactory(),
+        Arrays.asList(EventType.START.name(), EventType.END.name()));  // 두 이벤트 타입을 모두 처리
   }
 }
