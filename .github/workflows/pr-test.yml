@@ -68,8 +68,15 @@ jobs:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
+      - name: Set module-specific token
+        run: |
+          if [[ "${{ matrix.module }}" == "waiting" || "${{ matrix.module }}" == "server" ]]; then
+            echo "SONAR_TOKEN=${{ secrets.SONAR_TOKEN }}" >> $GITHUB_ENV
+          elif [[ "${{ matrix.module }}" == "coupon" ]]; then
+            echo "SONAR_TOKEN=${{ secrets.SONAR_TOKEN_RESTAURANT }}" >> $GITHUB_ENV
+          fi
       - name: Test and analyze ${{ matrix.module }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # PR 정보를 가져오려면 필요합니다.
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: $SONAR_TOKEN
         run: ./gradlew ${{ matrix.module }}:test ${{ matrix.module }}:sonar --info
