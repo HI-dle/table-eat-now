@@ -121,7 +121,6 @@ sonar {
         property 'sonar.exclusions', rootProject.ext.excludePatterns.join(',')
         property 'sonar.test.inclusions', '**/*Test*.java'
         property 'sonar.java.coveragePlugin', 'jacoco'
-        property 'sonar.java.binaries', "build/classes"
         property 'sonar.coverage.jacoco.xmlReportPaths', "build/reports/jacoco/jacocoTestReport.xml"
     }
 }
