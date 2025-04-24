@@ -126,8 +126,8 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
 
   @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
   enum SortType {
-    ENDAT((direction) -> new OrderSpecifier<>(direction, coupon.period.issueEndAt)),
-    STARTAT((direction) -> new OrderSpecifier<>(direction, coupon.period.issueStartAt));
+    ISSUEENDAT((direction) -> new OrderSpecifier<>(direction, coupon.period.issueEndAt)),
+    ISSUESTARTAT((direction) -> new OrderSpecifier<>(direction, coupon.period.issueStartAt));
 
     private final Function<Order, OrderSpecifier> typedOrderSpecifier;
 

@@ -36,7 +36,6 @@ import table.eat.now.coupon.coupon.domain.repository.CouponRepository;
 public class CouponServiceImpl implements CouponService {
   private final CouponRepository couponRepository;
   private final ApplicationEventPublisher eventPublisher;
-  private final List<IssueStrategy> couponIssueStrategies;
   private final IssueStrategyResolver issueStrategyResolver;
 
   @Override

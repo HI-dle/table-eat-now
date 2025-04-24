@@ -96,8 +96,8 @@ public class CouponAdminController {
       @CurrentUserInfo CurrentUserInfoDto userInfo,
       @PageableDefault
       @SortDefault.SortDefaults({
-          @SortDefault(sort = "endAt", direction = Sort.Direction.ASC),
-          @SortDefault(sort = "startAt", direction = Sort.Direction.ASC)
+          @SortDefault(sort = "issueEndAt", direction = Sort.Direction.ASC),
+          @SortDefault(sort = "issueStartAt", direction = Sort.Direction.ASC)
       }) Pageable pageable,
       SearchCouponsRequest request
   ) {

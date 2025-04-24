@@ -40,7 +40,7 @@ class IssueGeneralStrategyTest  extends IntegrationTestSupport {
 
   @DisplayName("기본 쿠폰 발급 전략이 발급 전략 별명을 잘 반환하는지 확인 - 성공")
   @Test
-  void support() {
+  void alias() {
     // given, when
     IssueStrategyAlias alias = strategy.alias();
 

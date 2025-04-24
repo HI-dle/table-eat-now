@@ -15,7 +15,7 @@ import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
 public record CreateCouponRequest(
     @NotBlank @Size(max = 200) String name,
     @NotBlank @Pattern(regexp = "(?i)^(FIXED_DISCOUNT|PERCENT_DISCOUNT)$") String type,
-    @NotBlank @Pattern(regexp = "(?i)^(GENERAL|PROMOTION|HOT)$") String label,
+    @NotBlank @Pattern(regexp = "(?i)^(GENERAL|PROMOTION|HOT|SYSTEM)$") String label,
     @NotNull @Future LocalDateTime issueStartAt,
     @NotNull @Future LocalDateTime issueEndAt,
     @Future LocalDateTime expireAt,

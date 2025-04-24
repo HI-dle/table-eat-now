@@ -34,8 +34,8 @@ public class CouponApiController {
   public ResponseEntity<AvailableCouponsResponse> getAvailableCoupons(
       @PageableDefault
       @SortDefault.SortDefaults({
-          @SortDefault(sort = "endAt", direction = Sort.Direction.ASC),
-          @SortDefault(sort = "startAt", direction = Sort.Direction.ASC)
+          @SortDefault(sort = "issueEndAt", direction = Sort.Direction.ASC),
+          @SortDefault(sort = "issueStartAt", direction = Sort.Direction.ASC)
       }) Pageable pageable,
       @RequestParam LocalDateTime time
   ) {

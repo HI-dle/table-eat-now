@@ -1,6 +1,7 @@
 package table.eat.now.coupon.coupon.application.service.strategy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Duration;
@@ -54,7 +55,8 @@ class IssueNonDupHotStrategyTest extends IntegrationTestSupport {
   @Test
   void issue() {
     // given
-    issueNonDupHotStrategy.requestIssue(coupon.getCouponUuid(), 2L);
+    assertThatCode(() -> issueNonDupHotStrategy.requestIssue(coupon.getCouponUuid(), 2L))
+        .doesNotThrowAnyException();
 
     // when, then
     assertThatThrownBy(() -> issueNonDupHotStrategy.requestIssue(coupon.getCouponUuid(), 2L))
