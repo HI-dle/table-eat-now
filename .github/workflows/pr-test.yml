@@ -65,7 +65,7 @@ jobs:
       - name: Test ${{ matrix.module }}
         run: ./gradlew ${{ matrix.module }}:test
   sonar:
-    needs: test
+    needs: [test,detect-changes]
     name: Analyze with SonarCloud
     runs-on: ubuntu-latest
     if: ${{ needs.detect-changes.outputs.modules != '[]' && needs.detect-changes.outputs.modules != '' }}
