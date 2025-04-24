@@ -18,7 +18,7 @@ public class CouponFixture {
 
     return IntStream.range(0, i)
         .mapToObj(j -> CouponFixture.createCoupon(
-            j, "FIXED_DISCOUNT", "HOT",1000 * i ,false,
+            j, "FIXED_DISCOUNT", "GENERAL",1000 * i ,false,
             1000, null, null)
         )
         .toList();
@@ -31,6 +31,7 @@ public class CouponFixture {
 
     Coupon coupon = Coupon.of("test 쿠폰 " + i, type, label,
         LocalDateTime.now().plusDays(2+i).truncatedTo(ChronoUnit.DAYS),
+        LocalDateTime.now().plusDays(12+i).truncatedTo(ChronoUnit.DAYS),
         LocalDateTime.now().plusDays(12+i).truncatedTo(ChronoUnit.DAYS),
         7, count, allowDuplicate);
     DiscountPolicy policy = DiscountPolicy.of(
@@ -46,9 +47,10 @@ public class CouponFixture {
             .couponUuid(UUID.randomUUID().toString())
             .name("test coupon " + i)
             .type("FIXED_DISCOUNT")
-            .label("HOT")
-            .startAt(LocalDateTime.now().minusDays(i).truncatedTo(ChronoUnit.DAYS))
-            .endAt(LocalDateTime.now().plusDays(19-i).truncatedTo(ChronoUnit.DAYS))
+            .label("GENERAL")
+            .issueStartAt(LocalDateTime.now().minusDays(i).truncatedTo(ChronoUnit.DAYS))
+            .issueEndAt(LocalDateTime.now().plusDays(19-i).truncatedTo(ChronoUnit.DAYS))
+            .expireAt(LocalDateTime.now().plusDays(19-i).truncatedTo(ChronoUnit.DAYS))
             .validDays(7)
             .count(10000 * i)
             .allowDuplicate(false)
@@ -71,9 +73,10 @@ public class CouponFixture {
             .couponUuid(UUID.randomUUID().toString())
             .name("test coupon " + i)
             .type("FIXED_DISCOUNT")
-            .label("HOT")
-            .startAt(LocalDateTime.now().minusDays(i).truncatedTo(ChronoUnit.DAYS))
-            .endAt(LocalDateTime.now().plusDays(19-i).truncatedTo(ChronoUnit.DAYS))
+            .label("GENERAL")
+            .issueStartAt(LocalDateTime.now().minusDays(i).truncatedTo(ChronoUnit.DAYS))
+            .issueEndAt(LocalDateTime.now().plusDays(19-i).truncatedTo(ChronoUnit.DAYS))
+            .expireAt(LocalDateTime.now().plusDays(19-i).truncatedTo(ChronoUnit.DAYS))
             .validDays(7)
             .count(10000 * i)
             .issuedCount(100)

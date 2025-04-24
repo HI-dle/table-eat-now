@@ -17,10 +17,10 @@ import table.eat.now.coupon.coupon.domain.repository.CouponRepository;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
 
-class NoDuplicateStrategyTest extends IntegrationTestSupport {
+class IssueNonDupHotStrategyTest extends IntegrationTestSupport {
 
   @Autowired
-  private NoDuplicateStrategy noDuplicateStrategy;
+  private IssueNonDupHotStrategy issueNonDupHotStrategy;
 
   @Autowired
   private CouponRepository couponRepository;
@@ -30,34 +30,34 @@ class NoDuplicateStrategyTest extends IntegrationTestSupport {
   @BeforeEach
   void setUp() {
     coupon = CouponFixture.createCoupon(
-        1, "FIXED_DISCOUNT", "HOT", 0, false, 2000, null, null);
-    ReflectionTestUtils.setField(coupon.getPeriod(), "startAt", LocalDateTime.now().minusDays(1));
+        1, "FIXED_DISCOUNT", "GENERAL", 0, false, 2000, null, null);
+    ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().minusDays(1));
     couponRepository.save(coupon);
 
-    Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getEndAt())
+    Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getIssueEndAt())
         .plusMinutes(10);
     couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
     couponRepository.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
   }
 
-  @DisplayName("중복 발급 제한 쿠폰을 중복 발급 제한 쿠폰 발급 전략이 지원하는지 확인 - 성공")
+  @DisplayName("중복 발급 제한 쿠폰 발급 전략이 발급 전략 별명을 잘 반환하는지 확인 - 성공")
   @Test
-  void support() {
+  void alias() {
     // given, when
-    boolean support = noDuplicateStrategy.support(coupon);
+    IssueStrategyAlias alias = issueNonDupHotStrategy.alias();
 
     // then
-    assertThat(support).isTrue();
+    assertThat(alias).isEqualTo(IssueStrategyAlias.HOT_NONDUP);
   }
 
   @DisplayName("중복 발급 제한 쿠폰을 중복 없이 발급하는지 확인 - 중복 발급 시도시 예외 발생")
   @Test
   void issue() {
     // given
-    noDuplicateStrategy.requestIssue(coupon.getCouponUuid(), 2L);
+    issueNonDupHotStrategy.requestIssue(coupon.getCouponUuid(), 2L);
 
     // when, then
-    assertThatThrownBy(() -> noDuplicateStrategy.requestIssue(coupon.getCouponUuid(), 2L))
+    assertThatThrownBy(() -> issueNonDupHotStrategy.requestIssue(coupon.getCouponUuid(), 2L))
         .isInstanceOf(CustomException.class)
         .hasMessage(CouponErrorCode.ALREADY_ISSUED.getMessage());
   }
