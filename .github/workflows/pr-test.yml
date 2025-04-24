@@ -107,11 +107,7 @@ jobs:
           MODULES_JSON: ${{ needs.detect-changes.outputs.modules }}
         run: |
           MODULES=$(echo "$MODULES_JSON" | jq -r '.[]' | paste -sd "," -)
-          BINARIES=$(find downloaded -type d -path "*/build/classes" | paste -sd ":" -)
           SONAR_COVERAGE=$(echo $MODULES | tr ',' '\n' | sed 's|$|/build/reports/jacoco/jacocoTestReport.xml|' | paste -sd "," -)
-          echo "BINARIES=$BINARIES"
-          find $BINARIES -name "jacocoTestReport.xml" || echo "⚠️ No jacocoTestReport.xml files found"
-          SONAR_TEST_INCLUSIONS=$(echo $MODULES | tr ',' '\n' | sed 's|$|/src/test/java/**/*Test.java|' | paste -sd "," -)
           
           ./gradlew sonar \
             -Dsonar.inclusions=$MODULES \
