@@ -158,7 +158,7 @@ class CouponServiceImplTest extends IntegrationTestSupport {
   @Test
   void searchCoupons() {
     // given
-    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "endAt"));
+    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "issueEndAt"));
     SearchCouponsQuery query = SearchCouponsQuery.builder()
         .fromAt(LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.DAYS))
         .toAt(LocalDateTime.now().plusDays(10).truncatedTo(ChronoUnit.DAYS))
@@ -205,7 +205,7 @@ class CouponServiceImplTest extends IntegrationTestSupport {
     couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
     couponRepository.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
 
-    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "endAt"));
+    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "issueEndAt"));
 
     // when
     PageResponse<AvailableCouponInfo> availableCoupons = couponService.getAvailableCoupons(
