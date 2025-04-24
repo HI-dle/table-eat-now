@@ -108,8 +108,7 @@ jobs:
         run: |
           MODULES=$(echo "$MODULES_JSON" | jq -r '.[]' | paste -sd "," -)
           SONAR_COVERAGE=$(echo $MODULES | tr ',' '\n' | sed 's|$|/build/reports/jacoco/test/jacocoTestReport.xml|' | paste -sd "," -)
-          
+          find ./ -name "jacocoTestReport.xml" || echo "No jacocoTestReport.xml files"
           ./gradlew sonar \
             -Dsonar.inclusions=$MODULES \
             -Dsonar.coverage.jacoco.xmlReportPaths=$SONAR_COVERAGE
-            -Dsonar.login=$SONAR_TOKEN
