@@ -58,13 +58,16 @@ public class AvailablePeriod {
     return issueStartAt.isBefore(now) && issueEndAt.isAfter(now);
   }
 
+  public LocalDateTime calcExpireAt() {
+    if (expireAt != null) {
+      return expireAt;
+    }
+    LocalDate today = LocalDate.now();
+    return today.plusDays(validDays).atStartOfDay();
+  }
+
   private void validatePeriod(LocalDateTime issueStartAt, LocalDateTime issueEndAt,
       LocalDateTime expireAt, Integer validDays, CouponLabel label) {
-
-    if (label == CouponLabel.SYSTEM) {
-      validateExpiry(expireAt, validDays);
-      return;
-    }
 
     validateIssuePeriod(issueStartAt, issueEndAt);
     validateIssuePeriodByLabel(issueStartAt, issueEndAt, label);
@@ -75,17 +78,6 @@ public class AvailablePeriod {
   private boolean is2HourBeforeNewIssueStartAt(LocalDateTime issueStartAt) {
     LocalDateTime now = LocalDateTime.now();
     return now.isBefore(issueStartAt.minusHours(2));
-  }
-
-  private static void validateExpiry(LocalDateTime expireAt, Integer validDays) {
-    Assert.isTrue(expireAt != null || validDays != null, "만료일 또는 유효기간은 반드시 설정해야 합니다.");
-
-    if (expireAt != null && expireAt.isBefore(LocalDateTime.now())) {
-      throw new IllegalArgumentException("유효 기간이 현재보다 이전일 수 없습니다.");
-    }
-    if (validDays != null && validDays < 1) {
-      throw new IllegalArgumentException("유효일 기간이 1일 보다 작을 수 없습니다.");
-    }
   }
 
   private void validateIssuePeriod(LocalDateTime issueStartAt, LocalDateTime issueEndAt) {
@@ -109,17 +101,20 @@ public class AvailablePeriod {
     }
   }
 
-  private static void validateExpireAtByIssueEnd(LocalDateTime issueEndAt, LocalDateTime expireAt) {
+  private void validateExpireAtByIssueEnd(LocalDateTime issueEndAt, LocalDateTime expireAt) {
     if (expireAt != null && expireAt.isBefore(issueEndAt)) {
       throw new IllegalArgumentException("유효 기간이 종료일보다 이전일 수 없습니다.");
     }
   }
 
-  public LocalDateTime calcExpireAt() {
-    if (expireAt != null) {
-      return expireAt;
+  private void validateExpiry(LocalDateTime expireAt, Integer validDays) {
+    Assert.isTrue(expireAt != null || validDays != null, "만료일 또는 유효기간은 반드시 설정해야 합니다.");
+
+    if (expireAt != null && expireAt.isBefore(LocalDateTime.now())) {
+      throw new IllegalArgumentException("유효 기간이 현재보다 이전일 수 없습니다.");
     }
-    LocalDate today = LocalDate.now();
-    return today.plusDays(validDays).atStartOfDay();
+    if (validDays != null && validDays < 1) {
+      throw new IllegalArgumentException("유효일 기간이 1일 보다 작을 수 없습니다.");
+    }
   }
 }
