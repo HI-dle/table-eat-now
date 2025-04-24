@@ -12,6 +12,7 @@ spring:
       - classpath:properties/cloud.yml
       - classpath:properties/zipkin.yml
       - classpath:properties/kafka.yml
+      - classpath:properties/monitoring.yml
   profiles:
     group:
       local: local
