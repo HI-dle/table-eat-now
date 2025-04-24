@@ -41,6 +41,10 @@ public class Coupon extends BaseEntity {
   @Column(nullable = false)
   private CouponType type;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private CouponLabel label;
+
   @Embedded
   private AvailablePeriod period;
 
@@ -57,12 +61,14 @@ public class Coupon extends BaseEntity {
   private List<DiscountPolicy> policy;
 
   private Coupon(
-      String name, CouponType type, LocalDateTime startAt, LocalDateTime endAt,
+      String name, CouponType type, CouponLabel label,
+      LocalDateTime startAt, LocalDateTime endAt, Integer validDays,
       Integer count, Boolean allowDuplicate) {
     this.couponUuid = UUID.randomUUID().toString();
     this.name = name;
     this.type = type;
-    this.period = new AvailablePeriod(startAt, endAt);
+    this.label = label;
+    this.period = new AvailablePeriod(startAt, endAt, validDays);
     this.count = count;
     this.issuedCount = 0;
     this.allowDuplicate = allowDuplicate;
@@ -70,10 +76,13 @@ public class Coupon extends BaseEntity {
   }
 
   public static Coupon of(
-      String name, CouponType type, LocalDateTime startAt, LocalDateTime endAt,
+      String name, String type, String label, LocalDateTime startAt, LocalDateTime endAt, Integer validDays,
       Integer count, Boolean allowDuplicate) {
 
-    return new Coupon(name, type, startAt, endAt, count, allowDuplicate);
+    CouponType typeE = CouponType.parse(type.toUpperCase());
+    CouponLabel labelE = CouponLabel.parse(label.toUpperCase());
+
+    return new Coupon(name, typeE, labelE, startAt, endAt, validDays, count, allowDuplicate);
   }
 
   public DiscountPolicy getDiscountPolicy() {
@@ -92,7 +101,7 @@ public class Coupon extends BaseEntity {
     }
     this.name = command.name();
     this.type = command.type();
-    this.period = new AvailablePeriod(command.startAt(), command.endAt());
+    this.period = new AvailablePeriod(command.startAt(), command.endAt(), command.validDays());
     this.count = command.count();
     this.allowDuplicate = command.allowDuplicate();
 

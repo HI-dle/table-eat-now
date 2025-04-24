@@ -2,7 +2,6 @@ package table.eat.now.coupon.coupon.application.service.strategy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -31,7 +30,7 @@ class WithStockStrategyTest extends IntegrationTestSupport {
   @BeforeEach
   void setUp() {
     coupon = CouponFixture.createCoupon(
-        1, "FIXED_DISCOUNT", 1, true, 2000, null, null);
+        1, "FIXED_DISCOUNT", "HOT",1, true, 2000, null, null);
     ReflectionTestUtils.setField(coupon.getPeriod(), "startAt", LocalDateTime.now().minusDays(1));
     couponRepository.save(coupon);
 

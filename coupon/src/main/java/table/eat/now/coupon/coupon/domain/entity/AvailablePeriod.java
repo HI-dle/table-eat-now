@@ -18,15 +18,19 @@ public class AvailablePeriod {
   @Column(nullable = false)
   private LocalDateTime endAt;
 
-  public AvailablePeriod(LocalDateTime startAt, LocalDateTime endAt) {
+  @Column
+  private Integer validDays;
 
-    validatePeriod(startAt, endAt);
+  public AvailablePeriod(LocalDateTime startAt, LocalDateTime endAt, Integer validDays) {
+
+    validatePeriod(startAt, endAt, validDays);
 
     this.startAt = startAt;
     this.endAt = endAt;
+    this.validDays = validDays;
   }
 
-  private void validatePeriod(LocalDateTime startAt, LocalDateTime endAt) {
+  private void validatePeriod(LocalDateTime startAt, LocalDateTime endAt, Integer validDays) {
 
     if (startAt == null || endAt == null) {
       throw new IllegalArgumentException("기간 정보는 필수입니다.");
@@ -36,6 +40,9 @@ public class AvailablePeriod {
     }
     if (!startAt.isBefore(endAt)) {
       throw new IllegalArgumentException("시작일이 종료일보다 나중일 수 없습니다.");
+    }
+    if (validDays != null && validDays < 1) {
+      throw new IllegalArgumentException("유효일 기간이 1일 보다 작을 수 없습니다.");
     }
   }
 

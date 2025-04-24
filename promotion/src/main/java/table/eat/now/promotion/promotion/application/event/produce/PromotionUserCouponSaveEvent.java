@@ -17,7 +17,7 @@ public record PromotionUserCouponSaveEvent(
 
   public static PromotionUserCouponSaveEvent of(Promotion promotion, CurrentUserInfoDto userInfo) {
     return PromotionUserCouponSaveEvent.builder()
-        .eventType(EventType.SUCCEED)
+        .eventType(EventType.PROMOTION_PARTICIPATED_COUPON)
         .payload(PromotionUserSavePayload.from(promotion.getId(), promotion.getCouponUuid()))
         .userInfo(userInfo)
         .couponUuid(promotion.getCouponUuid())

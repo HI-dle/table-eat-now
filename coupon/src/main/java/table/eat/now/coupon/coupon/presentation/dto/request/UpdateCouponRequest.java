@@ -16,6 +16,7 @@ public record UpdateCouponRequest(
     @NotNull CouponType type,
     @NotNull @Future LocalDateTime startAt,
     @NotNull @Future LocalDateTime endAt,
+    @Positive Integer validDays,
     @NotNull @PositiveOrZero Integer count,
     @NotNull Boolean allowDuplicate,
     @NotNull @Positive Integer minPurchaseAmount,
@@ -30,6 +31,7 @@ public record UpdateCouponRequest(
         .type(type.toString())
         .startAt(startAt)
         .endAt(endAt)
+        .validDays(validDays)
         .count(count)
         .allowDuplicate(allowDuplicate)
         .minPurchaseAmount(minPurchaseAmount)

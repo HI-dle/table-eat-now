@@ -10,8 +10,10 @@ public record GetCouponResponse(
     String couponUuid,
     String name,
     String type,
+    String label,
     LocalDateTime startAt,
     LocalDateTime endAt,
+    Integer validDays,
     Integer count,
     Boolean allowDuplicate,
     Integer minPurchaseAmount,
@@ -28,8 +30,10 @@ public record GetCouponResponse(
         .couponUuid(coupon.couponUuid())
         .name(coupon.name())
         .type(coupon.type())
+        .label(coupon.label())
         .startAt(coupon.startAt())
         .endAt(coupon.endAt())
+        .validDays(coupon.validDays())
         .count(coupon.count())
         .allowDuplicate(coupon.allowDuplicate())
         .minPurchaseAmount(coupon.minPurchaseAmount())

@@ -11,6 +11,7 @@ public record UpdateCouponCommand(
   String type,
   LocalDateTime startAt,
   LocalDateTime endAt,
+  Integer validDays,
   Integer count,
   Boolean allowDuplicate,
   Integer minPurchaseAmount,
@@ -25,6 +26,7 @@ public record UpdateCouponCommand(
         .type(CouponType.valueOf(type))
         .startAt(startAt)
         .endAt(endAt)
+        .validDays(validDays)
         .count(count)
         .allowDuplicate(allowDuplicate)
         .minPurchaseAmount(minPurchaseAmount)

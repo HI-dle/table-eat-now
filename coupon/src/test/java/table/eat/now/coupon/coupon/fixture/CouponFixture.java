@@ -9,7 +9,6 @@ import java.util.stream.IntStream;
 import table.eat.now.coupon.coupon.application.dto.response.AvailableCouponInfo;
 import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
-import table.eat.now.coupon.coupon.domain.entity.CouponType;
 import table.eat.now.coupon.coupon.domain.entity.DiscountPolicy;
 
 public class CouponFixture {
@@ -19,21 +18,21 @@ public class CouponFixture {
 
     return IntStream.range(0, i)
         .mapToObj(j -> CouponFixture.createCoupon(
-            j, "FIXED_DISCOUNT", 1000 * i ,false,
+            j, "FIXED_DISCOUNT", "HOT",1000 * i ,false,
             1000, null, null)
         )
         .toList();
   }
 
   public static Coupon createCoupon(
-      int i, String type, Integer count, boolean allowDuplicate,
+      int i, String type, String label, Integer count, boolean allowDuplicate,
       Integer amount, Integer percent, Integer maxDiscountAmount
   ) {
 
-    Coupon coupon = Coupon.of("test 쿠폰 " + i, CouponType.valueOf(type),
+    Coupon coupon = Coupon.of("test 쿠폰 " + i, type, label,
         LocalDateTime.now().plusDays(2+i).truncatedTo(ChronoUnit.DAYS),
         LocalDateTime.now().plusDays(12+i).truncatedTo(ChronoUnit.DAYS),
-        count, allowDuplicate);
+        7, count, allowDuplicate);
     DiscountPolicy policy = DiscountPolicy.of(
         10000, amount, percent, maxDiscountAmount);
     coupon.registerPolicy(policy);
@@ -47,8 +46,10 @@ public class CouponFixture {
             .couponUuid(UUID.randomUUID().toString())
             .name("test coupon " + i)
             .type("FIXED_DISCOUNT")
+            .label("HOT")
             .startAt(LocalDateTime.now().minusDays(i).truncatedTo(ChronoUnit.DAYS))
             .endAt(LocalDateTime.now().plusDays(19-i).truncatedTo(ChronoUnit.DAYS))
+            .validDays(7)
             .count(10000 * i)
             .allowDuplicate(false)
             .minPurchaseAmount(50000)
@@ -70,8 +71,10 @@ public class CouponFixture {
             .couponUuid(UUID.randomUUID().toString())
             .name("test coupon " + i)
             .type("FIXED_DISCOUNT")
+            .label("HOT")
             .startAt(LocalDateTime.now().minusDays(i).truncatedTo(ChronoUnit.DAYS))
             .endAt(LocalDateTime.now().plusDays(19-i).truncatedTo(ChronoUnit.DAYS))
+            .validDays(7)
             .count(10000 * i)
             .issuedCount(100)
             .allowDuplicate(false)

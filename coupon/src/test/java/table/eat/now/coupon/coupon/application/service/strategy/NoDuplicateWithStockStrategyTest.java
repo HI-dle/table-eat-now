@@ -35,7 +35,7 @@ class NoDuplicateWithStockStrategyTest extends IntegrationTestSupport {
   @BeforeEach
   void setUp() {
     coupon = CouponFixture.createCoupon(
-        1, "FIXED_DISCOUNT", 2, false, 2000, null, null);
+        1, "FIXED_DISCOUNT", "HOT", 2, false, 2000, null, null);
     ReflectionTestUtils.setField(coupon.getPeriod(), "startAt", LocalDateTime.now().minusDays(1));
     couponRepository.save(coupon);
 

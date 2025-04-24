@@ -10,8 +10,10 @@ public record GetCouponInfo(
     String couponUuid,
     String name,
     String type,
+    String label,
     LocalDateTime startAt,
     LocalDateTime endAt,
+    Integer validDays,
     Integer count,
     Boolean allowDuplicate,
     Integer minPurchaseAmount,
@@ -28,8 +30,10 @@ public record GetCouponInfo(
         .couponUuid(coupon.getCouponUuid())
         .name(coupon.getName())
         .type(coupon.getType().toString())
+        .label(coupon.getLabel().toString())
         .startAt(coupon.getPeriod().getStartAt())
         .endAt(coupon.getPeriod().getEndAt())
+        .validDays(coupon.getPeriod().getValidDays())
         .count(coupon.getCount())
         .allowDuplicate(coupon.getAllowDuplicate())
         .minPurchaseAmount(coupon.getDiscountPolicy().getMinPurchaseAmount())

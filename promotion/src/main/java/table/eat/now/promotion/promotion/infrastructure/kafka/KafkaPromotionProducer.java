@@ -26,7 +26,7 @@ public class KafkaPromotionProducer implements PromotionEventPublisher {
 
   @Override
   public void publish(PromotionUserCouponSaveEvent event) {
-    kafkaTemplate.send(couponTopic, event);
+    kafkaTemplate.send(promotionTopic, event);
     logEvent(event);
   }
 

@@ -31,8 +31,10 @@ public record SearchCouponsResponse(
       String couponUuid,
       String name,
       String type,
+      String label,
       LocalDateTime startAt,
       LocalDateTime endAt,
+      Integer validDays,
       Integer count,
       Boolean allowDuplicate,
       Integer minPurchaseAmount,
@@ -49,8 +51,10 @@ public record SearchCouponsResponse(
           .couponUuid(searchCouponInfo.couponUuid())
           .name(searchCouponInfo.name())
           .type(searchCouponInfo.type())
+          .label(searchCouponInfo.label())
           .startAt(searchCouponInfo.startAt())
           .endAt(searchCouponInfo.endAt())
+          .validDays(searchCouponInfo.validDays())
           .count(searchCouponInfo.count())
           .allowDuplicate(searchCouponInfo.allowDuplicate())
           .minPurchaseAmount(searchCouponInfo.minPurchaseAmount())

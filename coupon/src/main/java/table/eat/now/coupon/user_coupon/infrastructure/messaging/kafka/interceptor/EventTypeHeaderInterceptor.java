@@ -5,15 +5,15 @@ import java.util.Map;
 import org.apache.kafka.clients.producer.ProducerInterceptor;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.dto.KafkaCommonEvent;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.dto.CommonEvent;
 
-public class EventTypeHeaderInterceptor implements ProducerInterceptor<String, KafkaCommonEvent> {
+public class EventTypeHeaderInterceptor implements ProducerInterceptor<String, CommonEvent> {
 
   private static final String EVENT_TYPE_HEADER = "eventType";
 
   @Override
-  public ProducerRecord<String, KafkaCommonEvent> onSend(ProducerRecord<String, KafkaCommonEvent> record) {
-    KafkaCommonEvent event = record.value();
+  public ProducerRecord<String, CommonEvent> onSend(ProducerRecord<String, CommonEvent> record) {
+    CommonEvent event = record.value();
     if (event == null || event.eventType() == null) {
       return record;
     }

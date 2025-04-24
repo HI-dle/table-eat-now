@@ -10,6 +10,7 @@ public record UpdateCoupon(
     CouponType type,
     LocalDateTime startAt,
     LocalDateTime endAt,
+    Integer validDays,
     Integer count,
     Boolean allowDuplicate,
     Integer minPurchaseAmount,
