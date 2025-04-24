@@ -94,10 +94,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # PR 정보를 가져오려면 필요합니다.
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          MODULES_JSON: ${{ needs.detect-changes.outputs.modules }}
         run: |
-          MODULES=$(echo '${{ needs.detect-changes.outputs.modules }}' | jq -r '.[]' | paste -sd "," -) \
-          echo "MODULES = $MODULES" \
-          BINARIES=$(echo $MODULES | tr ',' '\n' | sed 's|$|/build/classes/java/main|' | paste -sd ":" -) \          
+          MODULES=$(echo "$MODULES_JSON" | jq -r '.[]' | paste -sd "," -)
+          BINARIES=$(echo "$MODULES" | tr ',' '\n' | sed 's|$|/build/classes/java/main|' | paste -sd ":" -)
+          
           ./gradlew sonar \
             -Dsonar.sources=$MODULES \
             -Dsonar.java.binaries=$BINARIES
