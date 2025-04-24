@@ -25,4 +25,9 @@ public interface NotificationRepository {
   List<Notification> findByStatusAndScheduledTimeLessThanEqualAndDeletedByIsNull(
       NotificationStatus status, LocalDateTime localDateTime);
 
+  void addToDelayQueue(String notificationUuid, LocalDateTime scheduledTime);
+  List<String> popDueNotifications(int maxCount);
+
+  List<Notification> findByNotificationUuidIn(List<String> notificationIds);
+
 }

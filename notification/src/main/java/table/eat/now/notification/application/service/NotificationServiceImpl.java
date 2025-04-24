@@ -2,9 +2,9 @@ package table.eat.now.notification.application.service;
 
 
 import io.micrometer.core.instrument.Timer;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.common.exception.CustomException;
@@ -17,7 +17,8 @@ import table.eat.now.notification.application.dto.response.CreateNotificationInf
 import table.eat.now.notification.application.dto.response.GetNotificationInfo;
 import table.eat.now.notification.application.dto.response.NotificationSearchInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
-import table.eat.now.notification.application.event.dto.NotificationSendEvent;
+import table.eat.now.notification.application.event.produce.NotificationScheduleSendEvent;
+import table.eat.now.notification.application.event.produce.NotificationSendEvent;
 import table.eat.now.notification.application.exception.NotificationErrorCode;
 import table.eat.now.notification.application.metric.NotificationMetrics;
 import table.eat.now.notification.application.strategy.NotificationFormatterStrategy;
@@ -38,6 +39,7 @@ import table.eat.now.notification.domain.repository.NotificationRepository;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationServiceImpl implements NotificationService{
 
   private final NotificationRepository notificationRepository;
@@ -45,15 +47,22 @@ public class NotificationServiceImpl implements NotificationService{
   private final NotificationSenderStrategySelector sendSelector;
   private final NotificationParamExtractor paramExtractor;
   private final NotificationMetrics metrics;
-  private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
 
+  //부하 테스트를 위해서 생성 메서드에서 레디스 큐에 넣습니다.
+  //차후 여러 서비스에서 알림 처리를 받게 될 때 수정하겠습니다.
   @Override
   @Transactional
   public CreateNotificationInfo createNotification(CreateNotificationCommand command) {
     metrics.incrementCreate();
-    return CreateNotificationInfo
+
+    CreateNotificationInfo createNotificationInfo = CreateNotificationInfo
         .from(notificationRepository.save(command.toEntity()));
+
+    notificationRepository.addToDelayQueue(
+        createNotificationInfo.notificationUuid(), createNotificationInfo.scheduledTime());
+
+    return createNotificationInfo;
   }
 
 
@@ -123,7 +132,7 @@ public class NotificationServiceImpl implements NotificationService{
     }
   }
 
-  //일부러 리팩토링할 생각하고 엄청 단순히 짰습니다..!
+
   @Override
   @Transactional
   public void consumerNotification(NotificationSendEvent notificationSendEvent) {
@@ -155,6 +164,39 @@ public class NotificationServiceImpl implements NotificationService{
       senderStrategy.send(notification.getUserId(), formattedMessage);
 
       notification.modifyNotificationStatusIsSent();
+    }
+  }
+
+  @Override
+  @Transactional
+  public void consumerScheduleSendNotification(NotificationScheduleSendEvent event) {
+    Timer.Sample sample = metrics.startSendTimer();
+
+    try {
+      NotificationFormatterStrategy strategy =
+          formatterSelector.select(NotificationType.valueOf(event.payload().notificationType()));
+
+      Map<String, String> params = paramExtractor.extractEvent(event);
+
+      NotificationTemplate formattedMessage = strategy.format(params);
+
+      NotificationSenderStrategy senderStrategy = sendSelector.select(
+          NotificationMethod.valueOf(event.payload().notificationMethod()));
+
+      senderStrategy.send(event.payload().userId(), formattedMessage);
+
+      Notification notification = findByNotification(event.payload().notificationUuid());
+
+      notification.modifyNotificationStatusIsSent();
+      log.info("수정 완료 :{} ", notification.getStatus());
+
+      metrics.incrementSendSuccess();
+      metrics.recordSendLatency(sample, "scheduled");
+
+    } catch (Exception e) {
+      log.error("알림 발송 실패: {}", event.payload().notificationUuid(), e);
+      metrics.recordSendLatency(sample, "scheduled");
+      metrics.incrementSendFail();
     }
   }
 

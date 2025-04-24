@@ -65,3 +65,9 @@ management:
   zipkin:
     tracing:
       endpoint: http://localhost:9411/api/v2/spans
+
+notification:
+  delay-queue-key: notification:delay-queue
+
+scheduler:
+  max-dispatch-count: 1000

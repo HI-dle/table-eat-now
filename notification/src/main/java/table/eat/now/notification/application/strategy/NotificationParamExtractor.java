@@ -3,6 +3,7 @@ package table.eat.now.notification.application.strategy;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import org.springframework.stereotype.Component;
+import table.eat.now.notification.application.event.produce.NotificationScheduleSendEvent;
 import table.eat.now.notification.domain.entity.Notification;
 import table.eat.now.notification.domain.entity.vo.MessageParam;
 
@@ -25,6 +26,14 @@ public class NotificationParamExtractor {
     );
   }
 
+  public Map<String, String> extractEvent(NotificationScheduleSendEvent event) {
+
+    return Map.of(
+        "customerName", event.payload().customerName(),
+        "reservationTime", event.payload().reservationTime().format(FORMATTER),
+        "restaurantName", event.payload().restaurantName()
+    );
+  }
   private String formatReservationTime(MessageParam param) {
     return param.getReservationTime() == null ? "" : param.getReservationTime().format(FORMATTER);
   }
