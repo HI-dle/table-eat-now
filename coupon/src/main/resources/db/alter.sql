@@ -1,0 +1,1 @@
+ALTER TABLE p_user_coupon ALTER COLUMN id SET DEFAULT nextval('p_user_coupon_seq');
