@@ -19,7 +19,7 @@ public class EventTypeHeaderInterceptor implements ProducerInterceptor<String, C
     }
     record
         .headers()
-        .add(EVENT_TYPE_HEADER, event.eventType().name().getBytes(StandardCharsets.UTF_8));
+        .add(EVENT_TYPE_HEADER, event.eventType().getBytes(StandardCharsets.UTF_8));
     return record;
   }
 

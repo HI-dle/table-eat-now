@@ -2,10 +2,12 @@ package table.eat.now.coupon.coupon.domain.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -13,46 +15,111 @@ import lombok.NoArgsConstructor;
 public class AvailablePeriod {
 
   @Column(nullable = false)
-  private LocalDateTime startAt;
+  private LocalDateTime issueStartAt;
 
   @Column(nullable = false)
-  private LocalDateTime endAt;
+  private LocalDateTime issueEndAt;
+
+  @Column
+  private LocalDateTime expireAt;
 
   @Column
   private Integer validDays;
 
-  public AvailablePeriod(LocalDateTime startAt, LocalDateTime endAt, Integer validDays) {
+  private AvailablePeriod(LocalDateTime issueStartAt, LocalDateTime issueEndAt,
+      LocalDateTime expireAt, Integer validDays, CouponLabel label) {
 
-    validatePeriod(startAt, endAt, validDays);
+    validatePeriod(issueStartAt, issueEndAt, expireAt, validDays, label);
 
-    this.startAt = startAt;
-    this.endAt = endAt;
+    this.issueStartAt = issueStartAt;
+    this.issueEndAt = issueEndAt;
+    this.expireAt = expireAt;
     this.validDays = validDays;
   }
 
-  private void validatePeriod(LocalDateTime startAt, LocalDateTime endAt, Integer validDays) {
+  public static AvailablePeriod of(LocalDateTime issueStartAt, LocalDateTime issueEndAt,
+      LocalDateTime expireAt, Integer validDays, CouponLabel label) {
 
-    if (startAt == null || endAt == null) {
-      throw new IllegalArgumentException("기간 정보는 필수입니다.");
+    return new AvailablePeriod(issueStartAt, issueEndAt, expireAt, validDays, label);
+  }
+
+  public boolean is2HourBeforeIssueStartAt() {
+    LocalDateTime now = LocalDateTime.now();
+    return now.isBefore(issueStartAt.minusHours(2));
+  }
+
+  public boolean isAfterIssueEndAt() {
+    LocalDateTime now = LocalDateTime.now();
+    return now.isAfter(issueEndAt);
+  }
+
+  public boolean isValidIssuePeriod() {
+    LocalDateTime now = LocalDateTime.now();
+    return issueStartAt.isBefore(now) && issueEndAt.isAfter(now);
+  }
+
+  private void validatePeriod(LocalDateTime issueStartAt, LocalDateTime issueEndAt,
+      LocalDateTime expireAt, Integer validDays, CouponLabel label) {
+
+    if (label == CouponLabel.SYSTEM) {
+      validateExpiry(expireAt, validDays);
+      return;
     }
-    if (!is2HourBeforeStartAt(startAt)) {
-      throw new IllegalArgumentException("시작일은 현재로부터 2시간 이후부터 가능합니다.");
-    }
-    if (!startAt.isBefore(endAt)) {
-      throw new IllegalArgumentException("시작일이 종료일보다 나중일 수 없습니다.");
+
+    validateIssuePeriod(issueStartAt, issueEndAt);
+    validateIssuePeriodByLabel(issueStartAt, issueEndAt, label);
+    validateExpireAtByIssueEnd(issueEndAt, expireAt);
+    validateExpiry(expireAt, validDays);
+  }
+
+  private boolean is2HourBeforeNewIssueStartAt(LocalDateTime issueStartAt) {
+    LocalDateTime now = LocalDateTime.now();
+    return now.isBefore(issueStartAt.minusHours(2));
+  }
+
+  private static void validateExpiry(LocalDateTime expireAt, Integer validDays) {
+    Assert.isTrue(expireAt != null || validDays != null, "만료일 또는 유효기간은 반드시 설정해야 합니다.");
+
+    if (expireAt != null && expireAt.isBefore(LocalDateTime.now())) {
+      throw new IllegalArgumentException("유효 기간이 현재보다 이전일 수 없습니다.");
     }
     if (validDays != null && validDays < 1) {
       throw new IllegalArgumentException("유효일 기간이 1일 보다 작을 수 없습니다.");
     }
   }
 
-  private boolean is2HourBeforeStartAt(LocalDateTime startAt) {
-    LocalDateTime now = LocalDateTime.now();
-    return now.isBefore(startAt.minusHours(2));
+  private void validateIssuePeriod(LocalDateTime issueStartAt, LocalDateTime issueEndAt) {
+    Assert.notNull(issueStartAt, "발급 시작일은 필수입니다.");
+    Assert.notNull(issueEndAt, "발급 종료일은 필수입니다.");
+
+    if (!is2HourBeforeNewIssueStartAt(issueStartAt)) {
+      throw new IllegalArgumentException("시작일은 현재로부터 2시간 이후부터 가능합니다.");
+    }
+    if (!issueStartAt.isBefore(issueEndAt)) {
+      throw new IllegalArgumentException("시작일이 종료일보다 나중일 수 없습니다.");
+    }
   }
 
-  public boolean isValidIssuePeriod() {
-    LocalDateTime now = LocalDateTime.now();
-    return startAt.isBefore(now) && endAt.isAfter(now);
+  private void validateIssuePeriodByLabel(LocalDateTime issueStartAt, LocalDateTime issueEndAt, CouponLabel label) {
+    if (label != CouponLabel.HOT) {
+      return;
+    }
+    if (issueEndAt.isAfter(issueStartAt.plusHours(1))) {
+      throw new IllegalArgumentException("핫딜 쿠폰은 발급 기간이 한시간을 초과할 수 없습니다.");
+    }
+  }
+
+  private static void validateExpireAtByIssueEnd(LocalDateTime issueEndAt, LocalDateTime expireAt) {
+    if (expireAt != null && expireAt.isBefore(issueEndAt)) {
+      throw new IllegalArgumentException("유효 기간이 종료일보다 이전일 수 없습니다.");
+    }
+  }
+
+  public LocalDateTime calcExpireAt() {
+    if (expireAt != null) {
+      return expireAt;
+    }
+    LocalDate today = LocalDate.now();
+    return today.plusDays(validDays).atStartOfDay();
   }
 }

@@ -27,8 +27,9 @@ public record GetCouponsResponseI(
       String name,
       String type,
       String label,
-      LocalDateTime startAt,
-      LocalDateTime endAt,
+      LocalDateTime issueStartAt,
+      LocalDateTime issueEndAt,
+      LocalDateTime expireAt,
       Integer validDays,
       Integer count,
       Boolean allowDuplicate,
@@ -48,8 +49,9 @@ public record GetCouponsResponseI(
           .name(coupon.name())
           .type(coupon.type())
           .label(coupon.label())
-          .startAt(coupon.startAt())
-          .endAt(coupon.endAt())
+          .issueStartAt(coupon.issueStartAt())
+          .issueEndAt(coupon.issueEndAt())
+          .expireAt(coupon.expireAt())
           .validDays(coupon.validDays())
           .count(coupon.count())
           .allowDuplicate(coupon.allowDuplicate())

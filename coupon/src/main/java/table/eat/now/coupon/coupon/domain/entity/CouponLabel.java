@@ -4,6 +4,7 @@ public enum CouponLabel {
   GENERAL,
   PROMOTION,
   HOT,
+  SYSTEM,
   ;
 
   public static CouponLabel parse(String label) {

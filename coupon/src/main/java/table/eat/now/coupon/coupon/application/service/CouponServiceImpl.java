@@ -24,7 +24,9 @@ import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI;
 import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
 import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
-import table.eat.now.coupon.coupon.application.service.strategy.CouponIssueStrategy;
+import table.eat.now.coupon.coupon.application.service.strategy.IssueStrategy;
+import table.eat.now.coupon.coupon.application.service.strategy.IssueStrategyKey;
+import table.eat.now.coupon.coupon.application.service.strategy.IssueStrategyResolver;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
 import table.eat.now.coupon.coupon.domain.repository.CouponRepository;
 
@@ -34,7 +36,8 @@ import table.eat.now.coupon.coupon.domain.repository.CouponRepository;
 public class CouponServiceImpl implements CouponService {
   private final CouponRepository couponRepository;
   private final ApplicationEventPublisher eventPublisher;
-  private final List<CouponIssueStrategy> couponIssueStrategies;
+  private final List<IssueStrategy> couponIssueStrategies;
+  private final IssueStrategyResolver issueStrategyResolver;
 
   @Override
   public String createCoupon(CreateCouponCommand command) {
@@ -105,10 +108,12 @@ public class CouponServiceImpl implements CouponService {
       throw CustomException.from(CouponErrorCode.INVALID_ISSUE_PERIOD);
     }
 
-    couponIssueStrategies.stream()
-        .filter(strategy -> strategy.support(coupon))
-        .findAny()
-        .ifPresent(strategy -> strategy.requestIssue(couponUuid, userInfoDto.userId()));
+    IssueStrategy strategy = issueStrategyResolver.resolve(
+        IssueStrategyKey.of(
+            coupon.getLabel().toString(),
+            coupon.hasStockCount(),
+            coupon.getAllowDuplicate()));
+    strategy.requestIssue(couponUuid, userInfoDto.userId());
 
     String userCouponUuid = UUID.randomUUID().toString();
     eventPublisher.publishEvent(IssueUserCouponEvent.from(userCouponUuid, userInfoDto, coupon));

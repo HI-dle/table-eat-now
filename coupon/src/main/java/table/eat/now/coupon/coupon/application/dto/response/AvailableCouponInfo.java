@@ -11,8 +11,9 @@ public record AvailableCouponInfo(
     String name,
     String type,
     String label,
-    LocalDateTime startAt,
-    LocalDateTime endAt,
+    LocalDateTime issueStartAt,
+    LocalDateTime issueEndAt,
+    LocalDateTime expireAt,
     Integer validDays,
     Integer count,
     Integer issuedCount,
@@ -32,8 +33,9 @@ public record AvailableCouponInfo(
         .name(coupon.getName())
         .type(coupon.getType().toString())
         .label(coupon.getLabel().toString())
-        .startAt(coupon.getPeriod().getStartAt())
-        .endAt(coupon.getPeriod().getEndAt())
+        .issueStartAt(coupon.getPeriod().getIssueStartAt())
+        .issueEndAt(coupon.getPeriod().getIssueEndAt())
+        .expireAt(coupon.getPeriod().getExpireAt())
         .validDays(coupon.getPeriod().getValidDays())
         .count(coupon.getCount())
         .issuedCount(coupon.getIssuedCount())
