@@ -32,8 +32,9 @@ public record SearchCouponsResponse(
       String name,
       String type,
       String label,
-      LocalDateTime startAt,
-      LocalDateTime endAt,
+      LocalDateTime issueStartAt,
+      LocalDateTime issueEndAt,
+      LocalDateTime expireAt,
       Integer validDays,
       Integer count,
       Boolean allowDuplicate,
@@ -52,8 +53,9 @@ public record SearchCouponsResponse(
           .name(searchCouponInfo.name())
           .type(searchCouponInfo.type())
           .label(searchCouponInfo.label())
-          .startAt(searchCouponInfo.startAt())
-          .endAt(searchCouponInfo.endAt())
+          .issueStartAt(searchCouponInfo.issueStartAt())
+          .issueEndAt(searchCouponInfo.issueEndAt())
+          .expireAt(searchCouponInfo.expireAt())
           .validDays(searchCouponInfo.validDays())
           .count(searchCouponInfo.count())
           .allowDuplicate(searchCouponInfo.allowDuplicate())

@@ -74,10 +74,10 @@ class CouponServiceImplTest extends IntegrationTestSupport {
     CreateCouponCommand command = CreateCouponCommand.builder()
         .name("test")
         .type("FIXED_DISCOUNT")
-        .label("HOT")
+        .label("GENERAL")
         .count(10000)
-        .startAt(LocalDateTime.now().plusDays(1))
-        .endAt(LocalDateTime.now().plusDays(10))
+        .issueStartAt(LocalDateTime.now().plusDays(1))
+        .issueEndAt(LocalDateTime.now().plusDays(10))
         .validDays(7)
         .allowDuplicate(true)
         .minPurchaseAmount(30000)
@@ -102,9 +102,11 @@ class CouponServiceImplTest extends IntegrationTestSupport {
     UpdateCouponCommand command = UpdateCouponCommand.builder()
         .name("test")
         .type("FIXED_DISCOUNT")
+        .label("SYSTEM")
         .count(50000)
-        .startAt(LocalDateTime.now().plusDays(1))
-        .endAt(LocalDateTime.now().plusDays(10))
+        .issueStartAt(LocalDateTime.now().plusDays(1))
+        .issueEndAt(LocalDateTime.now().plusDays(10))
+        .validDays(7)
         .allowDuplicate(true)
         .minPurchaseAmount(30000)
         .amount(1000)
@@ -156,7 +158,7 @@ class CouponServiceImplTest extends IntegrationTestSupport {
   @Test
   void searchCoupons() {
     // given
-    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "endAt"));
+    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "issueEndAt"));
     SearchCouponsQuery query = SearchCouponsQuery.builder()
         .fromAt(LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.DAYS))
         .toAt(LocalDateTime.now().plusDays(10).truncatedTo(ChronoUnit.DAYS))
@@ -195,15 +197,15 @@ class CouponServiceImplTest extends IntegrationTestSupport {
   void getAvailableCoupons() {
     // given
     Coupon coupon = coupons.get(0);
-    ReflectionTestUtils.setField(coupon.getPeriod(), "startAt", LocalDateTime.now().minusDays(1));
+    ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().minusDays(1));
     couponRepository.save(coupon);
 
-    Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getEndAt())
+    Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getIssueEndAt())
         .plusMinutes(10);
     couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
     couponRepository.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
 
-    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "endAt"));
+    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "issueEndAt"));
 
     // when
     PageResponse<AvailableCouponInfo> availableCoupons = couponService.getAvailableCoupons(
@@ -221,10 +223,10 @@ class CouponServiceImplTest extends IntegrationTestSupport {
   void requestCouponIssue() {
     // given
     Coupon coupon = coupons.get(0);
-    ReflectionTestUtils.setField(coupon.getPeriod(), "startAt", LocalDateTime.now().minusDays(1));
+    ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().minusDays(1));
     couponRepository.save(coupon);
 
-    Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getEndAt())
+    Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getIssueEndAt())
         .plusMinutes(10);
     couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
     couponRepository.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
@@ -244,10 +246,10 @@ class CouponServiceImplTest extends IntegrationTestSupport {
   void requestCouponIssueTriggerEvent() {
     // given
     Coupon coupon = coupons.get(0);
-    ReflectionTestUtils.setField(coupon.getPeriod(), "startAt", LocalDateTime.now().minusDays(1));
+    ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().minusDays(1));
     couponRepository.save(coupon);
 
-    Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getEndAt())
+    Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getIssueEndAt())
         .plusMinutes(10);
     couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
     couponRepository.setCouponSetWithTtl(coupon.getCouponUuid(), duration);

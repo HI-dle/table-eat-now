@@ -19,6 +19,7 @@ import org.springframework.kafka.listener.ContainerProperties.AckMode;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
 import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.dto.EventType;
@@ -60,6 +61,8 @@ public class UserCouponConsumerConfig {
     props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset);
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, enableAutoCommit);
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
     return props;
   }
 
@@ -102,11 +105,14 @@ public class UserCouponConsumerConfig {
     DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
         kafkaTemplate,
         (record, ex) ->
-            new TopicPartition(topicName, record.partition()));
-
-    return new DefaultErrorHandler(
+            new TopicPartition(topicName, record.partition())
+    );
+    DefaultErrorHandler errorHandler = new DefaultErrorHandler(
         recoverer,
-        new FixedBackOff(1000L, 3));
+        new FixedBackOff(1000L, 3)
+    );
+    //errorHandler.addNotRetryableExceptions(DeserializationException.class);
+    return errorHandler;
   }
 
   public ConsumerFactory<String, ReservationCancelledEvent> reservationCancelledEventConsumerFactory() {

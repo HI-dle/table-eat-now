@@ -269,5 +269,5 @@ grafana-storage/
 ### postgres-data
 postgres-data/
 
-### kafka-data
-kafka-data/
+### kafka_data
+kafka_data/

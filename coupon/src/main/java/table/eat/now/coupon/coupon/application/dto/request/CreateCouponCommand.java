@@ -10,8 +10,9 @@ public record CreateCouponCommand(
   String name,
   String type,
   String label,
-  LocalDateTime startAt,
-  LocalDateTime endAt,
+  LocalDateTime issueStartAt,
+  LocalDateTime issueEndAt,
+  LocalDateTime expireAt,
   Integer validDays,
   Integer count,
   Boolean allowDuplicate,
@@ -23,7 +24,7 @@ public record CreateCouponCommand(
 
   public Coupon toEntity() {
 
-    Coupon coupon = Coupon.of(name, type, label, startAt, endAt, validDays, count, allowDuplicate);
+    Coupon coupon = Coupon.of(name, type, label, issueStartAt, issueEndAt, expireAt, validDays, count, allowDuplicate);
     DiscountPolicy policy = DiscountPolicy.of(minPurchaseAmount, amount, percent, maxDiscountAmount);
     coupon.registerPolicy(policy);
     return coupon;

@@ -31,7 +31,7 @@ class PrepareCouponIssuanceUsecaseTest extends IntegrationTestSupport {
     couponRepository.saveAll(coupons);
 
     ReflectionTestUtils.setField(coupons.get(0).getPeriod(),
-        "startAt", LocalDateTime.now().truncatedTo(ChronoUnit.HOURS).plusHours(1).withMinute(5));
+        "issueStartAt", LocalDateTime.now().truncatedTo(ChronoUnit.HOURS).plusHours(1).withMinute(5));
     couponRepository.save(coupons.get(0));
   }
 

@@ -20,7 +20,7 @@ public interface JpaCouponRepository
   List<Coupon> findByCouponUuidsInAndDeletedAtIsNullFetchJoin(Set<String> couponUuids);
 
   @Query("select c from Coupon c join fetch c.policy "
-      + "where c.period.startAt >= :fromAt and c.period.startAt < :toAt "
+      + "where c.period.issueStartAt >= :fromAt and c.period.issueStartAt < :toAt "
       + "and c.deletedAt is null")
   List<Coupon> findCouponsStartInFromTo(LocalDateTime fromAt, LocalDateTime toAt);
 }

@@ -14,10 +14,11 @@ import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
 @Builder
 public record CreateCouponRequest(
     @NotBlank @Size(max = 200) String name,
-    @NotNull CouponType type,
-    @NotBlank @Pattern(regexp = "(?i)^(GENERAL|PROMOTION|HOT)$") String label,
-    @NotNull @Future LocalDateTime startAt,
-    @NotNull @Future LocalDateTime endAt,
+    @NotBlank @Pattern(regexp = "(?i)^(FIXED_DISCOUNT|PERCENT_DISCOUNT)$") String type,
+    @NotBlank @Pattern(regexp = "(?i)^(GENERAL|PROMOTION|HOT|SYSTEM)$") String label,
+    @NotNull @Future LocalDateTime issueStartAt,
+    @NotNull @Future LocalDateTime issueEndAt,
+    @Future LocalDateTime expireAt,
     @Positive Integer validDays,
     @NotNull @PositiveOrZero Integer count,
     @NotNull Boolean allowDuplicate,
@@ -30,10 +31,11 @@ public record CreateCouponRequest(
   public CreateCouponCommand toCommand() {
     return CreateCouponCommand.builder()
         .name(name)
-        .type(type.toString())
+        .type(type)
         .label(label)
-        .startAt(startAt)
-        .endAt(endAt)
+        .issueStartAt(issueStartAt)
+        .issueEndAt(issueEndAt)
+        .expireAt(expireAt)
         .validDays(validDays)
         .count(count)
         .allowDuplicate(allowDuplicate)
@@ -42,9 +44,5 @@ public record CreateCouponRequest(
         .percent(percent)
         .maxDiscountAmount(maxDiscountAmount)
         .build();
-  }
-
-  public enum CouponType {
-    FIXED_DISCOUNT, PERCENT_DISCOUNT
   }
 }

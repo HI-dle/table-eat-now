@@ -1,6 +1,6 @@
 management:
   server:
-    port: 190044
+    port: 19044
     address: 127.0.0.1
   endpoints:
     health:

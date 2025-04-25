@@ -6,7 +6,7 @@ import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.coupon.user_coupon.application.dto.request.IssueUserCouponCommand;
 
 public record PromotionParticipatedCouponEvent(
-    EventType eventType,
+    String eventType,
     PromotionParticipatedPayload payload,
     CurrentUserInfoDto userInfo,
     String couponUuid

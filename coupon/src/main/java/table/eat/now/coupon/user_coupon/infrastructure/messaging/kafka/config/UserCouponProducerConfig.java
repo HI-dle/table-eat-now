@@ -22,7 +22,7 @@ public class UserCouponProducerConfig {
   private String bootstrapServers;
 
   private static final int BATCH_SIZE = 16384 * 5; // 80KB
-  private static final int LINGER_MS = 20;
+  private static final int LINGER_MS = 50;
   private static final int BUFFER_MEMORY = 33554432; // 32MB
   private static final String COMPRESSION_TYPE = "snappy";
 
