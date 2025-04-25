@@ -1,6 +1,7 @@
 package table.eat.now.coupon.user_coupon.presentation;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -43,7 +44,7 @@ public class UserCouponInternalController {
   @GetMapping
   public ResponseEntity<GetUserCouponsResponseI> getUserCoupons(
       @CurrentUserInfo CurrentUserInfoDto userInfoDto,
-      @RequestParam Set<UUID> userCouponUuids
+      @RequestParam @NotEmpty Set<UUID> userCouponUuids
   ) {
 
     List<GetUserCouponInfoI> userCouponsInfo =
