@@ -128,7 +128,6 @@ public class NotificationKafkaConsumerConfig {
 
     factory.setCommonErrorHandler(getDefaultErrorHandler(kafkaTemplate, NOTIFICATION_EVENT_DLT));
     factory.getContainerProperties().setIdleBetweenPolls(5000);
-    factory.setBatchListener(true);
     factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
     return factory;
   }
@@ -143,7 +142,6 @@ public class NotificationKafkaConsumerConfig {
 
     factory.setCommonErrorHandler(getDefaultErrorHandler(kafkaTemplate, NOTIFICATION_EVENT_DLT));
     factory.getContainerProperties().setIdleBetweenPolls(60000);
-    factory.setBatchListener(true);
     factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
     return factory;
   }
@@ -162,7 +160,6 @@ public class NotificationKafkaConsumerConfig {
         createContainerFactory(scheduleSendEventConsumerFactory(), EventType.SCHEDULE_SEND.name());
 
     factory.getContainerProperties().setIdleBetweenPolls(5000);
-    factory.setBatchListener(true);
     factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
     return factory;
   }
@@ -176,7 +173,6 @@ public class NotificationKafkaConsumerConfig {
 
     factory.setCommonErrorHandler(getDefaultErrorHandler(kafkaTemplate, NOTIFICATION_EVENT_DLT));
     factory.getContainerProperties().setIdleBetweenPolls(60000);
-    factory.setBatchListener(true);
     factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
     return factory;
   }
