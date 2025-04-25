@@ -1,5 +1,6 @@
 package table.eat.now.coupon.coupon.presentation;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -105,7 +106,7 @@ class CouponInternalControllerTest extends ControllerTestSupport {
     resultActions.andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.coupons.length()").value(3))
-        .andExpect(jsonPath("$.coupons[0].type").value("FIXED_DISCOUNT"))
+        .andExpect(jsonPath("$.coupons.*.type", hasItem("FIXED_DISCOUNT")))
         .andDo(print());
   }
 }

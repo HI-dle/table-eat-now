@@ -54,8 +54,8 @@ class UserCouponApiControllerTest extends ControllerTestSupport {
 
     // then
     resultActions.andExpect(status().isOk())
-        .andExpect(jsonPath("$.coupons.length()").value(10))
-        .andExpect(jsonPath("$.coupons[0].userId").value(2L))
+        .andExpect(jsonPath("$.userCoupons.length()").value(10))
+        .andExpect(jsonPath("$.userCoupons[0].userId").value(2L))
         .andDo(print());
   }
 }
