@@ -22,8 +22,10 @@ public class PromotionUserEventListener {
       topics = "promotion-event",
       containerFactory = "createPromotionUserEventKafkaListenerContainerFactory"
   )
-  public void handlePromotionUserSave(PromotionUserSaveEvent promotionUserSaveEvent) {
+  public void handlePromotionUserSave(PromotionUserSaveEvent promotionUserSaveEvent)
+      throws InterruptedException {
     try {
+      Thread.sleep(20000);
       promotionUserService.savePromotionUsers(
           PromotionUserSaveEvent.toApplication(promotionUserSaveEvent));
     } catch (Throwable e) {
