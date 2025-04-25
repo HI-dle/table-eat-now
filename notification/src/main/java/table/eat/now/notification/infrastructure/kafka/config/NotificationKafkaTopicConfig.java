@@ -11,11 +11,11 @@ public class NotificationKafkaTopicConfig {
 
   private static final String NOTIFICATION_TOPIC_NAME = "notification-event";
 
-  @Value("${kafka.topic.promotion.partitions:3}")
+  @Value("${kafka.topic.promotion.partitions}")
   private int partitions;
-  @Value("${kafka.topic.promotion.replicas:3}")
+  @Value("${kafka.topic.promotion.replicas}")
   private int replicas;
-  @Value("${kafka.topic.promotion.min-insync-replicas:2}")
+  @Value("${kafka.topic.promotion.min-insync-replicas}")
   private String minInsyncReplicas;
 
   @Bean
