@@ -16,7 +16,6 @@ public class KafkaPromotionProducer implements PromotionEventPublisher {
 
   private final KafkaTemplate<String, PromotionEvent> kafkaTemplate;
   private final String promotionTopic;
-  private final String couponTopic;
 
 
   @Override

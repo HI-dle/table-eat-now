@@ -12,7 +12,9 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import table.eat.now.promotion.promotion.application.event.PromotionEvent;
+import table.eat.now.promotion.promotion.application.event.produce.PromotionScheduleEvent;
 import table.eat.now.promotion.promotion.infrastructure.kafka.interceptor.EventTypeHeaderInterceptor;
+import table.eat.now.promotion.promotionuser.infrastructure.kafka.dto.PromotionUserSaveEvent;
 
 @Configuration
 public class PromotionKafkaProducerConfig {
@@ -53,6 +55,15 @@ public class PromotionKafkaProducerConfig {
   }
   @Bean
   public KafkaTemplate<String, PromotionEvent> kafkaTemplate() {
+    return new KafkaTemplate<>(producerFactory());
+  }
+  @Bean
+  public KafkaTemplate<String, PromotionScheduleEvent> promotionScheduleEventKafkaTemplate() {
+    return new KafkaTemplate<>(producerFactory());
+  }
+
+  @Bean
+  public  KafkaTemplate<String, PromotionUserSaveEvent> promotionUserSaveEventKafkaTemplate() {
     return new KafkaTemplate<>(producerFactory());
   }
 }

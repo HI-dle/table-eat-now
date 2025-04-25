@@ -160,6 +160,7 @@ public class PromotionServiceImpl implements PromotionService{
 
       promotionEventPublisher.publish(promotionUserSaveEvent);
     }
+
     Promotion promotion = findByPromotion(info.promotionUuid());
 
     promotionEventPublisher.publish(PromotionUserCouponSaveEvent.of(
@@ -167,9 +168,11 @@ public class PromotionServiceImpl implements PromotionService{
 
     meterRegistry.counter(PROMOTION_PARTICIPATION_SUCCESS).increment();
 
+
     log.info("참여 성공");
     return true;
   }
+
 
 
   //이 부분 너무 고민입니다...PromotionUser로 보낼 때 auditing에 사용될 CurrentUserInfoDto가
