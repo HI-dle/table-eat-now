@@ -40,14 +40,28 @@ public class PromotionLuaScriptProvider {
 
   public String getPollScheduleQueueScript() {
     return """
+    -- Lua 스크립트
     local key = KEYS[1]
     local now = tonumber(ARGV[1])
-    local values = redis.call('ZRANGEBYSCORE', key, 0, now)
-    if #values > 0 then
-      redis.call('ZREM', key, unpack(values))
+    local rawValues = redis.call('ZRANGEBYSCORE', key, 0, now)
+    
+    if #rawValues > 0 then
+        redis.call('ZREM', key, unpack(rawValues))
     end
-    return values
-  """;
+    
+    -- 반환된 값에서 UUID만 추출 (':start'와 ':end'를 제거)
+    local result = {}
+    
+    for i, raw in ipairs(rawValues) do
+        local delim = string.find(raw, ":")
+        if delim ~= nil then
+            local uuid = string.sub(raw, 1, delim - 1)
+            table.insert(result, uuid)
+        end
+    end
+    
+    return result
+    """;
   }
 }
 

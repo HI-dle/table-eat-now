@@ -24,10 +24,11 @@ public class PromotionScheduler {
   private final PromotionRepository promotionRepository;
   private final PromotionEventPublisher publisher;
 
-  @Scheduled(fixedDelay = 600000) // 1분마다 확인
+  @Scheduled(fixedDelay = 60000) // 1분마다 확인
   public void sendKafkaPromotionChangeStatus() {
     List<String> promotionUuidList = promotionRepository.pollScheduleQueue();
 
+    log.info("실행 한다 {}", promotionUuidList.size());
     for (String promotionUuid : promotionUuidList) {
       Promotion promotion = promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid)
           .orElseThrow(() ->

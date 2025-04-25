@@ -54,10 +54,10 @@ public class PromotionServiceImpl implements PromotionService{
   @Override
   @Transactional
   public CreatePromotionInfo createPromotion(CreatePromotionCommand command) {
-    CreatePromotionInfo createPromotionInfo = CreatePromotionInfo.from(
-        promotionRepository.save(command.toEntity()));
+    Promotion savedPromotion = promotionRepository.save(command.toEntity());
+    CreatePromotionInfo createPromotionInfo = CreatePromotionInfo.from(savedPromotion);
 
-    schedulePromotion(createPromotionInfo);
+    schedulePromotion(savedPromotion);
 
     return createPromotionInfo;
   }
@@ -195,9 +195,8 @@ public class PromotionServiceImpl implements PromotionService{
             CustomException.from(PromotionErrorCode.INVALID_PROMOTION_UUID));
   }
 
-  private void schedulePromotion(CreatePromotionInfo info) {
-    promotionRepository.addScheduleQueue(info.promotionUuid(), info.startTime());
-    promotionRepository.addScheduleQueue(info.promotionUuid(), info.endTime());
+  private void schedulePromotion(Promotion promotion) {
+    promotionRepository.addScheduleQueue(promotion);
   }
 
   private void validPromotionStatus(Promotion promotion) {

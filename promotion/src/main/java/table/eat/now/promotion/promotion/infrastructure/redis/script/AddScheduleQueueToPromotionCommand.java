@@ -21,6 +21,8 @@ public class AddScheduleQueueToPromotionCommand implements RedisScriptCommand<Li
   private final DefaultRedisScript<List> script;
   private final String key;
 
+  private static final Double bufferTime = 30.00;
+
   public AddScheduleQueueToPromotionCommand(
       RedisTemplate<String, String> redisTemplate,
       PromotionLuaScriptProvider scriptProvider,
@@ -35,11 +37,12 @@ public class AddScheduleQueueToPromotionCommand implements RedisScriptCommand<Li
   @Override
   public List<String> execute() {
     try {
+      log.info("실행은 함");
       double now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
       List<String> result = redisTemplate.execute(
           script,
           Collections.singletonList(key),
-          String.valueOf(now)
+          String.valueOf(now + bufferTime)
       );
 
       return result != null ? result : Collections.emptyList();

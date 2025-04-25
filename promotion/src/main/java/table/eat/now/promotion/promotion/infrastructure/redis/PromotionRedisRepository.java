@@ -1,7 +1,7 @@
 package table.eat.now.promotion.promotion.infrastructure.redis;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import table.eat.now.promotion.promotion.domain.entity.Promotion;
 import table.eat.now.promotion.promotion.domain.entity.repository.event.ParticipateResult;
 import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipant;
 import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipantDto;
@@ -16,5 +16,5 @@ public interface PromotionRedisRepository {
   List<PromotionParticipantDto> getPromotionUsers(String promotionName);
 
   List<String> pollScheduleQueue();
-  void addScheduleQueue(String promotionUuid, LocalDateTime triggerTime);
+  void addScheduleQueue(Promotion promotion);
 }

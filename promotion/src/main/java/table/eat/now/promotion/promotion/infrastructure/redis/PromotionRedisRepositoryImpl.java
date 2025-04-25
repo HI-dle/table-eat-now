@@ -1,6 +1,5 @@
 package table.eat.now.promotion.promotion.infrastructure.redis;
 
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
@@ -10,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
+import table.eat.now.promotion.promotion.domain.entity.Promotion;
 import table.eat.now.promotion.promotion.domain.entity.repository.event.ParticipateResult;
 import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipant;
 import table.eat.now.promotion.promotion.domain.entity.repository.event.PromotionParticipantDto;
@@ -32,6 +32,8 @@ public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
   private final RedisScriptCommandFactory redisScriptCommandFactory;
 
   private static final String PROMOTION_KEY_PREFIX = "promotion:";
+  private static final String SCHEDULE_VALUE_START_SUFFIX = ":start";
+  private static final String SCHEDULE_VALUE_END_SUFFIX = ":end";
 
   @Value("${schedule-key}")
   String scheduleKey;
@@ -69,9 +71,10 @@ public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
   //스케줄러 실행 종료 자동화를 위한 레디스 큐에 삽입하는 메서드
 
   @Override
-  public void addScheduleQueue(String promotionUuid, LocalDateTime triggerTime) {
-    double score = triggerTime.toEpochSecond(ZoneOffset.UTC);
-    redisTemplate.opsForZSet().add(buildScheduleKey(), promotionUuid, score);
+  public void addScheduleQueue(Promotion promotion) {
+
+    savedRedisScheduleQueueToStart(promotion);
+    savedRedisScheduleQueueToEnd(promotion);
   }
 
   //스케줄러 실행 종료 자동화를 위한 레디스 큐에서 꺼내오는 메서드
@@ -96,6 +99,19 @@ public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
   private String buildScheduleKey() {
     return PROMOTION_KEY_PREFIX + scheduleKey;
   }
+
+  private void savedRedisScheduleQueueToStart(Promotion promotion) {
+    double score = promotion.getPeriod().getStartTime().toEpochSecond(ZoneOffset.UTC);
+    redisTemplate.opsForZSet().add(
+        buildScheduleKey(), promotion.getPromotionUuid() + SCHEDULE_VALUE_START_SUFFIX, score);
+  }
+
+  private void savedRedisScheduleQueueToEnd(Promotion promotion) {
+    double score = promotion.getPeriod().getEndTime().toEpochSecond(ZoneOffset.UTC);
+    redisTemplate.opsForZSet().add(
+        buildScheduleKey(), promotion.getPromotionUuid() + SCHEDULE_VALUE_END_SUFFIX, score);
+  }
+
 
 }
 

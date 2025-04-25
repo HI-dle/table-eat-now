@@ -1,6 +1,5 @@
 package table.eat.now.promotion.promotion.domain.entity.repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -30,6 +29,6 @@ public interface PromotionRepository {
   List<PromotionParticipantDto> getPromotionUsers(String promotionName);
 
   List<String> pollScheduleQueue();
-  void addScheduleQueue(String promotionUuid, LocalDateTime triggerTime);
+  void addScheduleQueue(Promotion promotion);
 
 }
