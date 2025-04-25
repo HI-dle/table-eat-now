@@ -34,8 +34,8 @@ public class TaskExecutorFactory {
   public TaskExecutor createSchedulerExecutor(MetricName metricName, LockKey lockKey) {
     TaskExecutor base = createSimpleExecutor();
     TaskExecutor counted = wrapWithCount(base, metricName);
-    TaskExecutor locked = wrapWithLock(counted, lockKey);
-    return wrapWithTimer(locked, metricName);
+    TaskExecutor timed = wrapWithTimer(counted, metricName);
+    return wrapWithLock(timed, lockKey);
   }
 
   /**
