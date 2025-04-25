@@ -46,9 +46,6 @@ class ReviewSchedulerTest {
 
     @Test
     void TaskExecutor를_통해_실행된다() {
-      // given
-      when(executorFactory.createSchedulerExecutor(any(), any())).thenReturn(taskExecutor);
-
       // when
       reviewScheduler.updateRestaurantRecentRatings();
 
@@ -62,7 +59,6 @@ class ReviewSchedulerTest {
       // given
       // 람다에서 지역 변수는 final 또는 effectively final 이어야 하기때문에 AtomicBoolean
       AtomicBoolean executed = new AtomicBoolean(false);
-      when(executorFactory.createSchedulerExecutor(any(), any())).thenReturn(taskExecutor);
       doAnswer(invocation -> {
         // 첫 번째 인자 (task)
         Runnable runnable = invocation.getArgument(0);
@@ -86,7 +82,6 @@ class ReviewSchedulerTest {
     @Test
     void 예외가_발생해도_스케줄러는_중단되지_않는다() {
       // given
-      when(executorFactory.createSchedulerExecutor(any(), any())).thenReturn(taskExecutor);
       doAnswer(invocation -> {
         Runnable runnable = invocation.getArgument(0);
         runnable.run();
