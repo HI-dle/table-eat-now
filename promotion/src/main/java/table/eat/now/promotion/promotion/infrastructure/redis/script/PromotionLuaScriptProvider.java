@@ -19,13 +19,17 @@ public class PromotionLuaScriptProvider {
 
     local userInfo = userId .. ":" .. promotionUuid
 
+    local exists = redis.call('ZSCORE', key, userInfo)
+    if exists then
+      return 3
+    end
+
     local currentCount = redis.call('ZCARD', key)
     if currentCount >= maxCount then
-    return 0
+      return 0
     end
     
     local uniqueScore = now * 1000 + userId
-
     redis.call('ZADD', key, uniqueScore, userInfo)
     
     currentCount = redis.call('ZCARD', key)
@@ -34,9 +38,9 @@ public class PromotionLuaScriptProvider {
     end
             
     return 1
-
     """;
   }
+
 
   public String getPollScheduleQueueScript() {
     return """

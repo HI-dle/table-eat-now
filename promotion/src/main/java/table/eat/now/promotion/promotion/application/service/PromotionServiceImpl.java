@@ -147,6 +147,14 @@ public class PromotionServiceImpl implements PromotionService{
       return false;
     }
 
+    if (participateResult == ParticipateResult.DUPLICATION) {
+
+      meterRegistry.counter(PROMOTION_PARTICIPATION_FAIL).increment();
+
+      log.info("중복 참여");
+      return false;
+    }
+
     if (participateResult == ParticipateResult.SUCCESS_SEND_BATCH) {
       List<PromotionUserSavePayload> savePayloadList = promotionRepository.getPromotionUsers(
               info.promotionName()).stream()
@@ -164,7 +172,7 @@ public class PromotionServiceImpl implements PromotionService{
     Promotion promotion = findByPromotion(info.promotionUuid());
 
     promotionEventPublisher.publish(PromotionUserCouponSaveEvent.of(
-        promotion, createCurrentUserInfoDto()));
+        info, promotion, createCurrentUserInfoDto()));
 
     meterRegistry.counter(PROMOTION_PARTICIPATION_SUCCESS).increment();
 
