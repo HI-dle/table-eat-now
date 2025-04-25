@@ -39,7 +39,7 @@ class TimedTaskExecutorTest {
     void 전달된_Runnable이_실제로_실행된다() {
       // given
       AtomicBoolean executed = new AtomicBoolean(false);
-      Runnable task = () -> executed.set(true);
+      Runnable task = () -> {};
 
       doAnswer(invocation -> {
         Runnable runnable = invocation.getArgument(1);

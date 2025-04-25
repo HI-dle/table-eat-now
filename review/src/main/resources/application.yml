@@ -63,9 +63,12 @@ management:
 review:
   rating:
     update:
-      cron: 0 */5 * * * *
+      recent:
+        cron: 0 */5 * * * *
+        interval: 5
+      daily:
+        cron: 0 0 4 * * *
       batch-size: 100
-      recent-minutes: 5
 
 distributed-lock:
   wait-time: 0

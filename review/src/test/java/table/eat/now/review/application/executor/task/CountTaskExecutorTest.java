@@ -1,5 +1,6 @@
 package table.eat.now.review.application.executor.task;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -53,10 +54,11 @@ class CountTaskExecutorTest {
       Runnable task = mock(Runnable.class);
       doThrow(new RuntimeException("예외")).when(delegate).execute(task);
 
-      // when
-      countTaskExecutor.execute(task);
-
-      // then
+      // when & then
+      assertDoesNotThrow(
+          () -> countTaskExecutor.execute(task),
+          "CountTaskExecutor는 예외를 전파하지 않아야 합니다"
+      );
       verify(delegate).execute(task);
       verify(metricRecorder, never()).countSuccess(anyString());
       verify(metricRecorder).countFailure(metricName);

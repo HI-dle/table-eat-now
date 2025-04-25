@@ -1,15 +1,18 @@
 package table.eat.now.review.application.executor;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
+import java.lang.reflect.Field;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import table.eat.now.review.application.executor.lock.LockKey;
 import table.eat.now.review.application.executor.lock.LockProvider;
 import table.eat.now.review.application.executor.metric.MetricName;
 import table.eat.now.review.application.executor.metric.MetricRecorder;
+import table.eat.now.review.application.executor.task.LockTaskExecutor;
 import table.eat.now.review.application.executor.task.TaskExecutor;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import table.eat.now.review.application.executor.task.TimedTaskExecutor;
 
 class TaskExecutorFactoryTest {
 
@@ -22,13 +25,17 @@ class TaskExecutorFactoryTest {
   class createSchedulerExecutor_는 {
 
     @Test
-    void 스케줄러를_위한_데코레이터_체인을_생성할_수_있다() {
+    void 스케줄러를_위한_데코레이터_체인을_생성할_수_있다() throws Exception {
       // when
       TaskExecutor executor = factory.createSchedulerExecutor(
           MetricName.RATING_UPDATE_RECENT, LockKey.RATING_UPDATE_RECENT);
 
       // then
-      assertThat(executor).isNotNull();
+      assertThat(executor).isInstanceOf(TimedTaskExecutor.class);
+      Field delegateField = TimedTaskExecutor.class.getDeclaredField("delegate");
+      delegateField.setAccessible(true);
+      TaskExecutor innerExecutor = (TaskExecutor) delegateField.get(executor);
+      assertThat(innerExecutor).isInstanceOf(LockTaskExecutor.class);
     }
   }
 }

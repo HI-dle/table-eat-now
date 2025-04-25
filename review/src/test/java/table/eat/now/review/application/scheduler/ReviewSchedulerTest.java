@@ -151,5 +151,4 @@ class ReviewSchedulerTest {
       verify(updateRestaurantRatingUseCase).execute(any(), any());
     }
   }
-
 }

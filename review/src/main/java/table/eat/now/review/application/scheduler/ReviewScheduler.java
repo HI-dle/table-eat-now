@@ -21,10 +21,10 @@ public class ReviewScheduler {
   private final UpdateRestaurantRatingUseCase updateRestaurantRatingUseCase;
   private final TaskExecutorFactory executorFactory;
 
-  @Value("${review.rating.update.recent-minutes:5}")
+  @Value("${review.rating.update.recent.interval}")
   private int recentMinutes;
 
-  @Scheduled(cron = "${review.rating.update.cron}")
+  @Scheduled(cron = "${review.rating.update.recent.cron}")
   public void updateRestaurantRecentRatings() {
     TaskExecutor executor = executorFactory.createSchedulerExecutor(
         MetricName.RATING_UPDATE_RECENT,
@@ -44,7 +44,7 @@ public class ReviewScheduler {
     );
   }
 
-  @Scheduled(cron = "0 0 4 * * *")
+  @Scheduled(cron = "${review.rating.update.daily.cron}")
   public void updateRestaurantDailyRatings() {
     TaskExecutor executor = executorFactory.createSchedulerExecutor(
         MetricName.RATING_UPDATE_DAILY,
