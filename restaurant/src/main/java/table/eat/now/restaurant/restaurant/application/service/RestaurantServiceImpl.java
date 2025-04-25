@@ -89,6 +89,7 @@ public class RestaurantServiceImpl implements RestaurantService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public PaginatedInfo<SearchRestaurantsInfo> searchRestaurants(GetRestaurantsCriteria criteria) {
     return PaginatedInfo.from(restaurantRepository.searchRestaurants(criteria))
         .mapWithIndex((restaurant, idx) -> SearchRestaurantsInfo.from(restaurant, idx));
