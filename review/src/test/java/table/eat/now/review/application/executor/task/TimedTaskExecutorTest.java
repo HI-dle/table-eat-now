@@ -37,22 +37,27 @@ class TimedTaskExecutorTest {
 
     @Test
     void 전달된_Runnable이_실제로_실행된다() {
-      // given
-      AtomicBoolean executed = new AtomicBoolean(false);
-      Runnable task = () -> {};
+        // given
+        AtomicBoolean executed = new AtomicBoolean(false);
+        Runnable task = () -> executed.set(true);
 
-      doAnswer(invocation -> {
-        Runnable runnable = invocation.getArgument(1);
-        runnable.run();
-        executed.set(true);
-        return null;
-      }).when(metricRecorder).recordTime(eq("test_metric"), any());
+        doAnswer(invocation -> {
+          Runnable runnable = invocation.getArgument(1);
+          runnable.run();
+          return null;
+        }).when(metricRecorder).recordTime(eq("test_metric"), any(Runnable.class));
 
-      // when
-      executor.execute(task);
+        doAnswer(invocation -> {
+          Runnable r = invocation.getArgument(0);
+          r.run();
+          return null;
+        }).when(delegate).execute(any(Runnable.class));
 
-      // then
-      assertTrue(executed.get());
+        // when
+        executor.execute(task);
+
+        // then
+        assertTrue(executed.get());
     }
   }
 }

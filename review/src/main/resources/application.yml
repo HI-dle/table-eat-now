@@ -36,8 +36,6 @@ eureka:
     service-url:
       defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
 
-
-
 server:
   port: 8087
 
@@ -74,4 +72,3 @@ distributed-lock:
   wait-time: 0
   lease-time: 3
   time-unit: MINUTES
-
