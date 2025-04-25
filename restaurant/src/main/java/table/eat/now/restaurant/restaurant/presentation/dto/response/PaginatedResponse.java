@@ -1,3 +1,7 @@
+/**
+ * @author : jieun(je-pa)
+ * @Date : 2025. 04. 26.
+ */
 package table.eat.now.restaurant.restaurant.presentation.dto.response;
 
 import java.util.List;
