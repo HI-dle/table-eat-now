@@ -14,6 +14,7 @@ public record UpdatePromotionCommand(String couponUuid,
                                      LocalDateTime endTime,
                                      BigDecimal discountAmount,
                                      String promotionStatus,
-                                     String promotionType) {
+                                     String promotionType,
+                                     Integer maxParticipant) {
 
 }

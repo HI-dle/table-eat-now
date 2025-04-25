@@ -72,7 +72,8 @@ class PromotionAdminControllerTest {
         LocalDateTime.now().plusDays(10),
         BigDecimal.valueOf(3000),
         "READY",
-        "COUPON"
+        "COUPON",
+        1000
     );
     Promotion entity = request.toApplication().toEntity();
 
@@ -106,7 +107,8 @@ class PromotionAdminControllerTest {
         LocalDateTime.now().plusDays(12),
         BigDecimal.valueOf(5000),
         "READY",
-        "COUPON"
+        "COUPON",
+        1000
     );
 
     UpdatePromotionCommand command = request.toApplication();
@@ -119,7 +121,8 @@ class PromotionAdminControllerTest {
         LocalDateTime.now().plusDays(12),
         BigDecimal.valueOf(5000),
         PromotionStatus.valueOf("READY"),
-        PromotionType.valueOf("COUPON")
+        PromotionType.valueOf("COUPON"),
+        1000
     );
 
     promotion.modifyPromotion(
@@ -130,7 +133,8 @@ class PromotionAdminControllerTest {
         command.endTime(),
         command.discountAmount(),
         PromotionStatus.valueOf(command.promotionStatus()),
-        PromotionType.valueOf(command.promotionType()));
+        PromotionType.valueOf(command.promotionType()),
+        command.maxParticipant());
 
     given(promotionService.updatePromotion(request.toApplication(), promotionUuid))
         .willReturn(UpdatePromotionInfo.from(promotion));

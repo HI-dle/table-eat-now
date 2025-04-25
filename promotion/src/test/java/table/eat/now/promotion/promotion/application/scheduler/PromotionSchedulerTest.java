@@ -57,13 +57,13 @@ class PromotionSchedulerTest {
     Promotion promotion1 = Promotion.of(
         "coupon-uuid-1", "이벤트1", "할인1",
         LocalDateTime.now(), LocalDateTime.now().plusDays(1),
-        BigDecimal.valueOf(5000), PromotionStatus.READY, PromotionType.COUPON
+        BigDecimal.valueOf(5000), PromotionStatus.READY, PromotionType.COUPON, 1000
     );
 
     Promotion promotion2 = Promotion.of(
         "coupon-uuid-2", "이벤트2", "할인2",
         LocalDateTime.now(), LocalDateTime.now().plusDays(2),
-        BigDecimal.valueOf(3000), PromotionStatus.RUNNING, PromotionType.COUPON
+        BigDecimal.valueOf(3000), PromotionStatus.RUNNING, PromotionType.COUPON, 1000
     );
 
     when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid1))
@@ -123,7 +123,7 @@ class PromotionSchedulerTest {
     Promotion promotionWithInvalidStatus = Promotion.of(
         "coupon-uuid-3", "이벤트3", "할인3",
         LocalDateTime.now(), LocalDateTime.now().plusDays(3),
-        BigDecimal.valueOf(7000), PromotionStatus.CLOSED, PromotionType.COUPON
+        BigDecimal.valueOf(7000), PromotionStatus.CLOSED, PromotionType.COUPON, 1000
     );
 
     // when & then
@@ -139,7 +139,7 @@ class PromotionSchedulerTest {
     Promotion promotion1 = Promotion.of(
         "coupon-uuid-1", "이벤트1", "할인1",
         LocalDateTime.now(), LocalDateTime.now().plusDays(1),
-        BigDecimal.valueOf(5000), PromotionStatus.READY, PromotionType.COUPON
+        BigDecimal.valueOf(5000), PromotionStatus.READY, PromotionType.COUPON, 1000
     );
 
     // when

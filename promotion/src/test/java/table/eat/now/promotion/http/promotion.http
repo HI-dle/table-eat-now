@@ -32,11 +32,12 @@ X-User-Id: 1
 {
   "promotionName": "자리 eat now 오픈 프로모션입니다.4",
   "description": "전 메뉴 3000원 할인 쿠폰",
-  "startTime": "2025-04-25T18:25:00",
-  "endTime": "2025-04-25T18:50:00",
+  "startTime": "2025-04-26T01:30:00",
+  "endTime": "2025-04-26T01:35:00",
   "discountAmount": 3000,
   "promotionStatus": "READY",
-  "promotionType": "COUPON"
+  "promotionType": "COUPON",
+  "maxParticipant": 1000
 }
 
 ###
