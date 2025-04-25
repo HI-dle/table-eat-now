@@ -36,6 +36,7 @@ public record SearchRestaurantsInfo(
             restaurant.getMaxReservationGuestCountPerTeamOnline())
         .waitingStatus(restaurant.getWaitingStatus().name())
         .status(restaurant.getStatus().name())
+        .contactNumber(restaurant.getContactInfo().getAddress())
         .address(restaurant.getContactInfo().getAddress())
         .openingAt(restaurant.getOperatingTime().getOpeningAt())
         .closingAt(restaurant.getOperatingTime().getClosingAt())
