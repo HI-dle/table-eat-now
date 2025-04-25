@@ -78,16 +78,16 @@ public class RestaurantRepositoryCustomImpl implements RestaurantRepositoryCusto
         .fetch();
 
     long total;
-    if (result.size() < criteria.pageSize()) {
-      int start =  criteria.pageNumber() * criteria.pageSize();
-      total = start + result.size();
-    } else {
+    if (result.isEmpty() || result.size() >= criteria.pageSize()) {
       total = Optional.ofNullable(
           queryFactory.select(Wildcard.count)
               .from(qRestaurant)
               .where(builder)
               .fetchOne()
       ).orElse(0L);
+    } else {
+      int start =  criteria.pageNumber() * criteria.pageSize();
+      total = start + result.size();
     }
 
     int totalPages = (int) ((total + criteria.pageSize() - 1) / criteria.pageSize());
