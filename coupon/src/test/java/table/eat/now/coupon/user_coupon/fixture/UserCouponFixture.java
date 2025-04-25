@@ -38,4 +38,10 @@ public class UserCouponFixture {
             .build())
         .toList();
   }
+//
+//  public static List<GetUserCouponInfoI> createGetUserCouponInfoIList(int size, Long userId) {
+//
+//
+//  }
+//
 }

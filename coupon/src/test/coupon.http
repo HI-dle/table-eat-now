@@ -98,19 +98,3 @@ X-User-Role: CUSTOMER
     }
 %}
 
-### 쿠폰 선점 요청
-PATCH http://localhost:8085/internal/v1/user-coupons/preempt
-Content-Type: application/json
-X-User-Id: 5
-X-User-Role: CUSTOMER
-
-{
-  "reservationUuid":"2847c0d1-1c72-404a-81f5-cee00d164637",
-  "userCouponUuids": ["{{userCouponUuid}}"]
-}
-
-### 사용자 쿠폰 조회 요청
-GET http://localhost:8085/api/v1/user-coupons
-Content-Type: application/json
-X-User-Id: 5
-X-User-Role: CUSTOMER
