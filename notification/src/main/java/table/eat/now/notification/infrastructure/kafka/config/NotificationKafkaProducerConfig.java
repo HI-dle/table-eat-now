@@ -21,9 +21,12 @@ public class NotificationKafkaProducerConfig {
   @Value("${spring.kafka.bootstrap-servers}")
   private String bootstrapServers;
 
-  @Bean
-  public ProducerFactory<String, NotificationEvent> producerFactory() {
+  private static final int BATCH_SIZE = 16384 * 5; // 80KB
+  private static final int LINGER_MS = 20;
+  private static final int BUFFER_MEMORY = 33554432; // 32MB
+  private static final String COMPRESSION_TYPE = "snappy";
 
+  private Map<String, Object> getCommonProducerProps() {
     Map<String, Object> props = new HashMap<>();
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -33,6 +36,19 @@ public class NotificationKafkaProducerConfig {
     props.put(ProducerConfig.RETRIES_CONFIG, 3);
     props.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, EventTypeHeaderInterceptor.class.getName());
 
+    return props;
+  }
+  public <T> ProducerFactory<String, T> producerFactory() {
+    return new DefaultKafkaProducerFactory<>(getCommonProducerProps());
+  }
+
+  public <T> ProducerFactory<String, T> batchProducerFactory() {
+    Map<String, Object> props = getCommonProducerProps();
+
+    props.put(ProducerConfig.BATCH_SIZE_CONFIG, BATCH_SIZE);
+    props.put(ProducerConfig.LINGER_MS_CONFIG, LINGER_MS);
+    props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, BUFFER_MEMORY);
+    props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, COMPRESSION_TYPE);
     return new DefaultKafkaProducerFactory<>(props);
   }
 
