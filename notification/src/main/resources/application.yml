@@ -39,8 +39,8 @@ kafka:
   topic:
     promotion:
       partitions: 3
-      replicas: 1
-      min-insync-replicas: 1
+      replicas: 3
+      min-insync-replicas: 2
 
   mail:
     host: smtp.gmail.com
