@@ -6,6 +6,8 @@ package table.eat.now.restaurant.restaurant.domain.repository;
 
 import java.util.List;
 import java.util.Optional;
+import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantsCriteria;
+import table.eat.now.restaurant.restaurant.domain.dto.response.Paginated;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant;
 
 public interface RestaurantRepository {
@@ -17,6 +19,10 @@ public interface RestaurantRepository {
   Optional<Restaurant> findByDynamicCondition(String restaurantUuid, boolean includeDeleted,
       boolean includeInactive);
 
+  Optional<Restaurant> findByStaffIdOrOwnerId(Long id);
+
+  Paginated<Restaurant> searchRestaurants(GetRestaurantsCriteria criteria);
+
   boolean isOwner(Long userId, String restaurantUuid);
 
   boolean isStaff(Long userId, String restaurantUuid);
@@ -26,5 +32,4 @@ public interface RestaurantRepository {
 
   <S extends Restaurant> List<S> saveAll(Iterable<S> restaurants);
 
-  Optional<Restaurant> findByStaffIdOrOwnerId(Long id);
 }
