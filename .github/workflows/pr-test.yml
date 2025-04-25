@@ -110,5 +110,4 @@ jobs:
           SONAR_COVERAGE=$(echo $MODULES | tr ',' '\n' | sed 's|^|./|; s|$|/build/reports/jacoco/test/jacocoTestReport.xml|' | paste -sd "," -)
           ls -al
           ./gradlew sonar \
-            -Dsonar.inclusions=$MODULES \
-            -Dsonar.coverage.jacoco.xmlReportPaths=$SONAR_COVERAGE
+            -Dsonar.inclusions=$MODULES
