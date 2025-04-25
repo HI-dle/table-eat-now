@@ -5,6 +5,7 @@
 package table.eat.now.restaurant.restaurant.presentation;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
@@ -190,6 +191,58 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
           .andExpect(jsonPath("$.totalElements").value(paginatedInfo.totalElements()))
           .andExpect(jsonPath("$.totalPages").value(paginatedInfo.totalPages()));
     }
+
+    @Test
+    @DisplayName("검색어를 사용하여 식당을 검색할 수 있다.")
+    void searchWithText() throws Exception {
+      // given
+      String searchText = "맛있는";
+      Long userId = 1L;
+
+      SearchRestaurantsInfo info = SearchRestaurantsInfo.builder()
+          .restaurantUuid(UUID.randomUUID().toString())
+          .name("맛있는 식당")
+          .build(); // 나머지 필드는 간결성을 위해 생략
+
+      PaginatedInfo<SearchRestaurantsInfo> paginatedInfo = new PaginatedInfo<>(
+          List.of(info), 1, 10, 1, 1
+      );
+
+      given(restaurantService.searchRestaurants(argThat(criteria ->
+          criteria.searchText().equals(searchText))))
+          .willReturn(paginatedInfo);
+
+      // when & then
+      mockMvc.perform(get(baseUrl)
+              .header(USER_ID_HEADER, userId)
+              .header(USER_ROLE_HEADER, UserRole.CUSTOMER)
+              .queryParam("searchText", searchText)
+              .queryParam("pageNumber", "0")
+              .queryParam("sortBy", "id")
+          )
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.contents[0].name").value("맛있는 식당"));
+    }
+
+    @Test
+    @DisplayName("잘못된 정렬 기준으로 요청 시 적절한 오류를 반환한다.")
+    void searchWithInvalidSortBy() throws Exception {
+      // given
+      Long userId = 1L;
+      String invalidSortBy = "invalid_field";
+
+      given(restaurantService.searchRestaurants(any()))
+          .willThrow(new IllegalArgumentException("Invalid sort field: " + invalidSortBy));
+
+      // when & then
+      mockMvc.perform(get(baseUrl)
+              .header(USER_ID_HEADER, userId)
+              .header(USER_ROLE_HEADER, UserRole.CUSTOMER)
+              .queryParam("sortBy", invalidSortBy)
+          )
+          .andExpect(status().isBadRequest());
+    }
+
   }
 
 
