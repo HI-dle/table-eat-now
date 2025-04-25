@@ -1,10 +1,13 @@
 package table.eat.now.coupon.user_coupon.application.service;
 
+import java.util.List;
+import java.util.Set;
 import org.springframework.data.domain.Pageable;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.coupon.user_coupon.application.dto.request.IssueUserCouponCommand;
 import table.eat.now.coupon.user_coupon.application.dto.request.PreemptUserCouponCommand;
 import table.eat.now.coupon.user_coupon.application.dto.response.GetUserCouponInfo;
+import table.eat.now.coupon.user_coupon.application.dto.response.GetUserCouponInfoI;
 import table.eat.now.coupon.user_coupon.application.dto.response.PageResponse;
 
 public interface UserCouponService {
@@ -20,4 +23,6 @@ public interface UserCouponService {
       CurrentUserInfoDto userInfoDto, Pageable pageable);
 
   void cancelUserCoupons(String reservationUuid);
+
+  List<GetUserCouponInfoI> getUserCouponsInternalBy(Set<String> userCouponUuids);
 }

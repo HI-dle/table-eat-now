@@ -3,6 +3,9 @@ package table.eat.now.coupon.user_coupon.application.service;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,9 +15,12 @@ import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.coupon.user_coupon.application.aop.annotation.DistributedLock;
+import table.eat.now.coupon.user_coupon.application.client.CouponClient;
+import table.eat.now.coupon.user_coupon.application.client.dto.response.GetCouponInfoI;
 import table.eat.now.coupon.user_coupon.application.dto.request.IssueUserCouponCommand;
 import table.eat.now.coupon.user_coupon.application.dto.request.PreemptUserCouponCommand;
 import table.eat.now.coupon.user_coupon.application.dto.response.GetUserCouponInfo;
+import table.eat.now.coupon.user_coupon.application.dto.response.GetUserCouponInfoI;
 import table.eat.now.coupon.user_coupon.application.dto.response.PageResponse;
 import table.eat.now.coupon.user_coupon.application.exception.UserCouponErrorCode;
 import table.eat.now.coupon.user_coupon.domain.entity.UserCoupon;
@@ -24,6 +30,7 @@ import table.eat.now.coupon.user_coupon.domain.repository.UserCouponRepository;
 @Service
 public class UserCouponServiceImpl implements UserCouponService {
   private final UserCouponRepository userCouponRepository;
+  private final CouponClient couponClient;
 
   @Override
   public void createUserCoupon(IssueUserCouponCommand command) {
@@ -87,5 +94,23 @@ public class UserCouponServiceImpl implements UserCouponService {
 
     List<UserCoupon> userCoupons = userCouponRepository.findByReservationUuid(reservationUuid);
     userCoupons.forEach(UserCoupon::release);
+  }
+
+  @Override
+  public List<GetUserCouponInfoI> getUserCouponsInternalBy(Set<String> userCouponUuids) {
+
+    List<UserCoupon> userCoupons =
+        userCouponRepository.findByUserCouponUuidInAndDeletedAtIsNull(userCouponUuids);
+
+    Set<String> couponUuids = userCoupons.stream()
+        .map(UserCoupon::getCouponUuid)
+        .collect(Collectors.toSet());
+    Map<String, GetCouponInfoI> couponsMap = couponClient.getCouponsByCouponUuids(couponUuids);
+
+    return userCoupons.stream()
+        .map(userCoupon -> GetUserCouponInfoI.from(
+            userCoupon,
+            couponsMap.get(userCoupon.getCouponUuid())))
+        .toList();
   }
 }

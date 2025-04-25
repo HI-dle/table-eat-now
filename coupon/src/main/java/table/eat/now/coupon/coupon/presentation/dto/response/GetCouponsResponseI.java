@@ -1,14 +1,16 @@
 package table.eat.now.coupon.coupon.presentation.dto.response;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.Builder;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI;
 import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI.GetCouponInfoI;
 
 @Builder
 public record GetCouponsResponseI(
-    List<GetCouponResponseI> coupons
+    Map<String, GetCouponResponseI> coupons
 ) {
 
   public static GetCouponsResponseI from(GetCouponsInfoI coupons) {
@@ -16,9 +18,13 @@ public record GetCouponsResponseI(
         .coupons(coupons.coupons()
             .stream()
             .map(GetCouponResponseI::from)
-            .toList())
+            .collect(Collectors.toMap(
+                GetCouponResponseI::couponUuid,
+                Function.identity()
+            )))
         .build();
   }
+
 
   @Builder
   public record GetCouponResponseI(
