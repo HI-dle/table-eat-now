@@ -22,6 +22,9 @@ public interface JpaUserCouponRepository extends
   Optional<UserCoupon> findByUserCouponUuidAndDeletedAtIsNullWithLock(String userCouponUuid);
 
   @Override
+  List<UserCoupon> findByUserCouponUuidInAndDeletedAtIsNull(Set<String> userCouponUuids);
+
+  @Override
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select uc from UserCoupon uc "
       + "where uc.userCouponUuid in :userCouponUuids and uc.deletedAt is null")

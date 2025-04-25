@@ -15,6 +15,8 @@ public interface UserCouponRepository {
 
   Optional<UserCoupon> findByUserCouponUuidAndDeletedAtIsNullWithLock(String userCouponUuid);
 
+  List<UserCoupon> findByUserCouponUuidInAndDeletedAtIsNull(Set<String> userCouponUuids);
+
   List<UserCoupon> findByUserCouponUuidsInAndDeletedAtIsNullWithLock(Set<String> userCouponUuids);
 
   void releasePreemptionAfter10m(LocalDateTime tenMinutesAgo);
@@ -25,5 +27,4 @@ public interface UserCouponRepository {
   <S extends UserCoupon> List<S> saveAll(Iterable<S> userCoupons);
 
   List<UserCoupon> findByReservationUuid(String reservationUuid);
-
 }

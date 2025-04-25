@@ -2,9 +2,13 @@ package table.eat.now.coupon.user_coupon.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.BDDMockito.given;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -20,13 +24,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
+import table.eat.now.coupon.user_coupon.application.client.CouponClient;
+import table.eat.now.coupon.user_coupon.application.client.dto.response.GetCouponInfoI;
 import table.eat.now.coupon.user_coupon.application.dto.request.IssueUserCouponCommand;
 import table.eat.now.coupon.user_coupon.application.dto.request.PreemptUserCouponCommand;
 import table.eat.now.coupon.user_coupon.application.dto.response.GetUserCouponInfo;
+import table.eat.now.coupon.user_coupon.application.dto.response.GetUserCouponInfoI;
 import table.eat.now.coupon.user_coupon.application.dto.response.PageResponse;
 import table.eat.now.coupon.user_coupon.application.exception.UserCouponErrorCode;
 import table.eat.now.coupon.user_coupon.domain.entity.UserCoupon;
@@ -42,6 +50,9 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
 
   @Autowired
   private UserCouponRepository userCouponRepository;
+
+  @MockitoBean
+  private CouponClient couponClient;
 
   private List<UserCoupon> userCoupons;
 
@@ -264,6 +275,56 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
           .orElseThrow(() ->  CustomException.from(UserCouponErrorCode.INVALID_USER_COUPON_UUID));
       assertThat(modified.getPreemptAt()).isNull();
       assertThat(modified.getStatus()).isEqualTo(UserCouponStatus.ROLLBACK);
+    }
+  }
+
+  @DisplayName("사용자 쿠폰 목록 내부 조회 검증 - 쿠폰 메타 정보도 함께 제공됨")
+  @Nested
+  class getUserCouponsInternalBy {
+
+    @DisplayName("조회 성공")
+    @Test
+    void success() {
+      // given
+      Set<String> userCouponUuids = Set.of(userCoupons.get(0).getUserCouponUuid(), userCoupons.get(1).getUserCouponUuid());
+
+      List<String> couponUuids = List.of(userCoupons.get(0).getCouponUuid(), userCoupons.get(1).getCouponUuid());
+      Map<String, GetCouponInfoI> couponInfoIMap = Map.of(
+          couponUuids.get(0),
+          GetCouponInfoI.builder()
+              .couponId(123L)
+              .couponUuid(couponUuids.get(0))
+              .type("FIXED_DISCOUNT")
+              .label("PROMOTION")
+              .allowDuplicate(false)
+              .count(1000)
+              .issueStartAt(LocalDate.now().atStartOfDay())
+              .issueEndAt(LocalDate.now().plusDays(8).atStartOfDay())
+              .amount(1000)
+              .minPurchaseAmount(10000)
+              .build(),
+          couponUuids.get(1),
+          GetCouponInfoI.builder()
+              .couponId(124L)
+              .couponUuid(couponUuids.get(1))
+              .type("FIXED_DISCOUNT")
+              .label("PROMOTION")
+              .allowDuplicate(false)
+              .count(1000)
+              .issueStartAt(LocalDate.now().atStartOfDay())
+              .issueEndAt(LocalDate.now().plusDays(8).atStartOfDay())
+              .amount(1000)
+              .minPurchaseAmount(10000)
+              .build()
+      );
+
+      // when
+      given(couponClient.getCouponsByCouponUuids(new HashSet<>(couponUuids))).willReturn(couponInfoIMap);
+      List<GetUserCouponInfoI> userCouponsInfos = userCouponService.getUserCouponsInternalBy(userCouponUuids);
+
+      // then
+      assertThat(userCouponsInfos).hasSize(2);
+      assertThat(userCouponsInfos.get(0).coupon().name()).isEqualTo(couponInfoIMap.get(couponUuids.get(0)).name());
     }
   }
 }

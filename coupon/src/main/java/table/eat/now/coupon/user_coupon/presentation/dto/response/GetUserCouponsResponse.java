@@ -8,7 +8,7 @@ import table.eat.now.coupon.user_coupon.application.dto.response.GetUserCouponIn
 
 @Builder
 public record GetUserCouponsResponse(
-    List<GetUserCouponResponse> coupons,
+    List<GetUserCouponResponse> userCoupons,
     long totalElements,
     int totalPages,
     int pageNumber,
@@ -17,7 +17,7 @@ public record GetUserCouponsResponse(
 
   public static GetUserCouponsResponse from(PageResponse<GetUserCouponInfo> userCouponInfos) {
     return GetUserCouponsResponse.builder()
-        .coupons(userCouponInfos.contents().stream().map(GetUserCouponResponse::from).toList())
+        .userCoupons(userCouponInfos.contents().stream().map(GetUserCouponResponse::from).toList())
         .totalElements(userCouponInfos.totalElements())
         .totalPages(userCouponInfos.totalPages())
         .pageNumber(userCouponInfos.pageNumber())
