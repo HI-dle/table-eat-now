@@ -11,7 +11,7 @@ import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
 @Component
 public class IssueStrategyResolver {
 
-  Map<IssueStrategyAlias, IssueStrategy> strategyMap;
+  private final Map<IssueStrategyAlias, IssueStrategy> strategyMap;
 
   public IssueStrategyResolver(List<IssueStrategy> strategies) {
     this.strategyMap = strategies.stream()
