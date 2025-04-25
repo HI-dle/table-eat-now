@@ -234,7 +234,7 @@ class PromotionControllerTest {
             .content(objectMapper.writeValueAsString(request))
         )
         .andExpect(status().isTooManyRequests())
-        .andExpect(content().string("정원이 마감되었습니다."))
+        .andExpect(content().string("정원이 마감되었거나 중복 신청입니다."))
         .andDo(print());
   }
 

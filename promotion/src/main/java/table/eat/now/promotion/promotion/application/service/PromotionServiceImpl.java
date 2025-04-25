@@ -1,5 +1,9 @@
 package table.eat.now.promotion.promotion.application.service;
 
+import static table.eat.now.promotion.promotion.infrastructure.metric.PromotionMetricName.PROMOTION_PARTICIPATION_FAIL;
+import static table.eat.now.promotion.promotion.infrastructure.metric.PromotionMetricName.PROMOTION_PARTICIPATION_SUCCESS;
+
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,11 +49,17 @@ public class PromotionServiceImpl implements PromotionService{
   private final PromotionRepository promotionRepository;
   private final PromotionClient promotionClient;
   private final PromotionEventPublisher promotionEventPublisher;
+  private final MeterRegistry meterRegistry;
 
   @Override
   @Transactional
   public CreatePromotionInfo createPromotion(CreatePromotionCommand command) {
-    return CreatePromotionInfo.from(promotionRepository.save(command.toEntity()));
+    Promotion savedPromotion = promotionRepository.save(command.toEntity());
+    CreatePromotionInfo createPromotionInfo = CreatePromotionInfo.from(savedPromotion);
+
+    schedulePromotion(savedPromotion);
+
+    return createPromotionInfo;
   }
 
   @Override
@@ -118,32 +128,30 @@ public class PromotionServiceImpl implements PromotionService{
   @Transactional
   public boolean participate(ParticipatePromotionUserInfo info) {
     // Redis에 참여 시도
+    Promotion promotion = findByPromotion(info.promotionUuid());
+    validPromotionStatus(promotion);
+
     ParticipateResult participateResult = promotionRepository.addUserToPromotion(
-        info.toDomain(), MaxParticipate.PARTICIPATE_10000_MAX);
+        info.toDomain(), MaxParticipate.PARTICIPATE_7000_MAX);
 
     return participateProcess(info, participateResult);
   }
-  //테스트용
-//
-//  @Override
-//  public void test(ParticipatePromotionUserInfo info) {
-//    for (long userId = 1; userId <= 2001; userId++) {
-//      ParticipatePromotionUserInfo loopInfo = ParticipatePromotionUserInfo.builder()
-//          .userId(userId)
-//          .promotionUuid(info.promotionUuid())
-//          .promotionName(info.promotionName())
-//          .build();
-//
-//      ParticipateResult participateResult = promotionRepository.addUserToPromotion(
-//          loopInfo.toDomain(), MaxParticipate.PARTICIPATE_10000_MAX);
-//
-//      participateProcess(loopInfo, participateResult);
-//    }
-//  }
 
   private boolean participateProcess(ParticipatePromotionUserInfo info,
       ParticipateResult participateResult) {
     if (participateResult == ParticipateResult.FAIL) {
+
+      meterRegistry.counter(PROMOTION_PARTICIPATION_FAIL).increment();
+
+      log.info("참여 실패");
+      return false;
+    }
+
+    if (participateResult == ParticipateResult.DUPLICATION) {
+
+      meterRegistry.counter(PROMOTION_PARTICIPATION_FAIL).increment();
+
+      log.info("중복 참여");
       return false;
     }
 
@@ -156,14 +164,23 @@ public class PromotionServiceImpl implements PromotionService{
       PromotionUserSaveEvent promotionUserSaveEvent = PromotionUserSaveEvent.of(
           savePayloadList, createCurrentUserInfoDto());
 
+      log.info("배치 실행 {}", savePayloadList.size());
+
       promotionEventPublisher.publish(promotionUserSaveEvent);
     }
+
     Promotion promotion = findByPromotion(info.promotionUuid());
 
     promotionEventPublisher.publish(PromotionUserCouponSaveEvent.of(
-        promotion, createCurrentUserInfoDto()));
+        info, promotion, createCurrentUserInfoDto()));
+
+    meterRegistry.counter(PROMOTION_PARTICIPATION_SUCCESS).increment();
+
+
+    log.info("참여 성공");
     return true;
   }
+
 
 
   //이 부분 너무 고민입니다...PromotionUser로 보낼 때 auditing에 사용될 CurrentUserInfoDto가
@@ -184,6 +201,16 @@ public class PromotionServiceImpl implements PromotionService{
     return promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid)
         .orElseThrow(() ->
             CustomException.from(PromotionErrorCode.INVALID_PROMOTION_UUID));
+  }
+
+  private void schedulePromotion(Promotion promotion) {
+    promotionRepository.addScheduleQueue(promotion);
+  }
+
+  private void validPromotionStatus(Promotion promotion) {
+    if (!PromotionStatus.RUNNING.equals(promotion.getPromotionStatus())) {
+      throw CustomException.from(PromotionErrorCode.NOT_RUNNING_PROMOTION);
+    }
   }
 
 }

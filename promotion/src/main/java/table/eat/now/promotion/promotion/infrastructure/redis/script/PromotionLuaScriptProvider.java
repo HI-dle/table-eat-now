@@ -19,13 +19,17 @@ public class PromotionLuaScriptProvider {
 
     local userInfo = userId .. ":" .. promotionUuid
 
+    local exists = redis.call('ZSCORE', key, userInfo)
+    if exists then
+      return 3
+    end
+
     local currentCount = redis.call('ZCARD', key)
     if currentCount >= maxCount then
-    return 0
+      return 0
     end
     
     local uniqueScore = now * 1000 + userId
-
     redis.call('ZADD', key, uniqueScore, userInfo)
     
     currentCount = redis.call('ZCARD', key)
@@ -34,7 +38,33 @@ public class PromotionLuaScriptProvider {
     end
             
     return 1
+    """;
+  }
 
+
+  public String getPollScheduleQueueScript() {
+    return """
+    -- Lua 스크립트
+    local key = KEYS[1]
+    local now = tonumber(ARGV[1])
+    local rawValues = redis.call('ZRANGEBYSCORE', key, 0, now)
+    
+    if #rawValues > 0 then
+        redis.call('ZREM', key, unpack(rawValues))
+    end
+    
+    -- 반환된 값에서 UUID만 추출 (':start'와 ':end'를 제거)
+    local result = {}
+    
+    for i, raw in ipairs(rawValues) do
+        local delim = string.find(raw, ":")
+        if delim ~= nil then
+            local uuid = string.sub(raw, 1, delim - 1)
+            table.insert(result, uuid)
+        end
+    end
+    
+    return result
     """;
   }
 }

@@ -60,7 +60,7 @@ public class PromotionController {
       return ResponseEntity.ok(request.promotionName() + "에 참여 성공했습니다.");
     } else {
       return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-          .body("정원이 마감되었습니다.");
+          .body("정원이 마감되었거나 중복 신청입니다.");
     }
   }
 

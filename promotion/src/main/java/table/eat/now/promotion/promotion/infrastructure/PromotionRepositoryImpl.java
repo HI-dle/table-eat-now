@@ -58,4 +58,14 @@ public class PromotionRepositoryImpl implements PromotionRepository {
   public List<PromotionParticipantDto> getPromotionUsers(String promotionName) {
     return promotionRedisRepository.getPromotionUsers(promotionName);
   }
+
+  @Override
+  public List<String> pollScheduleQueue(){
+    return promotionRedisRepository.pollScheduleQueue();
+  }
+
+  @Override
+  public void addScheduleQueue(Promotion promotion) {
+    promotionRedisRepository.addScheduleQueue(promotion);
+  }
 }

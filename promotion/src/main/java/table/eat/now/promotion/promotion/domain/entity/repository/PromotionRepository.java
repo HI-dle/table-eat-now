@@ -28,4 +28,7 @@ public interface PromotionRepository {
 
   List<PromotionParticipantDto> getPromotionUsers(String promotionName);
 
+  List<String> pollScheduleQueue();
+  void addScheduleQueue(Promotion promotion);
+
 }

@@ -1,6 +1,7 @@
 package table.eat.now.promotion.promotion.infrastructure.kafka.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
@@ -9,14 +10,22 @@ import org.springframework.kafka.config.TopicBuilder;
 public class PromotionKafkaTopicConfig {
 
   private static final String PROMOTION_TOPIC_NAME = "promotion-event";
-  private static final String COUPON_TOPIC_NAME = "coupon-event";
+
+  private static final String PROMOTION_TOPIC_DLT = "promotion-event-dlt";
+
+  @Value("${kafka.topic.promotion.partitions:3}")
+  private int partitions;
+  @Value("${kafka.topic.promotion.replicas:3}")
+  private int replicas;
+  @Value("${kafka.topic.promotion.min-insync-replicas:2}")
+  private String minInsyncReplicas;
 
   @Bean
   public NewTopic createPromotionTopic() {
     return TopicBuilder.name(PROMOTION_TOPIC_NAME)
-        .partitions(3)
-        .replicas(3)
-        .config("min.insync.replicas", "2")
+        .partitions(partitions)
+        .replicas(replicas)
+        .config("min.insync.replicas", minInsyncReplicas)
         .build();
   }
 
@@ -26,16 +35,17 @@ public class PromotionKafkaTopicConfig {
   }
 
   @Bean
-  public NewTopic createCouponTopic() {
-    return TopicBuilder.name(COUPON_TOPIC_NAME)
-        .partitions(3)
-        .replicas(3)
-        .config("min.insync.replicas", "2")
+  public NewTopic promotionDlqTopic() {
+    return TopicBuilder.name(PROMOTION_TOPIC_DLT)
+        .partitions(partitions)
+        .replicas(replicas)
+        .config("min.insync.replicas", minInsyncReplicas)
         .build();
   }
 
   @Bean
-  public String couponTopic() {
-    return COUPON_TOPIC_NAME;
+  public String promotionTopicDlt() {
+    return PROMOTION_TOPIC_DLT;
   }
+
 }
