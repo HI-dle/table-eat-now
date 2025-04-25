@@ -11,19 +11,19 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * @author : hanjihoon
  * @Date : 2025. 04. 26.
  */
-@Service
-public class KafkaMonitoringService {
+@Component
+public class KafkaMonitoringComponent {
 
   private final AdminClient adminClient;
   private final String bootstrapServers;
 
-  public KafkaMonitoringService(
+  public KafkaMonitoringComponent(
       AdminClient adminClient,
       @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers) {
     this.adminClient = adminClient;

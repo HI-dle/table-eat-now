@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class KafkaLagMonitor {
 
-  private final KafkaMonitoringService kafkaMonitoringService;
+  private final KafkaMonitoringComponent kafkaMonitoringComponent;
   private final MeterRegistry meterRegistry;
 
   // 여러 그룹에 대해 측정할 경우 리스트로 확장 가능
@@ -29,7 +29,7 @@ public class KafkaLagMonitor {
   public void monitorKafkaLag() {
     for (String groupId : GROUP_IDS) {
       try {
-        Map<TopicPartition, Long> lags = kafkaMonitoringService.getConsumerLag(groupId);
+        Map<TopicPartition, Long> lags = kafkaMonitoringComponent.getConsumerLag(groupId);
 
         lags.forEach((tp, lag) -> meterRegistry.gauge(
             "kafka.consumer.lag",
