@@ -39,6 +39,8 @@ import table.eat.now.restaurant.restaurant.application.exception.RestaurantTimeS
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantCriteria;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantSimpleInfo;
+import table.eat.now.restaurant.restaurant.application.service.dto.response.PaginatedInfo;
+import table.eat.now.restaurant.restaurant.application.service.dto.response.SearchRestaurantsInfo;
 
 class RestaurantInternalControllerTest extends ControllerTestSupport {
 
@@ -126,6 +128,71 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
     }
   }
 
+  @DisplayName("식당 목록 조회 컨트롤러")
+  @Nested
+  class SearchRestaurants {
+
+    public static Stream<Arguments> provideUserRoleForSearchingRestaurants() {
+      return Stream.of(
+          Arguments.of(UserRole.MASTER),
+          Arguments.of(UserRole.OWNER),
+          Arguments.of(UserRole.STAFF),
+          Arguments.of(UserRole.CUSTOMER)
+      );
+    }
+
+    @DisplayName("식당 목록을 조회할 수 있다.")
+    @MethodSource("provideUserRoleForSearchingRestaurants")
+    @ParameterizedTest(name = "{index}: ''{0}'' 는 식당 목록을 조회할 수 있다.")
+    void success(UserRole role) throws Exception {
+      // given
+      Long userId = 1L;
+
+      SearchRestaurantsInfo info = SearchRestaurantsInfo.builder()
+          .restaurantUuid(UUID.randomUUID().toString())
+          .ownerId(1L)
+          .staffId(2L)
+          .name("맛있는 식당")
+          .reviewRatingAvg(BigDecimal.valueOf(4.5))
+          .info("깔끔한 분위기의 한식당")
+          .maxReservationGuestCountPerTeamOnline(4)
+          .waitingStatus("ACTIVE")
+          .status("OPENED")
+          .contactNumber("010-1234-5678")
+          .address("서울시 강남구")
+          .openingAt(LocalTime.of(9, 0))
+          .closingAt(LocalTime.of(21, 0))
+          .build();
+
+      PaginatedInfo<SearchRestaurantsInfo> paginatedInfo = new PaginatedInfo<>(
+          List.of(info),
+          10,
+          10,
+          1,
+          10
+      );
+
+      given(restaurantService.searchRestaurants(any()))
+          .willReturn(paginatedInfo);
+
+      // when & then
+      mockMvc.perform(get(baseUrl)
+              .header(USER_ID_HEADER, userId)
+              .header(USER_ROLE_HEADER, role)
+              .contentType(MediaType.APPLICATION_JSON)
+              .queryParam("pageNumber", "0")
+              .queryParam("sortBy", "id")
+          )
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.contents[0].name").value("맛있는 식당"))
+          .andExpect(jsonPath("$.pageNumber").value(paginatedInfo.pageNumber()))
+          .andExpect(jsonPath("$.pageSize").value(paginatedInfo.pageSize()))
+          .andExpect(jsonPath("$.totalElements").value(paginatedInfo.totalElements()))
+          .andExpect(jsonPath("$.totalPages").value(paginatedInfo.totalPages()));
+    }
+  }
+
+
   @DisplayName("식당 타임슬롯 현재 인원 수 수정 컨트롤러")
   @Nested
   class modifyGuestCount{
@@ -170,6 +237,7 @@ class RestaurantInternalControllerTest extends ControllerTestSupport {
           .andExpect(status().isBadRequest());
     }
   }
+
   @DisplayName("직원 ID로 식당 조회 internal 컨트롤러")
   @Nested
   class getRestaurantByStaffId {
