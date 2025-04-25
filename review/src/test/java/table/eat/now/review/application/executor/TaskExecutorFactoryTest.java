@@ -31,11 +31,11 @@ class TaskExecutorFactoryTest {
           MetricName.RATING_UPDATE_RECENT, LockKey.RATING_UPDATE_RECENT);
 
       // then
-      assertThat(executor).isInstanceOf(TimedTaskExecutor.class);
-      Field delegateField = TimedTaskExecutor.class.getDeclaredField("delegate");
+      assertThat(executor).isInstanceOf(LockTaskExecutor.class);
+      Field delegateField = LockTaskExecutor.class.getDeclaredField("delegate");
       delegateField.setAccessible(true);
       TaskExecutor innerExecutor = (TaskExecutor) delegateField.get(executor);
-      assertThat(innerExecutor).isInstanceOf(LockTaskExecutor.class);
+      assertThat(innerExecutor).isInstanceOf(TimedTaskExecutor.class);
     }
   }
 }
