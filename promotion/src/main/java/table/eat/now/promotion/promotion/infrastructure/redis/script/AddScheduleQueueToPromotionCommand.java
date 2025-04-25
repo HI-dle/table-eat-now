@@ -21,7 +21,7 @@ public class AddScheduleQueueToPromotionCommand implements RedisScriptCommand<Li
   private final DefaultRedisScript<List> script;
   private final String key;
 
-  private static final Double bufferTime = 30.00;
+  private static final double BUFFER_TIME = 30.00;
 
   public AddScheduleQueueToPromotionCommand(
       RedisTemplate<String, String> redisTemplate,
@@ -42,10 +42,10 @@ public class AddScheduleQueueToPromotionCommand implements RedisScriptCommand<Li
       List<String> result = redisTemplate.execute(
           script,
           Collections.singletonList(key),
-          String.valueOf(now + bufferTime)
+          String.valueOf(now + BUFFER_TIME)
       );
 
-      return result != null ? result : Collections.emptyList();
+      return java.util.Objects.requireNonNullElseGet(result, Collections::emptyList);
     } catch (Exception e) {
       log.error("pollScheduleQueue 실패: {}", e.getMessage(), e);
       throw CustomException.from(PromotionErrorCode.PROMOTION_LUA_SCRIPT_FAILED);

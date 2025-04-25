@@ -73,8 +73,8 @@ public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
   @Override
   public void addScheduleQueue(Promotion promotion) {
 
-    savedRedisScheduleQueueToStart(promotion);
-    savedRedisScheduleQueueToEnd(promotion);
+    saveRedisScheduleQueueToStart(promotion);
+    saveRedisScheduleQueueToEnd(promotion);
   }
 
   //스케줄러 실행 종료 자동화를 위한 레디스 큐에서 꺼내오는 메서드
@@ -100,13 +100,13 @@ public class PromotionRedisRepositoryImpl implements PromotionRedisRepository {
     return PROMOTION_KEY_PREFIX + scheduleKey;
   }
 
-  private void savedRedisScheduleQueueToStart(Promotion promotion) {
+  private void saveRedisScheduleQueueToStart(Promotion promotion) {
     double score = promotion.getPeriod().getStartTime().toEpochSecond(ZoneOffset.UTC);
     redisTemplate.opsForZSet().add(
         buildScheduleKey(), promotion.getPromotionUuid() + SCHEDULE_VALUE_START_SUFFIX, score);
   }
 
-  private void savedRedisScheduleQueueToEnd(Promotion promotion) {
+  private void saveRedisScheduleQueueToEnd(Promotion promotion) {
     double score = promotion.getPeriod().getEndTime().toEpochSecond(ZoneOffset.UTC);
     redisTemplate.opsForZSet().add(
         buildScheduleKey(), promotion.getPromotionUuid() + SCHEDULE_VALUE_END_SUFFIX, score);

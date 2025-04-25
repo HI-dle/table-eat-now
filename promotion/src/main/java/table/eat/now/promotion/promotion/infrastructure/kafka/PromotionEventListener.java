@@ -13,6 +13,7 @@ import table.eat.now.promotion.promotion.application.event.produce.PromotionSche
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
 import table.eat.now.promotion.promotion.application.service.PromotionService;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
+import table.eat.now.promotion.promotion.domain.entity.PromotionStatus;
 import table.eat.now.promotion.promotion.domain.entity.repository.PromotionRepository;
 
 @Slf4j
@@ -63,10 +64,9 @@ public class PromotionEventListener {
               record.value().payload().promotionUuid())
           .orElseThrow(() ->
               CustomException.from(PromotionErrorCode.INVALID_PROMOTION_UUID));
-      promotion.modifyPromotionStatus(promotion.getPromotionStatus());
+      promotion.modifyPromotionStatus(PromotionStatus.valueOf(record.value().payload().promotionStatus()));
 
       promotionRepository.save(promotion);
-      ack.acknowledge();
     } catch (Throwable e) {
       log.error("프로모션 상태 처리 이벤트 DLT 처리 실패::수동 처리 필요:: "
               + "key: {}, value: {}, partition : {}, offset : {}, errorMessage : {}",
