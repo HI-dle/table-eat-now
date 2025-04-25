@@ -25,7 +25,7 @@ public class PromotionScheduler {
   private final PromotionEventPublisher publisher;
 
   @Scheduled(fixedDelay = 600000) // 1분마다 확인
-  public void sendPromotionBatch() {
+  public void sendKafkaPromotionChangeStatus() {
     List<String> promotionUuidList = promotionRepository.pollScheduleQueue();
 
     for (String promotionUuid : promotionUuidList) {

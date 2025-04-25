@@ -128,6 +128,9 @@ public class PromotionServiceImpl implements PromotionService{
   @Transactional
   public boolean participate(ParticipatePromotionUserInfo info) {
     // Redis에 참여 시도
+    Promotion promotion = findByPromotion(info.promotionUuid());
+    validPromotionStatus(promotion);
+
     ParticipateResult participateResult = promotionRepository.addUserToPromotion(
         info.toDomain(), MaxParticipate.PARTICIPATE_7000_MAX);
 
@@ -192,6 +195,12 @@ public class PromotionServiceImpl implements PromotionService{
   private void schedulePromotion(CreatePromotionInfo info) {
     promotionRepository.addScheduleQueue(info.promotionUuid(), info.startTime());
     promotionRepository.addScheduleQueue(info.promotionUuid(), info.endTime());
+  }
+
+  private void validPromotionStatus(Promotion promotion) {
+    if (!PromotionStatus.RUNNING.equals(promotion.getPromotionStatus())) {
+      throw CustomException.from(PromotionErrorCode.NOT_RUNNING_PROMOTION);
+    }
   }
 
 }
