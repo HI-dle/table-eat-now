@@ -12,6 +12,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Optional;
@@ -81,9 +82,12 @@ public class RestaurantRepositoryCustomImpl implements RestaurantRepositoryCusto
       int start =  criteria.pageNumber() * criteria.pageSize();
       total = start + result.size();
     } else {
-      total =queryFactory.selectFrom(qRestaurant)
-          .where(builder)
-          .fetchCount();
+      total = Optional.ofNullable(
+          queryFactory.select(Wildcard.count)
+              .from(qRestaurant)
+              .where(builder)
+              .fetchOne()
+      ).orElse(0L);
     }
 
     int totalPages = (int) ((total + criteria.pageSize() - 1) / criteria.pageSize());
