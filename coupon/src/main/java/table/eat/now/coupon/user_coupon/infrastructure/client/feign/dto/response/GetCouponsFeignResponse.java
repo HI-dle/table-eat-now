@@ -8,8 +8,8 @@ import lombok.Builder;
 import table.eat.now.coupon.user_coupon.application.client.dto.response.GetCouponInfoI;
 
 @Builder
-public record GetCouponsResponseI(
-    Map<String, GetCouponResponseI> coupons
+public record GetCouponsFeignResponse(
+    Map<String, GetCouponFeignResponse> coupons
 ) {
 
   public Map<String, GetCouponInfoI> toInfo() {
@@ -21,7 +21,7 @@ public record GetCouponsResponseI(
         ));
   }
   @Builder
-  public record GetCouponResponseI(
+  public record GetCouponFeignResponse(
       Long couponId,
       String couponUuid,
       String name,

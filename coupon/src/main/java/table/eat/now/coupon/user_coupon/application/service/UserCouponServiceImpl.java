@@ -110,7 +110,8 @@ public class UserCouponServiceImpl implements UserCouponService {
     return userCoupons.stream()
         .map(userCoupon -> GetUserCouponInfoI.from(
             userCoupon,
-            couponsMap.get(userCoupon.getCouponUuid())))
+            couponsMap.getOrDefault(userCoupon.getCouponUuid(), null))
+        )
         .toList();
   }
 }

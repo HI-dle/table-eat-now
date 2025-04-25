@@ -25,7 +25,7 @@ public record GetUserCouponInfoI(
   public static GetUserCouponInfoI from(UserCoupon userCoupon, GetCouponInfoI getCouponInfoI) {
     return GetUserCouponInfoI.builder()
         .id(userCoupon.getId())
-        .userCouponUuid(userCoupon.getCouponUuid())
+        .userCouponUuid(userCoupon.getUserCouponUuid())
         .couponUuid(userCoupon.getCouponUuid())
         .coupon(getCouponInfoI)
         .userId(userCoupon.getUserId())

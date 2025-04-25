@@ -78,6 +78,9 @@ public record GetUserCouponsResponseI(
   ) {
 
     public static GetCouponResponseI from(GetCouponInfoI coupon) {
+      if (coupon == null) {
+        return null;
+      }
       return GetCouponResponseI.builder()
           .couponId(coupon.couponId())
           .couponUuid(coupon.couponUuid())
