@@ -1,4 +1,4 @@
-package table.eat.now.review.application.metric;
+package table.eat.now.review.application.executor.metric;
 
 public interface MetricRecorder {
 

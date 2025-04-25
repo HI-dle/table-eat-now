@@ -18,7 +18,12 @@ public class KafkaReviewProducer implements ReviewEventPublisher {
 
   @Override
   public void publish(RestaurantRatingUpdateEvent ratingUpdateEvent) {
-    batchKafkaTemplate.send(reviewTopic, ratingUpdateEvent.restaurantUuid() ,ratingUpdateEvent);
+    batchKafkaTemplate.send(reviewTopic, ratingUpdateEvent.restaurantUuid(), ratingUpdateEvent)
+        .exceptionally(ex -> {
+          log.error("Kafka 전송 실패", ex);
+          return null;
+        });
+
     logEvent(ratingUpdateEvent);
   }
 

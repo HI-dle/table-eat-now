@@ -4,7 +4,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import table.eat.now.review.application.metric.MetricRecorder;
+import table.eat.now.review.application.executor.metric.MetricRecorder;
 
 @RequiredArgsConstructor
 @Component
