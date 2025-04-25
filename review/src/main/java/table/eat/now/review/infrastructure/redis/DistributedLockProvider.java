@@ -8,12 +8,12 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import table.eat.now.review.application.helper.LockExecutor;
+import table.eat.now.review.application.executor.lock.LockProvider;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DistributedLockExecutor implements LockExecutor {
+public class DistributedLockProvider implements LockProvider {
 
   private final RedissonClient redissonClient;
 

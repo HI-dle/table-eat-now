@@ -19,6 +19,8 @@ scrape_configs:
     static_configs:
       - targets:
         - 'host.docker.internal:8084'
+        - 'host.docker.internal:8087'
+        - 'host.docker.internal:8088'
         - 'host.docker.internal:8089'
         - 'host.docker.internal:19043'
         - 'host.docker.internal:19044'  # Eureka 클라이언트들의 Prometheus 메트릭 엔드포인트
