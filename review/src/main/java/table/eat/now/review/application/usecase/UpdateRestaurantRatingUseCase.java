@@ -23,17 +23,12 @@ public class UpdateRestaurantRatingUseCase {
 
   @Value("${review.rating.update.batch-size:100}")
   private int batchSize;
-  @Value("${review.rating.update.recent-minutes:5}")
-  private int recentMinutes;
 
   private final ReviewRepository reviewRepository;
   private final ReviewEventPublisher reviewEventPublisher;
 
   @Transactional(readOnly = true)
-  public void execute() {
-    LocalDateTime endTime = LocalDateTime.now();
-    LocalDateTime startTime = endTime.minusMinutes(recentMinutes);
-
+  public void execute(LocalDateTime startTime, LocalDateTime endTime) {
     long totalCount = reviewRepository.countRecentlyUpdatedRestaurants(startTime, endTime);
 
     if (totalCount == 0) {

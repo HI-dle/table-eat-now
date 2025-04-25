@@ -56,7 +56,9 @@ management:
   zipkin:
     tracing:
       endpoint: ${ZIPKIN_URL:http://localhost:9411/api/v2/spans}
-
+  metrics:
+    enable:
+      spring.kafka: true
 
 review:
   rating:

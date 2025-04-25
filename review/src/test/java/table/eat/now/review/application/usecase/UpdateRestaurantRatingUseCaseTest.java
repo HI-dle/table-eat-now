@@ -43,6 +43,9 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
 
   @Nested
   class execute_메서드는 {
+    
+    LocalDateTime endTime = LocalDateTime.now();
+    LocalDateTime startTime = endTime.minusMinutes(5L);
 
     @Test
     void 업데이트할_식당이_없으면_아무_처리도_하지_않는다() {
@@ -52,7 +55,7 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
           .thenReturn(0L);
 
       // when
-      updateRestaurantRatingUseCase.execute();
+      updateRestaurantRatingUseCase.execute(startTime, endTime);
 
       // then
       verify(reviewRepository, times(1))
@@ -122,7 +125,7 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
       when(reviewRepository.calculateRestaurantRatings(batch3)).thenReturn(result3);
 
       // when
-      updateRestaurantRatingUseCase.execute();
+      updateRestaurantRatingUseCase.execute(startTime, endTime);
 
       // then
       verify(reviewRepository)
@@ -171,7 +174,7 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
           .thenReturn(result2);
 
       // when
-      updateRestaurantRatingUseCase.execute();
+      updateRestaurantRatingUseCase.execute(startTime, endTime);
 
       // then
       verify(reviewRepository, times(1))
@@ -225,7 +228,7 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
           .thenReturn(result2);
 
       // when
-      updateRestaurantRatingUseCase.execute();
+      updateRestaurantRatingUseCase.execute(startTime, endTime);
 
       // then
       verify(reviewRepository, times(1))
@@ -264,7 +267,7 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
           .thenReturn(Collections.emptyList());
 
       // when
-      updateRestaurantRatingUseCase.execute();
+      updateRestaurantRatingUseCase.execute(startTime, endTime);
 
       // then
       verify(reviewRepository, times(1))
@@ -308,7 +311,7 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
           .thenReturn(result1);
 
       // when
-      updateRestaurantRatingUseCase.execute();
+      updateRestaurantRatingUseCase.execute(startTime, endTime);
 
       // then
       verify(reviewRepository, times(1))
