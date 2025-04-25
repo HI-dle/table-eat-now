@@ -15,12 +15,7 @@ jobs:
         id: set-modules
         run: |
           git fetch origin develop
-          if [ "${{ github.event.pull_request.base.sha }}" = "0000000000000000000000000000000000000000" ]; then
-            echo "Initial push or force push. Building all modules."
-            changed_files=$(find . -type f)
-          else
-            changed_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
-          fi
+          changed_files=$(git diff --name-only origin/develop...${{ github.sha }})
           changed_modules=$(echo "$changed_files" | cut -d/ -f1 | sort -u)
           
           if echo "$changed_modules" | grep -q '^common$'; then
@@ -41,9 +36,9 @@ jobs:
             modules=$(echo "$changed_modules" | grep -E "$pattern" | jq -R -s -c 'split("\n") | map(select(length > 0))')
             echo "modules=$modules" >> "$GITHUB_OUTPUT"
           fi
-  build:
+  test:
     needs: detect-changes
-    name: Build and analyze
+    name: test
     runs-on: ubuntu-latest
     if: ${{ needs.detect-changes.outputs.modules != '[]' && needs.detect-changes.outputs.modules != '' }}
     strategy:
@@ -61,20 +56,57 @@ jobs:
         with:
           java-version: 17
           distribution: 'zulu' # Alternative distribution options are available
-      - name: Cache SonarQube packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
+      - name: Test ${{ matrix.module }}
+        run: ./gradlew ${{ matrix.module }}:test
+      - name: Upload build outputs
+        if: always()  # 실패해도 업로드 시도
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.module }}
+          path: ${{ matrix.module }}/
+  sonar:
+    needs: [test,detect-changes]
+    name: Analyze with SonarCloud
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.modules != '[]' && needs.detect-changes.outputs.modules != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'zulu' # Alternative distribution options are available
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Download build outputs
+        uses: actions/download-artifact@v4
+        with:
+          path: ./
       - name: Test and analyze ${{ matrix.module }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # PR 정보를 가져오려면 필요합니다.
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew ${{ matrix.module }}:test ${{ matrix.module }}:sonar --info
+          MODULES_JSON: ${{ needs.detect-changes.outputs.modules }}
+        run: |
+          MODULES=$(echo "$MODULES_JSON" | jq -r '.[]' | sed 's|$|/**|' | paste -sd "," -)
+
+          ./gradlew sonar \
+            -Dsonar.inclusions=$MODULES\

@@ -10,8 +10,11 @@ public record AvailableCouponInfo(
     String couponUuid,
     String name,
     String type,
-    LocalDateTime startAt,
-    LocalDateTime endAt,
+    String label,
+    LocalDateTime issueStartAt,
+    LocalDateTime issueEndAt,
+    LocalDateTime expireAt,
+    Integer validDays,
     Integer count,
     Integer issuedCount,
     Boolean allowDuplicate,
@@ -29,8 +32,11 @@ public record AvailableCouponInfo(
         .couponUuid(coupon.getCouponUuid())
         .name(coupon.getName())
         .type(coupon.getType().toString())
-        .startAt(coupon.getPeriod().getStartAt())
-        .endAt(coupon.getPeriod().getEndAt())
+        .label(coupon.getLabel().toString())
+        .issueStartAt(coupon.getPeriod().getIssueStartAt())
+        .issueEndAt(coupon.getPeriod().getIssueEndAt())
+        .expireAt(coupon.getPeriod().getExpireAt())
+        .validDays(coupon.getPeriod().getValidDays())
         .count(coupon.getCount())
         .issuedCount(coupon.getIssuedCount())
         .allowDuplicate(coupon.getAllowDuplicate())

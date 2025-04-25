@@ -26,7 +26,7 @@ public class PrepareCouponIssuanceUsecase {
   }
 
   private void prepareCouponIssuance(Coupon coupon) {
-    Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getEndAt())
+    Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getIssueEndAt())
         .plusMinutes(10);
     if (coupon.hasStockCount()) {
       couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);

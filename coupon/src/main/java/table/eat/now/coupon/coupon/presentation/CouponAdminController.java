@@ -40,7 +40,8 @@ public class CouponAdminController {
 
   @AuthCheck(roles = {UserRole.MASTER})
   @PostMapping
-  public ResponseEntity<Void> createCoupon(@RequestBody @Valid CreateCouponRequest request,
+  public ResponseEntity<Void> createCoupon(
+      @RequestBody @Valid CreateCouponRequest request,
       @CurrentUserInfo CurrentUserInfoDto userInfo) {
 
     String couponUuid = couponService.createCoupon(request.toCommand());
@@ -80,7 +81,7 @@ public class CouponAdminController {
 
   @AuthCheck(roles = {UserRole.MASTER})
   @DeleteMapping("/{couponUuid}")
-  public ResponseEntity<GetCouponResponse> deleteCoupon(
+  public ResponseEntity<Void> deleteCoupon(
       @CurrentUserInfo CurrentUserInfoDto userInfo,
       @PathVariable UUID couponUuid
   ) {
@@ -95,8 +96,8 @@ public class CouponAdminController {
       @CurrentUserInfo CurrentUserInfoDto userInfo,
       @PageableDefault
       @SortDefault.SortDefaults({
-          @SortDefault(sort = "endAt", direction = Sort.Direction.ASC),
-          @SortDefault(sort = "startAt", direction = Sort.Direction.ASC)
+          @SortDefault(sort = "issueEndAt", direction = Sort.Direction.ASC),
+          @SortDefault(sort = "issueStartAt", direction = Sort.Direction.ASC)
       }) Pageable pageable,
       SearchCouponsRequest request
   ) {

@@ -6,12 +6,19 @@ spring:
     username: ${LOCAL_DB_USERNAME}
     password: ${LOCAL_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-#    hikari:
-#      schema: ten
+    hikari:
+      data-source-properties:
+        rewriteBatchedInserts: true
+        rewriteBatchedStatements: true # mysql 용
+  #      schema: ten
+  jdbc:
+    batch:
+      size: 10000
   sql:
     init:
-      mode: never
-      data-locations: classpath:db/data.sql # db 시작할때 실행시킬 script (더미 데이터 생성)
+      mode: always
+      #schema-locations: classpath:db/schema.sql
+      data-locations: classpath:db/alter.sql # db 시작할때 실행시킬 script
 
 ---
 # test 환경
@@ -29,5 +36,8 @@ spring:
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-#    hikari:
+    hikari:
+      data-source-properties:
+        rewriteBatchedInserts: true
+        # rewriteBatchedStatements: true # mysql 용
 #      schema: ten

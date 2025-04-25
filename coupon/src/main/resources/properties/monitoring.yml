@@ -1,0 +1,11 @@
+management:
+  server:
+    port: 19044
+    address: 127.0.0.1
+  endpoints:
+    health:
+      show-details: always
+    web:
+      exposure:
+        include: "*"
+        exclude: "env, beans"

@@ -92,13 +92,13 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
       return new BooleanBuilder();
     }
     if (fromAt == null) {
-      return new BooleanBuilder(coupon.period.startAt.loe(toAt));
+      return new BooleanBuilder(coupon.period.issueStartAt.loe(toAt));
     }
     if (toAt == null) {
-      return new BooleanBuilder(coupon.period.endAt.goe(fromAt));
+      return new BooleanBuilder(coupon.period.issueEndAt.goe(fromAt));
     }
     BooleanExpression isWithinRange =
-        coupon.period.startAt.loe(toAt).and(coupon.period.endAt.goe(fromAt));
+        coupon.period.issueStartAt.loe(toAt).and(coupon.period.issueEndAt.goe(fromAt));
     return new BooleanBuilder(isWithinRange);
   }
 
@@ -107,7 +107,7 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
   }
 
   private BooleanBuilder betweenPeriod(LocalDateTime time) {
-    return nullSafeBuilder(() -> coupon.period.startAt.loe(time).and(coupon.period.endAt.goe(time)));
+    return nullSafeBuilder(() -> coupon.period.issueStartAt.loe(time).and(coupon.period.issueEndAt.goe(time)));
   }
 
   private OrderSpecifier[] createOrderSpecifiers(Sort sort) {
@@ -126,8 +126,8 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
 
   @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
   enum SortType {
-    ENDAT((direction) -> new OrderSpecifier<>(direction, coupon.period.endAt)),
-    STARTAT((direction) -> new OrderSpecifier<>(direction, coupon.period.startAt));
+    ISSUEENDAT((direction) -> new OrderSpecifier<>(direction, coupon.period.issueEndAt)),
+    ISSUESTARTAT((direction) -> new OrderSpecifier<>(direction, coupon.period.issueStartAt));
 
     private final Function<Order, OrderSpecifier> typedOrderSpecifier;
 

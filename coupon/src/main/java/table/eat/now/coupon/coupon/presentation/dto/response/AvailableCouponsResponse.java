@@ -30,8 +30,11 @@ public record AvailableCouponsResponse(
       String couponUuid,
       String name,
       String type,
-      LocalDateTime startAt,
-      LocalDateTime endAt,
+      String label,
+      LocalDateTime issueStartAt,
+      LocalDateTime issueEndAt,
+      LocalDateTime expireAt,
+      Integer validDays,
       Integer count,
       Integer issuedCount,
       Boolean allowDuplicate,
@@ -50,8 +53,11 @@ public record AvailableCouponsResponse(
           .couponUuid(coupon.couponUuid())
           .name(coupon.name())
           .type(coupon.type())
-          .startAt(coupon.startAt())
-          .endAt(coupon.endAt())
+          .label(coupon.label())
+          .issueStartAt(coupon.issueStartAt())
+          .issueEndAt(coupon.issueEndAt())
+          .expireAt(coupon.expireAt())
+          .validDays(coupon.validDays())
           .count(coupon.count())
           .issuedCount(coupon.issuedCount())
           .allowDuplicate(coupon.allowDuplicate())

@@ -2,6 +2,7 @@ package table.eat.now.promotion.promotion.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -9,10 +10,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static table.eat.now.promotion.promotion.infrastructure.metric.PromotionMetricName.PROMOTION_PARTICIPATION_FAIL;
+import static table.eat.now.promotion.promotion.infrastructure.metric.PromotionMetricName.PROMOTION_PARTICIPATION_SUCCESS;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +28,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -45,7 +52,6 @@ import table.eat.now.promotion.promotion.application.dto.response.SearchPromotio
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
 import table.eat.now.promotion.promotion.application.event.PromotionEvent;
 import table.eat.now.promotion.promotion.application.event.PromotionEventPublisher;
-import table.eat.now.promotion.promotion.application.event.produce.PromotionUserCouponSaveEvent;
 import table.eat.now.promotion.promotion.application.event.produce.PromotionUserSaveEvent;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
 import table.eat.now.promotion.promotion.application.service.util.MaxParticipate;
@@ -74,6 +80,11 @@ class PromotionServiceImplTest {
   @Mock
   private PromotionClient promotionClient;
 
+  @Mock
+  private MeterRegistry meterRegistry;
+
+  @Mock
+  private Counter counter;
   @Mock
   private PromotionEventPublisher promotionEventPublisher;
 
@@ -428,29 +439,48 @@ class PromotionServiceImplTest {
     verify(promotionRepository).findAllByPromotionUuidInAndDeletedByIsNull(promotionUuids);
   }
 
-  @DisplayName("프로모션 참여 실패 시 false를 반환한다.")
   @Test
+  @DisplayName("프로모션 참여 실패 시 false를 반환한다.")
   void participate_promotion_fail() {
     // given
+    String promotionUuid = UUID.randomUUID().toString();
     ParticipatePromotionUserInfo info = new ParticipatePromotionUserInfo(
         1L,
-        UUID.randomUUID().toString(),
+        promotionUuid,
         "실패 프로모션"
     );
 
+    Promotion fakePromotion = Promotion.of(
+        "test",
+        "실패 프로모션",
+        "test",
+        LocalDateTime.now().plusDays(1),
+            LocalDateTime.now().plusDays(3),
+            BigDecimal.valueOf(3000),
+        PromotionStatus.RUNNING,
+        PromotionType.COUPON
+        );
+
+    when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))
+        .thenReturn(Optional.of(fakePromotion));
 
     when(promotionRepository.addUserToPromotion(any(PromotionParticipant.class),
-        eq(MaxParticipate.PARTICIPATE_10000_MAX)))
+        eq(MaxParticipate.PARTICIPATE_7000_MAX)))
         .thenReturn(ParticipateResult.FAIL);
+
+    when(meterRegistry.counter(PROMOTION_PARTICIPATION_FAIL)).thenReturn(counter);
 
     // when
     boolean result = promotionService.participate(info);
 
     // then
     assertThat(result).isFalse();
-    verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_10000_MAX));
+    verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_7000_MAX));
     verifyNoInteractions(promotionEventPublisher);
+    verify(meterRegistry).counter(PROMOTION_PARTICIPATION_FAIL);
+    verify(counter).increment();
   }
+
 
 
   @DisplayName("참여 후 배치 전송 대상이면 true를 반환하고 이벤트를 발행한다.")
@@ -468,8 +498,10 @@ class PromotionServiceImplTest {
         promotionName
     );
 
-    when(promotionRepository.addUserToPromotion(any(PromotionParticipant.class),
-        eq(MaxParticipate.PARTICIPATE_10000_MAX)))
+    when(promotionRepository.addUserToPromotion(argThat(participant ->
+            participant.userId().equals(userId) &&
+                participant.promotionUuid().equals(promotionUuid)),
+        eq(MaxParticipate.PARTICIPATE_7000_MAX)))
         .thenReturn(ParticipateResult.SUCCESS_SEND_BATCH);
 
     List<PromotionParticipantDto> participantList = List.of(
@@ -486,25 +518,43 @@ class PromotionServiceImplTest {
         LocalDateTime.now().plusDays(2),
         LocalDateTime.now().plusDays(12),
         BigDecimal.valueOf(5000),
-        PromotionStatus.valueOf("READY"),
+        PromotionStatus.valueOf("RUNNING"),
         PromotionType.valueOf("COUPON"));
 
     when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))
         .thenReturn(Optional.of(promotion));
+    when(meterRegistry.counter(PROMOTION_PARTICIPATION_SUCCESS)).thenReturn(counter);
+
+
+    ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
 
     // when
     boolean result = promotionService.participate(info);
 
+
     // then
     assertThat(result).isTrue();
 
-    verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_10000_MAX));
+    verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_7000_MAX));
     verify(promotionRepository).getPromotionUsers(promotionName);
-    verify(promotionRepository).findByPromotionUuidAndDeletedByIsNull(promotionUuid);
+    verify(promotionRepository, times(2)).findByPromotionUuidAndDeletedByIsNull(promotionUuid);
 
-    verify(promotionEventPublisher).publish(any(PromotionUserSaveEvent.class));
-    verify(promotionEventPublisher).publish(any(PromotionUserCouponSaveEvent.class));
+    verify(meterRegistry).counter(PROMOTION_PARTICIPATION_SUCCESS);
+    verify(counter).increment();
+
+    verify(promotionEventPublisher, times(1)).publish((PromotionEvent) eventCaptor.capture());
+
+    List<Object> publishedEvents = eventCaptor.getAllValues();
+
+    boolean hasSaveEvent = publishedEvents.stream()
+        .anyMatch(e -> e instanceof PromotionUserSaveEvent);
+
+
+    assertThat(hasSaveEvent).isTrue();
+
   }
+
+
 
 
   @DisplayName("성공적으로 참여했지만 배치 대상이 아니면 true를 반환하고 이벤트 발행은 하지 않는다.")
@@ -525,6 +575,8 @@ class PromotionServiceImplTest {
     lenient().when(promotionRepository.save(any(Promotion.class))).thenReturn(savedPromotion);
     when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(savedPromotion.getPromotionUuid()))
         .thenReturn(Optional.of(savedPromotion));
+    when(meterRegistry.counter(PROMOTION_PARTICIPATION_SUCCESS)).thenReturn(counter);
+
 
 
     ParticipatePromotionUserInfo info = new ParticipatePromotionUserInfo(
@@ -535,30 +587,62 @@ class PromotionServiceImplTest {
 
 
     when(promotionRepository.addUserToPromotion(any(PromotionParticipant.class)
-        , eq(MaxParticipate.PARTICIPATE_10000_MAX)))
+        , eq(MaxParticipate.PARTICIPATE_7000_MAX)))
         .thenReturn(ParticipateResult.SUCCESS);
 
     // when
     boolean result = promotionService.participate(info);
 
+
+
     // then
     assertThat(result).isTrue();
-    verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_10000_MAX));
+    verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_7000_MAX));
     verify(promotionRepository, never()).getPromotionUsers(anyString());
 
 
     verify(promotionEventPublisher, never()).publish(
         (PromotionEvent) argThat((ArgumentMatcher<Object>) event -> event instanceof PromotionUserSaveEvent)
     );
+    verify(meterRegistry).counter(PROMOTION_PARTICIPATION_SUCCESS);
+    verify(counter).increment();
 
 
-    verify(promotionEventPublisher).publish(
-        argThat(event -> event instanceof PromotionUserCouponSaveEvent)
-    );
   }
 
 
+  @DisplayName("프로모션 참여시 프로모션의 상태가 running 상태가 아닐시 예외가 발생한다.")
+  @Test
+  void participate_fail_promotion_not_running() {
+    // given
+    String promotionUuid = UUID.randomUUID().toString();
+    ParticipatePromotionUserInfo info = new ParticipatePromotionUserInfo(
+        1L,
+        promotionUuid,
+        "종료된 프로모션"
+    );
 
+    Promotion closePromotion = Promotion.of(
+        "test",
+        "종료된 프로모션",
+        "test",
+        LocalDateTime.now().plusDays(1),
+        LocalDateTime.now().plusDays(3),
+        BigDecimal.valueOf(3000),
+        PromotionStatus.CLOSED,
+        PromotionType.COUPON
+    );
+
+    when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))
+        .thenReturn(Optional.of(closePromotion));
+
+    // when & then
+    CustomException exception = assertThrows(CustomException.class,
+        () -> promotionService.participate(info));
+
+    assertThat(exception.getStatus()).isEqualTo(PromotionErrorCode.NOT_RUNNING_PROMOTION.getStatus());
+
+  }
 
 
 

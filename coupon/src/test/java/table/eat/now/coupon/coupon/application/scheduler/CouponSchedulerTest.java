@@ -20,6 +20,7 @@ class CouponSchedulerTest {
 
   @Autowired
   private CouponScheduler couponScheduler;
+
   @MockitoBean
   private PrepareCouponIssuanceUsecase prepareCouponIssuanceUsecase;
 

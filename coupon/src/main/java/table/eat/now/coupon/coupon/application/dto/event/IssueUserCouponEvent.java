@@ -21,7 +21,7 @@ public record IssueUserCouponEvent(
         .couponUuid(coupon.getCouponUuid())
         .userCouponUuid(userCouponUuid)
         .name(coupon.getName())
-        .expiresAt(coupon.getPeriod().getEndAt())
+        .expiresAt(coupon.getPeriod().calcExpireAt())
         .build();
   }
 

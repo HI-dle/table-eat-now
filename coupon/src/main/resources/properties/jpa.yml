@@ -7,6 +7,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          batch_size: 1000
+        order_inserts: true
+        order_updates: true
     hibernate:
       ddl-auto: create
     defer-datasource-initialization: true # hibernate가 초기화되기 전 data.sql 실행하는 것을 방지
@@ -22,6 +26,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          batch_size: 1000
+        order_inserts: true
+        order_updates: true
     hibernate:
       ddl-auto: create
     open-in-view: false
@@ -36,6 +44,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          batch_size: 1000
+        order_inserts: true
+        order_updates: true
     hibernate:
       ddl-auto: update
     open-in-view: false

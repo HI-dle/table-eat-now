@@ -41,6 +41,10 @@ public class Coupon extends BaseEntity {
   @Column(nullable = false)
   private CouponType type;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private CouponLabel label;
+
   @Embedded
   private AvailablePeriod period;
 
@@ -57,12 +61,14 @@ public class Coupon extends BaseEntity {
   private List<DiscountPolicy> policy;
 
   private Coupon(
-      String name, CouponType type, LocalDateTime startAt, LocalDateTime endAt,
-      Integer count, Boolean allowDuplicate) {
+      String name, CouponType type, CouponLabel label,
+      LocalDateTime issueStartAt, LocalDateTime issueEndAt, LocalDateTime expireAt,
+      Integer validDays, Integer count, Boolean allowDuplicate) {
     this.couponUuid = UUID.randomUUID().toString();
     this.name = name;
     this.type = type;
-    this.period = new AvailablePeriod(startAt, endAt);
+    this.label = label;
+    this.period = AvailablePeriod.of(issueStartAt, issueEndAt, expireAt, validDays, label);
     this.count = count;
     this.issuedCount = 0;
     this.allowDuplicate = allowDuplicate;
@@ -70,10 +76,14 @@ public class Coupon extends BaseEntity {
   }
 
   public static Coupon of(
-      String name, CouponType type, LocalDateTime startAt, LocalDateTime endAt,
-      Integer count, Boolean allowDuplicate) {
+      String name, String type, String label,
+      LocalDateTime issueStartAt, LocalDateTime issueEndAt, LocalDateTime expireAt,
+      Integer validDays, Integer count, Boolean allowDuplicate) {
 
-    return new Coupon(name, type, startAt, endAt, count, allowDuplicate);
+    CouponType typeE = CouponType.parse(type.toUpperCase());
+    CouponLabel labelE = CouponLabel.parse(label.toUpperCase());
+
+    return new Coupon(name, typeE, labelE, issueStartAt, issueEndAt, expireAt, validDays, count, allowDuplicate);
   }
 
   public DiscountPolicy getDiscountPolicy() {
@@ -87,12 +97,14 @@ public class Coupon extends BaseEntity {
 
   public void modify(UpdateCoupon command) {
 
-    if (!is2HourBeforeStartAt(period.getStartAt())) {
+    if (!period.is2HourBeforeIssueStartAt()) {
       throw new IllegalArgumentException("쿠폰 가용 시각으로부터 2 시간 이전까지만 수정이 가능합니다.");
     }
     this.name = command.name();
     this.type = command.type();
-    this.period = new AvailablePeriod(command.startAt(), command.endAt());
+    this.label = command.label();
+    this.period = AvailablePeriod.of(
+        command.issueStartAt(), command.issueEndAt(), command.expireAt(), command.validDays(), command.label());
     this.count = command.count();
     this.allowDuplicate = command.allowDuplicate();
 
@@ -101,7 +113,8 @@ public class Coupon extends BaseEntity {
 
   @Override
   public void delete(Long deletedBy) {
-    if (!(is2HourBeforeStartAt(period.getStartAt())||isAfterEndAt(period.getEndAt()))) {
+
+    if (!(period.is2HourBeforeIssueStartAt()|| period.isAfterIssueEndAt())) {
       throw new IllegalArgumentException("쿠폰 가용 시각으로부터 두 시간 이전이거나 이미 종료된 쿠폰만 삭제가 가능합니다.");
     }
     super.delete(deletedBy);
@@ -116,15 +129,5 @@ public class Coupon extends BaseEntity {
     this.issuedCount = remainder == null
         ? this.issuedCount
         : remainder <= 0 ? this.count : this.count - remainder;
-  }
-
-  private boolean is2HourBeforeStartAt(LocalDateTime startAt) {
-    LocalDateTime now = LocalDateTime.now();
-    return now.isBefore(startAt.minusHours(2));
-  }
-
-  private boolean isAfterEndAt(LocalDateTime endAt) {
-    LocalDateTime now = LocalDateTime.now();
-    return now.isAfter(endAt);
   }
 }

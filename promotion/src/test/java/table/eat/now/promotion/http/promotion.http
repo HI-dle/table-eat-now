@@ -30,10 +30,10 @@ X-User-Id: 1
 #Authorization: {{access_token}}
 
 {
-  "promotionName": "봄맞이 할인 프로모션",
-  "description": "전 메뉴 3000원 할인",
-  "startTime": "2025-04-22T00:00:00",
-  "endTime": "2025-04-30T00:00:00",
+  "promotionName": "자리 eat now 오픈 프로모션입니다.4",
+  "description": "전 메뉴 3000원 할인 쿠폰",
+  "startTime": "2025-04-25T18:25:00",
+  "endTime": "2025-04-25T18:50:00",
   "discountAmount": 3000,
   "promotionStatus": "READY",
   "promotionType": "COUPON"
@@ -84,9 +84,9 @@ X-User-Role: MASTER
 X-User-Id: 1
 
 {
-  "userId": 2,
-  "promotionUuid": "cb2aefc6-e702-48e6-95fa-a678ac0534c3",
-  "promotionName": "봄맞이 할인 프로모션"
+  "userId": 1,
+  "promotionUuid": "5608eb23-78e0-4e00-9681-bf99b58c6aa1",
+  "promotionName": "자리 eat now 오픈 프로모션입니다.4"
 }
 
 ###
@@ -97,6 +97,6 @@ X-User-Id: 1
 
 {
   "userId": 1,
-  "promotionUuid": "5b375351-de57-40a7-b9f0-6632eca33a09",
-  "promotionName": "봄맞이 할인 프로모션"
+  "promotionUuid": "11129213-01cd-4bd9-a7ca-ed6b5a195abf",
+  "promotionName": "자리 eat now 오픈 프로모션입니다.3"
 }

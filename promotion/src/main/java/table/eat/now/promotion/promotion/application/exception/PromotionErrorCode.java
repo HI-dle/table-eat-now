@@ -23,6 +23,10 @@ public enum PromotionErrorCode implements ErrorCode {
       "프로모션 유저 직렬화에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
   PROMOTION_LUA_SCRIPT_FAILED(
       "프로모션 루아 스크립트 실행에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+  WRONG_PROMOTION_STATUS(
+      "프로모션 상태가 부적절한 상태입니다.", HttpStatus.BAD_REQUEST),
+  NOT_RUNNING_PROMOTION(
+      "진행중인 프로모션이 아닙니다.", HttpStatus.BAD_REQUEST),
   ;
 
   private final String message;
