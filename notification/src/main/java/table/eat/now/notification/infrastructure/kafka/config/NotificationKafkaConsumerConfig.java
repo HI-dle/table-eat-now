@@ -32,6 +32,7 @@ public class NotificationKafkaConsumerConfig {
 
   private static final String TABLE_EAT_NOW = "table.eat.now.**";
   private static final String NOTIFICATION_SEND_GROUP = "Notification-send-consumer";
+  private static final String NOTIFICATION_SCHEDULE_SEND_GROUP = "Notification-schedule-send-consumer";
   private static final String NOTIFICATION_EVENT_DLT = "Notification-event-dlt";
 
   @Value("${spring.kafka.bootstrap-servers}")
@@ -150,7 +151,7 @@ public class NotificationKafkaConsumerConfig {
   @Bean
   public ConsumerFactory<String, NotificationScheduleSendEvent> scheduleSendEventConsumerFactory() {
     return createConsumerFactory(
-        NOTIFICATION_SEND_GROUP, NotificationScheduleSendEvent.class, this::getCommonConsumerProps);
+        NOTIFICATION_SCHEDULE_SEND_GROUP, NotificationScheduleSendEvent.class, this::getCommonConsumerProps);
   }
 
   @Bean
