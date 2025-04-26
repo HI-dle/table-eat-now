@@ -61,8 +61,8 @@ class CursorTest {
       Cursor laterCursor = Cursor.of(later, "restaurant-1");
 
       // then
-      assertThat(earlierCursor.compareTo(laterCursor)).isNegative();
-      assertThat(laterCursor.compareTo(earlierCursor)).isPositive();
+      assertThat(earlierCursor).isLessThan(laterCursor);
+      assertThat(laterCursor).isGreaterThan(earlierCursor);
     }
 
     @Test
@@ -74,8 +74,8 @@ class CursorTest {
       Cursor cursor2 = Cursor.of(sameTime, "restaurant-2");
 
       // then
-      assertThat(cursor1.compareTo(cursor2)).isNegative();
-      assertThat(cursor2.compareTo(cursor1)).isPositive();
+      assertThat(cursor1).isLessThan(cursor2);
+      assertThat(cursor2).isGreaterThan(cursor1);
     }
 
     @Test
@@ -88,7 +88,7 @@ class CursorTest {
       Cursor cursor2 = Cursor.of(sameTime, sameId);
 
       // then
-      assertThat(cursor1.compareTo(cursor2)).isZero();
+      assertThat(cursor1).isEqualByComparingTo(cursor2);
     }
 
     @Test
@@ -98,8 +98,8 @@ class CursorTest {
       Cursor nonNullTimeCursor = Cursor.of(LocalDateTime.now(), "restaurant-1");
 
       // then
-      assertThat(nullTimeCursor.compareTo(nonNullTimeCursor)).isNegative();
-      assertThat(nonNullTimeCursor.compareTo(nullTimeCursor)).isPositive();
+      assertThat(nullTimeCursor).isLessThan(nonNullTimeCursor);
+      assertThat(nonNullTimeCursor).isGreaterThan(nullTimeCursor);
     }
 
     @Test
@@ -111,8 +111,8 @@ class CursorTest {
       Cursor nonNullIdCursor = Cursor.of(sameTime, "restaurant-1");
 
       // then
-      assertThat(nullIdCursor.compareTo(nonNullIdCursor)).isNegative();
-      assertThat(nonNullIdCursor.compareTo(nullIdCursor)).isPositive();
+      assertThat(nullIdCursor).isLessThan(nonNullIdCursor);
+      assertThat(nonNullIdCursor).isGreaterThan(nullIdCursor);
     }
 
     @Test
@@ -122,8 +122,8 @@ class CursorTest {
       Cursor nonEmptyCursor = Cursor.of(LocalDateTime.now(), "restaurant-1");
 
       // then
-      assertThat(emptyCursor.compareTo(nonEmptyCursor)).isNegative();
-      assertThat(nonEmptyCursor.compareTo(emptyCursor)).isPositive();
+      assertThat(emptyCursor).isLessThan(nonEmptyCursor);
+      assertThat(nonEmptyCursor).isGreaterThan(emptyCursor);
     }
   }
 }
