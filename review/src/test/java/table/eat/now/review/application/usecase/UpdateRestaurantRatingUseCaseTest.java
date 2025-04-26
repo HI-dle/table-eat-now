@@ -75,7 +75,7 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
     Review review3 = createReview("restaurant-3", baseTime.plusMinutes(3), 3);
     Review review4 = createReview("restaurant-4", baseTime.plusMinutes(4), 2);
 
-    List<Review> reviews = List.of(review1, review2, review3);
+    List<Review> reviews = List.of(review1, review2, review3, review4);
     reviewRepository.saveAllAndFlush(reviews);
     // when
     updateRestaurantRatingUseCase.execute(cursorKey, interval);
