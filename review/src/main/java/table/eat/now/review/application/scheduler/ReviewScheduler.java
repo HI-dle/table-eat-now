@@ -1,12 +1,11 @@
 package table.eat.now.review.application.scheduler;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import table.eat.now.review.application.batch.CursorKey;
 import table.eat.now.review.application.executor.TaskExecutorFactory;
 import table.eat.now.review.application.executor.lock.LockKey;
 import table.eat.now.review.application.executor.metric.MetricName;
@@ -21,10 +20,7 @@ public class ReviewScheduler {
   private final UpdateRestaurantRatingUseCase updateRestaurantRatingUseCase;
   private final TaskExecutorFactory executorFactory;
 
-  @Value("${review.rating.update.recent.interval}")
-  private int recentMinutes;
-
-  @Scheduled(cron = "${review.rating.update.recent.cron}")
+  @Scheduled(fixedDelayString = "${review.rating.update.recent.delay-ms}")
   public void updateRestaurantRecentRatings() {
     TaskExecutor executor = executorFactory.createSchedulerExecutor(
         MetricName.RATING_UPDATE_RECENT,
@@ -34,9 +30,9 @@ public class ReviewScheduler {
     executor.execute(() -> {
           try {
             logStartBatch();
-            LocalDateTime end = LocalDateTime.now();
-            LocalDateTime start = end.minusMinutes(recentMinutes);
-            updateRestaurantRatingUseCase.execute(start, end);
+            updateRestaurantRatingUseCase.execute(
+                CursorKey.RATING_UPDATE_RECENT_CURSOR,
+                Duration.ofMinutes(5));
           } catch (Exception e) {
             logError(e);
           }
@@ -54,10 +50,10 @@ public class ReviewScheduler {
     executor.execute(() -> {
       try {
         logStartBatch();
-        LocalDate today = LocalDate.now();
-        LocalDateTime end = LocalDate.now().atStartOfDay();
-        LocalDateTime start = today.minusDays(1).atStartOfDay();
-        updateRestaurantRatingUseCase.execute(start, end);
+        updateRestaurantRatingUseCase.execute(
+            CursorKey.RATING_UPDATE_DAILY_CURSOR,
+            Duration.ofDays(1)
+        );
       } catch (Exception e) {
         logError(e);
       }
