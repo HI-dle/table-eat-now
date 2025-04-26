@@ -43,7 +43,7 @@ dependencies {
 	//DB, JPA
 	runtimeOnly 'org.postgresql:postgresql'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	//
+	//CLIENT
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	//COMMON
@@ -63,8 +63,9 @@ dependencies {
 	//KAFKA
 	implementation 'org.springframework.kafka:spring-kafka'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
-	//REDISSON
+	//REDIS
 	implementation 'org.redisson:redisson:3.45.0'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	//METRICS
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'

@@ -62,8 +62,7 @@ review:
   rating:
     update:
       recent:
-        cron: 0 */5 * * * *
-        interval: 5
+        delay-ms: 300000
       daily:
         cron: 0 0 4 * * *
       batch-size: 100
