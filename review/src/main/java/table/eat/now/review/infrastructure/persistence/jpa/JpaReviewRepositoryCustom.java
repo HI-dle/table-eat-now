@@ -2,6 +2,7 @@ package table.eat.now.review.infrastructure.persistence.jpa;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import table.eat.now.review.domain.repository.search.CursorResult;
 import table.eat.now.review.domain.repository.search.PaginatedResult;
 import table.eat.now.review.domain.repository.search.RestaurantRatingResult;
 import table.eat.now.review.domain.repository.search.SearchAdminReviewCriteria;
@@ -17,6 +18,14 @@ public interface JpaReviewRepositoryCustom {
 
   List<RestaurantRatingResult> calculateRestaurantRatings(List<String> restaurantIds);
 
-  List<String> findRecentlyUpdatedRestaurantIds(
-      LocalDateTime startTime, LocalDateTime endTime, long offset, int limit);
+  List<CursorResult> findRecentlyUpdatedRestaurantIds(
+      LocalDateTime startTime,
+      LocalDateTime endTime,
+      LocalDateTime lastUpdatedAt,
+      String lastRestaurantId,
+      int limit
+  );
+
+  CursorResult findEndCursorResult(LocalDateTime endTime);
 }
+
