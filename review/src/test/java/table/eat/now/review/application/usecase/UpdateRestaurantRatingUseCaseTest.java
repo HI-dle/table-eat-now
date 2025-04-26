@@ -2,7 +2,6 @@ package table.eat.now.review.application.usecase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -96,10 +95,10 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
     Review review2 = createReview("restaurant-2", baseTime.plusMinutes(2), 4);
 
     reviewRepository.saveAllAndFlush(List.of(review1, review2));
-    // when
-    updateRestaurantRatingUseCase.execute(cursorKey, interval);
     doThrow(new RuntimeException("테스트용 예외"))
         .when(reviewEventPublisher).publish(any());
+    // when
+    updateRestaurantRatingUseCase.execute(cursorKey, interval);
 
     // then
     Cursor updatedCursor = cursorStore.getCursor(cursorKey.value());

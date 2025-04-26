@@ -3,11 +3,9 @@ package table.eat.now.review.helper;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Table;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DatabaseCleanUp {
 
-  @PersistenceContext
   private final EntityManager entityManager;
   private List<String> tableNames;
 
@@ -37,7 +34,7 @@ public class DatabaseCleanUp {
               table.name() :
               convertToLowerUnderscore(entityType.getName());
         })
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Transactional

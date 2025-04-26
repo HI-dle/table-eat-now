@@ -42,7 +42,7 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
         ))
         .from(review)
         .where(
-            betweenUpdatedAt(startTime,endTime)
+            updatedAtBetween(startTime,endTime)
                 .and(afterCursor(lastUpdatedAt, lastRestaurantId))
         )
         .groupBy(review.reference.restaurantId)
@@ -51,19 +51,32 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
         .fetch();
   }
 
-  private BooleanExpression betweenUpdatedAt(
-      LocalDateTime startTime, LocalDateTime endTime) {
-    if (startTime == null || endTime == null) {
+  private BooleanExpression updatedAtBetween(LocalDateTime startTime, LocalDateTime endTime) {
+    if (startTime == null && endTime == null) {
       return null;
     }
-
+    if (startTime == null) {
+      return review.updatedAt.loe(endTime);
+    }
+    if (endTime == null) {
+      return review.updatedAt.goe(startTime);
+    }
     return review.updatedAt.between(startTime, endTime);
   }
 
   private BooleanExpression afterCursor(LocalDateTime lastUpdatedAt, String lastRestaurantId) {
-    if (lastUpdatedAt == null || lastRestaurantId == null) {
+    if (lastUpdatedAt == null && lastRestaurantId == null) {
       return null;
     }
+
+    if (lastRestaurantId == null) {
+      return review.updatedAt.gt(lastUpdatedAt);
+    }
+
+    if (lastUpdatedAt == null) {
+      return review.reference.restaurantId.gt(lastRestaurantId);
+    }
+
     return review.updatedAt.gt(lastUpdatedAt)
         .or(
             review.updatedAt.eq(lastUpdatedAt)
