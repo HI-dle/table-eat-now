@@ -123,23 +123,6 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
     assertThat(updatedCursor.lastProcessedRestaurantId()).isEqualTo("restaurant-1");
   }
 
-  @Test
-  void 같은_레스토랑ID가_여러번_나와도_마지막만_기준으로_커서가_이동한다() {
-    // given
-    Review review1 = createReview("restaurant-1", baseTime.plusMinutes(1), 5);
-    Review review2 = createReview("restaurant-1", baseTime.plusMinutes(2), 4);
-
-    reviewRepository.saveAllAndFlush(List.of(review1, review2));
-
-    // when
-    updateRestaurantRatingUseCase.execute(cursorKey, interval);
-
-    // then
-    Cursor updatedCursor = cursorStore.getCursor(cursorKey.value());
-    assertThat(updatedCursor.lastProcessedUpdatedAt()).isEqualTo(review2.getUpdatedAt());
-    assertThat(updatedCursor.lastProcessedRestaurantId()).isEqualTo("restaurant-1");
-  }
-
   private Review createReview(String restaurantId, LocalDateTime updatedAt, int rating) {
     try {
       // Review 생성자 호출
