@@ -29,8 +29,19 @@ spring:
     bootstrap-servers: localhost:9092
     consumer:
       auto-offset-reset: earliest
+      enable-auto-commit: false
+      fetch-min-bytes: 1024
+      fetch-max-wait-ms: 500
+      max-poll-records: 500
       properties:
         spring.json.trusted.packages: "*"
+kafka:
+  topic:
+    promotion:
+      partitions: 3
+      replicas: 3
+      min-insync-replicas: 2
+
   mail:
     host: smtp.gmail.com
     port: 587
