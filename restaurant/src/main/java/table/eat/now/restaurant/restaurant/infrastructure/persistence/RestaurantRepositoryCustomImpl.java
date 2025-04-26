@@ -63,7 +63,7 @@ public class RestaurantRepositoryCustomImpl implements RestaurantRepositoryCusto
 
   @Override
   public Paginated<Restaurant> searchRestaurants(GetRestaurantsCriteria criteria) {
-    QRestaurant qRestaurant = QRestaurant.restaurant;
+    QRestaurant qRestaurant = restaurant;
 
     // 조건 빌더 클래스를 사용하여 동적 조건 추가
     RestaurantSearchCondition searchCondition = new RestaurantSearchCondition(qRestaurant, criteria);
