@@ -3,6 +3,7 @@ package table.eat.now.review.application.scheduler;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import table.eat.now.review.application.batch.CursorKey;
@@ -19,8 +20,10 @@ public class ReviewScheduler {
 
   private final UpdateRestaurantRatingUseCase updateRestaurantRatingUseCase;
   private final TaskExecutorFactory executorFactory;
+  @Value("${review.rating.update.recent.duration-minutes:5}")
+  private int recentDurationMinutes;
 
-  @Scheduled(fixedDelayString = "${review.rating.update.recent.delay-ms}")
+  @Scheduled(fixedDelayString = "${review.rating.update.recent.delay-ms:300000}")
   public void updateRestaurantRecentRatings() {
     TaskExecutor executor = executorFactory.createSchedulerExecutor(
         MetricName.RATING_UPDATE_RECENT,
@@ -29,10 +32,10 @@ public class ReviewScheduler {
 
     executor.execute(() -> {
           try {
-            logStartBatch();
+            logStartBatch("최근 리뷰");
             updateRestaurantRatingUseCase.execute(
                 CursorKey.RATING_UPDATE_RECENT_CURSOR,
-                Duration.ofMinutes(5));
+                Duration.ofMinutes(recentDurationMinutes));
           } catch (Exception e) {
             logError(e);
           }
@@ -40,7 +43,7 @@ public class ReviewScheduler {
     );
   }
 
-  @Scheduled(cron = "${review.rating.update.daily.cron}")
+  @Scheduled(cron = "${review.rating.update.daily.cron:0 0 4 * * *}")
   public void updateRestaurantDailyRatings() {
     TaskExecutor executor = executorFactory.createSchedulerExecutor(
         MetricName.RATING_UPDATE_DAILY,
@@ -49,7 +52,7 @@ public class ReviewScheduler {
 
     executor.execute(() -> {
       try {
-        logStartBatch();
+        logStartBatch("일일 리뷰");
         updateRestaurantRatingUseCase.execute(
             CursorKey.RATING_UPDATE_DAILY_CURSOR,
             Duration.ofDays(1)
@@ -60,8 +63,8 @@ public class ReviewScheduler {
     });
   }
 
-  private static void logStartBatch() {
-    log.info("리뷰 평점 일괄 업데이트 작업 시작");
+  private static void logStartBatch(String batchType) {
+    log.info("리뷰 평점 일괄 업데이트 작업 시작: {}", batchType);
   }
 
   private static void logError(Exception e) {

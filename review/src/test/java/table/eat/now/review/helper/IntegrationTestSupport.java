@@ -22,7 +22,6 @@ public abstract class IntegrationTestSupport {
 
   @AfterEach
   void tearDown() {
-    databaseCleanUp.afterPropertiesSet();
     databaseCleanUp.execute();
     clearRedis();
   }

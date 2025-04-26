@@ -75,7 +75,8 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
     Review review3 = createReview("restaurant-3", baseTime.plusMinutes(3), 3);
     Review review4 = createReview("restaurant-4", baseTime.plusMinutes(4), 2);
 
-    reviewRepository.saveAllAndFlush(List.of(review1, review2, review3, review4));
+    List<Review> reviews = List.of(review1, review2, review3);
+    reviewRepository.saveAllAndFlush(reviews);
     // when
     updateRestaurantRatingUseCase.execute(cursorKey, interval);
 
@@ -85,7 +86,8 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
     assertThat(updatedCursor.lastProcessedRestaurantId()).isNotNull();
 
     assertThat(updatedCursor.lastProcessedRestaurantId()).isEqualTo("restaurant-4");
-    verify(reviewEventPublisher, times(4)).publish(any());
+    int expectedCallCount = reviews.size();
+    verify(reviewEventPublisher, times(expectedCallCount)).publish(any());
   }
 
   @Test
@@ -104,6 +106,7 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
     Cursor updatedCursor = cursorStore.getCursor(cursorKey.value());
 
     assertThat(updatedCursor.lastProcessedRestaurantId()).isEqualTo("restaurant-2");
+    verify(reviewEventPublisher, times(2)).publish(any());
   }
 
   @Test

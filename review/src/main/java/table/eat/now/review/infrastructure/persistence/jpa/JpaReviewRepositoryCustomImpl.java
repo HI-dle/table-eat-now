@@ -2,6 +2,7 @@ package table.eat.now.review.infrastructure.persistence.jpa;
 
 import static table.eat.now.review.domain.entity.QReview.review;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -42,7 +43,8 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
         ))
         .from(review)
         .where(
-            updatedAtBetween(startTime,endTime)
+            new BooleanBuilder()
+                .and(updatedAtBetween(startTime,endTime))
                 .and(afterCursor(lastUpdatedAt, lastRestaurantId))
         )
         .groupBy(review.reference.restaurantId)

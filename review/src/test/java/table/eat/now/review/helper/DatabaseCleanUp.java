@@ -18,7 +18,7 @@ public class DatabaseCleanUp {
   private List<String> tableNames;
 
   @PostConstruct
-  public void afterPropertiesSet() {
+  public void init() {
     tableNames = entityManager.getMetamodel()
         .getEntities()
         .stream()
@@ -42,13 +42,26 @@ public class DatabaseCleanUp {
     // 쓰기 지연 저장소에 남은 SQL을 마저 수행
     entityManager.flush();
     // 연관 관계 매핑된 테이블이 있는 경우 참조 무결성을 해제해주고, TRUNCATE 수행
-    entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY FALSE").executeUpdate();
+    withH2(() ->
+        entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY FALSE").executeUpdate()
+    );
 
     for (String tableName : tableNames) {
       // 테이블 이름을 순회하면서, TRUNCATE 수행
       entityManager.createNativeQuery("TRUNCATE TABLE " + tableName).executeUpdate();
     }
-    entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY TRUE").executeUpdate();
+
+    withH2(() ->
+        entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY TRUE").executeUpdate()
+    );
+  }
+
+  public void withH2(Runnable task) {
+    try {
+      task.run();
+    } catch (Exception e) {
+      //H2 가 아닌경우 무시합니다.
+    }
   }
 
   private String convertToLowerUnderscore(String camelCase) {

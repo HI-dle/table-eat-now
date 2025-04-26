@@ -95,7 +95,8 @@ class CursorTest {
     void 시간_null은_non_null보다_작다고_간주한다() {
       // given
       Cursor nullTimeCursor = Cursor.of(null, "restaurant-1");
-      Cursor nonNullTimeCursor = Cursor.of(LocalDateTime.now(), "restaurant-1");
+      LocalDateTime fixed = LocalDateTime.of(2025, 4, 27, 12, 1);
+      Cursor nonNullTimeCursor = Cursor.of(fixed, "restaurant-1");
 
       // then
       assertThat(nullTimeCursor).isLessThan(nonNullTimeCursor);
@@ -119,7 +120,9 @@ class CursorTest {
     void empty_커서는_다른_커서보다_작다고_간주한다() {
       // given
       Cursor emptyCursor = Cursor.empty();
-      Cursor nonEmptyCursor = Cursor.of(LocalDateTime.now(), "restaurant-1");
+
+      LocalDateTime fixed = LocalDateTime.of(2025, 4, 27, 12, 1);
+      Cursor nonEmptyCursor = Cursor.of(fixed, "restaurant-1");
 
       // then
       assertThat(emptyCursor).isLessThan(nonEmptyCursor);
