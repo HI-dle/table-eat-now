@@ -19,7 +19,6 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantsCriteria;
 import table.eat.now.restaurant.restaurant.domain.dto.response.Paginated;
-import table.eat.now.restaurant.restaurant.domain.entity.QRestaurant;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant.RestaurantStatus;
 import table.eat.now.restaurant.restaurant.domain.entity.RestaurantMenu.MenuStatus;
@@ -63,14 +62,12 @@ public class RestaurantRepositoryCustomImpl implements RestaurantRepositoryCusto
 
   @Override
   public Paginated<Restaurant> searchRestaurants(GetRestaurantsCriteria criteria) {
-    QRestaurant qRestaurant = restaurant;
-
     // 조건 빌더 클래스를 사용하여 동적 조건 추가
-    RestaurantSearchCondition searchCondition = new RestaurantSearchCondition(qRestaurant, criteria);
+    RestaurantSearchCondition searchCondition = new RestaurantSearchCondition(restaurant, criteria);
     BooleanBuilder builder = searchCondition.build();
 
     // 쿼리 실행
-    List<Restaurant> result = queryFactory.selectFrom(qRestaurant)
+    List<Restaurant> result = queryFactory.selectFrom(restaurant)
         .where(builder)
         .orderBy(getOrderSpecifier(criteria.sortBy(), criteria.isAsc()))
         .offset(criteria.pageNumber() * criteria.pageSize())
@@ -81,7 +78,7 @@ public class RestaurantRepositoryCustomImpl implements RestaurantRepositoryCusto
     if (result.isEmpty() || result.size() >= criteria.pageSize()) {
       total = Optional.ofNullable(
           queryFactory.select(Wildcard.count)
-              .from(qRestaurant)
+              .from(restaurant)
               .where(builder)
               .fetchOne()
       ).orElse(0L);
