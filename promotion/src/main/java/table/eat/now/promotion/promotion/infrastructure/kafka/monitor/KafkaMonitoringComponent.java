@@ -56,7 +56,7 @@ public class KafkaMonitoringComponent {
     props.put("bootstrap.servers", bootstrapServers);
     props.put("key.deserializer", StringDeserializer.class.getName());
     props.put("value.deserializer", StringDeserializer.class.getName());
-    props.put("group.id", "promotionUser-save-consumer");
+    props.put("group.id", "kafka-monitoring-group");
     props.put("auto.offset.reset", "latest");
     return new KafkaConsumer<>(props);
   }
