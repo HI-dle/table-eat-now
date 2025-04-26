@@ -32,7 +32,6 @@ public class RestaurantSearchCondition {
     return builder;
   }
 
-  // (비즈니스 로직이 여기 들어간 것 같아서 맘에 안드는데 이정도는 괜찮을지..)
   private void addDeletedCondition() {
     if(criteria.role() == UserRole.MASTER){
       if(!criteria.includeDeleted()) builder.and(qRestaurant.deletedAt.isNull());
