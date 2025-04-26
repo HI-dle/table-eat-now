@@ -71,12 +71,6 @@ public record PaginatedInfo<T>(
   }
 
   private <R> List<R> getListWithIndex(BiFunction<T, Long, R> mapper) {
-    //  이렇게도 되는데 뭐가 더 좋을까?
-//      long[] idx = { offset() };
-//
-//        return this.contents.stream()
-//            .map(t -> mapper.apply(t, idx[0]++))
-//          .toList();
     return IntStream.range(0, contents.size())
         .mapToObj(i -> mapper.apply(contents.get(i), i + this.offset()))
         .toList();
