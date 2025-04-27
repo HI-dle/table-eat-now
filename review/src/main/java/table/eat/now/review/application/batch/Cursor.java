@@ -1,6 +1,7 @@
 package table.eat.now.review.application.batch;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import table.eat.now.review.domain.repository.search.CursorResult;
 
 public record Cursor(
@@ -22,25 +23,16 @@ public record Cursor(
 
   @Override
   public int compareTo(Cursor other) {
-    int timeCompare = compareNullable(this.lastProcessedUpdatedAt, other.lastProcessedUpdatedAt);
+    int timeCompare = Comparator
+        .<LocalDateTime>nullsFirst(Comparator.naturalOrder())
+        .compare(this.lastProcessedUpdatedAt, other.lastProcessedUpdatedAt);
+
     if (timeCompare != 0) {
       return timeCompare;
     }
-
-    return compareNullable(this.lastProcessedRestaurantId, other.lastProcessedRestaurantId);
-  }
-
-  private static <T extends Comparable<T>> int compareNullable(T a, T b) {
-    if (a == null && b == null) {
-      return 0;
-    }
-    if (a == null) {
-      return -1;
-    }
-    if (b == null) {
-      return 1;
-    }
-    return a.compareTo(b);
+    return Comparator
+        .<String>nullsFirst(Comparator.naturalOrder())
+        .compare(this.lastProcessedRestaurantId, other.lastProcessedRestaurantId);
   }
 
 }

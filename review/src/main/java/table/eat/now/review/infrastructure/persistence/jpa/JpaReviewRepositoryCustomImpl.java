@@ -3,10 +3,14 @@ package table.eat.now.review.infrastructure.persistence.jpa;
 import static table.eat.now.review.domain.entity.QReview.review;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -36,9 +40,13 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
       String lastRestaurantId,
       int limit
   ) {
+    DateTimePath<LocalDateTime> maxUpdatedAtPath =
+        Expressions.dateTimePath(LocalDateTime.class, "maxUpdatedAt");
+    Expression<LocalDateTime> maxUpdatedAt = review.updatedAt.max().as(maxUpdatedAtPath);
+
     return queryFactory
         .select(Projections.constructor(CursorResult.class,
-            review.updatedAt.max(),
+            maxUpdatedAt,
             review.reference.restaurantId
         ))
         .from(review)
@@ -48,7 +56,7 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
                 .and(afterCursor(lastUpdatedAt, lastRestaurantId))
         )
         .groupBy(review.reference.restaurantId)
-        .orderBy(review.updatedAt.max().asc(), review.reference.restaurantId.asc())
+        .orderBy(maxUpdatedAtPath.asc(), review.reference.restaurantId.asc())
         .limit(limit)
         .fetch();
   }
@@ -88,15 +96,19 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
 
   @Override
   public CursorResult findEndCursorResult(LocalDateTime endTime) {
+    DateTimePath<LocalDateTime> maxUpdatedAtPath = Expressions
+        .dateTimePath(LocalDateTime.class, "maxUpdatedAt");
+    Expression<LocalDateTime> maxUpdatedAt = review.updatedAt.max().as(maxUpdatedAtPath);
+
     return queryFactory
         .select(Projections.constructor(CursorResult.class,
-            review.updatedAt.max(),
+            maxUpdatedAt,
             review.reference.restaurantId
         ))
         .from(review)
         .where(updatedAtLoe(endTime))
         .groupBy(review.reference.restaurantId)
-        .orderBy(review.updatedAt.max().desc(), review.reference.restaurantId.desc())
+        .orderBy(maxUpdatedAtPath.desc(), review.reference.restaurantId.desc())
         .limit(1)
         .fetchOne();
   }
