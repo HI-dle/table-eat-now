@@ -17,7 +17,7 @@ import table.eat.now.reservation.reservation.application.service.validation.stra
 @RequiredArgsConstructor
 public class PaymentDetailValidationStrategyResolver {
 
-  private final List<PaymentDetailValidationStrategy<?>> strategies;
+  private final List<PaymentDetailValidationStrategy> strategies;
 
   public PaymentDetailValidationStrategy getStrategy(
       PaymentValidationContext context

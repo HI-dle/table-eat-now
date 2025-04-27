@@ -5,9 +5,8 @@
 package table.eat.now.reservation.reservation.application.service.validation.strategy;
 
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail;
-import table.eat.now.reservation.reservation.application.service.validation.context.ValidationPaymentDetailContext;
 
-public interface PaymentDetailValidationStrategy<T extends ValidationPaymentDetailContext> {
+public interface PaymentDetailValidationStrategy {
 
   boolean supports(PaymentDetail paymentDetail);
 

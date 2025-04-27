@@ -8,7 +8,7 @@ import table.eat.now.reservation.reservation.application.service.validation.cont
 import table.eat.now.reservation.reservation.application.service.validation.context.ValidationPaymentDetailContext;
 
 public abstract class AbstractContextAwarePaymentDetailValidationStrategy<T extends ValidationPaymentDetailContext>
-    implements PaymentDetailValidationStrategy<T> {
+    implements PaymentDetailValidationStrategy {
 
   protected PaymentValidationContext context;
 
