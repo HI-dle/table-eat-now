@@ -18,14 +18,14 @@ import table.eat.now.reservation.reservation.application.service.dto.request.Cre
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
 import table.eat.now.reservation.reservation.application.service.validation.context.CreateReservationValidationContext;
 import table.eat.now.reservation.reservation.application.service.validation.context.PaymentValidationContext;
-import table.eat.now.reservation.reservation.application.service.validation.factory.PaymentDetailValidationStrategyFactory;
+import table.eat.now.reservation.reservation.application.service.validation.resolver.PaymentDetailValidationStrategyResolver;
 import table.eat.now.reservation.reservation.application.service.validation.strategy.PaymentDetailValidationStrategy;
 
 @Component
 @RequiredArgsConstructor
 public class ValidPaymentDetails implements ValidItem<CreateReservationValidationContext> {
 
-  private final PaymentDetailValidationStrategyFactory strategyFactory;
+  private final PaymentDetailValidationStrategyResolver strategyFactory;
   private static final int MAX_COUPON_USAGE = 2;
   private static final int MAX_PROMOTION_USAGE = 1;
   private static final int MAX_PAYMENT_USAGE = 1;

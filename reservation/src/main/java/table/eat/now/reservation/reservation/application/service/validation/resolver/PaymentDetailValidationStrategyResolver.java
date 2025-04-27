@@ -2,7 +2,7 @@
  * @author : jieun(je-pa)
  * @Date : 2025. 04. 21.
  */
-package table.eat.now.reservation.reservation.application.service.validation.factory;
+package table.eat.now.reservation.reservation.application.service.validation.resolver;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import table.eat.now.reservation.reservation.application.service.validation.stra
 
 @Component
 @RequiredArgsConstructor
-public class PaymentDetailValidationStrategyFactory {
+public class PaymentDetailValidationStrategyResolver {
 
   private final List<PaymentDetailValidationStrategy<?>> strategies;
 
