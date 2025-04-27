@@ -2,10 +2,9 @@
  * @author : jieun(je-pa)
  * @Date : 2025. 04. 11.
  */
-package table.eat.now.reservation.reservation.application.service.validation.discount;
+package table.eat.now.reservation.reservation.application.service.validation.strategy;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -14,10 +13,12 @@ import table.eat.now.reservation.reservation.application.client.dto.response.Get
 import table.eat.now.reservation.reservation.application.exception.ReservationErrorCode;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
+import table.eat.now.reservation.reservation.application.service.validation.context.PromotionValidationContext;
 
 @Component
 @RequiredArgsConstructor
-public class PromotionDiscountStrategy extends AbstractContextAwareDiscountStrategy {
+public class PromotionValidationStrategy extends
+    AbstractContextAwarePaymentDetailValidationStrategy<PromotionValidationContext> {
 
   @Override
   public boolean supports(PaymentDetail paymentDetail) {
@@ -25,15 +26,26 @@ public class PromotionDiscountStrategy extends AbstractContextAwareDiscountStrat
   }
 
   @Override
-  public void validate(BigDecimal totalPrice, PaymentDetail paymentDetail, LocalDateTime reservationDate) {
-    Promotion promotion = Optional.ofNullable(promotionMap.get(paymentDetail.detailReferenceId()))
+  public PromotionValidationContext createContext() {
+    return PromotionValidationContext.builder()
+        .totalPrice(context.totalPrice())
+        .paymentDetail(context.paymentDetail())
+        .reservationDate(context.reservationDate())
+        .promotionsMap(context.promotionsMap())
+        .build();
+  }
+
+  @Override
+  public void validateContext(PromotionValidationContext context) {
+    Promotion promotion = Optional.ofNullable(context.promotionsMap()
+            .get(context.paymentDetail().detailReferenceId()))
         .orElseThrow(() -> CustomException.from(ReservationErrorCode.PROMOTION_NOT_FOUND));
 
     // 상태 확인
     validatePromotionStatus(promotion);
 
     // 할인 금액 확인
-    validatePromotionEventDiscountPrice(paymentDetail, promotion.discountPrice());
+    validatePromotionEventDiscountPrice(context.paymentDetail(), promotion.discountPrice());
   }
 
   private static void validatePromotionStatus(Promotion promotion) {

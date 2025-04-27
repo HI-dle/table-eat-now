@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import table.eat.now.reservation.reservation.infrastructure.client.feign.dto.request.PreemptCouponRequest;
-import table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response.GetCouponsResponse;
+import table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response.GetUserCouponsResponse;
 
 @FeignClient(name = "coupon")
 public interface CouponFeignClient {
 
-  @GetMapping("/internal/v1/coupons")
-  ResponseEntity<GetCouponsResponse> getCoupons(@RequestParam Set<String> ids);
+  @GetMapping("/internal/v1/user-coupons")
+  ResponseEntity<GetUserCouponsResponse> getUserCoupons(@RequestParam Set<String> userCouponUuids);
 
   @PatchMapping("/internal/v1/user-coupons/preempt")
   ResponseEntity<Void> preemptCoupon(@RequestBody PreemptCouponRequest request);

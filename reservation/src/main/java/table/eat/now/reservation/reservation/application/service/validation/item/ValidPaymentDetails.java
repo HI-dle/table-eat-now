@@ -11,20 +11,21 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import table.eat.now.common.exception.CustomException;
-import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo.Coupon;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo.Promotion;
+import table.eat.now.reservation.reservation.application.client.dto.response.GetUserCouponsInfo.UserCoupon;
 import table.eat.now.reservation.reservation.application.exception.ReservationErrorCode;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
 import table.eat.now.reservation.reservation.application.service.validation.context.CreateReservationValidationContext;
-import table.eat.now.reservation.reservation.application.service.validation.discount.DiscountStrategy;
-import table.eat.now.reservation.reservation.application.service.validation.discount.DiscountStrategyFactory;
+import table.eat.now.reservation.reservation.application.service.validation.context.PaymentValidationContext;
+import table.eat.now.reservation.reservation.application.service.validation.factory.PaymentDetailValidationStrategyFactory;
+import table.eat.now.reservation.reservation.application.service.validation.strategy.PaymentDetailValidationStrategy;
 
 @Component
 @RequiredArgsConstructor
 public class ValidPaymentDetails implements ValidItem<CreateReservationValidationContext> {
 
-  private final DiscountStrategyFactory strategyFactory;
+  private final PaymentDetailValidationStrategyFactory strategyFactory;
   private static final int MAX_COUPON_USAGE = 2;
   private static final int MAX_PROMOTION_USAGE = 1;
   private static final int MAX_PAYMENT_USAGE = 1;
@@ -50,7 +51,8 @@ public class ValidPaymentDetails implements ValidItem<CreateReservationValidatio
         ctx.command().reservationDate(),
         ctx.couponMap(),
         ctx.promotionMap(),
-        ctx.command().payments()
+        ctx.command().payments(),
+        ctx.command().reserverId()
     );
   }
 
@@ -64,24 +66,27 @@ public class ValidPaymentDetails implements ValidItem<CreateReservationValidatio
   private void validateDiscount(
       BigDecimal totalPrice,
       LocalDateTime reservationDate,
-      Map<String, Coupon> stringCouponMap,
+      Map<String, UserCoupon> stringCouponMap,
       Map<String, Promotion> stringPromotionMap,
-      List<PaymentDetail> payments
+      List<PaymentDetail> payments,
+      Long reserverId
   ) {
     List<PaymentDetail> discountPayments = payments.stream()
         .filter(p -> p.type() != PaymentType.PAYMENT)
         .toList();
 
     for (PaymentDetail paymentDetail : discountPayments) {
+      PaymentValidationContext context = PaymentValidationContext.builder()
+          .paymentDetail(paymentDetail)
+          .couponMap(stringCouponMap)
+          .promotionsMap(stringPromotionMap)
+          .totalPrice(totalPrice)
+          .reservationDate(reservationDate)
+          .reserverId(reserverId)
+          .build();
 
-      DiscountStrategy strategy = strategyFactory
-          .getStrategy(paymentDetail, stringCouponMap, stringPromotionMap);
-
-      strategy.validate(
-          totalPrice,
-          paymentDetail,
-          reservationDate
-      );
+      PaymentDetailValidationStrategy strategy = strategyFactory.getStrategy(context);
+      strategy.validate();
     }
   }
 

@@ -9,10 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import table.eat.now.reservation.reservation.application.client.CouponClient;
 import table.eat.now.reservation.reservation.application.client.dto.request.PreemptCouponCommand;
-import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo;
+import table.eat.now.reservation.reservation.application.client.dto.response.GetUserCouponsInfo;
 import table.eat.now.reservation.reservation.infrastructure.client.feign.CouponFeignClient;
 import table.eat.now.reservation.reservation.infrastructure.client.feign.dto.request.PreemptCouponRequest;
-import table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response.GetCouponsResponse;
+import table.eat.now.reservation.reservation.infrastructure.client.feign.dto.response.GetUserCouponsResponse;
 
 @Component
 @RequiredArgsConstructor
@@ -21,8 +21,8 @@ public class CouponClientImpl implements CouponClient {
   private final CouponFeignClient couponFeignClient;
 
   @Override
-  public GetCouponsInfo getCoupons(Set<String> uuids) {
-    GetCouponsResponse coupons = couponFeignClient.getCoupons(uuids).getBody();
+  public GetUserCouponsInfo getUserCoupons(Set<String> uuids) {
+    GetUserCouponsResponse coupons = couponFeignClient.getUserCoupons(uuids).getBody();
     return coupons.toInfo();
   }
 

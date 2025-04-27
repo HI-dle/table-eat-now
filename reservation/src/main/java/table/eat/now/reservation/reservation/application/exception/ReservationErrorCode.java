@@ -39,13 +39,14 @@ public enum ReservationErrorCode implements ErrorCode {
   // BAD_REQUEST - DISCOUNT
   DISCOUNT_STRATEGY_NOT_FOUND("할인 전략이 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
 
-  // BAD_REQUEST - DISCOUNT - COUPON
-  COUPON_NOT_FOUND("유효하지 않은 쿠폰입니다.", HttpStatus.BAD_REQUEST),
-  COUPON_INVALID_PERIOD("쿠폰 사용 기간이 아닙니다.", HttpStatus.BAD_REQUEST),
+  // BAD_REQUEST - COUPON
+  USERCOUPON_NOT_FOUND("유효하지 않은 유저 쿠폰입니다.", HttpStatus.BAD_REQUEST),
+  USERCOUPON_EXPIRED("만료된 유저 쿠폰입니다.", HttpStatus.BAD_REQUEST),
   COUPON_MIN_PURCHASE_NOT_MET("쿠폰 사용을 위한 최소 구매 금액이 충족되지 않았습니다.", HttpStatus.BAD_REQUEST),
   COUPON_TYPE_NOT_FOUND("알 수 없는 쿠폰 타입입니다.", HttpStatus.BAD_REQUEST),
   INVALID_COUPON_DISCOUNT("적용된 쿠폰 할인 금액이 실제 할인 금액과 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
   COUPON_USAGE_LIMIT_EXCEEDED("쿠폰 최대 사용 개수를 초과합니다.", HttpStatus.BAD_REQUEST),
+  INVALID_USERCOUPON_STATUS_FOR_RESERVATION("유저 쿠폰 상태가 예약 가능한 상태가 아닙니다.", HttpStatus.BAD_REQUEST),
 
   // BAD_REQUEST - DISCOUNT - PROMOTION
   PROMOTION_NOT_FOUND("유효하지 않은 프로모션입니다.", HttpStatus.BAD_REQUEST),
@@ -57,6 +58,7 @@ public enum ReservationErrorCode implements ErrorCode {
    * FORBIDDEN
    */
   NO_CANCEL_PERMISSION("해당 예약에 대한 취소 권한이 없습니다.",HttpStatus.FORBIDDEN),
+  COUPON_USE_PERMISSION("해당 쿠폰에 대한 사용 권한이 없습니다.",HttpStatus.FORBIDDEN),
 
   /**
    * NOT_FOUND
