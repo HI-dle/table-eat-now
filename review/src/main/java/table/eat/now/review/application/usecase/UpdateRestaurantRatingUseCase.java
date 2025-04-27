@@ -63,7 +63,7 @@ public class UpdateRestaurantRatingUseCase {
         .reviewEventPublisher(reviewEventPublisher)
         .cursorStore(cursorStore)
         .cursorKey(cursorKey.value())
-        .initialCursor(Cursor.of(startTime, lastRestaurantId))
+        .initialCursor(startCursor)
         .endCursor(endCursor)
         .batchSize(batchSize)
         .startTime(startTime)
