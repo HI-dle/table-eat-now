@@ -35,15 +35,17 @@ import table.eat.now.reservation.global.IntegrationTestSupport;
 import table.eat.now.reservation.global.fixture.ReservationFixture;
 import table.eat.now.reservation.global.fixture.ReservationPaymentDetailFixture;
 import table.eat.now.reservation.reservation.application.client.dto.response.CreatePaymentInfo;
-import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo;
-import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo.Coupon;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo.Promotion;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo.Promotion.PromotionStatus;
+import table.eat.now.reservation.reservation.application.client.dto.response.GetUserCouponsInfo;
+import table.eat.now.reservation.reservation.application.client.dto.response.GetUserCouponsInfo.UserCoupon;
+import table.eat.now.reservation.reservation.application.client.dto.response.GetUserCouponsInfo.UserCoupon.UserCouponStatus;
 import table.eat.now.reservation.reservation.application.exception.ReservationErrorCode;
 import table.eat.now.reservation.reservation.application.service.dto.request.CancelReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.ConfirmReservationCommand;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand;
+import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.PaymentDetail.PaymentType;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.RestaurantDetails;
 import table.eat.now.reservation.reservation.application.service.dto.request.CreateReservationCommand.RestaurantMenuDetails;
@@ -52,6 +54,8 @@ import table.eat.now.reservation.reservation.application.service.dto.request.Get
 import table.eat.now.reservation.reservation.application.service.dto.response.CancelReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetReservationInfo;
 import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo;
+import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo.Menu;
+import table.eat.now.reservation.reservation.application.service.dto.response.GetRestaurantInfo.Timeslot;
 import table.eat.now.reservation.reservation.domain.entity.Reservation;
 import table.eat.now.reservation.reservation.domain.entity.Reservation.ReservationStatus;
 import table.eat.now.reservation.reservation.domain.entity.ReservationPaymentDetail;
@@ -73,11 +77,12 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_invalidPaymentDetailsTotalAmount() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       BigDecimal paymentAmount = BigDecimal.valueOf(6000);
       BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      long reserverId = 1L;
       CreateReservationCommand command = CreateReservationCommand.builder()
-          .reserverId(1L)
+          .reserverId(reserverId)
           .reserverName("홍길동")
           .reserverContact("010-0000-0000")
           .restaurantUuid(UUID.randomUUID().toString())
@@ -104,11 +109,11 @@ class ReservationServiceTest extends IntegrationTestSupport {
               .build())
           .reservationDate(LocalDateTime.now())
           .payments(List.of(
-              new CreateReservationCommand.PaymentDetail(
+              new PaymentDetail(
                   PaymentType.PROMOTION_COUPON,
-                  couponUuid,
+                  userCouponUuid,
                   couponAmount),
-              new CreateReservationCommand.PaymentDetail(
+              new PaymentDetail(
                   PaymentType.PAYMENT,
                   null,
                   paymentAmount)
@@ -120,7 +125,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .atTime(command.restaurantTimeSlotDetails().timeslot());
 
       // 식당 정보 설정
-      GetRestaurantInfo.Timeslot validTimeslot = new GetRestaurantInfo.Timeslot(
+      Timeslot validTimeslot = new Timeslot(
           command.restaurantTimeslotUuid(),
           command.restaurantTimeSlotDetails().availableDate(),
           10,
@@ -128,7 +133,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           command.restaurantTimeSlotDetails().timeslot()
       );
 
-      GetRestaurantInfo.Menu menu = new GetRestaurantInfo.Menu(
+      Menu menu = new Menu(
           command.restaurantMenuUuid(),
           command.restaurantMenuDetails().name(),
           command.restaurantMenuDetails().price(),
@@ -144,24 +149,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
-          .startAt(reservationDateTime.minusDays(10))
-          .endAt(reservationDateTime.plusDays(1))
-          .minPurchaseAmount(9999)
-          .amount(3000)
-          .percent(null)
-          .maxDiscountAmount(null)
+      UserCoupon invalidAmountCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.FIXED_DISCOUNT)
+              .minPurchaseAmount(9999)
+              .amount(3000)
+              .percent(null)
+              .maxDiscountAmount(null)
+              .build())
+          .userId(reserverId)
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidAmountCoupon
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidAmountCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -187,11 +195,12 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_invalidMenuTotalAmount() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       BigDecimal paymentAmount = BigDecimal.valueOf(7000);
       BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      long reserverId = 1L;
       CreateReservationCommand command = CreateReservationCommand.builder()
-          .reserverId(1L)
+          .reserverId(reserverId)
           .reserverName("홍길동")
           .reserverContact("010-0000-0000")
           .restaurantUuid(UUID.randomUUID().toString())
@@ -220,7 +229,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .payments(List.of(
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PROMOTION_COUPON,
-                  couponUuid,
+                  userCouponUuid,
                   couponAmount),
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PAYMENT,
@@ -258,24 +267,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
-          .startAt(reservationDateTime.minusDays(10))
-          .endAt(reservationDateTime.plusDays(1))
-          .minPurchaseAmount(9999)
-          .amount(3000)
-          .percent(null)
-          .maxDiscountAmount(null)
+      UserCoupon invalidAmountCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.FIXED_DISCOUNT)
+              .minPurchaseAmount(9999)
+              .amount(3000)
+              .percent(null)
+              .maxDiscountAmount(null)
+              .build())
+          .userId(reserverId)
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidAmountCoupon
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidAmountCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -306,11 +318,12 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_invalidTimeslot() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       BigDecimal paymentAmount = BigDecimal.valueOf(7000);
       BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      long reserverId = 1L;
       CreateReservationCommand command = CreateReservationCommand.builder()
-          .reserverId(1L)
+          .reserverId(reserverId)
           .reserverName("홍길동")
           .reserverContact("010-0000-0000")
           .restaurantUuid(UUID.randomUUID().toString())
@@ -339,7 +352,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .payments(List.of(
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PROMOTION_COUPON,
-                  couponUuid,
+                  userCouponUuid,
                   couponAmount),
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PAYMENT,
@@ -361,24 +374,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
-          .startAt(reservationDateTime.minusDays(10))
-          .endAt(reservationDateTime.plusDays(1))
-          .minPurchaseAmount(9999)
-          .amount(3000)
-          .percent(null)
-          .maxDiscountAmount(null)
+      UserCoupon invalidAmountCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.FIXED_DISCOUNT)
+              .minPurchaseAmount(9999)
+              .amount(3000)
+              .percent(null)
+              .maxDiscountAmount(null)
+              .build())
+          .userId(reserverId)
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidAmountCoupon
+      Map<String, UserCoupon> couponMap = Map.of(
+          userCouponUuid, invalidAmountCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(couponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -403,11 +419,12 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_invalidReservationDate() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       BigDecimal paymentAmount = BigDecimal.valueOf(7000);
       BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      long reserverId = 1L;
       CreateReservationCommand command = CreateReservationCommand.builder()
-          .reserverId(1L)
+          .reserverId(reserverId)
           .reserverName("홍길동")
           .reserverContact("010-0000-0000")
           .restaurantUuid(UUID.randomUUID().toString())
@@ -436,7 +453,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .payments(List.of(
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PROMOTION_COUPON,
-                  couponUuid,
+                  userCouponUuid,
                   couponAmount),
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PAYMENT,
@@ -474,24 +491,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
-          .startAt(reservationDateTime.minusDays(10))
-          .endAt(reservationDateTime.plusDays(1))
-          .minPurchaseAmount(9999)
-          .amount(3000)
-          .percent(null)
-          .maxDiscountAmount(null)
+      UserCoupon invalidAmountCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.FIXED_DISCOUNT)
+              .minPurchaseAmount(9999)
+              .amount(3000)
+              .percent(null)
+              .maxDiscountAmount(null)
+              .build())
+          .userId(reserverId)
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidAmountCoupon
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidAmountCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -516,11 +536,12 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_invalidReservationTime() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       BigDecimal paymentAmount = BigDecimal.valueOf(7000);
       BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      long reserverId = 1L;
       CreateReservationCommand command = CreateReservationCommand.builder()
-          .reserverId(1L)
+          .reserverId(reserverId)
           .reserverName("홍길동")
           .reserverContact("010-0000-0000")
           .restaurantUuid(UUID.randomUUID().toString())
@@ -549,7 +570,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .payments(List.of(
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PROMOTION_COUPON,
-                  couponUuid,
+                  userCouponUuid,
                   couponAmount),
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PAYMENT,
@@ -587,24 +608,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.PERCENT_DISCOUNT)
-          .startAt(reservationDateTime.minusDays(10))
-          .endAt(reservationDateTime.plusDays(1))
-          .minPurchaseAmount(9999)
-          .amount(0)
-          .percent(30)
-          .maxDiscountAmount(3000)
+      UserCoupon invalidAmountCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.PERCENT_DISCOUNT)
+              .minPurchaseAmount(9999)
+              .amount(0)
+              .percent(30)
+              .maxDiscountAmount(3000)
+              .build())
+          .userId(reserverId)
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidAmountCoupon
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidAmountCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -629,11 +653,12 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_exceedsMaxGuestCapacity() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       BigDecimal paymentAmount = BigDecimal.valueOf(7000);
       BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      long reserverId = 1L;
       CreateReservationCommand command = CreateReservationCommand.builder()
-          .reserverId(1L)
+          .reserverId(reserverId)
           .reserverName("홍길동")
           .reserverContact("010-0000-0000")
           .restaurantUuid(UUID.randomUUID().toString())
@@ -662,7 +687,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .payments(List.of(
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PROMOTION_COUPON,
-                  couponUuid,
+                  userCouponUuid,
                   couponAmount),
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PAYMENT,
@@ -700,24 +725,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.PERCENT_DISCOUNT)
-          .startAt(reservationDateTime.minusDays(10))
-          .endAt(reservationDateTime.plusDays(1))
-          .minPurchaseAmount(9999)
-          .amount(0)
-          .percent(30)
-          .maxDiscountAmount(3000)
+      UserCoupon invalidAmountCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.PERCENT_DISCOUNT)
+              .minPurchaseAmount(9999)
+              .amount(0)
+              .percent(30)
+              .maxDiscountAmount(3000)
+              .build())
+          .userId(reserverId)
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidAmountCoupon
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidAmountCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -743,11 +771,12 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_invalidMenuSelection() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       BigDecimal paymentAmount = BigDecimal.valueOf(7000);
       BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      long reserverId = 1L;
       CreateReservationCommand command = CreateReservationCommand.builder()
-          .reserverId(1L)
+          .reserverId(reserverId)
           .reserverName("홍길동")
           .reserverContact("010-0000-0000")
           .restaurantUuid(UUID.randomUUID().toString())
@@ -776,7 +805,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .payments(List.of(
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PROMOTION_COUPON,
-                  couponUuid,
+                  userCouponUuid,
                   couponAmount),
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PAYMENT,
@@ -807,24 +836,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.PERCENT_DISCOUNT)
-          .startAt(reservationDateTime.minusDays(10))
-          .endAt(reservationDateTime.plusDays(1))
-          .minPurchaseAmount(9999)
-          .amount(0)
-          .percent(30)
-          .maxDiscountAmount(3000)
+      UserCoupon invalidAmountCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.PERCENT_DISCOUNT)
+              .minPurchaseAmount(9999)
+              .amount(0)
+              .percent(30)
+              .maxDiscountAmount(3000)
+              .build())
+          .userId(reserverId)
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidAmountCoupon
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidAmountCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -941,9 +973,9 @@ class ReservationServiceTest extends IntegrationTestSupport {
       promotionMap.put(promotionUuid2, promotion2);
 
       // 쿠폰 없어도 됨
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap((Collections.emptyMap()))
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap((Collections.emptyMap()))
               .build());
 
       when(promotionClient.getPromotions(any())).thenReturn(new GetPromotionsInfo(promotionMap));
@@ -958,11 +990,12 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_paymentLimitExceeded() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       BigDecimal paymentAmount = BigDecimal.valueOf(7000);
       BigDecimal couponAmount = BigDecimal.valueOf(3000);
+      long reserverId = 1L;
       CreateReservationCommand command = CreateReservationCommand.builder()
-          .reserverId(1L)
+          .reserverId(reserverId)
           .reserverName("홍길동")
           .reserverContact("010-0000-0000")
           .restaurantUuid(UUID.randomUUID().toString())
@@ -991,7 +1024,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .payments(List.of(
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PROMOTION_COUPON,
-                  couponUuid,
+                  userCouponUuid,
                   couponAmount),
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PAYMENT,
@@ -1033,24 +1066,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
-          .startAt(reservationDateTime.minusDays(10))
-          .endAt(reservationDateTime.plusDays(1))
-          .minPurchaseAmount(9999)
-          .amount(3000)
-          .percent(null)
-          .maxDiscountAmount(null)
+      UserCoupon invalidAmountCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.FIXED_DISCOUNT)
+              .minPurchaseAmount(9999)
+              .amount(3000)
+              .percent(null)
+              .maxDiscountAmount(null)
+              .build())
+          .userId(reserverId)
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidAmountCoupon
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidAmountCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -1102,9 +1138,9 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보는 없다고 가정 (비어 있는 맵)
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(Collections.emptyMap())
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(Collections.emptyMap())
               .build());
 
       // 프로모션 정보도 없다고 가정 (비어 있는 맵)
@@ -1114,16 +1150,16 @@ class ReservationServiceTest extends IntegrationTestSupport {
       // when & then
       assertThatThrownBy(() -> reservationService.createReservation(command))
           .isInstanceOf(CustomException.class)
-          .hasMessageContaining(ReservationErrorCode.COUPON_NOT_FOUND.getMessage());
+          .hasMessageContaining(ReservationErrorCode.USERCOUPON_NOT_FOUND.getMessage());
     }
 
     @DisplayName("예약일이 쿠폰 행사 시작일 전이면 예외가 발생한다.")
     @Test
     void fail_couponInvalidPeriod_isBeforeStartAt() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       CreateReservationCommand command = createCommandCouponPaymentInfo(
-          couponUuid, BigDecimal.valueOf(3000));
+          userCouponUuid, BigDecimal.valueOf(3000));
 
       // 예약일
       LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
@@ -1154,24 +1190,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidPeriodCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
-          .startAt(reservationDateTime.plusDays(1)) // 시작일: 예약일보다 미래
-          .endAt(reservationDateTime.plusDays(1))    // 종료일
-          .minPurchaseAmount(10000)
-          .amount(3000)
-          .percent(null)
-          .maxDiscountAmount(null)
+      UserCoupon invalidPeriodCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.FIXED_DISCOUNT)
+              .minPurchaseAmount(10000)
+              .amount(3000)
+              .percent(null)
+              .maxDiscountAmount(null)
+              .build())
+          .userId(command.reserverId())
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidPeriodCoupon
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidPeriodCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -1181,16 +1220,16 @@ class ReservationServiceTest extends IntegrationTestSupport {
       // when & then
       assertThatThrownBy(() -> reservationService.createReservation(command))
           .isInstanceOf(CustomException.class)
-          .hasMessageContaining(ReservationErrorCode.COUPON_INVALID_PERIOD.getMessage());
+          .hasMessageContaining(ReservationErrorCode.USERCOUPON_EXPIRED.getMessage());
     }
 
     @DisplayName("예약일이 쿠폰 행사 마감일 후이면 예외가 발생한다.")
     @Test
     void fail_couponInvalidPeriod_isAfterEndAt() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       CreateReservationCommand command = createCommandCouponPaymentInfo(
-          couponUuid, BigDecimal.valueOf(3000));
+          userCouponUuid, BigDecimal.valueOf(3000));
 
       // 예약일
       LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
@@ -1221,24 +1260,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidPeriodCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
-          .startAt(reservationDateTime.minusDays(10)) // 시작일
-          .endAt(reservationDateTime.minusDays(1))    // 종료일: 예약일보다 과거
-          .minPurchaseAmount(10000)
-          .amount(3000)
-          .percent(null)
-          .maxDiscountAmount(null)
+      UserCoupon invalidPeriodCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.FIXED_DISCOUNT)
+              .minPurchaseAmount(10000)
+              .amount(3000)
+              .percent(null)
+              .maxDiscountAmount(null)
+              .build())
+          .userId(command.reserverId())
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.minusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidPeriodCoupon
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidPeriodCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -1248,16 +1290,16 @@ class ReservationServiceTest extends IntegrationTestSupport {
       // when & then
       assertThatThrownBy(() -> reservationService.createReservation(command))
           .isInstanceOf(CustomException.class)
-          .hasMessageContaining(ReservationErrorCode.COUPON_INVALID_PERIOD.getMessage());
+          .hasMessageContaining(ReservationErrorCode.USERCOUPON_EXPIRED.getMessage());
     }
 
     @DisplayName("쿠폰의 최소 구매 금액보다 totalPrice가 작으면 예외가 발생한다.")
     @Test
     void fail_couponMinPurchaseNotMet() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       CreateReservationCommand command = createCommandCouponPaymentInfo(
-          couponUuid, BigDecimal.valueOf(3000));
+          userCouponUuid, BigDecimal.valueOf(3000));
 
       // 예약일
       LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
@@ -1288,24 +1330,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidMinPurchaseAmountCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
-          .startAt(reservationDateTime.minusDays(10))
-          .endAt(reservationDateTime.plusDays(1))
-          .minPurchaseAmount(10001) // total 금액이 더 작다.
-          .amount(3000)
-          .percent(null)
-          .maxDiscountAmount(null)
+      UserCoupon invalidMinPurchaseAmountCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.FIXED_DISCOUNT)
+              .minPurchaseAmount(10001)
+              .amount(3000)
+              .percent(null)
+              .maxDiscountAmount(null)
+              .build())
+          .userId(command.reserverId())
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidMinPurchaseAmountCoupon
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidMinPurchaseAmountCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -1322,9 +1367,9 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void fail_invalidCouponDiscount() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       CreateReservationCommand command = createCommandCouponPaymentInfo(
-          couponUuid, BigDecimal.valueOf(3000));
+          userCouponUuid, BigDecimal.valueOf(3000));
 
       // 예약일
       LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
@@ -1355,24 +1400,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
-          .startAt(reservationDateTime.minusDays(10))
-          .endAt(reservationDateTime.plusDays(1))
-          .minPurchaseAmount(9999)
-          .amount(4000)
-          .percent(null)
-          .maxDiscountAmount(null)
+      UserCoupon invalidAmountCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.FIXED_DISCOUNT)
+              .minPurchaseAmount(9999)
+              .amount(4000)
+              .percent(null)
+              .maxDiscountAmount(null)
+              .build())
+          .userId(command.reserverId())
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidAmountCoupon
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidAmountCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -1418,8 +1466,8 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 없어도 됨
-      when(couponClient.getCoupons(any())).thenReturn(GetCouponsInfo.builder()
-          .couponMap((Collections.emptyMap()))
+      when(couponClient.getUserCoupons(any())).thenReturn(GetUserCouponsInfo.builder()
+          .userCouponMap((Collections.emptyMap()))
           .build());
       when(promotionClient.getPromotions(any())).thenReturn(
           new GetPromotionsInfo(Collections.emptyMap()));
@@ -1472,9 +1520,9 @@ class ReservationServiceTest extends IntegrationTestSupport {
       Map<String, Promotion> promotionMap = Map.of(promotionUuid, promotion);
 
       // 쿠폰 없어도 됨
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap((Collections.emptyMap()))
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap((Collections.emptyMap()))
               .build());
 
       when(promotionClient.getPromotions(any())).thenReturn(new GetPromotionsInfo(promotionMap));
@@ -1527,9 +1575,9 @@ class ReservationServiceTest extends IntegrationTestSupport {
       Map<String, Promotion> promotionMap = Map.of(promotionUuid, promotion);
 
       // 쿠폰 없어도 됨
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap((Collections.emptyMap()))
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap((Collections.emptyMap()))
               .build());
 
       when(promotionClient.getPromotions(any())).thenReturn(new GetPromotionsInfo(promotionMap));
@@ -1709,7 +1757,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void success_fixedDiscountCoupon1() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       BigDecimal paymentAmount = BigDecimal.valueOf(7000);
       BigDecimal couponAmount = BigDecimal.valueOf(3000);
       CreateReservationCommand command = CreateReservationCommand.builder()
@@ -1742,7 +1790,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .payments(List.of(
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PROMOTION_COUPON,
-                  couponUuid,
+                  userCouponUuid,
                   couponAmount),
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PAYMENT,
@@ -1780,24 +1828,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.FIXED_DISCOUNT)
-          .startAt(reservationDateTime.minusDays(10))
-          .endAt(reservationDateTime.plusDays(1))
-          .minPurchaseAmount(9999)
-          .amount(3000)
-          .percent(null)
-          .maxDiscountAmount(null)
+      UserCoupon invalidAmountCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.FIXED_DISCOUNT)
+              .minPurchaseAmount(9999)
+              .amount(3000)
+              .percent(null)
+              .maxDiscountAmount(null)
+              .build())
+          .userId(command.reserverId())
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidAmountCoupon
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidAmountCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -1888,7 +1939,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
     @Test
     void success_PercentDiscount1() {
       // given
-      String couponUuid = UUID.randomUUID().toString();
+      String userCouponUuid = UUID.randomUUID().toString();
       BigDecimal paymentAmount = BigDecimal.valueOf(7000);
       BigDecimal couponAmount = BigDecimal.valueOf(3000);
       CreateReservationCommand command = CreateReservationCommand.builder()
@@ -1921,7 +1972,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .payments(List.of(
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PROMOTION_COUPON,
-                  couponUuid,
+                  userCouponUuid,
                   couponAmount),
               new CreateReservationCommand.PaymentDetail(
                   PaymentType.PAYMENT,
@@ -1959,24 +2010,27 @@ class ReservationServiceTest extends IntegrationTestSupport {
       when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
 
       // 쿠폰 정보
-      GetCouponsInfo.Coupon invalidAmountCoupon = GetCouponsInfo.Coupon.builder()
-          .couponUuid(couponUuid)
-          .type(GetCouponsInfo.Coupon.CouponType.PERCENT_DISCOUNT)
-          .startAt(reservationDateTime.minusDays(10))
-          .endAt(reservationDateTime.plusDays(1))
-          .minPurchaseAmount(9999)
-          .amount(0)
-          .percent(30)
-          .maxDiscountAmount(3000)
+      UserCoupon invalidAmountCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.PERCENT_DISCOUNT)
+              .minPurchaseAmount(9999)
+              .amount(0)
+              .percent(30)
+              .maxDiscountAmount(3000)
+              .build())
+          .userId(command.reserverId())
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
-      Map<String, Coupon> couponMap = Map.of(
-          couponUuid, invalidAmountCoupon
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidAmountCoupon
       );
 
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap(couponMap)
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
               .build());
 
       // 프로모션은 없어도 됨
@@ -2148,9 +2202,9 @@ class ReservationServiceTest extends IntegrationTestSupport {
       Map<String, Promotion> promotionMap = Map.of(promotionUuid, promotion);
 
       // 쿠폰 없어도 됨
-      when(couponClient.getCoupons(any()))
-          .thenReturn(GetCouponsInfo.builder()
-              .couponMap((Collections.emptyMap()))
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap((Collections.emptyMap()))
               .build());
 
       when(promotionClient.getPromotions(any())).thenReturn(new GetPromotionsInfo(promotionMap));
