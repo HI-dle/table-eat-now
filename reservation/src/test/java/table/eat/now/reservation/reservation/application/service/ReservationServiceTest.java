@@ -1153,9 +1153,87 @@ class ReservationServiceTest extends IntegrationTestSupport {
           .hasMessageContaining(ReservationErrorCode.USERCOUPON_NOT_FOUND.getMessage());
     }
 
-    @DisplayName("예약일이 쿠폰 행사 시작일 전이면 예외가 발생한다.")
+    @DisplayName("예약자 id와 유저의 쿠폰 유저 id가 다르면 예외가 발생한다.")
     @Test
-    void fail_couponInvalidPeriod_isBeforeStartAt() {
+    void fail_couponUsePermission() {
+      // given
+      String userCouponUuid = UUID.randomUUID().toString();
+      CreateReservationCommand command = createCommandCouponPaymentInfo(
+          userCouponUuid, BigDecimal.valueOf(3000));
+
+      // 예약일
+      LocalDateTime reservationDateTime = command.restaurantTimeSlotDetails().availableDate()
+          .atTime(command.restaurantTimeSlotDetails().timeslot());
+
+      // 식당 정보 설정
+      GetRestaurantInfo.Timeslot validTimeslot = new GetRestaurantInfo.Timeslot(
+          command.restaurantTimeslotUuid(),
+          command.restaurantTimeSlotDetails().availableDate(),
+          10,
+          0,
+          command.restaurantTimeSlotDetails().timeslot()
+      );
+
+      GetRestaurantInfo.Menu menu = new GetRestaurantInfo.Menu(
+          command.restaurantMenuUuid(),
+          command.restaurantMenuDetails().name(),
+          command.restaurantMenuDetails().price(),
+          "AVAILABLE"
+      );
+
+      GetRestaurantInfo mockRestaurant = GetRestaurantInfo.builder()
+          .restaurantUuid(command.restaurantUuid())
+          .menus(List.of(menu))
+          .timeslots(List.of(validTimeslot))
+          .build();
+
+      when(restaurantClient.getRestaurant(any())).thenReturn(mockRestaurant);
+
+      // 쿠폰 정보
+      UserCoupon invalidPeriodCoupon = UserCoupon.builder()
+          .userCouponUuid(userCouponUuid)
+          .coupon(UserCoupon.Coupon.builder()
+              .type(UserCoupon.Coupon.CouponType.FIXED_DISCOUNT)
+              .minPurchaseAmount(10000)
+              .amount(3000)
+              .percent(null)
+              .maxDiscountAmount(null)
+              .build())
+          .userId(command.reserverId()+1)
+          .status(UserCouponStatus.ISSUED)
+          .expiresAt(reservationDateTime.plusDays(1))
+          .build();
+
+      Map<String, UserCoupon> userCouponMap = Map.of(
+          userCouponUuid, invalidPeriodCoupon
+      );
+
+      when(couponClient.getUserCoupons(any()))
+          .thenReturn(GetUserCouponsInfo.builder()
+              .userCouponMap(userCouponMap)
+              .build());
+
+      // 프로모션은 없어도 됨
+      when(promotionClient.getPromotions(any()))
+          .thenReturn(new GetPromotionsInfo(Collections.emptyMap()));
+
+      // when & then
+      assertThatThrownBy(() -> reservationService.createReservation(command))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ReservationErrorCode.COUPON_USE_PERMISSION.getMessage());
+    }
+
+    public static Stream<Arguments> provideUserCouponStatusForCheckingInvalidStatusForReservation() {
+      return Stream.of(
+          Arguments.of(UserCouponStatus.COMMIT),
+          Arguments.of(UserCouponStatus.PREEMPT)
+      );
+    }
+
+    @DisplayName("유저 쿠폰이 예약 가능한 상태가 아니면 예외가 발생한다.")
+    @MethodSource("provideUserCouponStatusForCheckingInvalidStatusForReservation")
+    @ParameterizedTest(name = "{index}: ''{0}'' 은 예약이 불가능한 상태다.")
+    void fail_invalidUserCouponStatusForReservation(UserCouponStatus status) {
       // given
       String userCouponUuid = UUID.randomUUID().toString();
       CreateReservationCommand command = createCommandCouponPaymentInfo(
@@ -1200,7 +1278,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
               .maxDiscountAmount(null)
               .build())
           .userId(command.reserverId())
-          .status(UserCouponStatus.ISSUED)
+          .status(status)
           .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
@@ -1220,7 +1298,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
       // when & then
       assertThatThrownBy(() -> reservationService.createReservation(command))
           .isInstanceOf(CustomException.class)
-          .hasMessageContaining(ReservationErrorCode.USERCOUPON_EXPIRED.getMessage());
+          .hasMessageContaining(ReservationErrorCode.INVALID_USERCOUPON_STATUS_FOR_RESERVATION.getMessage());
     }
 
     @DisplayName("예약일이 쿠폰 행사 마감일 후이면 예외가 발생한다.")
@@ -1838,7 +1916,7 @@ class ReservationServiceTest extends IntegrationTestSupport {
               .maxDiscountAmount(null)
               .build())
           .userId(command.reserverId())
-          .status(UserCouponStatus.ISSUED)
+          .status(UserCouponStatus.ROLLBACK)
           .expiresAt(reservationDateTime.plusDays(1))
           .build();
 
