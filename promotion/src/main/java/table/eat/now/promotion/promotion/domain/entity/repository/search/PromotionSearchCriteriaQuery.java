@@ -19,7 +19,8 @@ public record PromotionSearchCriteriaQuery(Long promotionId,
                                            LocalDateTime endTime,
                                            BigDecimal discountAmount,
                                            String promotionStatus,
-                                           String promotionType) {
+                                           String promotionType,
+                                           Integer maxParticipant) {
 
   public static PromotionSearchCriteriaQuery from(Promotion promotion) {
     return PromotionSearchCriteriaQuery.builder()
@@ -33,6 +34,7 @@ public record PromotionSearchCriteriaQuery(Long promotionId,
         .discountAmount(promotion.getDiscountPrice().getDiscountAmount())
         .promotionStatus(promotion.getPromotionStatus().name())
         .promotionType(promotion.getPromotionType().name())
+        .maxParticipant(promotion.getMaxParticipant().getMaxParticipantsValue())
         .build();
   }
 

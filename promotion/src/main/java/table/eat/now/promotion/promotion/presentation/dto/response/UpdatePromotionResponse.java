@@ -19,7 +19,8 @@ public record UpdatePromotionResponse(Long promotionId,
                                       LocalDateTime endTime,
                                       BigDecimal discountAmount,
                                       String promotionStatus,
-                                      String promotionType) {
+                                      String promotionType,
+                                      Integer maxParticipant) {
 
   public static UpdatePromotionResponse from(UpdatePromotionInfo info) {
     return UpdatePromotionResponse.builder()
@@ -33,6 +34,7 @@ public record UpdatePromotionResponse(Long promotionId,
         .discountAmount(info.discountAmount())
         .promotionStatus(info.promotionStatus())
         .promotionType(info.promotionType())
+        .maxParticipant(info.maxParticipant())
         .build();
   }
 }

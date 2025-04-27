@@ -17,13 +17,14 @@ public record CreatePromotionCommand(String couponUuid,
                                      LocalDateTime endTime,
                                      BigDecimal discountAmount,
                                      String promotionStatus,
-                                     String promotionType) {
+                                     String promotionType,
+                                     Integer maxParticipant) {
 
   public Promotion toEntity() {
     return Promotion.of(
         couponUuid, promotionName, description, startTime, endTime,
         discountAmount, PromotionStatus.valueOf(promotionStatus),
-        PromotionType.valueOf(promotionType));
+        PromotionType.valueOf(promotionType), maxParticipant);
   }
 
 }

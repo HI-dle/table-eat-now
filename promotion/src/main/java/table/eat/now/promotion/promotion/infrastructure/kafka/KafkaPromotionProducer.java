@@ -8,6 +8,7 @@ import table.eat.now.promotion.promotion.application.event.PromotionEvent;
 import table.eat.now.promotion.promotion.application.event.PromotionEventPublisher;
 import table.eat.now.promotion.promotion.application.event.produce.PromotionScheduleEvent;
 import table.eat.now.promotion.promotion.application.event.produce.PromotionUserCouponSaveEvent;
+import table.eat.now.promotion.promotion.infrastructure.metric.KafkaPublisherMetric;
 
 @Slf4j
 @Component
@@ -15,24 +16,28 @@ import table.eat.now.promotion.promotion.application.event.produce.PromotionUser
 public class KafkaPromotionProducer implements PromotionEventPublisher {
 
   private final KafkaTemplate<String, PromotionEvent> kafkaTemplate;
+  private final KafkaPublisherMetric metric;
   private final String promotionTopic;
 
 
   @Override
   public void publish(PromotionEvent event) {
     kafkaTemplate.send(promotionTopic, event);
+    metric.incrementSuccess(promotionTopic);
     logEvent(event);
   }
 
   @Override
   public void publish(PromotionUserCouponSaveEvent event) {
     kafkaTemplate.send(promotionTopic, event);
+    metric.incrementSuccess(promotionTopic);
     logEvent(event);
   }
 
   @Override
   public void publish(PromotionScheduleEvent event) {
     kafkaTemplate.send(promotionTopic, event);
+    metric.incrementSuccess(promotionTopic);
     logEvent(event);
   }
 

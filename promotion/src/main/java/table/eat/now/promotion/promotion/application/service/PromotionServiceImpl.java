@@ -30,7 +30,6 @@ import table.eat.now.promotion.promotion.application.event.produce.PromotionUser
 import table.eat.now.promotion.promotion.application.event.produce.PromotionUserSaveEvent;
 import table.eat.now.promotion.promotion.application.event.produce.PromotionUserSavePayload;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
-import table.eat.now.promotion.promotion.application.service.util.MaxParticipate;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
 import table.eat.now.promotion.promotion.domain.entity.PromotionStatus;
 import table.eat.now.promotion.promotion.domain.entity.PromotionType;
@@ -74,7 +73,8 @@ public class PromotionServiceImpl implements PromotionService{
         command.endTime(),
         command.discountAmount(),
         PromotionStatus.valueOf(command.promotionStatus()),
-        PromotionType.valueOf(command.promotionType())
+        PromotionType.valueOf(command.promotionType()),
+        command.maxParticipant()
     );
     return UpdatePromotionInfo.from(promotion);
   }
@@ -132,7 +132,7 @@ public class PromotionServiceImpl implements PromotionService{
     validPromotionStatus(promotion);
 
     ParticipateResult participateResult = promotionRepository.addUserToPromotion(
-        info.toDomain(), MaxParticipate.PARTICIPATE_7000_MAX);
+        info.toDomain(), promotion.getMaxParticipant().getMaxParticipantsValue());
 
     return participateProcess(info, participateResult);
   }

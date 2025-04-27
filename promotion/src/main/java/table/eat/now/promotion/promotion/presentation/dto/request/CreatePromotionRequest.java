@@ -34,7 +34,9 @@ public record CreatePromotionRequest(String couponUuid,
                                      String promotionStatus,
                                      @NotBlank(message = "프로모션 타입은 필수입니다.")
                                      @Pattern(regexp = "COUPON|RESTAURANT", message = "유효하지 않은 프로모션 타입입니다.")
-                                     String promotionType
+                                     String promotionType,
+                                     @NotNull
+                                     Integer maxParticipant
 
 ) {
 
@@ -47,7 +49,8 @@ public record CreatePromotionRequest(String couponUuid,
         endTime,
         discountAmount,
         promotionStatus,
-        promotionType
+        promotionType,
+        maxParticipant
     );
   }
 }

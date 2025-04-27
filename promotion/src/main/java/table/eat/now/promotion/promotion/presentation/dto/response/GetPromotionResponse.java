@@ -19,7 +19,8 @@ public record GetPromotionResponse(Long promotionId,
                                    LocalDateTime endTime,
                                    BigDecimal discountAmount,
                                    String promotionStatus,
-                                   String promotionType) {
+                                   String promotionType,
+                                   Integer maxParticipant) {
 
   public static GetPromotionResponse from(GetPromotionInfo getPromotionInfo) {
     return GetPromotionResponse.builder()
@@ -33,6 +34,7 @@ public record GetPromotionResponse(Long promotionId,
         .discountAmount(getPromotionInfo.discountAmount())
         .promotionStatus(getPromotionInfo.promotionStatus())
         .promotionType(getPromotionInfo.promotionType())
+        .maxParticipant(getPromotionInfo.maxParticipant())
         .build();
   }
 
