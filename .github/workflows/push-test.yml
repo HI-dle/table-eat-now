@@ -42,4 +42,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-report
-          path: build/reports/tests/test
+          path: |
+            **/build/reports/tests/test  # 각 모듈의 테스트 리포트 경로
+            **/build/reports/jacoco/test/html/index.html  # 각 모듈의 Jacoco 리포트 경로
