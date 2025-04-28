@@ -1,3 +1,7 @@
+/**
+ * @author : jieun
+ * @Date : 2025. 04. 29.
+ */
 package table.eat.now.restaurant.restaurant.infrastructure.messaging.kafka.config;
 
 import java.nio.charset.StandardCharsets;
@@ -90,9 +94,9 @@ public class RestaurantConsumerConfig {
   public ConsumerFactory<String, RestaurantRatingUpdatedEvent>
   batchRestaurantRatingUpdatedEventConsumerFactory() {
     Map<String, Object> props = createCommonConsumerProps(GroupIdName.RESTAURANT);
-    props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 500);
-    props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000);
-    props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 60000);
+    props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 200);
+    props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 600_000); // 10분
+    props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 60_000); // 1분
     return createConsumerFactory(props, RestaurantRatingUpdatedEvent.class);
   }
 
@@ -113,7 +117,7 @@ public class RestaurantConsumerConfig {
         );
 
     factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
-    factory.getContainerProperties().setIdleBetweenPolls(60000);
+    factory.getContainerProperties().setIdleBetweenPolls(60_000); // 1분
     factory.setBatchListener(true);
     return factory;
   }
