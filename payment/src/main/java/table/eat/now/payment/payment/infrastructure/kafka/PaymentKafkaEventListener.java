@@ -10,7 +10,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 import table.eat.now.payment.payment.application.PaymentService;
 import table.eat.now.payment.payment.application.metric.MetricName;
-import table.eat.now.payment.payment.application.metric.MetricRecorder;
+import table.eat.now.payment.payment.infrastructure.metric.MetricRecorder;
 import table.eat.now.payment.payment.infrastructure.kafka.event.ReservationCancelledEvent;
 
 @Slf4j
@@ -45,6 +45,7 @@ public class PaymentKafkaEventListener {
     });
 
   }
+
   private void handleReservationCancelSuccess(
       Acknowledgment ack, ReservationCancelledEvent cancelEvent) {
     ack.acknowledge();

@@ -1,4 +1,4 @@
-package table.eat.now.payment.payment.application.metric;
+package table.eat.now.payment.payment.infrastructure.metric;
 
 public interface MetricRecorder {
 
