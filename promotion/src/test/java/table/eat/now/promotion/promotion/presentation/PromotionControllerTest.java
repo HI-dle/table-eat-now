@@ -71,7 +71,8 @@ class PromotionControllerTest {
         LocalDateTime.of(2025, 4, 30, 23, 59),
         BigDecimal.valueOf(2000),
         "ACTIVE",
-        "SEASON"
+        "SEASON",
+        1000
     );
 
     given(promotionService.findPromotion(promotionUuid)).willReturn(info);
@@ -97,6 +98,7 @@ class PromotionControllerTest {
         .andExpect(jsonPath("$.discountAmount").value(2000))
         .andExpect(jsonPath("$.promotionStatus").value("ACTIVE"))
         .andExpect(jsonPath("$.promotionType").value("SEASON"))
+        .andExpect(jsonPath("$.maxParticipant").value(1000))
         .andDo(print());
   }
   @DisplayName("검색 결과에 따라 프로모션에 대한 결과 값을 반환합니다.")
@@ -130,7 +132,8 @@ class PromotionControllerTest {
         LocalDateTime.now().plusDays(3),
         BigDecimal.valueOf(1000),
         "READY",
-        "COUPON"
+        "COUPON",
+        1000
     );
 
     SearchPromotionInfo info2 = new SearchPromotionInfo(
@@ -143,7 +146,8 @@ class PromotionControllerTest {
         LocalDateTime.now().plusDays(4),
         BigDecimal.valueOf(2000),
         "READY",
-        "COUPON"
+        "COUPON",
+        1000
     );
 
     var serviceResult = new PaginatedResultCommand<>(

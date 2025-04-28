@@ -1,19 +1,22 @@
 package table.eat.now.review.application.usecase;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import table.eat.now.review.application.batch.Cursor;
+import table.eat.now.review.application.batch.CursorKey;
+import table.eat.now.review.application.batch.CursorStore;
 import table.eat.now.review.application.event.RestaurantRatingUpdateEvent;
 import table.eat.now.review.application.event.RestaurantRatingUpdatePayload;
 import table.eat.now.review.application.event.ReviewEventPublisher;
 import table.eat.now.review.domain.repository.ReviewRepository;
+import table.eat.now.review.domain.repository.search.CursorResult;
 import table.eat.now.review.domain.repository.search.RestaurantRatingResult;
 
 @Slf4j
@@ -21,123 +24,112 @@ import table.eat.now.review.domain.repository.search.RestaurantRatingResult;
 @RequiredArgsConstructor
 public class UpdateRestaurantRatingUseCase {
 
-  @Value("${review.rating.update.batch-size:100}")
-  private int batchSize;
-
+  private final CursorStore cursorStore;
   private final ReviewRepository reviewRepository;
   private final ReviewEventPublisher reviewEventPublisher;
 
-  @Transactional(readOnly = true)
-  public void execute(LocalDateTime startTime, LocalDateTime endTime) {
-    long totalCount = reviewRepository.countRecentlyUpdatedRestaurants(startTime, endTime);
+  @Value("${review.rating.update.batch-size:100}")
+  private int batchSize;
 
-    if (totalCount == 0) {
-      logNoRestaurantsToUpdate();
+  @Transactional(readOnly = true)
+  public void execute(CursorKey cursorKey, Duration interval) {
+
+    LocalDateTime endTime = LocalDateTime.now();
+    Cursor cursor = cursorStore.getCursor(cursorKey.value());
+    LocalDateTime startTime = cursor.lastProcessedUpdatedAt() != null
+        ? cursor.lastProcessedUpdatedAt()
+        : endTime.minus(interval);
+
+    String lastRestaurantId = cursor.lastProcessedRestaurantId();
+
+    Cursor startCursor = Cursor.of(startTime, lastRestaurantId);
+
+    CursorResult endCursorResult = reviewRepository.findEndCursorResult(endTime);
+    if (endCursorResult == null) {
+      log.info("[{}] 업데이트할 레스토랑 평점이 없습니다.", cursorKey.name());
       return;
     }
 
-    logStartBatchUpdate(totalCount);
+    Cursor endCursor = Cursor.from(endCursorResult);
+
+    if (startCursor.compareTo(endCursor) >= 0) {
+      log.info("[{}] 처리할 범위가 없습니다. startCursor={}, endCursor={}",
+          cursorKey.name(), startCursor, endCursor);
+      return;
+    }
 
     BatchProcessor.builder()
         .reviewRepository(reviewRepository)
         .reviewEventPublisher(reviewEventPublisher)
-        .totalCount(totalCount)
+        .cursorStore(cursorStore)
+        .cursorKey(cursorKey.value())
+        .initialCursor(startCursor)
+        .endCursor(endCursor)
         .batchSize(batchSize)
         .startTime(startTime)
         .endTime(endTime)
         .build().process();
   }
 
-  private void logNoRestaurantsToUpdate() {
-    log.info("업데이트할 레스토랑 평점이 없습니다.");
-  }
-
-  private void logStartBatchUpdate(long totalCount) {
-    log.info("총 {}개 레스토랑의 평점을 배치 단위로 업데이트합니다.", totalCount);
-  }
-
+  @Builder
   private static class BatchProcessor {
 
-    private final long totalCount;
-    private final int batchSize;
-    private final LocalDateTime startTime;
-    private final LocalDateTime endTime;
-    private final Set<String> processedIds;
-    private long processedCount;
     private final ReviewRepository reviewRepository;
     private final ReviewEventPublisher reviewEventPublisher;
+    private final CursorStore cursorStore;
+    private final String cursorKey;
+    private final Cursor initialCursor;
+    private final Cursor endCursor;
+    private final LocalDateTime startTime;
+    private final LocalDateTime endTime;
+    private final int batchSize;
 
-    @Builder
-    BatchProcessor(
-        ReviewRepository reviewRepository,
-        ReviewEventPublisher reviewEventPublisher,
-        long totalCount,
-        int batchSize,
-        LocalDateTime startTime,
-        LocalDateTime endTime
-    ) {
-      this.reviewRepository = reviewRepository;
-      this.reviewEventPublisher = reviewEventPublisher;
-      this.totalCount = totalCount;
-      this.batchSize = batchSize;
-      this.startTime = startTime;
-      this.endTime = endTime;
-      this.processedIds = new HashSet<>();
-      this.processedCount = 0;
-    }
+    private Cursor currentCursor;
 
     void process() {
-      while (processedCount < totalCount) {
-        List<String> batch = reviewRepository
-            .findRecentlyUpdatedRestaurantIds(
-                startTime, endTime, processedCount, batchSize);
+      this.currentCursor = this.initialCursor;
+
+      while (currentCursor.compareTo(endCursor) < 0) {
+        List<CursorResult> batch = reviewRepository.findRecentlyUpdatedRestaurantIds(
+            startTime, endTime,
+            currentCursor.lastProcessedUpdatedAt(),
+            currentCursor.lastProcessedRestaurantId(),
+            batchSize
+        );
 
         if (batch.isEmpty()) {
           break;
         }
 
-        List<String> uniqueIds = batch.stream()
-            .filter(id -> !processedIds.contains(id))
-            .peek(processedIds::add)
-            .toList();
-
-        List<RestaurantRatingResult> results =
-            reviewRepository.calculateRestaurantRatings(uniqueIds);
+        List<RestaurantRatingResult> results = reviewRepository
+            .calculateRestaurantRatings(
+                batch.stream()
+                    .map(CursorResult::restaurantId)
+                    .toList()
+            );
 
         results.forEach(result -> {
-              try {
-                reviewEventPublisher.publish(
-                    RestaurantRatingUpdateEvent.of(
-                        RestaurantRatingUpdatePayload.from(result)));
-              } catch (Exception e) {
-                logPublishError(e);
-              }
-            }
-        );
+          try {
+            reviewEventPublisher.publish(
+                RestaurantRatingUpdateEvent.of(
+                    RestaurantRatingUpdatePayload.from(result)));
+          } catch (Exception e) {
+            log.error("레스토랑 평점 업데이트 이벤트 발행 실패", e);
+          }
+        });
 
-        logPublish(results);
-        processedCount += uniqueIds.size();
-        logProgress();
+        moveCursor(batch);
+
+        log.info("레스토랑 평점 업데이트: {}개 처리 완료 (currentCursor: {})", batch.size(), currentCursor);
       }
-      logCompletion();
+
+      log.info("레스토랑 평점 업데이트 작업 완료");
     }
 
-    private void logPublishError(Exception e) {
-      log.error("레스토랑 평점 업데이트 중 오류 발생: {}", e.getMessage(), e);
-    }
-
-    private void logPublish(List<RestaurantRatingResult> results) {
-      log.info("레스토랑 평점 일괄 업데이트 이벤트 발행: {}개", results.size());
-    }
-
-    private void logProgress() {
-      log.info("레스토랑 평점 업데이트 진행률: {}/{} (중복 제외 실제 처리: {}개)",
-          processedCount, totalCount, processedIds.size());
-    }
-
-    private void logCompletion() {
-      log.info("레스토랑 평점 업데이트 작업 완료: 총 {}개 조회됨, 중복 제외 {}개 처리됨",
-          processedCount, processedIds.size());
+    private void moveCursor(List<CursorResult> batch) {
+      CursorResult result = batch.get(batch.size() - 1);
+      this.currentCursor = Cursor.from(result);
+      cursorStore.saveCursor(cursorKey, currentCursor);
     }
   }
 }

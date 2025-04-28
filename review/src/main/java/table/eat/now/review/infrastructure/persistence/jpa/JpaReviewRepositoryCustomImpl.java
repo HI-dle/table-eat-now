@@ -2,19 +2,24 @@ package table.eat.now.review.infrastructure.persistence.jpa;
 
 import static table.eat.now.review.domain.entity.QReview.review;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import table.eat.now.review.domain.entity.ServiceType;
+import table.eat.now.review.domain.repository.search.CursorResult;
 import table.eat.now.review.domain.repository.search.PaginatedResult;
 import table.eat.now.review.domain.repository.search.RestaurantRatingResult;
 import table.eat.now.review.domain.repository.search.SearchAdminReviewCriteria;
@@ -28,25 +33,91 @@ public class JpaReviewRepositoryCustomImpl implements JpaReviewRepositoryCustom 
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public List<String> findRecentlyUpdatedRestaurantIds
-      (LocalDateTime startTime, LocalDateTime endTime, long offset, int limit) {
+  public List<CursorResult> findRecentlyUpdatedRestaurantIds(
+      LocalDateTime startTime,
+      LocalDateTime endTime,
+      LocalDateTime lastUpdatedAt,
+      String lastRestaurantId,
+      int limit
+  ) {
+    DateTimePath<LocalDateTime> maxUpdatedAtPath =
+        Expressions.dateTimePath(LocalDateTime.class, "maxUpdatedAt");
+    Expression<LocalDateTime> maxUpdatedAt = review.updatedAt.max().as(maxUpdatedAtPath);
+
     return queryFactory
-        .select(review.reference.restaurantId, review.updatedAt.max())
+        .select(Projections.constructor(CursorResult.class,
+            maxUpdatedAt,
+            review.reference.restaurantId
+        ))
         .from(review)
-        .where(betweenUpdatedAt(startTime, endTime))
+        .where(
+            new BooleanBuilder()
+                .and(updatedAtBetween(startTime,endTime))
+                .and(afterCursor(lastUpdatedAt, lastRestaurantId))
+        )
         .groupBy(review.reference.restaurantId)
-        .orderBy(review.updatedAt.max().asc(), review.reference.restaurantId.asc())
-        .offset(offset)
+        .orderBy(maxUpdatedAtPath.asc(), review.reference.restaurantId.asc())
         .limit(limit)
-        .fetch()
-        .stream()
-        .map(tuple -> tuple.get(review.reference.restaurantId))
-        .collect(Collectors.toList());
+        .fetch();
   }
 
-  private BooleanExpression betweenUpdatedAt(
-      LocalDateTime startTime, LocalDateTime endTime) {
-    return review.updatedAt.goe(startTime).and(review.updatedAt.loe(endTime));
+  private BooleanExpression updatedAtBetween(LocalDateTime startTime, LocalDateTime endTime) {
+    if (startTime == null && endTime == null) {
+      return null;
+    }
+    if (startTime == null) {
+      return review.updatedAt.loe(endTime);
+    }
+    if (endTime == null) {
+      return review.updatedAt.goe(startTime);
+    }
+    return review.updatedAt.between(startTime, endTime);
+  }
+
+  private BooleanExpression afterCursor(LocalDateTime lastUpdatedAt, String lastRestaurantId) {
+    if (lastUpdatedAt == null && lastRestaurantId == null) {
+      return null;
+    }
+
+    if (lastRestaurantId == null) {
+      return review.updatedAt.gt(lastUpdatedAt);
+    }
+
+    if (lastUpdatedAt == null) {
+      return review.reference.restaurantId.gt(lastRestaurantId);
+    }
+
+    return review.updatedAt.gt(lastUpdatedAt)
+        .or(
+            review.updatedAt.eq(lastUpdatedAt)
+                .and(review.reference.restaurantId.gt(lastRestaurantId))
+        );
+  }
+
+  @Override
+  public CursorResult findEndCursorResult(LocalDateTime endTime) {
+    DateTimePath<LocalDateTime> maxUpdatedAtPath = Expressions
+        .dateTimePath(LocalDateTime.class, "maxUpdatedAt");
+    Expression<LocalDateTime> maxUpdatedAt = review.updatedAt.max().as(maxUpdatedAtPath);
+
+    return queryFactory
+        .select(Projections.constructor(CursorResult.class,
+            maxUpdatedAt,
+            review.reference.restaurantId
+        ))
+        .from(review)
+        .where(updatedAtLoe(endTime))
+        .groupBy(review.reference.restaurantId)
+        .orderBy(maxUpdatedAtPath.desc(), review.reference.restaurantId.desc())
+        .limit(1)
+        .fetchOne();
+  }
+
+  private BooleanExpression updatedAtLoe(LocalDateTime endTime) {
+    if (endTime == null) {
+      return null;
+    }
+    return review.updatedAt.loe(endTime);
   }
 
   @Override

@@ -18,6 +18,7 @@ import table.eat.now.restaurant.restaurant.application.exception.RestaurantError
 import table.eat.now.restaurant.restaurant.application.exception.RestaurantTimeSlotErrorCode;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.CreateRestaurantCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantCriteria;
+import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantsCriteria;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.ModifyRestaurantCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.ModifyRestaurantCommand.MenuCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.ModifyRestaurantCommand.TimeSlotCommand;
@@ -25,6 +26,8 @@ import table.eat.now.restaurant.restaurant.application.service.dto.response.Crea
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantSimpleInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.ModifyRestaurantInfo;
+import table.eat.now.restaurant.restaurant.application.service.dto.response.PaginatedInfo;
+import table.eat.now.restaurant.restaurant.application.service.dto.response.SearchRestaurantsInfo;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant;
 import table.eat.now.restaurant.restaurant.domain.entity.RestaurantMenu;
 import table.eat.now.restaurant.restaurant.domain.entity.RestaurantTimeSlot;
@@ -80,6 +83,19 @@ public class RestaurantServiceImpl implements RestaurantService {
   }
 
   @Override
+  public GetRestaurantSimpleInfo getRestaurantByStaffId(Long staffId) {
+    Restaurant restaurant = getRestaurantByStaffOrOwnerId(staffId);
+    return GetRestaurantSimpleInfo.from(restaurant);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PaginatedInfo<SearchRestaurantsInfo> searchRestaurants(GetRestaurantsCriteria criteria) {
+    return PaginatedInfo.from(restaurantRepository.searchRestaurants(criteria))
+        .mapWithIndex((restaurant, idx) -> SearchRestaurantsInfo.from(restaurant, idx));
+  }
+
+  @Override
   @Transactional
   public void increaseOrDecreaseTimeSlotGuestCount(String restaurantTimeSlotUuid, int delta) {
     RestaurantTimeSlot timeSlot = restaurantTimeSlotRepository
@@ -124,12 +140,6 @@ public class RestaurantServiceImpl implements RestaurantService {
         .restaurantUuid(command.restaurantUuid())
         .name(command.name())
         .build();
-  }
-
-  @Override
-  public GetRestaurantSimpleInfo getRestaurantByStaffId(Long staffId) {
-    Restaurant restaurant = getRestaurantByStaffOrOwnerId(staffId);
-    return GetRestaurantSimpleInfo.from(restaurant);
   }
 
   private Restaurant getRestaurantByStaffOrOwnerId(Long staffId) {

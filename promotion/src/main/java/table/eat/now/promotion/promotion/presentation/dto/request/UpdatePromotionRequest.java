@@ -3,6 +3,7 @@ package table.eat.now.promotion.promotion.presentation.dto.request;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
@@ -29,7 +30,9 @@ public record UpdatePromotionRequest(String couponUuid,
                                      String promotionStatus,
                                      @Pattern(regexp = "COUPON|RESTAURANT",
                                          message = "유효하지 않은 프로모션 타입입니다.")
-                                     String promotionType) {
+                                     String promotionType,
+                                     @NotNull
+                                     Integer maxParticipant) {
 
   public UpdatePromotionCommand toApplication() {
     return new UpdatePromotionCommand(
@@ -40,7 +43,8 @@ public record UpdatePromotionRequest(String couponUuid,
         endTime,
         discountAmount,
         promotionStatus,
-        promotionType
+        promotionType,
+        maxParticipant
     );
   }
 }

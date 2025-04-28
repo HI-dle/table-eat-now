@@ -46,14 +46,15 @@ public class ReviewKafkaProducerConfig {
   public ProducerFactory<String, ReviewEvent> batchProducerFactory() {
     Map<String, Object> props = getCommonProducerProps();
 
-    props.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384 * 4);
-    props.put(ProducerConfig.LINGER_MS_CONFIG, 100);
-    props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
+    props.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384 * 4); // 64KB
+    props.put(ProducerConfig.LINGER_MS_CONFIG, 100); // 100ms
+    props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432); // 32MB
     props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
-    props.put(ProducerConfig.RETRIES_CONFIG, 1); //리트라이 횟수 : 1회
-    props.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, 500); // 리트라이 간격 : 0.5초
-    props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 1000); // 1초로 설정
-    props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 1500); // 최대 리트라이까지의 대기시간 : 1.5초
+    props.put(ProducerConfig.RETRIES_CONFIG, 3); // 재시도 3회
+    props.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, 1000); // 재시도 간격 1초
+    props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 30000); // 요청 타임아웃 30초
+    props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 180000); // 전체 타임아웃 3분
+
     return new DefaultKafkaProducerFactory<>(props);
   }
 

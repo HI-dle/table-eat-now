@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.restaurant.global.util.LongIdGenerator;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant.RestaurantStatus;
@@ -34,7 +35,7 @@ public class RestaurantFixture {
         "address",
         LocalTime.of(9, 0),
         LocalTime.of(17, 0),
-        WaitingStatus.OPENED,
+        WaitingStatus.ACTIVE,
         status,
         menus,
         timeSlots
@@ -77,6 +78,24 @@ public class RestaurantFixture {
 
     restaurant.addMenus(menus);
     restaurant.addTimeSlots(timeSlots);
+    return restaurant;
+  }
+
+  public static Restaurant createRandomByStatusAndWaitingStatusOwnerId(RestaurantStatus restaurantStatus, WaitingStatus waitingStatus, long ownerId) {
+    Restaurant restaurant = createRandomByStatusAndMenusAndTimeSlots(
+        restaurantStatus, Set.of(RestaurantMenuFixture.createRandom()),
+        Set.of(RestaurantTimeSlotFixture.createRandom()));
+    ReflectionTestUtils.setField(restaurant, "waitingStatus", waitingStatus);
+    ReflectionTestUtils.setField(restaurant, "ownerId", ownerId);
+    return restaurant;
+  }
+
+  public static Restaurant createRandomByStatusAndStaffId(RestaurantStatus restaurantStatus, WaitingStatus waitingStatus, long staffId) {
+    Restaurant restaurant = createRandomByStatusAndMenusAndTimeSlots(
+        restaurantStatus, Set.of(RestaurantMenuFixture.createRandom()),
+        Set.of(RestaurantTimeSlotFixture.createRandom()));
+    ReflectionTestUtils.setField(restaurant, "waitingStatus", waitingStatus);
+    ReflectionTestUtils.setField(restaurant, "staffId", staffId);
     return restaurant;
   }
 }
