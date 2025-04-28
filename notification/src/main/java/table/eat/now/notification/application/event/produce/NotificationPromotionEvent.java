@@ -1,5 +1,6 @@
 package table.eat.now.notification.application.event.produce;
 
+import lombok.Builder;
 import table.eat.now.notification.application.event.EventType;
 import table.eat.now.notification.application.event.NotificationEvent;
 import table.eat.now.notification.domain.entity.Notification;
@@ -11,6 +12,7 @@ import table.eat.now.notification.domain.entity.NotificationType;
  * @author : hanjihoon
  * @Date : 2025. 04. 28.
  */
+@Builder
 public record NotificationPromotionEvent(
     EventType eventType,
     NotificationPromotionPayload payload
