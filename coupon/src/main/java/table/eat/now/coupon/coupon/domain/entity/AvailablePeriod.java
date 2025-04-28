@@ -63,7 +63,13 @@ public class AvailablePeriod {
       return expireAt;
     }
     LocalDate today = LocalDate.now();
-    return today.plusDays(validDays + 1).atStartOfDay();
+    return calcValidUntil(today);
+  }
+
+  public boolean isIssuableIn(LocalDate date) {
+    LocalDateTime from = date.atStartOfDay();
+    LocalDateTime to = from.plusDays(1);
+    return issueStartAt.isBefore(to) && issueEndAt.isAfter(from);
   }
 
   private void validatePeriod(LocalDateTime issueStartAt, LocalDateTime issueEndAt,
@@ -87,7 +93,7 @@ public class AvailablePeriod {
     if (!is2HourBeforeNewIssueStartAt(issueStartAt)) {
       throw new IllegalArgumentException("시작일은 현재로부터 2시간 이후부터 가능합니다.");
     }
-    if (!issueStartAt.isBefore(issueEndAt)) {
+    if (issueStartAt.isAfter(issueEndAt)) {
       throw new IllegalArgumentException("시작일이 종료일보다 나중일 수 없습니다.");
     }
   }
@@ -116,5 +122,18 @@ public class AvailablePeriod {
     if (validDays != null && validDays < 1) {
       throw new IllegalArgumentException("유효일 기간이 1일 보다 작을 수 없습니다.");
     }
+  }
+
+  private boolean isNotExpired() {
+    return expireAt.isBefore(LocalDateTime.now()) && issueStartAt.isAfter(LocalDateTime.now());
+  }
+
+  private boolean isValid() {
+    return calcValidUntil(issueEndAt.toLocalDate()).isBefore(LocalDateTime.now())
+        && issueStartAt.isAfter(LocalDateTime.now());
+  }
+
+  private LocalDateTime calcValidUntil(LocalDate date) {
+    return date.plusDays(validDays + 1).atStartOfDay();
   }
 }

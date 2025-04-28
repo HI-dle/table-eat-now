@@ -11,9 +11,14 @@ import java.util.concurrent.TimeUnit;
 public @interface DistributedLock {
 
   /**
+   * 락 이름 프리픽스
+   */
+  String subPrefix() default "";
+
+  /**
    * 락의 이름
    */
-  String key();
+  String key() default "";
 
   /**
    * 락의 시간 단위

@@ -5,7 +5,7 @@ import java.util.Map;
 import org.apache.kafka.clients.producer.ProducerInterceptor;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.dto.CommonEvent;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.event.CommonEvent;
 
 public class EventTypeHeaderInterceptor implements ProducerInterceptor<String, CommonEvent> {
 

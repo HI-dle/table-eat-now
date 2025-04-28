@@ -21,9 +21,9 @@ import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
-import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
-import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.PageResponse;
+import table.eat.now.coupon.coupon.application.service.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
 import table.eat.now.coupon.coupon.presentation.dto.request.SearchCouponsRequest;
@@ -74,7 +74,7 @@ public class CouponAdminController {
       @PathVariable UUID couponUuid
   ) {
 
-    GetCouponInfo coupon = couponService.getCoupon(couponUuid.toString());
+    GetCouponInfo coupon = couponService.getCouponInfo(couponUuid.toString());
     return ResponseEntity.ok()
         .body(GetCouponResponse.from(coupon));
   }

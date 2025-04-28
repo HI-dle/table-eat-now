@@ -15,6 +15,7 @@ import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.coupon.user_coupon.application.aop.annotation.DistributedLock;
+import table.eat.now.coupon.user_coupon.application.aop.annotation.WithSimpleTransaction;
 import table.eat.now.coupon.user_coupon.application.client.CouponClient;
 import table.eat.now.coupon.user_coupon.application.client.dto.response.GetCouponInfoI;
 import table.eat.now.coupon.user_coupon.application.dto.request.IssueUserCouponCommand;
@@ -56,6 +57,7 @@ public class UserCouponServiceImpl implements UserCouponService {
         });
   }
 
+  @WithSimpleTransaction(readOnly = false)
   @DistributedLock(key = "#command.userCouponUuids")
   @Override
   public void preemptUserCouponsWithDistributedLock(

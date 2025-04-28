@@ -9,7 +9,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import lombok.Builder;
-import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
+import table.eat.now.coupon.coupon.application.service.dto.request.UpdateCouponCommand;
 
 @Builder
 public record UpdateCouponRequest(
@@ -25,7 +25,9 @@ public record UpdateCouponRequest(
     @NotNull @Positive Integer minPurchaseAmount,
     Integer amount,
     Integer percent,
-    Integer maxDiscountAmount
+    Integer maxDiscountAmount,
+    LocalDateTime updatedAt,
+    Long version
 ) {
 
   public UpdateCouponCommand toCommand() {
@@ -43,6 +45,7 @@ public record UpdateCouponRequest(
         .amount(amount)
         .percent(percent)
         .maxDiscountAmount(maxDiscountAmount)
+        .version(version)
         .build();
   }
 }

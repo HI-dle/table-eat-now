@@ -38,7 +38,9 @@ public record GetCouponsFeignResponse(
       Integer percent,
       Integer maxDiscountAmount,
       LocalDateTime createdAt,
-      Long createdBy
+      Long createdBy,
+      LocalDateTime updatedAt,
+      Long updatedBy
   ) {
 
     public GetCouponInfoI toInfo() {
