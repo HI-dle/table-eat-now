@@ -20,6 +20,13 @@ import table.eat.now.restaurant.restaurant.domain.entity.RestaurantTimeSlot;
 
 public class RestaurantFixture {
 
+  public static Restaurant createOpenedRandomByUuid(String uuid){
+    Restaurant restaurant = createRandomByStatusAndMenusAndTimeSlots(
+        RestaurantStatus.OPENED, null, null);
+    ReflectionTestUtils.setField(restaurant, "restaurantUuid", uuid);
+    return restaurant;
+  }
+
   public static Restaurant createRandomByStatusAndMenusAndTimeSlots(
       RestaurantStatus status, Set<RestaurantMenu> menus, Set<RestaurantTimeSlot> timeSlots) {
     Long num = LongIdGenerator.makeLong();
