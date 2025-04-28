@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -42,10 +43,13 @@ import table.eat.now.restaurant.restaurant.application.exception.RestaurantError
 import table.eat.now.restaurant.restaurant.application.exception.RestaurantTimeSlotErrorCode;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.CreateRestaurantCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantCriteria;
+import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantsCriteria;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.ModifyRestaurantCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.CreateRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantSimpleInfo;
+import table.eat.now.restaurant.restaurant.application.service.dto.response.PaginatedInfo;
+import table.eat.now.restaurant.restaurant.application.service.dto.response.SearchRestaurantsInfo;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant.RestaurantStatus;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant.WaitingStatus;
@@ -460,6 +464,120 @@ class RestaurantServiceTest extends IntegrationTestSupport {
       assertThat(result.menus()).hasSize(activeMenuCount);
     }
 
+  }
+
+  @DisplayName("식당 검색 서비스")
+  @Nested
+  class SearchRestaurants {
+
+    @BeforeEach
+    void setUp() {
+      List<Restaurant> restaurants = new ArrayList<>();
+
+      // ACTIVE 식당 owner
+      restaurants.add(RestaurantFixture.createRandomByStatusAndWaitingStatusOwnerId(RestaurantStatus.OPENED, WaitingStatus.INACTIVE, 1L));
+      restaurants.add(RestaurantFixture.createRandomByStatusAndWaitingStatusOwnerId(RestaurantStatus.OPENED, WaitingStatus.INACTIVE, 2L));
+
+      // CLOSED 식당 owner
+      restaurants.add(RestaurantFixture.createRandomByStatusAndWaitingStatusOwnerId(RestaurantStatus.CLOSED, WaitingStatus.ACTIVE, 4L));
+
+      // ACTIVE 식당 & staff
+      restaurants.add(RestaurantFixture.createRandomByStatusAndStaffId(RestaurantStatus.OPENED, WaitingStatus.ACTIVE, 3L));
+
+      // DELETED 식당
+      Restaurant deletedRestaurant = RestaurantFixture.createRandomByStatusAndWaitingStatusOwnerId(RestaurantStatus.OPENED, WaitingStatus.ACTIVE, 5L);
+      deletedRestaurant.delete(1L);  // deletedAt 세팅되는 메서드라고 가정
+      restaurants.add(deletedRestaurant);
+
+      restaurantRepository.saveAll(restaurants);
+    }
+
+    @Test
+    @DisplayName("MASTER는 삭제된 식당도 포함해서 조회할 수 있다.")
+    void success_masterWithDeleted() {
+      // given
+      GetRestaurantsCriteria criteria = GetRestaurantsCriteria.builder()
+          .role(UserRole.MASTER)
+          .pageSize(10)
+          .pageNumber(0)
+          .includeDeleted(true)
+          .build();
+
+      // when
+      PaginatedInfo<SearchRestaurantsInfo> result = restaurantService.searchRestaurants(criteria);
+
+      // then
+      assertThat(result.contents()).hasSize(5); // 전체 5개 모두 조회
+    }
+
+    @Test
+    @DisplayName("OWNER는 본인 식당 중 삭제된 식당도 포함해서 조회할 수 있다.")
+    void success_owner_NoFilteredByDeletedOwnerRestaurant() {
+      // given
+      long userId = 5L;
+      GetRestaurantsCriteria criteria = GetRestaurantsCriteria.builder()
+          .role(UserRole.OWNER)
+          .pageSize(10)
+          .pageNumber(0)
+          .userId(userId)
+          .includeDeleted(true)
+          .build();
+
+      // when
+      PaginatedInfo<SearchRestaurantsInfo> result = restaurantService.searchRestaurants(criteria);
+
+      // then
+      assertThat(result.contents()).hasSize(5);
+    }
+
+    @Test
+    @DisplayName("OWNER는 본인 식당을 제외한 식당은 삭제되지 않은 것만 포함해서 조회할 수 있다.")
+    void success_ownerFilteredByDeleted() {
+      // given
+      long userId = 3L;
+      GetRestaurantsCriteria criteria = GetRestaurantsCriteria.builder()
+          .role(UserRole.OWNER)
+          .pageSize(10)
+          .pageNumber(0)
+          .userId(userId)
+          .includeDeleted(true)
+          .build();
+
+      // when
+      PaginatedInfo<SearchRestaurantsInfo> result = restaurantService.searchRestaurants(criteria);
+
+      // then
+      assertThat(result.contents()).hasSize(4);
+    }
+
+    public static Stream<Arguments> provideWaitingStatusForCheckingSearchCondition() {
+      return Stream.of(
+          Arguments.of(GetRestaurantsCriteria.WaitingStatus.ACTIVE, 3),
+          Arguments.of(GetRestaurantsCriteria.WaitingStatus.INACTIVE, 2)
+      );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideWaitingStatusForCheckingSearchCondition")
+    @DisplayName("waitingStatus 로 구분하여 식당을 조회할 수 있다.")
+    void success_waitingStatus_active(GetRestaurantsCriteria.WaitingStatus status, int resultSize) {
+      // given
+      long userId = 3L;
+      GetRestaurantsCriteria criteria = GetRestaurantsCriteria.builder()
+          .role(UserRole.MASTER)
+          .pageSize(10)
+          .pageNumber(0)
+          .userId(userId)
+          .waitingStatus(status)
+          .includeDeleted(true)
+          .build();
+
+      // when
+      PaginatedInfo<SearchRestaurantsInfo> result = restaurantService.searchRestaurants(criteria);
+
+      // then
+      assertThat(result.contents()).hasSize(resultSize);
+    }
   }
 
   @DisplayName("식당 타임슬롯 현재 게스트 수 수정 서비스")

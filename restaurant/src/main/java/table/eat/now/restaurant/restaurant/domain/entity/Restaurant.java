@@ -189,8 +189,7 @@ public class Restaurant extends BaseEntity {
   @Getter
   @RequiredArgsConstructor
   public enum WaitingStatus {
-    OPENED("운영중"),
-    LIMITED("제한된"),
+    ACTIVE("활성화"),
     INACTIVE("비활성화"),
     ;
     private final String name;

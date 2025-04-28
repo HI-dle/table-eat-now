@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantsCriteria;
+import table.eat.now.restaurant.restaurant.domain.dto.response.Paginated;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant;
 import table.eat.now.restaurant.restaurant.domain.repository.RestaurantRepository;
 
@@ -45,6 +47,16 @@ public class RestaurantRepositoryImpl implements RestaurantRepository {
   }
 
   @Override
+  public Optional<Restaurant> findByStaffIdOrOwnerId(Long id) {
+    return jpaRestaurantRepository.findByStaffIdOrOwnerIdWithSingleParam(id);
+  }
+
+  @Override
+  public Paginated<Restaurant> searchRestaurants(GetRestaurantsCriteria criteria) {
+    return jpaRestaurantRepository.searchRestaurants(criteria);
+  }
+
+  @Override
   public boolean isOwner(Long userId, String restaurantUuid) {
     return jpaRestaurantRepository.isOwnerByUserIdAndRestaurantUuid(userId, restaurantUuid);
   }
@@ -54,8 +66,4 @@ public class RestaurantRepositoryImpl implements RestaurantRepository {
     return jpaRestaurantRepository.isStaffByUserIdAndRestaurantUuid(userId, restaurantUuid);
   }
 
-  @Override
-  public Optional<Restaurant> findByStaffIdOrOwnerId(Long id) {
-    return jpaRestaurantRepository.findByStaffIdOrOwnerIdWithSingleParam(id);
-  }
 }

@@ -4,6 +4,7 @@
  */
 package table.eat.now.restaurant.restaurant.presentation;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,8 +19,11 @@ import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.restaurant.restaurant.application.service.RestaurantService;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantCriteria;
+import table.eat.now.restaurant.restaurant.presentation.dto.request.SearchRestaurantsRequest;
 import table.eat.now.restaurant.restaurant.presentation.dto.response.GetRestaurantResponse;
 import table.eat.now.restaurant.restaurant.presentation.dto.response.GetRestaurantSimpleResponse;
+import table.eat.now.restaurant.restaurant.presentation.dto.response.PaginatedResponse;
+import table.eat.now.restaurant.restaurant.presentation.dto.response.SearchRestaurantsResponse;
 
 @RestController
 @RequestMapping("/internal/v1/restaurants")
@@ -37,14 +41,14 @@ public class RestaurantInternalController {
                 GetRestaurantCriteria.from(restaurantUuid, userInfo.role(), userInfo.userId()))));
   }
 
-  @PatchMapping("/{restaurantUuid}/timeslot/{restaurantTimeSlotUuid}/cur-total-guest-count")
-  public ResponseEntity<Void> modifyGuestCount(
-      @PathVariable String restaurantUuid,
-      @PathVariable String restaurantTimeSlotUuid,
-      @RequestBody int delta
+  @GetMapping
+  public ResponseEntity<PaginatedResponse<SearchRestaurantsResponse>> searchRestaurants(
+      @Valid SearchRestaurantsRequest request,
+      @CurrentUserInfo CurrentUserInfoDto userInfo
   ) {
-    restaurantService.increaseOrDecreaseTimeSlotGuestCount(restaurantTimeSlotUuid, delta);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.ok(PaginatedResponse.from(
+        restaurantService.searchRestaurants(request.toCriteria(userInfo))
+    ).map(SearchRestaurantsResponse::from));
   }
 
   @AuthCheck(roles = {UserRole.STAFF, UserRole.OWNER})
@@ -55,4 +59,15 @@ public class RestaurantInternalController {
         .body(GetRestaurantSimpleResponse.from(
             restaurantService.getRestaurantByStaffId(userInfoDto.userId())));
   }
+
+  @PatchMapping("/{restaurantUuid}/timeslot/{restaurantTimeSlotUuid}/cur-total-guest-count")
+  public ResponseEntity<Void> modifyGuestCount(
+      @PathVariable String restaurantUuid,
+      @PathVariable String restaurantTimeSlotUuid,
+      @RequestBody int delta
+  ) {
+    restaurantService.increaseOrDecreaseTimeSlotGuestCount(restaurantTimeSlotUuid, delta);
+    return ResponseEntity.ok().build();
+  }
+
 }
