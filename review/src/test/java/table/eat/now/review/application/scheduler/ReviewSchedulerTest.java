@@ -8,7 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import table.eat.now.review.application.batch.CursorKey;
 import table.eat.now.review.application.executor.TaskExecutorFactory;
 import table.eat.now.review.application.executor.task.TaskExecutor;
 import table.eat.now.review.application.usecase.UpdateRestaurantRatingUseCase;
@@ -74,8 +75,8 @@ class ReviewSchedulerTest {
       reviewScheduler.updateRestaurantRecentRatings();
 
       // then
-      verify(updateRestaurantRatingUseCase, times(1)).execute(any(LocalDateTime.class),
-          any(LocalDateTime.class));
+      verify(updateRestaurantRatingUseCase, times(1))
+          .execute(any(CursorKey.class), any(Duration.class));
       assert executed.get();
     }
 
@@ -89,7 +90,7 @@ class ReviewSchedulerTest {
       }).when(taskExecutor).execute(any());
 
       doThrow(new RuntimeException("에러")).when(updateRestaurantRatingUseCase)
-          .execute(any(LocalDateTime.class), any(LocalDateTime.class));
+          .execute(any(CursorKey.class), any(Duration.class));
 
       // when & then
       assertDoesNotThrow(() -> reviewScheduler.updateRestaurantRecentRatings());
@@ -125,7 +126,8 @@ class ReviewSchedulerTest {
       reviewScheduler.updateRestaurantDailyRatings();
 
       // then
-      verify(updateRestaurantRatingUseCase, times(1)).execute(any(LocalDateTime.class), any(LocalDateTime.class));
+      verify(updateRestaurantRatingUseCase, times(1))
+          .execute(any(CursorKey.class), any(Duration.class));
       assert executed.get();
     }
 
@@ -138,7 +140,7 @@ class ReviewSchedulerTest {
       }).when(taskExecutor).execute(any());
 
       doThrow(new RuntimeException("에러")).when(updateRestaurantRatingUseCase)
-          .execute(any(LocalDateTime.class), any(LocalDateTime.class));
+          .execute(any(CursorKey.class), any(Duration.class));
 
       // when & then
       assertDoesNotThrow(() -> reviewScheduler.updateRestaurantDailyRatings());

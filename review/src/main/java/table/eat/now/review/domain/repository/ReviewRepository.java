@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import table.eat.now.review.domain.entity.Review;
 import table.eat.now.review.domain.entity.ReviewReference;
+import table.eat.now.review.domain.repository.search.CursorResult;
 import table.eat.now.review.domain.repository.search.PaginatedResult;
 import table.eat.now.review.domain.repository.search.RestaurantRatingResult;
 import table.eat.now.review.domain.repository.search.SearchAdminReviewCriteria;
@@ -26,10 +27,15 @@ public interface ReviewRepository {
 
   List<RestaurantRatingResult> calculateRestaurantRatings(List<String> restaurantIds);
 
-  List<String> findRecentlyUpdatedRestaurantIds(
-      LocalDateTime startTime, LocalDateTime endTime, long offset, int limit);
-
-  long countRecentlyUpdatedRestaurants(LocalDateTime startTime, LocalDateTime endTime);
-
   <S extends Review> List<S> saveAllAndFlush(Iterable<S> entities);
+
+  List<CursorResult> findRecentlyUpdatedRestaurantIds(
+      LocalDateTime startTime,
+      LocalDateTime endTime,
+      LocalDateTime lastUpdatedAt,
+      String lastRestaurantId,
+      int limit
+  );
+
+  CursorResult findEndCursorResult(LocalDateTime endTime);
 }
