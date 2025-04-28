@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -39,24 +40,36 @@ public class PromotionUserKafkaOutboxScheduler {
         OutboxStatus.PENDING);
 
     List<CompletableFuture<PromotionUserOutbox>> futures = pendingOutboxes.stream()
-        .map(outbox ->
-            kafkaTemplate.send(notificationTopic, outbox.getAggregateId(), convertEvent(outbox.getPayload()))
-            .handle((res, ex) -> {
-              if (ex != null) {
-                log.error("PromotionUser 발행 실패 id = {}, retryCount = {}",
-                    outbox.getId(), outbox.getRetryCount(), ex);
-                outbox.incrementRetry();
+        .flatMap(outbox -> {
+          try {
+            // 한번만 변환
+            PromotionSendEvent event = convertEvent(outbox.getPayload());
 
-                if (outbox.getRetryCount() > 3) {
-                  log.warn("PromotionUser DLQ 이동 id = {}", outbox.getId());
-                  kafkaTemplate.send(notificationTopicDlt, outbox.getAggregateId(), convertEvent(outbox.getPayload()));
-                  outbox.modifyStatusFailed();
-                }
-              } else {
-                outbox.modifyStatusSuccess();
-              }
-              return outbox;
-            }))
+            return Stream.of(
+                kafkaTemplate.send(notificationTopic, outbox.getAggregateId(), event)
+                    .handle((res, ex) -> {
+                      if (ex != null) {
+                        log.error("PromotionUser 발행 실패 id = {}, retryCount = {}",
+                            outbox.getId(), outbox.getRetryCount(), ex);
+                        outbox.incrementRetry();
+
+                        if (outbox.getRetryCount() > 3) {
+                          log.warn("PromotionUser DLQ 이동 id = {}", outbox.getId());
+                          // 동일한 event 객체 사용
+                          kafkaTemplate.send(notificationTopicDlt, outbox.getAggregateId(), event);
+                          outbox.modifyStatusFailed();
+                        }
+                      } else {
+                        outbox.modifyStatusSuccess();
+                      }
+                      return outbox;
+                    })
+            );
+          } catch (Exception e) {
+            log.error("Event 변환 실패: {}", outbox.getId(), e);
+            return Stream.empty();
+          }
+        })
         .toList();
 
     CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
