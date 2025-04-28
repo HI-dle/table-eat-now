@@ -13,7 +13,7 @@ import table.eat.now.payment.payment.application.event.ReservationPaymentSucceed
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class KafkaPaymentProducer implements PaymentEventPublisher {
+public class PaymentKafkaEventProducer implements PaymentEventPublisher {
 
   private final KafkaTemplate<String, PaymentEvent> kafkaTemplate;
   private final String paymentTopic;
