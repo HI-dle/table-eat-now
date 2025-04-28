@@ -21,6 +21,10 @@ spring:
     bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
     consumer:
       auto-offset-reset: earliest
+      enable-auto-commit: false
+      fetch-min-bytes: 1024
+      fetch-max-wait-ms: 200
+      max-poll-records: 100
       properties:
         spring.json.trusted.packages: "*"
 eureka:
@@ -35,3 +39,21 @@ payment:
   toss:
     secret-key: ${TOSS_SECRET_KEY}
     api-url: ${TOSS_API_URL}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+  tracing:
+    sampling:
+      probability: 1.0
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_URL:http://localhost:9411/api/v2/spans}
+  metrics:
+    enable:
+      spring.kafka: true
