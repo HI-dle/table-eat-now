@@ -12,6 +12,7 @@ import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -20,7 +21,8 @@ import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import table.eat.now.restaurant.restaurant.infrastructure.messaging.kafka.listener.dto.RestaurantRatingUpdatedEvent;
 
-public class RestaurantConsumerConfig {
+@Configuration
+public class RestaurantKafkaConsumerConfig {
 
   @Value("${spring.kafka.bootstrap-servers}")
   private String bootstrapServers;

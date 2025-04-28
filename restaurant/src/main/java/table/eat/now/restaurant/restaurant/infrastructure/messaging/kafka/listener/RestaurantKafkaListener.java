@@ -13,8 +13,8 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 import table.eat.now.restaurant.restaurant.application.service.RestaurantService;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.RestaurantRatingUpdatedCommand;
-import table.eat.now.restaurant.restaurant.infrastructure.messaging.kafka.config.RestaurantConsumerConfig.ListenerContainerFactoryName;
-import table.eat.now.restaurant.restaurant.infrastructure.messaging.kafka.config.RestaurantConsumerConfig.TopicName;
+import table.eat.now.restaurant.restaurant.infrastructure.messaging.kafka.config.RestaurantKafkaConsumerConfig.ListenerContainerFactoryName;
+import table.eat.now.restaurant.restaurant.infrastructure.messaging.kafka.config.RestaurantKafkaConsumerConfig.TopicName;
 import table.eat.now.restaurant.restaurant.infrastructure.messaging.kafka.listener.dto.RestaurantRatingUpdatedEvent;
 
 @Slf4j
@@ -27,7 +27,7 @@ public class RestaurantKafkaListener {
       topics = TopicName.REVIEW_EVENT,
       containerFactory = ListenerContainerFactoryName.RESTAURANT_RATING_UPDATE_EVENT
   )
-  public void listenReservationPaymentSucceedEvent(
+  public void listenRestaurantRatingUpdateEvent(
       List<ConsumerRecord<String, RestaurantRatingUpdatedEvent>> record, Acknowledgment ack) {
     log.info("식당 리뷰 평점 성공 이벤트 처리: {} 건", record.size());
     try {
