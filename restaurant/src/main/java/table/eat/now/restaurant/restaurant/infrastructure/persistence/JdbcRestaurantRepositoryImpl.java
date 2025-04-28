@@ -4,6 +4,7 @@
  */
 package table.eat.now.restaurant.restaurant.infrastructure.persistence;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -36,24 +37,24 @@ public class JdbcRestaurantRepositoryImpl implements JdbcRestaurantRepository {
     }
 
     StringBuilder sql = new StringBuilder();
-    sql.append("UPDATE p_restaurant r SET review_rating_avg = data.average_rating FROM (VALUES ");
+    List<Object> params = new ArrayList<>();
+
+    sql.append("UPDATE p_restaurant r ")
+        .append("SET review_rating_avg = data.average_rating ")
+        .append("FROM (VALUES ");
 
     for (int i = 0; i < commands.size(); i++) {
-      RestaurantRatingUpdatedCommand command = commands.get(i);
-      sql.append("('")
-          .append(command.restaurantUuid())
-          .append("', ")
-          .append(command.averageRating())
-          .append(")");
-
+      sql.append("(?, ?)");
       if (i < commands.size() - 1) {
         sql.append(", ");
       }
+      params.add(commands.get(i).restaurantUuid());
+      params.add(commands.get(i).averageRating());
     }
 
-    sql.append(") AS data(restaurant_uuid, average_rating) ");
-    sql.append("WHERE r.restaurant_uuid = data.restaurant_uuid");
+    sql.append(") AS data(restaurant_uuid, average_rating) ")
+        .append("WHERE r.restaurant_uuid = data.restaurant_uuid");
 
-    jdbcTemplate.update(sql.toString());
+    jdbcTemplate.update(sql.toString(), params.toArray());
   }
 }
