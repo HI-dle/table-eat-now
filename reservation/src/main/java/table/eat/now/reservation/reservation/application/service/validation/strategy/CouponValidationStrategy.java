@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetUserCouponsInfo.UserCoupon;
@@ -18,6 +20,7 @@ import table.eat.now.reservation.reservation.application.service.dto.request.Cre
 import table.eat.now.reservation.reservation.application.service.validation.context.CouponValidationContext;
 
 @Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 public class CouponValidationStrategy extends
     AbstractContextAwarePaymentDetailValidationStrategy<CouponValidationContext> {

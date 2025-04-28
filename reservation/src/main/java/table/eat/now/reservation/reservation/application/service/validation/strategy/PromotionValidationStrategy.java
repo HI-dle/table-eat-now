@@ -7,6 +7,8 @@ package table.eat.now.reservation.reservation.application.service.validation.str
 import java.math.BigDecimal;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo.Promotion;
@@ -16,6 +18,7 @@ import table.eat.now.reservation.reservation.application.service.dto.request.Cre
 import table.eat.now.reservation.reservation.application.service.validation.context.PromotionValidationContext;
 
 @Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 public class PromotionValidationStrategy extends
     AbstractContextAwarePaymentDetailValidationStrategy<PromotionValidationContext> {
