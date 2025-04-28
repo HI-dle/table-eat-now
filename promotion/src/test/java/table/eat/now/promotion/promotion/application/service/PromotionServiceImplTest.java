@@ -54,7 +54,6 @@ import table.eat.now.promotion.promotion.application.event.PromotionEvent;
 import table.eat.now.promotion.promotion.application.event.PromotionEventPublisher;
 import table.eat.now.promotion.promotion.application.event.produce.PromotionUserSaveEvent;
 import table.eat.now.promotion.promotion.application.exception.PromotionErrorCode;
-import table.eat.now.promotion.promotion.application.service.util.MaxParticipate;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
 import table.eat.now.promotion.promotion.domain.entity.PromotionStatus;
 import table.eat.now.promotion.promotion.domain.entity.PromotionType;
@@ -104,7 +103,8 @@ class PromotionServiceImplTest {
         LocalDateTime.now().plusDays(10),
         BigDecimal.valueOf(3000),
         "READY",
-        "COUPON"
+        "COUPON",
+        1000
     );
     Promotion promotion = command.toEntity();
 
@@ -137,7 +137,8 @@ class PromotionServiceImplTest {
         LocalDateTime.now().plusDays(12),
         BigDecimal.valueOf(5000),
         "READY",
-        "COUPON"
+        "COUPON",
+        1000
     );
     Promotion promotion = Promotion.of(
         couponUuid,
@@ -147,7 +148,8 @@ class PromotionServiceImplTest {
         LocalDateTime.now().plusDays(12),
         BigDecimal.valueOf(5000),
         PromotionStatus.valueOf("READY"),
-        PromotionType.valueOf("COUPON")
+        PromotionType.valueOf("COUPON"),
+        1000
     );
 
     promotion.modifyPromotion(
@@ -158,7 +160,8 @@ class PromotionServiceImplTest {
         command.endTime(),
         command.discountAmount(),
         PromotionStatus.valueOf(command.promotionStatus()),
-        PromotionType.valueOf(command.promotionType()));
+        PromotionType.valueOf(command.promotionType()),
+        1000);
     ReflectionTestUtils.setField(promotion, "promotionUuid", promotionUuid);
 
     when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))
@@ -189,7 +192,8 @@ class PromotionServiceImplTest {
         LocalDateTime.now().plusDays(1),
         BigDecimal.valueOf(1000),
         "READY",
-        "COUPON"
+        "COUPON",
+        1000
     );
 
     when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(invalidUuid))
@@ -215,7 +219,8 @@ class PromotionServiceImplTest {
         LocalDateTime.now().plusDays(12),
         BigDecimal.valueOf(5000),
         PromotionStatus.valueOf("READY"),
-        PromotionType.valueOf("COUPON")
+        PromotionType.valueOf("COUPON"),
+        1000
     );
 
     ReflectionTestUtils.setField(promotion, "promotionUuid", promotionUuid);
@@ -280,7 +285,8 @@ class PromotionServiceImplTest {
         LocalDateTime.now().plusDays(3),
         BigDecimal.valueOf(1000),
         "READY",
-        "COUPON"
+        "COUPON",
+        1000
     );
 
     PromotionSearchCriteriaQuery result2 = new PromotionSearchCriteriaQuery(
@@ -292,7 +298,8 @@ class PromotionServiceImplTest {
         LocalDateTime.now().plusDays(4),
         BigDecimal.valueOf(2000),
         "READY",
-        "RESTAURANT"
+        "RESTAURANT",
+        1000
     );
 
     PaginatedResult<PromotionSearchCriteriaQuery> paginatedResult =
@@ -410,7 +417,8 @@ class PromotionServiceImplTest {
         LocalDateTime.now().plusDays(10),
         BigDecimal.valueOf(1000),
         PromotionStatus.RUNNING,
-        PromotionType.RESTAURANT
+        PromotionType.RESTAURANT,
+        1000
     );
 
     Promotion promo2 = Promotion.of(
@@ -420,7 +428,8 @@ class PromotionServiceImplTest {
         LocalDateTime.now().plusDays(5),
         BigDecimal.valueOf(2000),
         PromotionStatus.RUNNING,
-        PromotionType.RESTAURANT
+        PromotionType.RESTAURANT,
+        1000
     );
 
     ReflectionTestUtils.setField(promo1, "promotionUuid", "promo-uuid-1");
@@ -458,14 +467,15 @@ class PromotionServiceImplTest {
             LocalDateTime.now().plusDays(3),
             BigDecimal.valueOf(3000),
         PromotionStatus.RUNNING,
-        PromotionType.COUPON
+        PromotionType.COUPON,
+        1000
         );
 
     when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))
         .thenReturn(Optional.of(fakePromotion));
 
     when(promotionRepository.addUserToPromotion(any(PromotionParticipant.class),
-        eq(MaxParticipate.PARTICIPATE_7000_MAX)))
+        eq(fakePromotion.getMaxParticipant().getMaxParticipantsValue())))
         .thenReturn(ParticipateResult.FAIL);
 
     when(meterRegistry.counter(PROMOTION_PARTICIPATION_FAIL)).thenReturn(counter);
@@ -475,7 +485,7 @@ class PromotionServiceImplTest {
 
     // then
     assertThat(result).isFalse();
-    verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_7000_MAX));
+    verify(promotionRepository).addUserToPromotion(any(), eq(fakePromotion.getMaxParticipant().getMaxParticipantsValue()));
     verifyNoInteractions(promotionEventPublisher);
     verify(meterRegistry).counter(PROMOTION_PARTICIPATION_FAIL);
     verify(counter).increment();
@@ -491,6 +501,7 @@ class PromotionServiceImplTest {
     String promotionUuid = "test-promotion-uuid";
     String promotionName = "이벤트 대상 프로모션";
     String couponUuid = "test-coupon-uuid";
+    Integer maxParticipant = 1000;
 
     ParticipatePromotionUserInfo info = new ParticipatePromotionUserInfo(
         userId,
@@ -501,7 +512,7 @@ class PromotionServiceImplTest {
     when(promotionRepository.addUserToPromotion(argThat(participant ->
             participant.userId().equals(userId) &&
                 participant.promotionUuid().equals(promotionUuid)),
-        eq(MaxParticipate.PARTICIPATE_7000_MAX)))
+        eq(maxParticipant)))
         .thenReturn(ParticipateResult.SUCCESS_SEND_BATCH);
 
     List<PromotionParticipantDto> participantList = List.of(
@@ -519,7 +530,8 @@ class PromotionServiceImplTest {
         LocalDateTime.now().plusDays(12),
         BigDecimal.valueOf(5000),
         PromotionStatus.valueOf("RUNNING"),
-        PromotionType.valueOf("COUPON"));
+        PromotionType.valueOf("COUPON"),
+        maxParticipant);
 
     when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))
         .thenReturn(Optional.of(promotion));
@@ -535,7 +547,7 @@ class PromotionServiceImplTest {
     // then
     assertThat(result).isTrue();
 
-    verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_7000_MAX));
+    verify(promotionRepository).addUserToPromotion(any(), eq(maxParticipant));
     verify(promotionRepository).getPromotionUsers(promotionName);
     verify(promotionRepository, times(2)).findByPromotionUuidAndDeletedByIsNull(promotionUuid);
 
@@ -561,6 +573,8 @@ class PromotionServiceImplTest {
   @Test
   void participate_success_without_batch() {
     // given
+    Integer maxParticipant = 1000;
+
     Promotion savedPromotion = Promotion.of(
         "sample-coupon-uuid",
         "취침 프로모션",
@@ -569,7 +583,8 @@ class PromotionServiceImplTest {
         LocalDateTime.now().plusDays(1),
         BigDecimal.valueOf(1000),
         PromotionStatus.RUNNING,
-        PromotionType.COUPON
+        PromotionType.COUPON,
+        maxParticipant
     );
 
     lenient().when(promotionRepository.save(any(Promotion.class))).thenReturn(savedPromotion);
@@ -587,7 +602,7 @@ class PromotionServiceImplTest {
 
 
     when(promotionRepository.addUserToPromotion(any(PromotionParticipant.class)
-        , eq(MaxParticipate.PARTICIPATE_7000_MAX)))
+        , eq(maxParticipant)))
         .thenReturn(ParticipateResult.SUCCESS);
 
     // when
@@ -597,7 +612,7 @@ class PromotionServiceImplTest {
 
     // then
     assertThat(result).isTrue();
-    verify(promotionRepository).addUserToPromotion(any(), eq(MaxParticipate.PARTICIPATE_7000_MAX));
+    verify(promotionRepository).addUserToPromotion(any(), eq(maxParticipant));
     verify(promotionRepository, never()).getPromotionUsers(anyString());
 
 
@@ -630,7 +645,8 @@ class PromotionServiceImplTest {
         LocalDateTime.now().plusDays(3),
         BigDecimal.valueOf(3000),
         PromotionStatus.CLOSED,
-        PromotionType.COUPON
+        PromotionType.COUPON,
+        1000
     );
 
     when(promotionRepository.findByPromotionUuidAndDeletedByIsNull(promotionUuid))

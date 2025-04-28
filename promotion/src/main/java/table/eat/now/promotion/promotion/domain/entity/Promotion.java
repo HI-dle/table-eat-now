@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import table.eat.now.common.domain.BaseEntity;
 import table.eat.now.promotion.promotion.domain.entity.vo.DiscountPrice;
+import table.eat.now.promotion.promotion.domain.entity.vo.MaxParticipant;
 import table.eat.now.promotion.promotion.domain.entity.vo.PromotionDetails;
 import table.eat.now.promotion.promotion.domain.entity.vo.PromotionPeriod;
 
@@ -57,11 +58,16 @@ public class Promotion extends BaseEntity {
   @Column(nullable = false)
   private PromotionType promotionType;
 
+  @Embedded
+  @Column(nullable = false)
+  private MaxParticipant maxParticipant;
+
 
   private Promotion(
       String couponUuid, String promotionName, String description,
       LocalDateTime startTime, LocalDateTime endTime,
-      BigDecimal amount, PromotionStatus promotionStatus, PromotionType promotionType) {
+      BigDecimal amount, PromotionStatus promotionStatus,
+      PromotionType promotionType, Integer maxParticipant) {
     this.promotionUuid = UUID.randomUUID().toString();
     this.couponUuid = couponUuid;
     this.details = PromotionDetails.of(promotionName, description);
@@ -69,27 +75,30 @@ public class Promotion extends BaseEntity {
     this.discountPrice = DiscountPrice.of(amount);
     this.promotionStatus = promotionStatus;
     this.promotionType = promotionType;
+    this.maxParticipant = MaxParticipant.of(maxParticipant);
   }
 
   public static Promotion of(
       String couponUuid, String promotionName, String description,
       LocalDateTime startTime, LocalDateTime endTime,
-      BigDecimal amount, PromotionStatus promotionStatus, PromotionType promotionType) {
+      BigDecimal amount, PromotionStatus promotionStatus,
+      PromotionType promotionType, Integer maxParticipant) {
     return new Promotion(
         couponUuid, promotionName, description, startTime, endTime,
-        amount,promotionStatus,promotionType);
+        amount,promotionStatus,promotionType, maxParticipant);
   }
 
   public void modifyPromotion(
       String couponUuid, String promotionName, String description, LocalDateTime startTime,
       LocalDateTime endTime, BigDecimal amount,
-      PromotionStatus promotionStatus, PromotionType promotionType) {
+      PromotionStatus promotionStatus, PromotionType promotionType, Integer maxParticipant) {
     this.couponUuid = couponUuid;
     this.details = PromotionDetails.of(promotionName, description);
     this.period = PromotionPeriod.of(startTime,endTime);
     this.discountPrice = DiscountPrice.of(amount);
     this.promotionStatus = promotionStatus;
     this.promotionType = promotionType;
+    this.maxParticipant = MaxParticipant.of(maxParticipant);
   }
 
   public void modifyPromotionStatus(PromotionStatus status) {
