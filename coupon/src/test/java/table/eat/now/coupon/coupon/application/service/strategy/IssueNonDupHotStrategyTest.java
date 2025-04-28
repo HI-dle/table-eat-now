@@ -13,8 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
+import table.eat.now.coupon.coupon.application.strategy.IssueNonDupHotStrategy;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
-import table.eat.now.coupon.coupon.domain.repository.CouponRepository;
+import table.eat.now.coupon.coupon.domain.info.CouponProfile;
+import table.eat.now.coupon.coupon.domain.reader.CouponReader;
+import table.eat.now.coupon.coupon.domain.store.CouponStore;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
 
@@ -24,7 +27,10 @@ class IssueNonDupHotStrategyTest extends IntegrationTestSupport {
   private IssueNonDupHotStrategy issueNonDupHotStrategy;
 
   @Autowired
-  private CouponRepository couponRepository;
+  private CouponReader couponReader;
+
+  @Autowired
+  private CouponStore couponStore;
 
   private Coupon coupon;
 
@@ -33,22 +39,22 @@ class IssueNonDupHotStrategyTest extends IntegrationTestSupport {
     coupon = CouponFixture.createCoupon(
         1, "FIXED_DISCOUNT", "GENERAL", 0, false, 2000, null, null);
     ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().minusDays(1));
-    couponRepository.save(coupon);
+    couponStore.save(coupon);
 
     Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getIssueEndAt())
         .plusMinutes(10);
-    couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
-    couponRepository.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
+    couponStore.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
+    couponStore.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
   }
 
   @DisplayName("중복 발급 제한 쿠폰 발급 전략이 발급 전략 별명을 잘 반환하는지 확인 - 성공")
   @Test
   void alias() {
     // given, when
-    IssueStrategyAlias alias = issueNonDupHotStrategy.alias();
+    CouponProfile alias = issueNonDupHotStrategy.couponProfile();
 
     // then
-    assertThat(alias).isEqualTo(IssueStrategyAlias.HOT_NONDUP);
+    assertThat(alias).isEqualTo(CouponProfile.HOT_NONDUP);
   }
 
   @DisplayName("중복 발급 제한 쿠폰을 중복 없이 발급하는지 확인 - 중복 발급 시도시 예외 발생")

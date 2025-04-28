@@ -31,9 +31,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
-import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
-import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.PageResponse;
+import table.eat.now.coupon.coupon.application.service.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
@@ -106,6 +106,7 @@ class CouponAdminControllerTest extends ControllerTestSupport {
         .amount(3000)
         .percent(null)
         .maxDiscountAmount(null)
+        .version(4L)
         .build();
 
     String couponUuid = UUID.randomUUID().toString();
@@ -129,7 +130,7 @@ class CouponAdminControllerTest extends ControllerTestSupport {
 
   @DisplayName("쿠폰 조회 요청 검증 - 200 응답")
   @Test
-  void getCoupon() throws Exception {
+  void getCouponInfo() throws Exception {
     // given
     String couponUuid = UUID.randomUUID().toString();
     GetCouponInfo couponInfo = GetCouponInfo.builder()
@@ -148,9 +149,10 @@ class CouponAdminControllerTest extends ControllerTestSupport {
         .maxDiscountAmount(null)
         .createdAt(LocalDateTime.now().minusHours(1))
         .createdBy(1L)
+        .version(3L)
         .build();
 
-    given(couponService.getCoupon(couponUuid)).willReturn(couponInfo);
+    given(couponService.getCouponInfo(couponUuid)).willReturn(couponInfo);
 
     // when
     ResultActions resultActions = mockMvc.perform(

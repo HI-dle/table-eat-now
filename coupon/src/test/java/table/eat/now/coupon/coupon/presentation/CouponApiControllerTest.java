@@ -29,9 +29,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
-import table.eat.now.coupon.coupon.application.dto.response.AvailableCouponInfo;
-import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
 import table.eat.now.coupon.coupon.application.service.CouponService;
+import table.eat.now.coupon.coupon.application.service.dto.response.IssuableCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.PageResponse;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
 import table.eat.now.coupon.helper.ControllerTestSupport;
 
@@ -75,18 +75,18 @@ class CouponApiControllerTest extends ControllerTestSupport {
   void getAvailableCoupons() throws Exception {
 
     // given
-    List<AvailableCouponInfo> couponInfos = CouponFixture.createAvailableCouponInfos(20);
-    PageResponse<AvailableCouponInfo> couponInfoPage = PageResponse.of(
+    List<IssuableCouponInfo> couponInfos = CouponFixture.createAvailableCouponInfos(20);
+    PageResponse<IssuableCouponInfo> couponInfoPage = PageResponse.of(
         couponInfos, 20, 2, 1, 10);
 
-    given(couponService.getAvailableCoupons(any(), any())).willReturn(couponInfoPage);
+    given(couponService.getAvailableGeneralCoupons(any(), any())).willReturn(couponInfoPage);
 
     // when
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
     params.add("time", LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).toString());
 
     ResultActions resultActions = mockMvc.perform(
-        get("/api/v1/coupons/available")
+        get("/api/v1/coupons/daily/general")
             .params(params));
 
     // then

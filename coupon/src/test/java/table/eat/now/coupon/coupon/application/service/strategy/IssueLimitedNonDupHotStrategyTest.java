@@ -16,8 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
+import table.eat.now.coupon.coupon.application.strategy.IssueLimitedNonDupHotStrategy;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
-import table.eat.now.coupon.coupon.domain.repository.CouponRepository;
+import table.eat.now.coupon.coupon.domain.info.CouponProfile;
+import table.eat.now.coupon.coupon.domain.reader.CouponReader;
+import table.eat.now.coupon.coupon.domain.store.CouponStore;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
 
@@ -28,7 +31,10 @@ class IssueLimitedNonDupHotStrategyTest extends IntegrationTestSupport {
   private IssueLimitedNonDupHotStrategy issueLimitedNonDupHotStrategy;
 
   @Autowired
-  private CouponRepository couponRepository;
+  private CouponReader couponReader;
+
+  @Autowired
+  private CouponStore couponStore;
 
   private Coupon coupon;
 
@@ -37,22 +43,22 @@ class IssueLimitedNonDupHotStrategyTest extends IntegrationTestSupport {
     coupon = CouponFixture.createCoupon(
         1, "FIXED_DISCOUNT", "GENERAL", 2, false, 2000, null, null);
     ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().minusDays(1));
-    couponRepository.save(coupon);
+    couponStore.save(coupon);
 
     Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getIssueEndAt())
         .plusMinutes(10);
-    couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
-    couponRepository.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
+    couponStore.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
+    couponStore.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
   }
 
   @DisplayName("중복 발급 제한 및 수량 제한 쿠폰 발급 전략이 발급 전략 별명을 잘 반환하는지 확인 - 성공")
   @Test
   void alias() {
     // given, when
-    IssueStrategyAlias alias = issueLimitedNonDupHotStrategy.alias();
+    CouponProfile alias = issueLimitedNonDupHotStrategy.couponProfile();
 
     // then
-    assertThat(alias).isEqualTo(IssueStrategyAlias.HOT_LIMITED_NONDUP);
+    assertThat(alias).isEqualTo(CouponProfile.HOT_LIMITED_NONDUP);
   }
 
   @DisplayName("중복 발급 제한 및 수량 제한 쿠폰 발급 확인 - 발급된 유저 목록에 포함되어 있는지 확인")
@@ -62,7 +68,7 @@ class IssueLimitedNonDupHotStrategyTest extends IntegrationTestSupport {
     issueLimitedNonDupHotStrategy.requestIssue(coupon.getCouponUuid(), 2L);
 
     // when, then
-    assertThat(couponRepository.isAlreadyIssued(coupon.getCouponUuid(), 2L)).isTrue();
+    assertThat(couponReader.isAlreadyIssued(coupon.getCouponUuid(), 2L)).isTrue();
   }
 
   @DisplayName("중복 발급 제한 및 수량 제한 쿠폰을 중복 없이 발급하는지 확인 - 중복 발급 시도시 예외 발생")
@@ -115,9 +121,9 @@ class IssueLimitedNonDupHotStrategyTest extends IntegrationTestSupport {
     executorService.shutdown();
 
     // then
-    assertThat(couponRepository.isAlreadyIssued(coupon.getCouponUuid(), 2L))
+    assertThat(couponReader.isAlreadyIssued(coupon.getCouponUuid(), 2L))
         .isTrue();
-    assertThat(couponRepository.getCouponCount(coupon.getCouponUuid()))
+    assertThat(couponReader.getCouponCount(coupon.getCouponUuid()))
         .isEqualTo(coupon.getCount()-1);
   }
 }
