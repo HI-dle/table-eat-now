@@ -1,5 +1,7 @@
 package table.eat.now.promotion.promotionuser.infrastructure.kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import table.eat.now.promotion.promotionuser.domain.outbox.entity.OutboxStatus;
 import table.eat.now.promotion.promotionuser.domain.outbox.entity.PromotionUserOutbox;
 import table.eat.now.promotion.promotionuser.domain.outbox.repository.PromotionUserOutboxRepository;
+import table.eat.now.promotion.promotionuser.infrastructure.kafka.dto.PromotionSendEvent;
+import table.eat.now.promotion.promotionuser.infrastructure.kafka.dto.PromotionSendPayload;
 
 /**
  * @author : hanjihoon
@@ -19,13 +23,14 @@ import table.eat.now.promotion.promotionuser.domain.outbox.repository.PromotionU
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PromotionUserKafkaOutboxProducer {
+public class PromotionUserKafkaOutboxScheduler {
 
-  private static final String TOPIC = "notification-event";
-  private static final String DLT_SUFFIX = "-dlt";
+  private final String notificationTopic;
+  private final String notificationTopicDlt;
 
   private final PromotionUserOutboxRepository outboxRepository;
-  private final KafkaTemplate<String, String> kafkaTemplate;
+  private final KafkaTemplate<String, PromotionSendEvent> kafkaTemplate;
+  private final ObjectMapper objectMapper;
 
   @Scheduled(fixedDelay = 7000)
   @Transactional
@@ -34,7 +39,8 @@ public class PromotionUserKafkaOutboxProducer {
         OutboxStatus.PENDING);
 
     List<CompletableFuture<PromotionUserOutbox>> futures = pendingOutboxes.stream()
-        .map(outbox -> kafkaTemplate.send(TOPIC, outbox.getAggregateId(), outbox.getPayload())
+        .map(outbox ->
+            kafkaTemplate.send(notificationTopic, outbox.getAggregateId(), convertEvent(outbox.getPayload()))
             .handle((res, ex) -> {
               if (ex != null) {
                 log.error("PromotionUser 발행 실패 id = {}, retryCount = {}",
@@ -43,7 +49,7 @@ public class PromotionUserKafkaOutboxProducer {
 
                 if (outbox.getRetryCount() > 3) {
                   log.warn("PromotionUser DLQ 이동 id = {}", outbox.getId());
-                  kafkaTemplate.send(TOPIC + DLT_SUFFIX, outbox.getAggregateId(), outbox.getPayload());
+                  kafkaTemplate.send(notificationTopicDlt, outbox.getAggregateId(), convertEvent(outbox.getPayload()));
                   outbox.modifyStatusFailed();
                 }
               } else {
@@ -64,6 +70,16 @@ public class PromotionUserKafkaOutboxProducer {
           log.error("PromotionUser Outbox 저장 중 예외 발생", ex);
           return null;
         });
+  }
+
+  private PromotionSendEvent convertEvent(String outboxPayload) {
+    try {
+      PromotionSendPayload promotionSendPayload = objectMapper.readValue(outboxPayload,
+          PromotionSendPayload.class);
+      return PromotionSendEvent.from(promotionSendPayload);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException("Outbox payload 변환 실패", e);
+    }
   }
 }
 
