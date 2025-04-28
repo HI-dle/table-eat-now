@@ -7,7 +7,6 @@ import static table.eat.now.payment.payment.application.exception.PaymentErrorCo
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_NOT_FOUND;
 import static table.eat.now.payment.payment.domain.entity.PaymentStatus.CANCELED;
 
-import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,11 +31,10 @@ import table.eat.now.payment.payment.application.dto.response.SearchPaymentsInfo
 import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
 import table.eat.now.payment.payment.application.event.ReservationPaymentCancelledEvent;
 import table.eat.now.payment.payment.application.event.ReservationPaymentCancelledPayload;
-import table.eat.now.payment.payment.application.event.ReservationPaymentFailedEvent;
-import table.eat.now.payment.payment.application.event.ReservationPaymentFailedPayload;
 import table.eat.now.payment.payment.application.event.ReservationPaymentSucceedEvent;
 import table.eat.now.payment.payment.application.event.ReservationPaymentSucceedPayload;
-import table.eat.now.payment.payment.application.helper.TransactionalHelper;
+import table.eat.now.payment.payment.application.metric.MetricName;
+import table.eat.now.payment.payment.application.metric.RecordCount;
 import table.eat.now.payment.payment.domain.entity.Payment;
 import table.eat.now.payment.payment.domain.repository.PaymentRepository;
 
@@ -46,7 +44,6 @@ import table.eat.now.payment.payment.domain.repository.PaymentRepository;
 public class PaymentServiceImpl implements PaymentService {
 
   private final PaymentRepository paymentRepository;
-  private final TransactionalHelper transactionalHelper;
   private final PaymentEventPublisher paymentEventPublisher;
   private final PgClient pgClient;
 
@@ -69,17 +66,16 @@ public class PaymentServiceImpl implements PaymentService {
 
   @Override
   @Transactional
+  @RecordCount(name = MetricName.PAYMENT_SERVICE_CANCEL)
   public ConfirmPaymentInfo confirmPayment(
       ConfirmPaymentCommand command, CurrentUserInfoDto userInfo) {
-
     Payment payment = getPaymentByReservationId(command.reservationId());
-    ConfirmPgPaymentInfo confirmedInfo = confirm(command, payment);
-    try {
-      completePayment(userInfo, payment, confirmedInfo);
-    } catch (Exception e) {
-      transactionalHelper.doInNewTransaction(
-          () -> rollbackPayment(command, userInfo, e, payment));
-    }
+    ConfirmPgPaymentInfo confirmedInfo = pgClient.confirm(command, payment.getIdempotencyKey());
+    withIllegalException(() -> payment.confirm(confirmedInfo.toConfirm()));
+    paymentEventPublisher
+        .publish(ReservationPaymentSucceedEvent.of(
+            ReservationPaymentSucceedPayload.from(payment), userInfo));
+
     return ConfirmPaymentInfo.from(payment);
   }
 
@@ -89,54 +85,40 @@ public class PaymentServiceImpl implements PaymentService {
         .orElseThrow(() -> CustomException.from(PAYMENT_NOT_FOUND));
   }
 
-  private ConfirmPgPaymentInfo confirm(ConfirmPaymentCommand command, Payment payment) {
-    ConfirmPgPaymentInfo confirmedInfo = pgClient.confirm(command, payment.getIdempotencyKey());
-    log.info("Confirm payment {}", confirmedInfo);
-    return confirmedInfo;
-  }
-
-  private void completePayment(
-      CurrentUserInfoDto userInfo, Payment payment, ConfirmPgPaymentInfo confirmedInfo) {
-    payment.confirm(confirmedInfo.toConfirm());
-    paymentEventPublisher
-        .publish(ReservationPaymentSucceedEvent.of(ReservationPaymentSucceedPayload.from(payment), userInfo));
-  }
-
-  private void rollbackPayment(
-      ConfirmPaymentCommand command, CurrentUserInfoDto userInfo, Exception e, Payment payment) {
-    String cancelReason = e.getMessage();
-    cancel(command.paymentKey(), cancelReason, null, payment);
-    paymentEventPublisher.publish(ReservationPaymentFailedEvent.of(
-        ReservationPaymentFailedPayload.from(payment, cancelReason), userInfo
-    ));
-  }
-
-  private void cancel(
-      String paymentKey, String cancelReason, BigDecimal cancelAmount, Payment payment) {
-    CancelPgPaymentInfo cancelledInfo = pgClient.cancel(
-        CancelPgPaymentCommand.of(paymentKey, cancelReason, cancelAmount),
-        payment.getIdempotencyKey()
-    );
-    log.info("Cancel payment {}", cancelledInfo);
-    payment.cancel(cancelledInfo.toCancel());
+  private void withIllegalException(Runnable runnable) {
+    try {
+      runnable.run();
+    } catch (IllegalArgumentException e) {
+      log.warn("Illegal argument: {}", e.getMessage());
+    }
   }
 
   @Override
   @Transactional
+  @RecordCount(name = MetricName.PAYMENT_SERVICE_CANCEL)
   public void cancelPayment(CancelPaymentCommand command, CurrentUserInfoDto userInfo) {
     Payment payment = getPaymentByReservationId(command.reservationUuid());
     validatePaymentRequest(command, payment);
-    cancel(payment.getPaymentKey(), command.cancelReason(), command.cancelAmount(), payment);
+    CancelPgPaymentInfo cancelledInfo = pgClient.cancel(
+        CancelPgPaymentCommand.of(
+            payment.getPaymentKey(),
+            command.cancelReason(),
+            command.cancelAmount()
+        ),
+        payment.getIdempotencyKey()
+    );
+    log.debug("Cancel payment {}", cancelledInfo);
+    withIllegalException(() -> payment.cancel(cancelledInfo.toCancel()));
     paymentEventPublisher.publish(ReservationPaymentCancelledEvent.of(
         ReservationPaymentCancelledPayload.from(payment), userInfo
     ));
   }
 
   private static void validatePaymentRequest(CancelPaymentCommand command, Payment payment) {
-    if(payment.getBalancedAmount().compareTo(command.cancelAmount()) < 0 ){
+    if (payment.getBalancedAmount().compareTo(command.cancelAmount()) < 0) {
       throw CustomException.from(CANCEL_AMOUNT_EXCEED_BALANCE);
     }
-    if(payment.getPaymentStatus() == CANCELED){
+    if (payment.getPaymentStatus() == CANCELED) {
       throw CustomException.from(PAYMENT_ALREADY_CANCELLED);
     }
   }
@@ -149,17 +131,17 @@ public class PaymentServiceImpl implements PaymentService {
     return GetPaymentInfo.from(payment);
   }
 
+  private Payment getPaymentByPaymentId(String paymentUuid) {
+    return paymentRepository
+        .findByIdentifier_PaymentUuidAndDeletedAtNull(paymentUuid)
+        .orElseThrow(() -> CustomException.from(PAYMENT_NOT_FOUND));
+  }
+
   private static void validateAccess(CurrentUserInfoDto userInfo, Payment payment) {
     if (userInfo.role() != MASTER &&
         !payment.getReference().getCustomerId().equals(userInfo.userId())) {
       throw CustomException.from(PAYMENT_ACCESS_DENIED);
     }
-  }
-
-  private Payment getPaymentByPaymentId(String paymentUuid) {
-    return paymentRepository
-        .findByIdentifier_PaymentUuidAndDeletedAtNull(paymentUuid)
-        .orElseThrow(() -> CustomException.from(PAYMENT_NOT_FOUND));
   }
 
   @Override
@@ -177,5 +159,4 @@ public class PaymentServiceImpl implements PaymentService {
             paymentRepository.searchPayments(query.toCriteria()))
         .map(SearchPaymentsInfo::from);
   }
-
 }

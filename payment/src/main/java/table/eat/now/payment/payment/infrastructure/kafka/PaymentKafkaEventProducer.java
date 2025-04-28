@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import table.eat.now.payment.payment.application.event.ReservationPaymentCancelledEvent;
 import table.eat.now.payment.payment.application.event.PaymentEvent;
 import table.eat.now.payment.payment.application.event.PaymentEventPublisher;
-import table.eat.now.payment.payment.application.event.ReservationPaymentFailedEvent;
 import table.eat.now.payment.payment.application.event.ReservationPaymentSucceedEvent;
 
 @Slf4j
@@ -22,12 +21,6 @@ public class PaymentKafkaEventProducer implements PaymentEventPublisher {
   public void publish(ReservationPaymentSucceedEvent successEvent) {
     kafkaTemplate.send(paymentTopic, successEvent.paymentUuid() ,successEvent);
     logEvent(successEvent);
-  }
-
-  @Override
-  public void publish(ReservationPaymentFailedEvent failedEvent) {
-    kafkaTemplate.send(paymentTopic, failedEvent.paymentUuid() ,failedEvent);
-    logEvent(failedEvent);
   }
 
   @Override
