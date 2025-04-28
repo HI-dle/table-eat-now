@@ -27,6 +27,9 @@ spring:
       max-poll-records: 100
       properties:
         spring.json.trusted.packages: "*"
+      concurrency: 3
+    consumer-dlt:
+      concurrency: 1
 eureka:
   client:
     service-url:

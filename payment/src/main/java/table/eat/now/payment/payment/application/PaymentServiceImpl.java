@@ -66,7 +66,7 @@ public class PaymentServiceImpl implements PaymentService {
 
   @Override
   @Transactional
-  @RecordCount(name = MetricName.PAYMENT_SERVICE_CANCEL)
+  @RecordCount(name = MetricName.PAYMENT_SERVICE_CONFIRM)
   public ConfirmPaymentInfo confirmPayment(
       ConfirmPaymentCommand command, CurrentUserInfoDto userInfo) {
     Payment payment = getPaymentByReservationId(command.reservationId());

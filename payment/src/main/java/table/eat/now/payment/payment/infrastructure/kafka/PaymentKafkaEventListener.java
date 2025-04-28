@@ -57,7 +57,7 @@ public class PaymentKafkaEventListener {
 
   private void handleReservationCancelFailure(Exception e) {
     metricRecorder.countFailure(MetricName.PAYMENT_KAFKA_RESERVATION_CANCEL.value());
-    log.error("예약 취소에 따른 결제 취소 처리 실패: {}", e.getMessage());
+    log.error("예약 취소에 따른 결제 취소 처리 실패", e);
     throw new RuntimeException(e);
   }
 
@@ -91,15 +91,15 @@ public class PaymentKafkaEventListener {
     ack.acknowledge();
 
     log.info("DLT 예약 취소에 따른 결제 취소 처리 완료: reservationId={}",
-        cancelEvent.payload().restaurantUuid());
+        cancelEvent.payload().reservationUuid());
     metricRecorder.countSuccess(MetricName.PAYMENT_KAFKA_RESERVATION_CANCEL_DLT.value());
   }
 
   private void handleReservationCancelDltFailure(
       ConsumerRecord<String, ReservationCancelledEvent> record, Exception e) {
     metricRecorder.countFailure(MetricName.PAYMENT_KAFKA_RESERVATION_CANCEL_DLT.value());
-    log.error("DLT 예약 취소 처리 최종 실패: reservationId={}, 오류={}",
-        record.value().payload().reservationUuid(), e.getMessage());
+    log.error("DLT 예약 취소 처리 최종 실패: reservationId={}, 오류=",
+        record.value().payload().reservationUuid(), e);
     throw new RuntimeException(e);
   }
 }

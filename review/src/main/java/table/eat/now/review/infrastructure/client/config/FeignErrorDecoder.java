@@ -16,13 +16,11 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.exception.ErrorResponse;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class FeignErrorDecoder implements ErrorDecoder {
 

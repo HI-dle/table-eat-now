@@ -1,5 +1,6 @@
 package table.eat.now.review.infrastructure.client.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.RequestInterceptor;
 import feign.Retryer;
 import feign.codec.ErrorDecoder;
@@ -17,7 +18,7 @@ import table.eat.now.common.constant.UserInfoConstant;
 @EnableFeignClients("table.eat.now.review.infrastructure.client.feign")
 public class FeignConfig {
 
-  private final FeignErrorDecoder feignErrorDecoder;
+  private final ObjectMapper objectMapper;
 
   @Bean
   public RequestInterceptor requestInterceptor() {
@@ -38,7 +39,7 @@ public class FeignConfig {
 
   @Bean
   public ErrorDecoder errorDecoder() {
-    return feignErrorDecoder;
+    return new FeignErrorDecoder(objectMapper);
   }
 
   @Bean

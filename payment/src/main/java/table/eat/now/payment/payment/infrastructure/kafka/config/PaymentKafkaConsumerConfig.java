@@ -39,8 +39,12 @@ public class PaymentKafkaConsumerConfig {
   private int fetchMaxWaitMs;
   @Value("${spring.kafka.consumer.max-poll-records}")
   private int maxPollRecords;
+  @Value("${spring.kafka.consumer.concurrency}")
+  private int defaultConcurrency;
+  @Value("${spring.kafka.consumer-dlt.concurrency}")
+  private int dltConcurrency;
 
-  private static final String TABLE_EAT_NOW = "table.eat.now.**";
+  private static final String TABLE_EAT_NOW = "table.eat.now";
   private static final String RESERVATION_CANCELLED_GROUP = "reservation-cancelled-consumer";
   private static final String RESERVATION_CANCELLED_DLT_GROUP = "reservation-cancelled-dlt-consumer";
 
@@ -98,7 +102,7 @@ public class PaymentKafkaConsumerConfig {
     factory.setRecordFilterStrategy(createEventTypeFilter(eventTypeName));
     factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
     factory.setAckDiscarded(true);
-    factory.setConcurrency(3);
+    factory.setConcurrency(defaultConcurrency);
     return factory;
   }
 
@@ -150,7 +154,7 @@ public class PaymentKafkaConsumerConfig {
 
     factory.setCommonErrorHandler(dltKafkaErrorHandler);
     factory.getContainerProperties().setAckMode(AckMode.MANUAL);
-    factory.setConcurrency(1);
+    factory.setConcurrency(dltConcurrency);
     return factory;
   }
 }

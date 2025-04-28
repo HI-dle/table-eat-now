@@ -1,21 +1,18 @@
 package table.eat.now.payment.payment.infrastructure.metric;
 
+import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import table.eat.now.payment.payment.application.metric.RecordCount;
 
 @Aspect
 @Component
+@RequiredArgsConstructor
 public class MetricRecorderAspect {
-  private final MetricRecorder metricRecorder;
 
-  @Autowired
-  public MetricRecorderAspect(MetricRecorder metricRecorder) {
-    this.metricRecorder = metricRecorder;
-  }
+  private final MetricRecorder metricRecorder;
 
   @Around("@annotation(recordCount)")
   public Object recordMetric(ProceedingJoinPoint joinPoint, RecordCount recordCount) throws Throwable {
