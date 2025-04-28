@@ -9,10 +9,10 @@ import table.eat.now.coupon.user_coupon.application.utils.LockProvider;
 
 @Builder
 @RequiredArgsConstructor
-public class LockDecorator<T> implements
-    Task<T> {
+public class UserCouponLockDecorator<T> implements
+    UserCouponTask<T> {
 
-  private final Task<T> delegate;
+  private final UserCouponTask<T> delegate;
   private final LockProvider lockProvider;
   private final List<String> lockKeys;
   private final LockTime lockTime;

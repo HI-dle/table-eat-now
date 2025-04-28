@@ -1,4 +1,4 @@
-package table.eat.now.coupon.coupon.application.aop.decorator;
+package table.eat.now.coupon.user_coupon.application.aop.decorator;
 
 import java.util.function.Supplier;
 import lombok.Builder;
@@ -6,10 +6,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Builder
-public class TransactionDecorator<T> implements Task<T> {
-  private final Task<T> delegate;
+public class UserCouponTransactionDecorator<T> implements UserCouponTask<T> {
+  private final UserCouponTask<T> delegate;
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   @Override
   public T execute(Supplier<T> supplier) {
     return supplier.get();

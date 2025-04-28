@@ -21,8 +21,8 @@ public class CouponTaskFactory<T> {
    *
    * @return 기본 기능만 제공하는 Task 인스턴스
    */
-  private Task<T> createSimpleTask() {
-    return new SimpleTask<>();
+  private CouponTask<T> createSimpleTask() {
+    return new CouponSimpleTask<>();
   }
 
   /**
@@ -32,13 +32,13 @@ public class CouponTaskFactory<T> {
    * @param condiment 기능 첨가
    * @return 기능이 조합된 Task 인스턴스
    */
-  public Task<T> createDecoratedTask(TaskCondiment condiment) {
+  public CouponTask<T> createDecoratedTask(CouponTaskCondiment condiment) {
 
-    Task<T> base = createSimpleTask();
+    CouponTask<T> base = createSimpleTask();
     //Task counted = wrapWithCount(base, metricName);
     //Task timed = wrapWithTimer(counted, metricName);
-    Task<T> transactioned = decoWithTransaction(base, condiment.transactional(), condiment.readOnly());
-    Task<T> locked = decoWithDistributedLock(transactioned, condiment.lockKeys(), condiment.lockTime());
+    CouponTask<T> transactioned = decoWithTransaction(base, condiment.transactional(), condiment.readOnly());
+    CouponTask<T> locked = decoWithDistributedLock(transactioned, condiment.lockKeys(), condiment.lockTime());
     return locked;
   }
 
@@ -50,16 +50,16 @@ public class CouponTaskFactory<T> {
    * @param readOnly 트랜잭션 읽기 옵션 설정
    * @return 트랜잭션 관리 기능이 추가된 Task
    */
-  private Task<T> decoWithTransaction(Task<T> delegate, boolean transactional, boolean readOnly) {
+  private CouponTask<T> decoWithTransaction(CouponTask<T> delegate, boolean transactional, boolean readOnly) {
 
     if (!transactional) return delegate;
     
     if (!readOnly) {
-      return TransactionDecorator.<T>builder()
+      return CouponTransactionDecorator.<T>builder()
           .delegate(delegate)
           .build();
     }
-    return TransactionReadOnlyDecorator.<T>builder()
+    return CouponTransactionReadOnlyDecorator.<T>builder()
         .delegate(delegate)
         .build();
   }
@@ -72,12 +72,12 @@ public class CouponTaskFactory<T> {
    * @param lockTime 락 시간 정보
    * @return 락 관리 기능이 추가된 Task
    */
-  private Task<T> decoWithDistributedLock(Task<T> delegate, List<String> lockKeys, LockTime lockTime) {
+  private CouponTask<T> decoWithDistributedLock(CouponTask<T> delegate, List<String> lockKeys, LockTime lockTime) {
     if (lockKeys == null || lockKeys.isEmpty()) {
       return delegate;
     }
 
-    return LockDecorator.<T>builder()
+    return CouponLockDecorator.<T>builder()
         .delegate(delegate)
         .lockProvider(lockProvider)
         .lockKeys(lockKeys)

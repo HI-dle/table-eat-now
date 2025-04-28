@@ -6,11 +6,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Builder
-public class TransactionReadOnlyDecorator<T> implements Task<T> {
+public class CouponTransactionReadOnlyDecorator<T> implements CouponTask<T> {
 
-  private final Task<T> delegate;
+  private final CouponTask<T> delegate;
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   @Override
   public T execute(Supplier<T> supplier) {
 

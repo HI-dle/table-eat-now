@@ -21,8 +21,8 @@ public class UserCouponTaskFactory<T> {
    *
    * @return 기본 기능만 제공하는 Task 인스턴스
    */
-  private Task<T> createSimpleTask() {
-    return new SimpleTask<>();
+  private UserCouponTask<T> createSimpleTask() {
+    return new UserCouponSimpleTask<>();
   }
 
   /**
@@ -32,12 +32,12 @@ public class UserCouponTaskFactory<T> {
    * @param condiment 기능 첨가
    * @return 기능이 조합된 Task 인스턴스
    */
-  public Task<T> createDecoratedTask(
-      TaskCondiment condiment) {
+  public UserCouponTask<T> createDecoratedTask(
+      UserCouponTaskCondiment condiment) {
 
-    Task<T> base = createSimpleTask();
-    Task<T> transactioned = decoWithTransaction(base, condiment.transactional(), condiment.readOnly());
-    Task<T> locked = decoWithDistributedLock(transactioned, condiment.lockKeys(), condiment.lockTime());
+    UserCouponTask<T> base = createSimpleTask();
+    UserCouponTask<T> transactioned = decoWithTransaction(base, condiment.transactional(), condiment.readOnly());
+    UserCouponTask<T> locked = decoWithDistributedLock(transactioned, condiment.lockKeys(), condiment.lockTime());
     return locked;
   }
 
@@ -49,17 +49,17 @@ public class UserCouponTaskFactory<T> {
    * @param readOnly 트랜잭션 읽기 옵션 설정
    * @return 트랜잭션 관리 기능이 추가된 Task
    */
-  private Task<T> decoWithTransaction(
-      Task<T> delegate, boolean transactional, boolean readOnly) {
+  private UserCouponTask<T> decoWithTransaction(
+      UserCouponTask<T> delegate, boolean transactional, boolean readOnly) {
 
     if (!transactional) return delegate;
     
     if (!readOnly) {
-      return TransactionDecorator.<T>builder()
+      return UserCouponTransactionDecorator.<T>builder()
           .delegate(delegate)
           .build();
     }
-    return TransactionReadOnlyDecorator.<T>builder()
+    return UserCouponTransactionReadOnlyDecorator.<T>builder()
         .delegate(delegate)
         .build();
   }
@@ -72,10 +72,10 @@ public class UserCouponTaskFactory<T> {
    * @param lockTime 락 시간 정보
    * @return 락 관리 기능이 추가된 Task
    */
-  private Task<T> decoWithDistributedLock(
-      Task<T> delegate, List<String> lockKeys, LockTime lockTime) {
+  private UserCouponTask<T> decoWithDistributedLock(
+      UserCouponTask<T> delegate, List<String> lockKeys, LockTime lockTime) {
 
-    return LockDecorator.<T>builder()
+    return UserCouponLockDecorator.<T>builder()
         .delegate(delegate)
         .lockProvider(lockProvider)
         .lockKeys(lockKeys)

@@ -21,6 +21,7 @@ public record GetCouponInfoI(
     Integer percent,
     Integer maxDiscountAmount,
     LocalDateTime createdAt,
-    Long createdBy
+    Long createdBy,
+    Long version
 ) {
 }

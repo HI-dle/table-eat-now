@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 import table.eat.now.coupon.coupon.application.aop.annotation.DistributedLock;
 import table.eat.now.coupon.coupon.application.aop.annotation.WithSimpleTransaction;
 import table.eat.now.coupon.coupon.application.aop.decorator.CouponTaskFactory;
-import table.eat.now.coupon.coupon.application.aop.decorator.Task;
-import table.eat.now.coupon.coupon.application.aop.decorator.TaskCondiment;
+import table.eat.now.coupon.coupon.application.aop.decorator.CouponTask;
+import table.eat.now.coupon.coupon.application.aop.decorator.CouponTaskCondiment;
 import table.eat.now.coupon.coupon.application.aop.dto.LockTime;
 import table.eat.now.coupon.coupon.application.utils.DistributedLockKeyGenerator;
 
@@ -40,10 +40,10 @@ public class CouponDistributedLockAspect {
         joinPoint.getArgs());
     LockTime lockTime = LockTime.from(distributedLock);
 
-    Task<Object> decoratedTask = taskFactory.createDecoratedTask(
-        TaskCondiment.of(keys, lockTime, withSimpleTransaction));
+    CouponTask<Object> decoratedCouponTask = taskFactory.createDecoratedTask(
+        CouponTaskCondiment.of(keys, lockTime, withSimpleTransaction));
 
-    return decoratedTask.execute(proceedSupplier(joinPoint));
+    return decoratedCouponTask.execute(proceedSupplier(joinPoint));
   }
 
   private Supplier<Object> proceedSupplier(ProceedingJoinPoint joinPoint) {

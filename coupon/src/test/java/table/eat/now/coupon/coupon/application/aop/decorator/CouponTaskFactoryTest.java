@@ -26,7 +26,7 @@ class CouponTaskFactoryTest extends IntegrationTestSupport {
     WithSimpleTransaction withSimpleTransaction = mock(WithSimpleTransaction.class);
     when(withSimpleTransaction.readOnly()).thenReturn(true);
 
-    TaskCondiment condiment = TaskCondiment.of(
+    CouponTaskCondiment condiment = CouponTaskCondiment.of(
         List.of("key"),
         LockTime.builder()
             .leaseTime(5)
@@ -37,11 +37,11 @@ class CouponTaskFactoryTest extends IntegrationTestSupport {
         );
 
     // when
-    Task decoratedTask = couponTaskFactory.createDecoratedTask(condiment);
+    CouponTask decoratedCouponTask = couponTaskFactory.createDecoratedTask(condiment);
 
     // then
-    Object delegate = ReflectionTestUtils.getField(decoratedTask,"delegate");
-    assertThat(decoratedTask).isInstanceOf(LockDecorator.class);
-    assertThat(delegate).isInstanceOf(TransactionReadOnlyDecorator.class);
+    Object delegate = ReflectionTestUtils.getField(decoratedCouponTask,"delegate");
+    assertThat(decoratedCouponTask).isInstanceOf(CouponLockDecorator.class);
+    assertThat(delegate).isInstanceOf(CouponTransactionReadOnlyDecorator.class);
   }
 }

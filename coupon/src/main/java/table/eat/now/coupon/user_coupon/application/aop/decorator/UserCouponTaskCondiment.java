@@ -6,15 +6,15 @@ import table.eat.now.coupon.user_coupon.application.aop.annotation.WithSimpleTra
 import table.eat.now.coupon.user_coupon.application.aop.dto.LockTime;
 
 @Builder
-public record TaskCondiment(
+public record UserCouponTaskCondiment(
     List<String> lockKeys,
     LockTime lockTime,
     boolean transactional,
     boolean readOnly
 ) {
 
-  public static TaskCondiment of(List<String> lockKeys, LockTime lockTime, WithSimpleTransaction withSimpleTransaction) {
-    return TaskCondiment.builder()
+  public static UserCouponTaskCondiment of(List<String> lockKeys, LockTime lockTime, WithSimpleTransaction withSimpleTransaction) {
+    return UserCouponTaskCondiment.builder()
         .lockKeys(lockKeys)
         .lockTime(lockTime)
         .transactional(withSimpleTransaction != null)
