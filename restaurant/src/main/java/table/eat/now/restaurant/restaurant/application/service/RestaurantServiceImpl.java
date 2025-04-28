@@ -145,8 +145,9 @@ public class RestaurantServiceImpl implements RestaurantService {
   }
 
   @Override
-  public void batchModifyRestaurantRating(List<RestaurantRatingUpdatedCommand> list) {
-
+  @Transactional
+  public void batchModifyRestaurantRating(List<RestaurantRatingUpdatedCommand> commands) {
+    restaurantRepository.batchModifyRestaurantRating(commands);
   }
 
   private Restaurant getRestaurantByStaffOrOwnerId(Long staffId) {
