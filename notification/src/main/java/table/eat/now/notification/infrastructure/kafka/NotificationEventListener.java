@@ -28,7 +28,6 @@ public class NotificationEventListener {
   public void handleNotificationSend(NotificationSendEvent notificationSendEvent) {
     try {
       notificationService.consumerNotification(notificationSendEvent);
-      log.info("나는 안되는데 : handleNotificationSend");
     } catch (Throwable e) {
       log.error("알림 전송 이벤트 에러 발생 {}", e.getMessage());
       throw e;
@@ -42,12 +41,12 @@ public class NotificationEventListener {
   public void handleNotificationScheduleSend(NotificationScheduleSendEvent event) {
     try {
       notificationService.consumerScheduleSendNotification(event);
-      log.info("나도 안되는데 : handleNotificationScheduleSend");
     } catch (Throwable e) {
       log.error("알림 스케줄 전송 이벤트 에러 발생 {}", e.getMessage());
       throw e;
     }
   }
+
   @KafkaListener(
       topics = "Notification-event-dlt",
       containerFactory = "notificationSendEventDltKafkaListenerContainerFactory"
@@ -70,6 +69,7 @@ public class NotificationEventListener {
       ack.acknowledge();
     }
   }
+
   @KafkaListener(
       topics = "Notification-schedule-event-dlt",
       containerFactory = "scheduleSendNotificationEventDltKafkaListenerContainerFactory"
@@ -81,13 +81,15 @@ public class NotificationEventListener {
       @Header(KafkaHeaders.OFFSET) Long offset,
       @Header(value = KafkaHeaders.EXCEPTION_MESSAGE, required = false) String errorMessage
   ) {
-    log.warn("NotificationScheduleSendEvent DLT 처리 시작 - partition: {}, offset: {}, errorMessage: {}",
+    log.warn(
+        "NotificationScheduleSendEvent DLT 처리 시작 - partition: {}, offset: {}, errorMessage: {}",
         partitionId, offset, errorMessage);
 
     try {
       notificationService.consumerScheduleSendNotification(event);
     } catch (Throwable e) {
-      log.error("NotificationScheduleSendEvent DLT 처리 실패 - 수동 처리 필요 - partition: {}, offset: {}, error: {}",
+      log.error(
+          "NotificationScheduleSendEvent DLT 처리 실패 - 수동 처리 필요 - partition: {}, offset: {}, error: {}",
           partitionId, offset, e.getMessage(), e);
     } finally {
       ack.acknowledge();
@@ -101,11 +103,34 @@ public class NotificationEventListener {
   public void handlePromotionSend(NotificationPromotionEvent event) {
     try {
       notificationService.consumerPromotionSendNotification(event);
-      log.info("나어야 하는데 : handleNotificationScheduleSend");
     } catch (Throwable e) {
       log.error("PromotionSendEvent 처리 실패 {}", e.getMessage());
       throw e;
     }
   }
 
+  @KafkaListener(
+      topics = "Notification-event-dlt",
+      containerFactory = "promotionSendNotificationEventDltKafkaListenerContainerFactory"
+  )
+  public void handlePromotionSendDlt(
+      NotificationPromotionEvent event,
+      Acknowledgment ack,
+      @Header(KafkaHeaders.RECEIVED_PARTITION) int partitionId,
+      @Header(KafkaHeaders.OFFSET) Long offset,
+      @Header(value = KafkaHeaders.EXCEPTION_MESSAGE, required = false) String errorMessage
+  ) {
+    log.warn("NotificationPromotionEvent DLT 처리 시작 - partition: {}, offset: {}, errorMessage: {}",
+        partitionId, offset, errorMessage);
+
+    try {
+      notificationService.consumerPromotionSendNotification(event);
+    } catch (Throwable e) {
+      log.error(
+          "NotificationPromotionEvent DLT 처리 실패 - 수동 처리 필요 - partition: {}, offset: {}, error: {}",
+          partitionId, offset, e.getMessage(), e);
+    } finally {
+      ack.acknowledge();
+    }
+  }
 }

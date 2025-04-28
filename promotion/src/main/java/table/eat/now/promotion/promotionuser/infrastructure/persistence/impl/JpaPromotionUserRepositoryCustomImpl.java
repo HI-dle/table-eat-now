@@ -32,6 +32,7 @@ public class JpaPromotionUserRepositoryCustomImpl implements JpaPromotionUserRep
   private final JPAQueryFactory queryFactory;
   private final EntityManager entityManager;
   private final MeterRegistry meterRegistry;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
 
   @Override
@@ -133,10 +134,11 @@ public class JpaPromotionUserRepositoryCustomImpl implements JpaPromotionUserRep
         "userId", user.getUserId()
     );
     try {
-      return new ObjectMapper().writeValueAsString(payloadMap);
+      return objectMapper.writeValueAsString(payloadMap);
     } catch (JsonProcessingException e) {
-      throw new RuntimeException("PromotionUser 알림 Payload 직렬화 실패", e);
+      throw new RuntimeException(
+          "PromotionUser 알림 Payload 직렬화 실패 - 사용자: " + user.getUserId() + ", 프로모션: "
+              + user.getPromotionUuid(), e);
     }
   }
-
 }

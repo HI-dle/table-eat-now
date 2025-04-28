@@ -199,4 +199,16 @@ public class NotificationKafkaConsumerConfig {
     factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
     return factory;
   }
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, NotificationPromotionEvent>
+  promotionSendNotificationEventDltKafkaListenerContainerFactory(KafkaTemplate<String, NotificationPromotionEvent> kafkaTemplate) {
+
+    ConcurrentKafkaListenerContainerFactory<String, NotificationPromotionEvent> factory =
+        createContainerFactory(promotionSendEventConsumerFactory(), EventType.PROMOTION_SEND.name());
+
+    factory.setCommonErrorHandler(getDefaultErrorHandler(kafkaTemplate, NOTIFICATION_EVENT_DLT));
+    factory.getContainerProperties().setIdleBetweenPolls(60000);
+    factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
+    return factory;
+  }
 }
