@@ -5,6 +5,8 @@ public class CouponCacheConstant {
     throw new IllegalStateException("Constant class");
   }
 
+  public static final String DIRTY_COUPON_SET = "coupon:dirty";
+
   public static final String COUPON_CACHE = "coupon:";
   public static final String COUPON_USER_SET = "coupon:user:";
 

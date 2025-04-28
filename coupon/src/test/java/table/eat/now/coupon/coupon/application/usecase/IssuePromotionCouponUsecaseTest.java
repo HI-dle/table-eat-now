@@ -9,6 +9,11 @@ import static org.mockito.Mockito.verify;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +30,7 @@ import table.eat.now.coupon.coupon.domain.reader.CouponReader;
 import table.eat.now.coupon.coupon.domain.store.CouponStore;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
 import table.eat.now.coupon.coupon.infrastructure.exception.CouponInfraErrorCode;
+import table.eat.now.coupon.coupon.infrastructure.persistence.redis.RedisCouponCacheManager;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
 
 class IssuePromotionCouponUsecaseTest extends IntegrationTestSupport {
@@ -34,9 +40,10 @@ class IssuePromotionCouponUsecaseTest extends IntegrationTestSupport {
 
   @Autowired
   private CouponReader couponReader;
-
   @Autowired
   private CouponStore couponStore;
+  @Autowired
+  private RedisCouponCacheManager redisCouponCacheManager;
 
   @MockitoBean
   private EventPublisher<CouponRequestedIssueEvent> eventPublisher;
@@ -105,31 +112,36 @@ class IssuePromotionCouponUsecaseTest extends IntegrationTestSupport {
     assertThat(updated.getIssuedCount()).isEqualTo(1);
   }
 
-//  @DisplayName("프로모션 쿠폰 발급 이벤트 처리: 100명이 동시에 발급 요청시 100개 발급 확인 - 성공")
-//  @Test
-//  void successWithConcurrentRequest() {
-//    // given
-//    IssuePromotionCouponCommand command = IssuePromotionCouponCommand.builder()
-//        .couponUuid(coupon.getCouponUuid())
-//        .userId(1L)
-//        .timestamp(Instant.now().toEpochMilli())
-//        .build();
-//    IssuePromotionCouponCommand command2 = IssuePromotionCouponCommand.builder()
-//        .couponUuid(coupon.getCouponUuid())
-//        .userId(1L)
-//        .timestamp(Instant.now().toEpochMilli() + 100) // idempotencyKey 에러 발생 방지
-//        .build();
-//
-//    // when
-//    issuePromotionCouponUsecase.execute(command);
-//
-//    // then
-//    assertThatThrownBy(() -> issuePromotionCouponUsecase.execute(command2))
-//        .isInstanceOf(CustomException.class)
-//        .hasMessage(CouponInfraErrorCode.DUPLICATED_REQUEST.getMessage());
-//
-//    Coupon updated = couponReader.findValidCouponByUuid(coupon.getCouponUuid())
-//        .orElseThrow(RuntimeException::new);
-//    assertThat(updated.getIssuedCount()).isEqualTo(1);
-//  }
+  @DisplayName("프로모션 쿠폰 발급 이벤트 처리: 100명이 동시에 발급 요청시 100개 발급 확인 - 성공")
+  @Test
+  void successWithConcurrentRequest() {
+    // given
+    ReflectionTestUtils.setField(coupon, "count", 100);
+    redisCouponCacheManager.putCouponCache(coupon.getCouponUuid(), coupon);
+
+    List<IssuePromotionCouponCommand> commands = IntStream.range(0, 100)
+        .mapToObj(i -> IssuePromotionCouponCommand.builder()
+            .couponUuid(coupon.getCouponUuid())
+            .userId((long) i)
+            .timestamp(Instant.now().toEpochMilli() + i * 100L)
+            .build())
+        .toList();
+
+    int threadCount = 20;
+    ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+
+    // when
+    List<CompletableFuture<Void>> futures = IntStream.range(0, 100)
+        .mapToObj(i -> CompletableFuture.runAsync(() ->
+            issuePromotionCouponUsecase.execute(commands.get(i)),
+            executorService)
+        )
+        .toList();
+
+    futures.forEach(CompletableFuture::join);
+
+    // then
+    Coupon updated = redisCouponCacheManager.getCouponCache(coupon.getCouponUuid());
+    assertThat(updated.getIssuedCount()).isEqualTo(100);
+  }
 }

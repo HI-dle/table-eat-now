@@ -4,6 +4,7 @@ import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.const
 import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.COUPON_USER_SET;
 import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.DAILY_ISSUABLE_HOT_COUPON_INDEX;
 import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.DAILY_ISSUABLE_PROMO_COUPON_INDEX;
+import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.DIRTY_COUPON_SET;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.time.Duration;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisOperations;
@@ -70,8 +71,8 @@ public class RedisCouponCacheManager {
         MapperProvider.convertValue(coupon, new TypeReference<>() {}));
   }
 
-  public Long decreaseCouponCount(String key, String field) {
-    return redisTemplate.opsForHash().increment(key, field, -1);
+  public Long increaseCouponCount(String key, String issuedCoupon) {
+    return redisTemplate.opsForHash().increment(key, issuedCoupon, 1);
   }
 
   public void pipelinedPutCouponsCacheAndIndex(List<CouponCachingAndIndexing> coupons) {
@@ -117,12 +118,12 @@ public class RedisCouponCacheManager {
 
   public List<Coupon> getCouponsCacheBy(String indexKey) {
 
-    List<Object> couponKeys = Objects.requireNonNull(
-        redisTemplate.opsForZSet().range(indexKey, 0, -1)).stream().toList();
-
-    if (couponKeys == null || couponKeys.isEmpty()) {
+    Set<Object> couponKeySet = redisTemplate.opsForZSet().range(indexKey, 0, -1);
+    if (couponKeySet == null || couponKeySet.isEmpty()) {
       return Collections.emptyList();
     }
+    List<Object> couponKeys = couponKeySet.stream().toList();
+
     List<Object> results = redisTemplate.executePipelined(new SessionCallback<> () {
       @Override
       public Object execute(RedisOperations operations) {
@@ -136,6 +137,7 @@ public class RedisCouponCacheManager {
     List<Coupon> couponList = new ArrayList<>();
     for (int i = 0; i < results.size(); i++) {
       Map<Object, Object> couponData = (Map<Object, Object>) results.get(i);
+
       if (couponData != null && !couponData.isEmpty()) {
         couponList.add(MapperProvider.convertValue(couponData, Coupon.class));
       } else {
@@ -158,7 +160,7 @@ public class RedisCouponCacheManager {
         .toString();
     // todo. 현재 idempotency 키가 명확하지 않음. 리팩토링 가능
 
-    List<String> keys = List.of(userSetKey, couponKey, idempotencyKey);
+    List<String> keys = List.of(userSetKey, couponKey, idempotencyKey, DIRTY_COUPON_SET);
     List<String> args = List.of(command.userId().toString());
 
     Long result = executeLuaScript(
