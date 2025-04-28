@@ -1,0 +1,25 @@
+spring:
+  config.activate.on-profile: local
+  kafka:
+    bootstrap-servers: ${LOCAL_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+
+---
+spring:
+  config.activate.on-profile: test
+  kafka:
+    bootstrap-servers: ${LOCAL_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+
+---
+spring:
+  config.activate.on-profile: develop
+  kafka:
+    bootstrap-servers: ${DEV_KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false

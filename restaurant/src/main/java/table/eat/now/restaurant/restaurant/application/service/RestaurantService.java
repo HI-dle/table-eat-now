@@ -4,10 +4,12 @@
  */
 package table.eat.now.restaurant.restaurant.application.service;
 
+import java.util.List;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.CreateRestaurantCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantCriteria;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantsCriteria;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.ModifyRestaurantCommand;
+import table.eat.now.restaurant.restaurant.application.service.dto.request.RestaurantRatingUpdatedCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.CreateRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantSimpleInfo;
@@ -28,4 +30,6 @@ public interface RestaurantService {
   void increaseOrDecreaseTimeSlotGuestCount(String restaurantTimeSlotUuid, int delta);
 
   ModifyRestaurantInfo modifyRestaurant(ModifyRestaurantCommand command);
+
+  void batchModifyRestaurantRating(List<RestaurantRatingUpdatedCommand> list);
 }

@@ -6,6 +6,7 @@ package table.eat.now.restaurant.restaurant.application.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,6 +23,7 @@ import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRe
 import table.eat.now.restaurant.restaurant.application.service.dto.request.ModifyRestaurantCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.ModifyRestaurantCommand.MenuCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.ModifyRestaurantCommand.TimeSlotCommand;
+import table.eat.now.restaurant.restaurant.application.service.dto.request.RestaurantRatingUpdatedCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.CreateRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantSimpleInfo;
@@ -140,6 +142,11 @@ public class RestaurantServiceImpl implements RestaurantService {
         .restaurantUuid(command.restaurantUuid())
         .name(command.name())
         .build();
+  }
+
+  @Override
+  public void batchModifyRestaurantRating(List<RestaurantRatingUpdatedCommand> list) {
+
   }
 
   private Restaurant getRestaurantByStaffOrOwnerId(Long staffId) {
