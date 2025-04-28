@@ -8,6 +8,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
+import table.eat.now.notification.application.event.produce.NotificationPromotionEvent;
 import table.eat.now.notification.application.event.produce.NotificationScheduleSendEvent;
 import table.eat.now.notification.application.event.produce.NotificationSendEvent;
 import table.eat.now.notification.application.service.NotificationService;
@@ -27,6 +28,7 @@ public class NotificationEventListener {
   public void handleNotificationSend(NotificationSendEvent notificationSendEvent) {
     try {
       notificationService.consumerNotification(notificationSendEvent);
+      log.info("나는 안되는데 : handleNotificationSend");
     } catch (Throwable e) {
       log.error("알림 전송 이벤트 에러 발생 {}", e.getMessage());
       throw e;
@@ -40,6 +42,7 @@ public class NotificationEventListener {
   public void handleNotificationScheduleSend(NotificationScheduleSendEvent event) {
     try {
       notificationService.consumerScheduleSendNotification(event);
+      log.info("나도 안되는데 : handleNotificationScheduleSend");
     } catch (Throwable e) {
       log.error("알림 스케줄 전송 이벤트 에러 발생 {}", e.getMessage());
       throw e;
@@ -69,7 +72,7 @@ public class NotificationEventListener {
   }
   @KafkaListener(
       topics = "Notification-schedule-event-dlt",
-      containerFactory = "notificationScheduleSendEventDltKafkaListenerContainerFactory"
+      containerFactory = "scheduleSendNotificationEventDltKafkaListenerContainerFactory"
   )
   public void handleNotificationScheduleSendDlt(
       NotificationScheduleSendEvent event,
@@ -91,5 +94,18 @@ public class NotificationEventListener {
     }
   }
 
+  @KafkaListener(
+      topics = NOTIFICATION_TOPIC_NAME,
+      containerFactory = "promotionSendNotificationEventKafkaListenerContainerFactory"
+  )
+  public void handlePromotionSend(NotificationPromotionEvent event) {
+    try {
+      notificationService.consumerPromotionSendNotification(event);
+      log.info("나어야 하는데 : handleNotificationScheduleSend");
+    } catch (Throwable e) {
+      log.error("PromotionSendEvent 처리 실패 {}", e.getMessage());
+      throw e;
+    }
+  }
 
 }

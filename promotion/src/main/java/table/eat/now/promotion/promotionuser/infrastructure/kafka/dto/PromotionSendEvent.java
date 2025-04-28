@@ -2,8 +2,8 @@ package table.eat.now.promotion.promotionuser.infrastructure.kafka.dto;
 
 
 import lombok.Builder;
-import table.eat.now.promotion.promotionuser.application.event.EventType;
-import table.eat.now.promotion.promotionuser.application.event.PromotionEvent;
+import table.eat.now.promotion.promotion.application.event.EventType;
+import table.eat.now.promotion.promotion.application.event.PromotionEvent;
 
 @Builder
 public record PromotionSendEvent(
@@ -13,7 +13,7 @@ public record PromotionSendEvent(
 
   public static PromotionSendEvent from(PromotionSendPayload payload) {
     return PromotionSendEvent.builder()
-        .eventType(EventType.SEND)
+        .eventType(EventType.PROMOTION_SEND)
         .payload(payload)
         .build();
   }

@@ -11,6 +11,6 @@ import table.eat.now.promotion.promotionuser.domain.outbox.entity.PromotionUserO
 public interface PromotionUserOutboxRepository {
 
   List<PromotionUserOutbox> findTop100ByStatusOrderByCreatedAtAsc(OutboxStatus status);
-  void saveAll(List<PromotionUserOutbox> promotionUserOutboxes);
+  <S extends PromotionUserOutbox> List<S> saveAll(Iterable<S> promotionUserOutboxes);
 
 }

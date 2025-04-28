@@ -13,8 +13,8 @@ public class PromotionKafkaTopicConfig {
 
   private static final String PROMOTION_TOPIC_DLT = "promotion-event-dlt";
 
-  private static final String NOTIFICATION_TOPIC_NAME = "notification_event";
-  private static final String NOTIFICATION_TOPIC_DLT = "notification_event-dlt";
+  private static final String NOTIFICATION_TOPIC_NAME = "notification-event";
+  private static final String NOTIFICATION_TOPIC_DLT = "notification-event-dlt";
 
   @Value("${kafka.topic.promotion.partitions:3}")
   private int partitions;

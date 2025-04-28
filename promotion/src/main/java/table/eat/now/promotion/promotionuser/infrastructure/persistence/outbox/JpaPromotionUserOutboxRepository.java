@@ -14,4 +14,5 @@ public interface JpaPromotionUserOutboxRepository extends PromotionUserOutboxRep
     JpaRepository<PromotionUserOutbox, Long> {
 
   List<PromotionUserOutbox> findTop100ByStatusOrderByCreatedAtAsc(OutboxStatus status);
+
 }

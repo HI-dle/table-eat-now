@@ -12,6 +12,9 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import table.eat.now.notification.application.event.NotificationEvent;
+import table.eat.now.notification.application.event.produce.NotificationPromotionEvent;
+import table.eat.now.notification.application.event.produce.NotificationScheduleSendEvent;
+import table.eat.now.notification.application.event.produce.NotificationSendEvent;
 import table.eat.now.notification.infrastructure.kafka.interceptor.EventTypeHeaderInterceptor;
 
 
@@ -54,6 +57,21 @@ public class NotificationKafkaProducerConfig {
 
   @Bean
   public KafkaTemplate<String, NotificationEvent> kafkaTemplate() {
+    return new KafkaTemplate<>(producerFactory());
+  }
+
+  @Bean
+  public KafkaTemplate<String, NotificationSendEvent> notificationSendEventKafkaTemplate() {
+    return new KafkaTemplate<>(producerFactory());
+  }
+
+  @Bean
+  public KafkaTemplate<String, NotificationScheduleSendEvent> notificationScheduleSendEventKafkaTemplate() {
+    return new KafkaTemplate<>(producerFactory());
+  }
+
+  @Bean
+  public KafkaTemplate<String, NotificationPromotionEvent> notificationPromotionEventKafkaTemplate() {
     return new KafkaTemplate<>(producerFactory());
   }
 }
