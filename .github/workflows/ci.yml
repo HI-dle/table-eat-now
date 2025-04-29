@@ -68,7 +68,7 @@ jobs:
           REGION="ap-northeast-2"
           ECR_REPOSITORY="hidle-ecr"
           IMAGE_TAG=${{ matrix.module }}
-          
+          cp -r ten-private/.env.* .
           docker build -t ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG -f ${{ matrix.module }}/Dockerfile . 
           docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
 
