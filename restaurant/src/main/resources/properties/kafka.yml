@@ -28,7 +28,7 @@ spring:
 spring:
   config.activate.on-profile: prod
   kafka:
-    bootstrap-servers: ${DEV_KAFKA_BOOTSTRAP_SERVERS}
+    bootstrap-servers: ${PROD_KAFKA_BOOTSTRAP_SERVERS}
     consumer:
       auto-offset-reset: earliest
       enable-auto-commit: false
