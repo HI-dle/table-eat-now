@@ -4,6 +4,11 @@ on:
     branches:
       - feat/#222
       - main
+#  workflow_run:
+#    workflows: CI - docker image build and ecr push
+#    branches: main
+#    types:
+#      - completed
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
@@ -51,7 +56,7 @@ jobs:
         with:
           token: ${{ secrets.ACTION_TOKEN }}
           submodules: true
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # Shallow clones should be disabled
 
       - name: Get current time
         uses: 1466587594/get-current-time@v2
@@ -69,4 +74,4 @@ jobs:
           environment_name: Table-eat-now-${{ matrix.module }}-blue-env
           version_label: "github-action--${{ steps.deploy-time.outputs.formattedTime }}"
           region: ap-northeast-2
-          deployment_package: ${{ matrix.module }}/Dockerrun.aws.json
+          deployment_package: ${{ matrix.module }}/docker-compose.yml
