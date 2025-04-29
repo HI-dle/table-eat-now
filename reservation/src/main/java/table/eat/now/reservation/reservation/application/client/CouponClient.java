@@ -6,11 +6,11 @@ package table.eat.now.reservation.reservation.application.client;
 
 import java.util.Set;
 import table.eat.now.reservation.reservation.application.client.dto.request.PreemptCouponCommand;
-import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo;
+import table.eat.now.reservation.reservation.application.client.dto.response.GetUserCouponsInfo;
 
 public interface CouponClient {
 
-  GetCouponsInfo getCoupons(Set<String> uuids);
+  GetUserCouponsInfo getUserCoupons(Set<String> uuids);
 
   void preemptCoupon(PreemptCouponCommand command);
 }
