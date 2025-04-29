@@ -23,9 +23,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -34,18 +32,12 @@ import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponInfo;
 import table.eat.now.coupon.coupon.application.service.dto.response.PageResponse;
 import table.eat.now.coupon.coupon.application.service.dto.response.SearchCouponInfo;
-import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
 import table.eat.now.coupon.coupon.presentation.dto.request.CreateCouponRequest;
 import table.eat.now.coupon.coupon.presentation.dto.request.UpdateCouponRequest;
 import table.eat.now.coupon.helper.ControllerTestSupport;
 
-
-@WebMvcTest(CouponAdminController.class)
 class CouponAdminControllerTest extends ControllerTestSupport {
-
-  @MockitoBean
-  private CouponService couponService;
 
   @BeforeEach
   void setUp() {

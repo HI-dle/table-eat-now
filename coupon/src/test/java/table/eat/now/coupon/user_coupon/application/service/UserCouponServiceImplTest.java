@@ -24,12 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
-import table.eat.now.coupon.user_coupon.application.client.CouponClient;
 import table.eat.now.coupon.user_coupon.application.client.dto.response.GetCouponInfoI;
 import table.eat.now.coupon.user_coupon.application.dto.request.IssueUserCouponCommand;
 import table.eat.now.coupon.user_coupon.application.dto.request.PreemptUserCouponCommand;
@@ -50,9 +48,6 @@ class UserCouponServiceImplTest extends IntegrationTestSupport {
 
   @Autowired
   private UserCouponRepository userCouponRepository;
-
-  @MockitoBean
-  private CouponClient couponClient;
 
   private List<UserCoupon> userCoupons;
 
