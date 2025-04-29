@@ -23,7 +23,7 @@ public class UserCouponRedisConfig {
   private static final String REDISSON_HOST_PREFIX = "redis://";
 
   @Bean
-  public RedissonClient redissonClient() {
+  public RedissonClient userCouponRedissonClient() {
     Config config = new Config();
     config.useSingleServer()
         .setAddress(REDISSON_HOST_PREFIX + host + ":" + port);

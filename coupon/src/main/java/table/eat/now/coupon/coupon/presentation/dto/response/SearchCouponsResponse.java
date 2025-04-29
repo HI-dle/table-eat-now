@@ -3,8 +3,8 @@ package table.eat.now.coupon.coupon.presentation.dto.response;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
-import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
-import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.PageResponse;
+import table.eat.now.coupon.coupon.application.service.dto.response.SearchCouponInfo;
 
 @Builder
 public record SearchCouponsResponse(
@@ -43,7 +43,8 @@ public record SearchCouponsResponse(
       Integer percent,
       Integer maxDiscountAmount,
       LocalDateTime createdAt,
-      Long createdBy
+      Long createdBy,
+      Long version
   ) {
 
     public static SearchCouponResponse from(SearchCouponInfo searchCouponInfo) {
@@ -65,6 +66,7 @@ public record SearchCouponsResponse(
           .maxDiscountAmount(searchCouponInfo.maxDiscountAmount())
           .createdAt(searchCouponInfo.createdAt())
           .createdBy(searchCouponInfo.createdBy())
+          .version(searchCouponInfo.version())
           .build();
     }
   }

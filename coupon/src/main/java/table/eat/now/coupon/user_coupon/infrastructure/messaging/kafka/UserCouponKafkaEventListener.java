@@ -1,10 +1,9 @@
 package table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka;
 
-import static table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.config.UserCouponConsumerConfig.PROMOTION_EVENT;
+import static table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.config.UserCouponConsumerConfig.COUPON_EVENT;
 import static table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.config.UserCouponConsumerConfig.RESERVATION_EVENT;
 import static table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.config.UserCouponConsumerConfig.RESERVATION_EVENT_DLT;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +17,8 @@ import org.springframework.stereotype.Component;
 import table.eat.now.coupon.user_coupon.application.dto.request.IssueUserCouponCommand;
 import table.eat.now.coupon.user_coupon.application.service.UserCouponService;
 import table.eat.now.coupon.user_coupon.application.usecase.IssuePromotionUserCouponUsecase;
-import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.dto.PromotionParticipatedCouponEvent;
-import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.dto.ReservationCancelledEvent;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.event.CouponRequestedIssueEvent;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.event.ReservationCancelledEvent;
 
 @Slf4j
 @Component
@@ -72,36 +71,28 @@ public class UserCouponKafkaEventListener {
   }
 
   @KafkaListener(
-      topics = PROMOTION_EVENT,
-      containerFactory = "promotionParticipatedCouponEventKafkaListenerContainerFactory"
+      topics = COUPON_EVENT,
+      containerFactory = "couponRequestedIssueEventKafkaListenerContainerFactory"
   )
-  public void listenPromotionParticipatedCouponEvent(
-      List<ConsumerRecord<String, PromotionParticipatedCouponEvent>> records, Acknowledgment ack) {
-    log.info("프로모션 참여 쿠폰 발행 이벤트 처리: from: {}, to: {}",
+  public void listenCouponRequestedIssueEvent(
+      List<ConsumerRecord<String, CouponRequestedIssueEvent>> records, Acknowledgment ack) {
+    log.info("쿠폰 발행 이벤트 처리: from: {}, to: {}",
         records.get(0).offset(),
         records.get(records.size() - 1).offset());
     try {
 
-      List<ConsumerRecord<String, PromotionParticipatedCouponEvent>>
-          recordsWithoutCouponInfo = new ArrayList<>();
       List<IssueUserCouponCommand> commands = new ArrayList<>();
 
-      for (ConsumerRecord<String, PromotionParticipatedCouponEvent> record : records) {
-        PromotionParticipatedCouponEvent event = record.value();
-        // todo 프로모션 쿠폰 정보 조회해와서 조합하기
-        // 쿠폰 정보 없는 경우 제외
-        if (false) {
-          record.headers().add("X-Retryable", "false".getBytes(StandardCharsets.UTF_8));
-          recordsWithoutCouponInfo.add(record);
-          continue;
-        }
+      for (ConsumerRecord<String, CouponRequestedIssueEvent> record : records) {
+        CouponRequestedIssueEvent event = record.value();
+
         commands.add(event.toCommand());
       }
       ipucUsecase.execute(commands);
 
       ack.acknowledge();
     } catch (Throwable e) {
-      log.warn("프로모션 참여 쿠폰 발행 이벤트 배치 처리 예외 발생: from: {}, to: {}",
+      log.warn("쿠폰 발행 이벤트 배치 처리 예외 발생: from: {}, to: {}",
           records.get(0).offset(),
           records.get(records.size() - 1).offset(),
           e);

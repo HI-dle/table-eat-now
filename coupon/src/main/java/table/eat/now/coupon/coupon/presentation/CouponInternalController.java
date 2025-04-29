@@ -1,5 +1,6 @@
 package table.eat.now.coupon.coupon.presentation;
 
+import jakarta.validation.constraints.NotEmpty;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -10,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import table.eat.now.common.aop.annotation.AuthCheck;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponsInfoI;
 import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.presentation.dto.response.GetCouponResponse;
 import table.eat.now.coupon.coupon.presentation.dto.response.GetCouponsResponseI;
@@ -28,7 +29,7 @@ public class CouponInternalController {
       @PathVariable UUID couponUuid
   ) {
 
-    GetCouponInfo coupon = couponService.getCoupon(couponUuid.toString());
+    GetCouponInfo coupon = couponService.getCouponInfo(couponUuid.toString());
     return ResponseEntity.ok()
         .body(GetCouponResponse.from(coupon));
   }
@@ -36,7 +37,7 @@ public class CouponInternalController {
   @AuthCheck
   @GetMapping
   public ResponseEntity<GetCouponsResponseI> getCouponsInternal(
-      @RequestParam Set<UUID> couponUuids
+      @RequestParam @NotEmpty Set<UUID> couponUuids
   ) {
 
     GetCouponsInfoI coupons = couponService.getCouponsInternal(couponUuids);

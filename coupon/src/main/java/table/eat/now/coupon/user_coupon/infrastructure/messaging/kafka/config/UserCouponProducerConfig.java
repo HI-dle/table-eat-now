@@ -11,8 +11,8 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.dto.PromotionEvent;
-import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.dto.ReservationEvent;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.event.CouponEvent;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.event.ReservationEvent;
 import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.interceptor.EventTypeHeaderInterceptor;
 
 @Configuration
@@ -54,12 +54,12 @@ public class UserCouponProducerConfig {
   }
 
   @Bean
-  public KafkaTemplate<String, ReservationEvent> kafkaTemplate() {
+  public KafkaTemplate<String, ReservationEvent> kafkaReservationDltTemplate() {
     return new KafkaTemplate<>(producerFactory());
   }
 
   @Bean
-  public KafkaTemplate<String, PromotionEvent> kafkaPromotionTemplate() {
+  public KafkaTemplate<String, CouponEvent> kafkaCouponDltTemplate() {
     return new KafkaTemplate<>(batchProducerFactory());
   }
 }

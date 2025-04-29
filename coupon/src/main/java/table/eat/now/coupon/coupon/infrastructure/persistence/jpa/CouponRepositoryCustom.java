@@ -10,5 +10,5 @@ public interface CouponRepositoryCustom {
 
   Page<Coupon> searchCouponByPageableAndCondition(Pageable pageable, CouponCriteria criteria);
 
-  Page<Coupon> getAvailableCoupons(Pageable pageable, LocalDateTime time);
+  Page<Coupon> getAvailableGeneralCoupons(Pageable pageable, LocalDateTime time);
 }
