@@ -51,3 +51,21 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: false
+
+---
+# prod 환경
+spring:
+  config.activate.on-profile: prod
+  jpa:
+    generate-ddl: true
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 1000
+        order_inserts: true
+        order_updates: true
+    hibernate:
+      ddl-auto: update
+    open-in-view: false

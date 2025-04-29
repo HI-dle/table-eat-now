@@ -2,7 +2,7 @@ spring:
   config.activate.on-profile: local
 management:
   server:
-    port: 19044
+    port: 19043
     address: 127.0.0.1
   endpoints:
     health:
@@ -24,7 +24,7 @@ spring:
   config.activate.on-profile: develop
 management:
   server:
-    port: 19044
+    port: 19043
     address: 127.0.0.1
   endpoints:
     health:
@@ -46,7 +46,7 @@ spring:
   config.activate.on-profile: prod
 management:
   server:
-    port: 19044
+    port: 19043
     address: 172.31.38.190
   endpoints:
     health:
