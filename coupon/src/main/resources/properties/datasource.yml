@@ -41,3 +41,18 @@ spring:
         rewriteBatchedInserts: true
         # rewriteBatchedStatements: true # mysql 용
 #      schema: ten
+
+---
+# prod 환경
+spring:
+  config.activate.on-profile: prod
+  datasource:
+    url: ${PROD_DB_URL}
+    username: ${PROD_DB_USERNAME}
+    password: ${PROD_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      data-source-properties:
+        rewriteBatchedInserts: true
+        # rewriteBatchedStatements: true # mysql 용
+#      schema: ten

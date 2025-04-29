@@ -35,3 +35,16 @@ kafka:
       partitions: 3
       replicas: 3
       min-insync-replicas: 2
+
+---
+spring:
+  config.activate.on-profile: prod
+  kafka:
+    bootstrap-servers: ${PROD_KAFKA_BOOTSTRAP_SERVERS}
+
+kafka:
+  topic:
+    waiting-request:
+      partitions: 3
+      replicas: 1
+      min-insync-replicas: 1
