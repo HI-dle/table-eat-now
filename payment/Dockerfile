@@ -19,8 +19,6 @@ WORKDIR /app
 
 COPY --from=build /workspace/payment/build/libs/*.jar app.jar
 
-RUN apt-get update && apt-get install -y curl
-
 EXPOSE 8088
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
