@@ -19,9 +19,9 @@ spring:
     bootstrap-servers: ${DEV_KAFKA_BOOTSTRAP_SERVERS}
   data:
     redis:
-      host: localhost
-      port: 6380
-      username: default
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
+      username: ${SPRING_DATA_REDIS_USERNAME}
 #      password: systempass
 
 
