@@ -11,7 +11,6 @@ import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 import static table.eat.now.payment.payment.application.exception.PaymentErrorCode.PAYMENT_ACCESS_DENIED;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,52 +19,21 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import table.eat.now.common.aop.AuthCheckAspect;
-import table.eat.now.common.config.WebConfig;
 import table.eat.now.common.exception.CustomException;
-import table.eat.now.common.exception.GlobalErrorHandler;
 import table.eat.now.common.exception.type.ApiErrorCode;
-import table.eat.now.common.resolver.CurrentUserInfoResolver;
-import table.eat.now.common.resolver.CustomPageableArgumentResolver;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
-import table.eat.now.payment.payment.application.PaymentService;
 import table.eat.now.payment.payment.application.dto.response.ConfirmPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.GetCheckoutDetailInfo;
 import table.eat.now.payment.payment.application.dto.response.GetPaymentInfo;
 import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
 import table.eat.now.payment.payment.application.dto.response.SearchPaymentsInfo;
+import table.eat.now.payment.payment.global.support.ControllerTestSupport;
 import table.eat.now.payment.payment.presentation.dto.request.ConfirmPaymentRequest;
 
-@ActiveProfiles("test")
-@Import({
-    WebConfig.class,
-    CustomPageableArgumentResolver.class,
-    CurrentUserInfoResolver.class,
-    GlobalErrorHandler.class,
-    AuthCheckAspect.class
-})
-@EnableAspectJAutoProxy(proxyTargetClass = true)
-@WebMvcTest(PaymentApiController.class)
-class PaymentApiControllerTest {
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @MockitoBean
-  private PaymentService paymentService;
+class PaymentApiControllerTest extends ControllerTestSupport {
 
   @Nested
   class 체크아웃_정보_조회_시 {

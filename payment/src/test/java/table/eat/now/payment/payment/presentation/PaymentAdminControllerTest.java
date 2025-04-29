@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,48 +19,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import table.eat.now.common.aop.AuthCheckAspect;
-import table.eat.now.common.config.WebConfig;
-import table.eat.now.common.exception.GlobalErrorHandler;
 import table.eat.now.common.exception.type.ApiErrorCode;
-import table.eat.now.common.resolver.CurrentUserInfoResolver;
-import table.eat.now.common.resolver.CustomPageableArgumentResolver;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
-import table.eat.now.payment.payment.application.PaymentService;
 import table.eat.now.payment.payment.application.dto.request.SearchMasterPaymentsQuery;
 import table.eat.now.payment.payment.application.dto.response.PaginatedInfo;
 import table.eat.now.payment.payment.application.dto.response.SearchPaymentsInfo;
+import table.eat.now.payment.payment.global.support.ControllerTestSupport;
 
-@ActiveProfiles("test")
-@Import({
-    WebConfig.class,
-    CustomPageableArgumentResolver.class,
-    CurrentUserInfoResolver.class,
-    GlobalErrorHandler.class,
-    AuthCheckAspect.class
-})
-@EnableAspectJAutoProxy(proxyTargetClass = true)
-@WebMvcTest(PaymentAdminController.class)
-class PaymentAdminControllerTest {
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @MockitoBean
-  private PaymentService paymentService;
+class PaymentAdminControllerTest extends ControllerTestSupport {
 
   @Nested
   class 관리자_결제_목록_조회_시 {
