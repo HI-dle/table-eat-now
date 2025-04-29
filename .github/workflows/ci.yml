@@ -1,11 +1,9 @@
 name: CI - docker image build and ecr push
 on:
-  pull_request:
-    branches:
-      - 'feat/#220'
   push:
     branches:
       - main
+      - feat/#220
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
