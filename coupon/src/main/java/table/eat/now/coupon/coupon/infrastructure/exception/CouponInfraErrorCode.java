@@ -28,6 +28,9 @@ public enum CouponInfraErrorCode implements ErrorCode {
   NOT_FOUND_LUA_SCRIPT(
       "서버 오류가 발생하였습니다.",
       HttpStatus.INTERNAL_SERVER_ERROR),
+  FAILED_LUA_SCRIPT(
+      "루아 스크립트 실행에 실패하였습니다.",
+      HttpStatus.INTERNAL_SERVER_ERROR),
   ;
 
   private final String message;
