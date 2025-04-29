@@ -1,0 +1,10 @@
+services:
+  restaurant:
+    container_name: hidle-restaurant
+    image: 390403891668.dkr.ecr.ap-northeast-2.amazonaws.com/hidle-ecr:restaurant
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./logs:/logs
+    environment:
+      SPRING_PROFILES_ACTIVE: develop
