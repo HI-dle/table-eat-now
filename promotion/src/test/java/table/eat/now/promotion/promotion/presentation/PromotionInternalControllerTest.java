@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,35 +13,16 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import table.eat.now.promotion.global.support.ControllerTestSupport;
 import table.eat.now.promotion.promotion.application.dto.response.GetPromotionsClientInfo;
-import table.eat.now.promotion.promotion.application.service.PromotionService;
 import table.eat.now.promotion.promotion.presentation.dto.request.GetPromotionsFeignRequest;
 
 /**
  * @author : hanjihoon
  * @Date : 2025. 04. 13.
  */
-@AutoConfigureMockMvc
-@WebMvcTest(PromotionInternalController.class)
-@ActiveProfiles("test")
-class PromotionInternalControllerTest {
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @MockitoBean
-  private PromotionService promotionService;
-
+class PromotionInternalControllerTest extends ControllerTestSupport {
 
   @DisplayName("레스토랑 아이디로 프로모션에 참여중인 식당과 내용을 조회해 반환한다.")
   @Test

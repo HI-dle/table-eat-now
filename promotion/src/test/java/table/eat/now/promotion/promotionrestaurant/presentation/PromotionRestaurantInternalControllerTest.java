@@ -8,38 +8,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import table.eat.now.promotion.global.support.ControllerTestSupport;
 import table.eat.now.promotion.promotionrestaurant.application.dto.response.GetPromotionRestaurantInfo;
-import table.eat.now.promotion.promotionrestaurant.application.service.PromotionRestaurantService;
 
 /**
  * @author : hanjihoon
  * @Date : 2025. 04. 13.
  */
-@AutoConfigureMockMvc
-@WebMvcTest(PromotionRestaurantInternalController.class)
-@ActiveProfiles("test")
-class PromotionRestaurantInternalControllerTest {
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @MockitoBean
-  private PromotionRestaurantService promotionRestaurantService;
+class PromotionRestaurantInternalControllerTest extends ControllerTestSupport {
 
   @DisplayName("레스토랑 UUID로 프로모션-레스토랑 정보 조회 테스트")
   @Test

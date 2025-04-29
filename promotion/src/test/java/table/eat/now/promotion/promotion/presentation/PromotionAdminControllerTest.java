@@ -15,25 +15,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.promotion.global.support.ControllerTestSupport;
 import table.eat.now.promotion.promotion.application.dto.request.UpdatePromotionCommand;
 import table.eat.now.promotion.promotion.application.dto.response.CreatePromotionInfo;
 import table.eat.now.promotion.promotion.application.dto.response.UpdatePromotionInfo;
-import table.eat.now.promotion.promotion.application.service.PromotionService;
 import table.eat.now.promotion.promotion.domain.entity.Promotion;
 import table.eat.now.promotion.promotion.domain.entity.PromotionStatus;
 import table.eat.now.promotion.promotion.domain.entity.PromotionType;
@@ -44,20 +37,7 @@ import table.eat.now.promotion.promotion.presentation.dto.request.UpdatePromotio
  * @author : hanjihoon
  * @Date : 2025. 04. 08.
  */
-@AutoConfigureMockMvc
-@WebMvcTest(PromotionAdminController.class)
-@ActiveProfiles("test")
-class PromotionAdminControllerTest {
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @MockitoBean
-  private PromotionService promotionService;
-
+class PromotionAdminControllerTest extends ControllerTestSupport {
 
   @DisplayName("프로모션 생성 테스트")
   @Test

@@ -14,24 +14,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
+import table.eat.now.promotion.global.support.ControllerTestSupport;
 import table.eat.now.promotion.promotionuser.application.dto.PaginatedResultCommand;
 import table.eat.now.promotion.promotionuser.application.dto.response.SearchPromotionUserInfo;
 import table.eat.now.promotion.promotionuser.application.dto.response.UpdatePromotionUserInfo;
-import table.eat.now.promotion.promotionuser.application.service.PromotionUserService;
 import table.eat.now.promotion.promotionuser.presentation.dto.request.SearchPromotionUserRequest;
 import table.eat.now.promotion.promotionuser.presentation.dto.request.UpdatePromotionUserRequest;
 
@@ -39,19 +32,7 @@ import table.eat.now.promotion.promotionuser.presentation.dto.request.UpdateProm
  * @Date : 2025. 04. 10.
  * @author : hanjihoon
  */
-@AutoConfigureMockMvc
-@WebMvcTest(PromotionUserAdminController.class)
-@ActiveProfiles("test")
-class PromotionUserAdminControllerTest {
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @MockitoBean
-  private PromotionUserService promotionUserService;
+class PromotionUserAdminControllerTest extends ControllerTestSupport {
 
   @DisplayName("promotionUserUuid로 프로모션 유저 정보를 수정한다.")
   @Test
