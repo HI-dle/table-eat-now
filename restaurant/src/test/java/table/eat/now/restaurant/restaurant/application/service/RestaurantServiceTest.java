@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -45,6 +46,7 @@ import table.eat.now.restaurant.restaurant.application.service.dto.request.Creat
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantCriteria;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantsCriteria;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.ModifyRestaurantCommand;
+import table.eat.now.restaurant.restaurant.application.service.dto.request.RestaurantRatingUpdatedCommand;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.CreateRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantInfo;
 import table.eat.now.restaurant.restaurant.application.service.dto.response.GetRestaurantSimpleInfo;
@@ -1467,4 +1469,46 @@ class RestaurantServiceTest extends IntegrationTestSupport {
           .hasMessageContaining(RestaurantErrorCode.RESTAURANT_NOT_FOUND.getMessage());
     }
   }
+
+  @DisplayName("식당 평점 수정 서비스")
+  @Nested
+  class BatchModifyRestaurantRating {
+
+    @DisplayName("식당들의 평점을 500개를 일괄 수정한다.")
+    @Test
+    void success_count500() {
+      // given
+      List<RestaurantRatingUpdatedCommand> commands = new ArrayList<>();
+      for (int i = 1; i <= 500; i++) {
+        String restaurantUuid = "uuid-" + i;
+        BigDecimal averageRating = BigDecimal.valueOf(Math.random() * (5.0 - 1.0) + 1.0);  // 1.0 ~ 5.0 사이의 평점
+        commands.add(new RestaurantRatingUpdatedCommand(restaurantUuid, averageRating));
+      }
+
+      // 기존 데이터 삽입 (테스트 준비)
+      List<Restaurant> restaurants = new ArrayList<>();
+      for (int i = 1; i <= 500; i++) {
+        String restaurantUuid = "uuid-" + i;
+        restaurants.add(RestaurantFixture.createOpenedRandomByUuid(restaurantUuid));
+      }
+      restaurantRepository.saveAll(restaurants);
+
+      // when
+      restaurantService.batchModifyRestaurantRating(commands);
+
+      // then
+      List<Restaurant> allRestaurants = restaurantRepository.findAll();
+      assertThat(allRestaurants).hasSize(500); // 총 500개 레코드가 저장되었는지 확인
+
+      // 평점 수정이 잘 되었는지 확인
+      for (int i = 0; i < 500; i++) {
+        Restaurant restaurant = allRestaurants.get(i);
+        BigDecimal expectedRating = commands.get(i).averageRating().setScale(2, RoundingMode.HALF_UP);
+        assertThat(restaurant.getReviewRatingAvg().setScale(2, RoundingMode.HALF_UP))
+            .isEqualTo(expectedRating);
+      }
+    }
+  }
+
+
 }
