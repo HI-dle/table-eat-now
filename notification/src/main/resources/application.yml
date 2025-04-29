@@ -25,6 +25,17 @@ spring:
       host: localhost
       port: ${DEV_REDIS_PORT}
       username: ${DEV_REDIS_USERNAME}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
@@ -41,18 +52,6 @@ kafka:
       partitions: 3
       replicas: 3
       min-insync-replicas: 2
-
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${EMAIL_USERNAME}
-    password: ${EMAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
 slack:
   webhook-url: ${SLACK_WEBHOOK_URL}
 

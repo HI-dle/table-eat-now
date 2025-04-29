@@ -23,6 +23,7 @@ import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
 import table.eat.now.notification.application.event.EventType;
+import table.eat.now.notification.application.event.produce.NotificationPromotionEvent;
 import table.eat.now.notification.application.event.produce.NotificationScheduleSendEvent;
 import table.eat.now.notification.application.event.produce.NotificationSendEvent;
 
@@ -33,6 +34,8 @@ public class NotificationKafkaConsumerConfig {
   private static final String TABLE_EAT_NOW = "table.eat.now.**";
   private static final String NOTIFICATION_SEND_GROUP = "Notification-send-consumer";
   private static final String NOTIFICATION_SCHEDULE_SEND_GROUP = "Notification-schedule-send-consumer";
+
+  private static final String NOTIFICATION_PROMOTION_SEND_GROUP = "Notification-promotion-send-consumer";
   private static final String NOTIFICATION_EVENT_DLT = "Notification-event-dlt";
 
   @Value("${spring.kafka.bootstrap-servers}")
@@ -170,6 +173,38 @@ public class NotificationKafkaConsumerConfig {
 
     ConcurrentKafkaListenerContainerFactory<String, NotificationScheduleSendEvent> factory =
         createContainerFactory(scheduleSendEventConsumerFactory(), EventType.SCHEDULE_SEND.name());
+
+    factory.setCommonErrorHandler(getDefaultErrorHandler(kafkaTemplate, NOTIFICATION_EVENT_DLT));
+    factory.getContainerProperties().setIdleBetweenPolls(60000);
+    factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
+    return factory;
+  }
+
+  //프로모션 알림 처리
+  @Bean
+  public ConsumerFactory<String, NotificationPromotionEvent> promotionSendEventConsumerFactory() {
+    return createConsumerFactory(
+        NOTIFICATION_PROMOTION_SEND_GROUP, NotificationPromotionEvent.class, this::getCommonConsumerProps);
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, NotificationPromotionEvent>
+  promotionSendNotificationEventKafkaListenerContainerFactory(KafkaTemplate<String, NotificationPromotionEvent> kafkaTemplate) {
+
+    ConcurrentKafkaListenerContainerFactory<String, NotificationPromotionEvent> factory =
+        createContainerFactory(promotionSendEventConsumerFactory(), EventType.PROMOTION_SEND.name());
+
+    factory.setCommonErrorHandler(getDefaultErrorHandler(kafkaTemplate, NOTIFICATION_EVENT_DLT));
+    factory.getContainerProperties().setIdleBetweenPolls(5000);
+    factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
+    return factory;
+  }
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, NotificationPromotionEvent>
+  promotionSendNotificationEventDltKafkaListenerContainerFactory(KafkaTemplate<String, NotificationPromotionEvent> kafkaTemplate) {
+
+    ConcurrentKafkaListenerContainerFactory<String, NotificationPromotionEvent> factory =
+        createContainerFactory(promotionSendEventConsumerFactory(), EventType.PROMOTION_SEND.name());
 
     factory.setCommonErrorHandler(getDefaultErrorHandler(kafkaTemplate, NOTIFICATION_EVENT_DLT));
     factory.getContainerProperties().setIdleBetweenPolls(60000);
