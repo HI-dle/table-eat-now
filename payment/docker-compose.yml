@@ -1,0 +1,10 @@
+services:
+  gateway:
+    container_name: hidle-payment
+    image: 390403891668.dkr.ecr.ap-northeast-2.amazonaws.com/hidle-ecr:payment
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./logs:/logs
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
