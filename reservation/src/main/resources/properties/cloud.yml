@@ -28,7 +28,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://table-eat-now-server-blue-env.eba-29ui92w2.ap-northeast-2.elasticbeanstalk.com/eureka/
+      defaultZone: http://eureka-service:8761/eureka
 
 ---
 # prod 환경
