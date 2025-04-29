@@ -9,6 +9,17 @@ spring:
       password: systempass
 
 ---
+# test 환경
+spring:
+  config.activate.on-profile: test
+  data:
+    redis:
+      host:
+      port:
+      username:
+      password: systempass
+
+---
 # develop 환경
 spring:
   config.activate.on-profile: develop
@@ -20,12 +31,12 @@ spring:
       password: ${DEV_REDIS_PASSWORD}
 
 ---
-# test 환경
+# prod 환경
 spring:
-  config.activate.on-profile: test
+  config.activate.on-profile: prod
   data:
     redis:
-      host:
-      port:
-      username:
-      password: systempass
+      host: ${PROD_REDIS_HOST}
+      port: ${PROD_REDIS_PORT}
+      username: ${PROD_REDIS_USERNAME}
+      password: ${PROD_REDIS_PASSWORD}
