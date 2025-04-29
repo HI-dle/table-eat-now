@@ -1,0 +1,70 @@
+server:
+  port: 8084
+
+spring:
+  config:
+    import: optional:file:.env.promotion[.properties]
+  application:
+    name: promotion
+  datasource:
+    url: ${PROMOTION_DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # 배치 처리 설정
+        hibernate.jdbc.batch_size: 1000  # 한 번에 처리할 엔티티의 개수
+        hibernate.order_inserts: true  # 배치 삽입 시 데이터 순서대로 삽입
+        hibernate.order_updates: true  # 배치 업데이트 시 데이터 순서대로 업데이트
+        hibernate.jdbc.batch_versioned_data: true  # 버전된 데이터도 배치 처리
+    show-sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: ${DEV_REDIS_PORT}
+      username: ${DEV_REDIS_USERNAME}
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      fetch-min-bytes: 1024
+      fetch-max-wait-ms: 500
+      max-poll-records: 500
+      properties:
+        spring.json.trusted.packages: "*"
+kafka:
+  topic:
+    promotion:
+      partitions: 3
+      replicas: 1
+      min-insync-replicas: 1
+
+eureka:
+  client:
+    register-with-eureka: true  # Eureka Server에 등록
+    fetch-registry: true  # Eureka Server에서 서비스 목록 가져오기
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true  # 서비스 등록 시 IP 주소 사용
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health, info
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+schedule-key: schedule
