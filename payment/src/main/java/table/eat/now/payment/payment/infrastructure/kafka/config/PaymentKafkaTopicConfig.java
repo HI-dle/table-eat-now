@@ -9,6 +9,7 @@ import org.springframework.kafka.config.TopicBuilder;
 public class PaymentKafkaTopicConfig {
 
   private static final String PAYMENT_TOPIC_NAME = "payment-event";
+  private static final String RESERVATION_DLT_NAME = "reservation-event-dlt";
 
   @Bean
   public NewTopic createTopic() {
@@ -16,6 +17,14 @@ public class PaymentKafkaTopicConfig {
         .partitions(3)
         .replicas(1)
         .config("min.insync.replicas", "1")
+        .build();
+  }
+
+  @Bean
+  public NewTopic createReservationDeadLetterTopic() {
+    return TopicBuilder.name(RESERVATION_DLT_NAME)
+        .partitions(3)
+        .replicas(1)
         .build();
   }
 

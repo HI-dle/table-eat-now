@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: payment
+  config:
+    import: optional:file:.env.payment[.properties]
+  datasource:
+    url: ${DEV_DB_URL}
+    username: ${DEV_DB_USERNAME}
+    password: ${DEV_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        default_batch_fetch_size: 30
+  kafka:
+    bootstrap-servers: ${DEV_KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      fetch-min-bytes: 1024
+      fetch-max-wait-ms: 200
+      max-poll-records: 100
+      properties:
+        spring.json.trusted.packages: "*"
+      concurrency: 3
+    consumer-dlt:
+      concurrency: 1
+eureka:
+  client:
+    service-url:
+      defaultZone: ${DEV_EUREKA_URL}
+
+server:
+  port: 8088
+
+payment:
+  toss:
+    secret-key: ${TOSS_SECRET_KEY}
+    api-url: ${TOSS_API_URL}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+  tracing:
+    sampling:
+      probability: 1.0
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  zipkin:
+    tracing:
+      endpoint: ${DEV_ZIPKIN_URL}
+  metrics:
+    enable:
+      spring.kafka: true

@@ -7,6 +7,7 @@ package table.eat.now.restaurant.restaurant.domain.repository;
 import java.util.List;
 import java.util.Optional;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantsCriteria;
+import table.eat.now.restaurant.restaurant.application.service.dto.request.RestaurantRatingUpdatedCommand;
 import table.eat.now.restaurant.restaurant.domain.dto.response.Paginated;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant;
 
@@ -26,6 +27,8 @@ public interface RestaurantRepository {
   boolean isOwner(Long userId, String restaurantUuid);
 
   boolean isStaff(Long userId, String restaurantUuid);
+
+  void batchModifyRestaurantRating(List<RestaurantRatingUpdatedCommand> commands);
 
   // test 용
   List<Restaurant> findAll();

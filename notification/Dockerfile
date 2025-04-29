@@ -1,31 +1,23 @@
-# 1. Build Stage
-FROM gradle:8.13-jdk17 AS builder
+FROM eclipse-temurin:17-jdk-alpine as build
 
-WORKDIR /app
+WORKDIR /workspace
 
-ARG MODULE_NAME
-
-# -- Only copy what is necessary for dependencies first (cache optimization)
 COPY settings.gradle .
-COPY ${MODULE_NAME}/build.gradle ./${MODULE_NAME}/
-COPY ${MODULE_NAME}/gradle/ ./${MODULE_NAME}/gradle/
+COPY build.gradle .
 COPY gradlew .
+COPY gradle gradle
 
-RUN chmod +x ./gradlew && ./gradlew dependencies --no-daemon
+COPY common common
+COPY notification notification
 
-# -- Now copy actual source code (so that dependency caching works better)
-COPY common/ common/
-COPY ${MODULE_NAME}/ ${MODULE_NAME}/
+RUN chmod +x gradlew
 
-RUN ./gradlew :${MODULE_NAME}:clean :${MODULE_NAME}:build -x test --no-daemon
+RUN ./gradlew :notification:bootJar -x test
 
-# 2. Runtime Stage
-FROM amazoncorretto:17
-
+FROM eclipse-temurin:17-jre as runtime
 WORKDIR /app
 
-ARG MODULE_NAME
+COPY --from=build /workspace/notification/build/libs/*.jar app.jar
 
-COPY --from=builder /app/${MODULE_NAME}/build/libs/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 
-ENTRYPOINT ["java", "-jar", "app.jar"]

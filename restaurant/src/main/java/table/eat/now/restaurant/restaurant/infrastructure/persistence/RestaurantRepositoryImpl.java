@@ -9,6 +9,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import table.eat.now.restaurant.restaurant.application.service.dto.request.GetRestaurantsCriteria;
+import table.eat.now.restaurant.restaurant.application.service.dto.request.RestaurantRatingUpdatedCommand;
 import table.eat.now.restaurant.restaurant.domain.dto.response.Paginated;
 import table.eat.now.restaurant.restaurant.domain.entity.Restaurant;
 import table.eat.now.restaurant.restaurant.domain.repository.RestaurantRepository;
@@ -18,6 +19,7 @@ import table.eat.now.restaurant.restaurant.domain.repository.RestaurantRepositor
 public class RestaurantRepositoryImpl implements RestaurantRepository {
 
   private final JpaRestaurantRepository jpaRestaurantRepository;
+  private final JdbcRestaurantRepository jdbcRestaurantRepository;
 
   @Override
   public Restaurant save(Restaurant entity) {
@@ -64,6 +66,11 @@ public class RestaurantRepositoryImpl implements RestaurantRepository {
   @Override
   public boolean isStaff(Long userId, String restaurantUuid) {
     return jpaRestaurantRepository.isStaffByUserIdAndRestaurantUuid(userId, restaurantUuid);
+  }
+
+  @Override
+  public void batchModifyRestaurantRating(List<RestaurantRatingUpdatedCommand> commands) {
+    jdbcRestaurantRepository.batchModifyRestaurantRating(commands);
   }
 
 }

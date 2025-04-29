@@ -24,10 +24,10 @@ import table.eat.now.reservation.reservation.application.client.dto.request.Crea
 import table.eat.now.reservation.reservation.application.client.dto.request.GetPromotionsCriteria;
 import table.eat.now.reservation.reservation.application.client.dto.request.PreemptCouponCommand;
 import table.eat.now.reservation.reservation.application.client.dto.response.CreatePaymentInfo;
-import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo;
-import table.eat.now.reservation.reservation.application.client.dto.response.GetCouponsInfo.Coupon;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo;
 import table.eat.now.reservation.reservation.application.client.dto.response.GetPromotionsInfo.Promotion;
+import table.eat.now.reservation.reservation.application.client.dto.response.GetUserCouponsInfo;
+import table.eat.now.reservation.reservation.application.client.dto.response.GetUserCouponsInfo.UserCoupon;
 import table.eat.now.reservation.reservation.application.event.event.CancelReservationAfterCommitEvent;
 import table.eat.now.reservation.reservation.application.event.event.ConfirmReservationAfterCommitEvent;
 import table.eat.now.reservation.reservation.application.exception.ReservationErrorCode;
@@ -73,11 +73,11 @@ public class ReservationServiceImpl implements ReservationService {
     GetRestaurantInfo restaurant = restaurantClient.getRestaurant(command.restaurantUuid());
 
     // 쿠폰 정보 조회
-    Set<String> couponUuids = extractCouponUuids(command.payments());
-    Map<String, Coupon> couponMap = Collections.emptyMap();
-    if (!couponUuids.isEmpty()) {
-      couponMap = Optional.ofNullable(couponClient.getCoupons(couponUuids))
-          .map(GetCouponsInfo::couponMap)
+    Set<String> userCouponUuids = extractUserCouponUuids(command.payments());
+    Map<String, UserCoupon> userCouponMap = Collections.emptyMap();
+    if (!userCouponUuids.isEmpty()) {
+      userCouponMap = Optional.ofNullable(couponClient.getUserCoupons(userCouponUuids))
+          .map(GetUserCouponsInfo::userCouponMap)
           .orElse(Collections.emptyMap());
     }
 
@@ -91,16 +91,16 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     createReservationValidationPolicy.validate(
-      CreateReservationValidationContext.from(command, restaurant, couponMap, promotionsMap)
+      CreateReservationValidationContext.from(command, restaurant, userCouponMap, promotionsMap)
     );
 
     // 예약 uuid 생성
     String reservationUuid = UUID.randomUUID().toString();
 
     // 쿠폰 선점 처리
-    if (!couponUuids.isEmpty()) {
+    if (!userCouponUuids.isEmpty()) {
       couponClient.preemptCoupon(
-          PreemptCouponCommand.from(reservationUuid, couponUuids.stream().toList()));
+          PreemptCouponCommand.from(reservationUuid, userCouponUuids.stream().toList()));
     }
 
     // 식당 현재 예약 인원 수정
@@ -190,7 +190,7 @@ public class ReservationServiceImpl implements ReservationService {
         .orElseThrow(() -> CustomException.from(ReservationErrorCode.NOT_FOUND));
   }
 
-  private Set<String> extractCouponUuids(List<CreateReservationCommand.PaymentDetail> payments) {
+  private Set<String> extractUserCouponUuids(List<CreateReservationCommand.PaymentDetail> payments) {
     return payments.stream()
         .filter(
             p -> p.type() == CreateReservationCommand.PaymentDetail.PaymentType.PROMOTION_COUPON)

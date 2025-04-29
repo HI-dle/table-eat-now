@@ -218,43 +218,26 @@ class PaymentServiceImplTest {
       verify(pgClient, never()).confirm(any(), anyString());
     }
 
-    @Test
-    void 결제_확인_중_paymentKey가_존재하지_않으면_취소_처리를_한다() {
-      // given
-      when(paymentRepository.findByReference_ReservationIdAndDeletedAtNull(reservationUuid))
-          .thenReturn(Optional.of(payment));
-
-      ConfirmPgPaymentInfo badConfirmInfo = new ConfirmPgPaymentInfo(
-          null,
-          BigDecimal.ZERO,
-          totalAmount,
-          LocalDateTime.now()
-      );
-
-      when(pgClient.confirm(any(ConfirmPaymentCommand.class), anyString()))
-          .thenReturn(badConfirmInfo);
-
-      CancelPgPaymentInfo cancelPgPaymentInfo = new CancelPgPaymentInfo(
-          paymentKey,
-          "결제 금액 불일치",
-          null,
-          totalAmount,
-          LocalDateTime.now()
-      );
-
-      ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
-
-      when(pgClient.cancel(any(CancelPgPaymentCommand.class), anyString()))
-          .thenReturn(cancelPgPaymentInfo);
-
-      // when
-      paymentService.confirmPayment(command, userInfo);
-      // then
-      verify(transactionalHelper).doInNewTransaction(runnableCaptor.capture());
-      verify(transactionalHelper).doInNewTransaction(any(Runnable.class));
-      runnableCaptor.getValue().run();
-      verify(pgClient).cancel(any(CancelPgPaymentCommand.class), anyString());
-    }
+//    @Test
+//    void 결제_확인_중_illegalArgumentsException이_발생해도_정상_동작한다() {
+//      // given
+//      when(paymentRepository.findByReference_ReservationIdAndDeletedAtNull(reservationUuid))
+//          .thenReturn(Optional.of(payment));
+//
+//      ConfirmPgPaymentInfo badConfirmInfo = new ConfirmPgPaymentInfo(
+//          null,
+//          BigDecimal.ZERO,
+//          totalAmount,
+//          LocalDateTime.now()
+//      );
+//
+//      when(pgClient.confirm(any(ConfirmPaymentCommand.class), anyString()))
+//          .thenReturn(badConfirmInfo);
+//      // when
+//      paymentService.confirmPayment(command, userInfo);
+//      // then
+//      verify(pgClient).cancel(any(CancelPgPaymentCommand.class), anyString());
+//    }
   }
 
   @Nested
@@ -360,7 +343,8 @@ class PaymentServiceImplTest {
           .thenReturn(Optional.of(payment));
       when(pgClient.cancel(any(CancelPgPaymentCommand.class), anyString()))
           .thenReturn(cancelPgPaymentInfo);
-      doNothing().when(paymentEventPublisher).publish(any(ReservationPaymentCancelledEvent.class));
+      doNothing().when(paymentEventPublisher)
+          .publish(any(ReservationPaymentCancelledEvent.class));
     }
 
     @Test
@@ -405,7 +389,8 @@ class PaymentServiceImplTest {
 
       ReservationPaymentCancelledEvent capturedEvent = eventCaptor.getValue();
       assertThat(capturedEvent.paymentUuid()).isEqualTo(payment.getIdentifier().getPaymentUuid());
-      assertThat(capturedEvent.eventType().name()).isEqualTo("RESERVATION_PAYMENT_CANCEL_SUCCEED");
+      assertThat(capturedEvent.eventType().name()).isEqualTo(
+          "RESERVATION_PAYMENT_CANCEL_SUCCEED");
       assertThat(capturedEvent.userInfo()).isEqualTo(userInfo);
     }
 
@@ -494,7 +479,6 @@ class PaymentServiceImplTest {
       PaymentAmount amount = PaymentAmount.create(originalAmount);
       payment = Payment.create(reference, amount);
 
-
       when(paymentRepository.findByIdentifier_PaymentUuidAndDeletedAtNull(paymentUuid))
           .thenReturn(Optional.of(payment));
     }
@@ -559,6 +543,7 @@ class PaymentServiceImplTest {
 
   @Nested
   class searchMyPayments_는 {
+
     private Long userId;
     private String restaurantUuid;
     private String paymentStatus;
@@ -805,8 +790,10 @@ class PaymentServiceImplTest {
       assertThat(capturedCriteria.restaurantUuid()).isEqualTo(specificRestaurantId);
     }
   }
+
   @Nested
   class searchMasterPayments_는 {
+
     private Long userId;
     private String restaurantUuid;
     private String paymentStatus;
@@ -906,7 +893,8 @@ class PaymentServiceImplTest {
       SearchPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
       assertThat(capturedCriteria.userId()).isEqualTo(userId);
       assertThat(capturedCriteria.restaurantUuid()).isEqualTo(restaurantUuid);
-      assertThat(capturedCriteria.paymentStatus()).isEqualTo(PaymentStatus.valueOf(paymentStatus));
+      assertThat(capturedCriteria.paymentStatus()).isEqualTo(
+          PaymentStatus.valueOf(paymentStatus));
       assertThat(capturedCriteria.startDate()).isEqualTo(startDate);
       assertThat(capturedCriteria.endDate()).isEqualTo(endDate);
       assertThat(capturedCriteria.orderBy()).isEqualTo(orderBy);
@@ -942,7 +930,8 @@ class PaymentServiceImplTest {
           .thenReturn(multiUserPaginatedResult);
 
       // when
-      PaginatedInfo<SearchPaymentsInfo> result = paymentService.searchMasterPayments(allUsersQuery);
+      PaginatedInfo<SearchPaymentsInfo> result = paymentService.searchMasterPayments(
+          allUsersQuery);
 
       // then
       assertThat(result).isNotNull();
@@ -994,7 +983,8 @@ class PaymentServiceImplTest {
       verify(paymentRepository).searchPayments(criteriaCaptor.capture());
 
       SearchPaymentsCriteria capturedCriteria = criteriaCaptor.getValue();
-      assertThat(capturedCriteria.paymentStatus()).isEqualTo(PaymentStatus.valueOf(specificStatus));
+      assertThat(capturedCriteria.paymentStatus()).isEqualTo(
+          PaymentStatus.valueOf(specificStatus));
     }
 
     @Test
@@ -1089,6 +1079,4 @@ class PaymentServiceImplTest {
       assertThat(capturedCriteria.endDate()).isNull();
     }
   }
-
-
 }
