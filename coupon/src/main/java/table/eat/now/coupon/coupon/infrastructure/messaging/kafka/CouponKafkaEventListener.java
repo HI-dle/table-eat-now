@@ -22,7 +22,7 @@ public class CouponKafkaEventListener {
 
   @KafkaListener(
       topics = PROMOTION_EVENT,
-      containerFactory = "reservationCancelledEventKafkaListenerContainerFactory"
+      containerFactory = "promotionParticipatedEventKafkaListenerContainerFactory"
   )
   public void listenPromotionParticipatedCouponEvent(
       ConsumerRecord<String, PromotionParticipatedCouponEvent> record,
