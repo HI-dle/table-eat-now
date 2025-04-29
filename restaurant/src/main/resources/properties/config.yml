@@ -12,3 +12,19 @@ spring:
   cloud:
     config:
       enabled: false
+
+---
+# develop 환경
+spring:
+  config.activate.on-profile: develop
+  cloud:
+    config:
+      enabled: false
+
+---
+# prod 환경
+spring:
+  config.activate.on-profile: prod
+  cloud:
+    config:
+      enabled: true

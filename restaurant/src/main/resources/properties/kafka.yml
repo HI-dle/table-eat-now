@@ -23,3 +23,12 @@ spring:
     consumer:
       auto-offset-reset: earliest
       enable-auto-commit: false
+
+---
+spring:
+  config.activate.on-profile: prod
+  kafka:
+    bootstrap-servers: ${DEV_KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false

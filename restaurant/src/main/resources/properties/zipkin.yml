@@ -10,6 +10,18 @@ management:
       probability: 1.0
 
 ---
+# test 환경
+spring:
+  config.activate.on-profile: test
+management:
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+  tracing:
+    sampling:
+      probability: 1.0
+
+---
 # dev 환경
 spring:
   config.activate.on-profile: develop
@@ -17,6 +29,30 @@ management:
   zipkin:
     tracing:
       endpoint: ${DEV_ZIPKIN_ENDPOINT}
+  tracing:
+    sampling:
+      probability: 1.0
+
+---
+# dev 환경
+spring:
+  config.activate.on-profile: develop
+management:
+  zipkin:
+    tracing:
+      endpoint: ${DEV_ZIPKIN_ENDPOINT}
+  tracing:
+    sampling:
+      probability: 1.0
+
+---
+# prod 환경
+spring:
+  config.activate.on-profile: prod
+management:
+  zipkin:
+    tracing:
+      endpoint: ${PROD_ZIPKIN_ENDPOINT}
   tracing:
     sampling:
       probability: 1.0
