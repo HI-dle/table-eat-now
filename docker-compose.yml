@@ -31,7 +31,7 @@ services:
     ports:
       - "9090:9090"  # Prometheus 기본 포트
     volumes:
-      - ./server/src/main/resources/prometheus.yml:/etc/prometheus/prometheus.yml  # prometheus.yml 파일 경로 수정
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml  # prometheus.yml 파일 경로 수정
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
 
@@ -48,7 +48,6 @@ services:
   zookeeper:
     container_name: ten-zookeeper
     image: bitnami/zookeeper:latest
-    platform: linux/arm64
     ports:
       - "2181:2181"
     environment:
@@ -59,7 +58,6 @@ services:
   kafka:
     container_name: ten-kafka
     image: bitnami/kafka:3.8.1
-    platform: linux/arm64
     ports:
       - "9092:9092"
     environment:
@@ -74,7 +72,6 @@ services:
   kafka-ui:
     container_name: ten-kafka-ui
     image: provectuslabs/kafka-ui:latest
-    platform: linux/arm64
     ports:
       - "8079:8080"
     environment:
