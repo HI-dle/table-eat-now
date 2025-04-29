@@ -14,15 +14,12 @@ import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.helper.ControllerTestSupport;
-import table.eat.now.waiting.waiting_request.application.router.UsecaseRouter;
 import table.eat.now.waiting.waiting_request.application.usecase.dto.command.UpdateWaitingRequestStatusAdminCommand;
 import table.eat.now.waiting.waiting_request.application.usecase.dto.command.WaitingRequestEntranceAdminCommand;
 import table.eat.now.waiting.waiting_request.application.usecase.dto.query.GetCurrentWaitingRequestsAdminQuery;
@@ -30,11 +27,7 @@ import table.eat.now.waiting.waiting_request.application.usecase.dto.query.GetWa
 import table.eat.now.waiting.waiting_request.application.usecase.dto.response.PageResult;
 import table.eat.now.waiting.waiting_request.fixture.GetWaitingRequestInfoFixture;
 
-@WebMvcTest(WaitingRequestAdminController.class)
 class WaitingRequestAdminControllerTest extends ControllerTestSupport {
-
-  @MockitoBean
-  private UsecaseRouter router;
 
   @DisplayName("대기 요청 입장 처리 요청 - 200 성공 응답")
   @Test

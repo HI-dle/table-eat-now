@@ -11,18 +11,11 @@ import java.time.LocalDate;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.waiting.helper.ControllerTestSupport;
-import table.eat.now.waiting.waiting.application.service.WaitingService;
 import table.eat.now.waiting.waiting.application.service.dto.response.GetDailyWaitingInfo;
 
-@WebMvcTest(WaitingInternalController.class)
 class WaitingInternalControllerTest extends ControllerTestSupport {
-
-  @MockitoBean
-  private WaitingService waitingService;
 
   @DisplayName("일간 대기 정보 내부 조회 검증 - 200 성공")
   @Test
