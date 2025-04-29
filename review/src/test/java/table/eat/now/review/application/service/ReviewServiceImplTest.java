@@ -17,12 +17,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
-import table.eat.now.review.application.client.ReservationClient;
-import table.eat.now.review.application.client.RestaurantClient;
-import table.eat.now.review.application.client.WaitingClient;
 import table.eat.now.review.application.client.dto.GetRestaurantInfo;
 import table.eat.now.review.application.client.dto.GetRestaurantStaffInfo;
 import table.eat.now.review.application.client.dto.GetServiceInfo;
@@ -46,15 +42,6 @@ class ReviewServiceImplTest extends IntegrationTestSupport {
 
   @Autowired
   private ReviewRepository reviewRepository;
-
-  @MockitoBean
-  private WaitingClient waitingClient;
-
-  @MockitoBean
-  private ReservationClient reservationClient;
-
-  @MockitoBean
-  private RestaurantClient restaurantClient;
 
   @Nested
   class createReview_는 {

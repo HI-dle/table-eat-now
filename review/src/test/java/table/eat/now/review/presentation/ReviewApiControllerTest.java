@@ -20,30 +20,16 @@ import static table.eat.now.review.application.exception.ReviewErrorCode.MODIFY_
 import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_IS_INVISIBLE;
 import static table.eat.now.review.application.exception.ReviewErrorCode.REVIEW_NOT_FOUND;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import table.eat.now.common.aop.AuthCheckAspect;
-import table.eat.now.common.config.WebConfig;
 import table.eat.now.common.exception.CustomException;
-import table.eat.now.common.exception.GlobalErrorHandler;
-import table.eat.now.common.resolver.CurrentUserInfoResolver;
-import table.eat.now.common.resolver.CustomPageableArgumentResolver;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
-import table.eat.now.review.application.service.ReviewService;
 import table.eat.now.review.application.service.dto.request.CreateReviewCommand;
 import table.eat.now.review.application.service.dto.request.SearchReviewQuery;
 import table.eat.now.review.application.service.dto.request.UpdateReviewCommand;
@@ -51,29 +37,11 @@ import table.eat.now.review.application.service.dto.response.CreateReviewInfo;
 import table.eat.now.review.application.service.dto.response.GetReviewInfo;
 import table.eat.now.review.application.service.dto.response.PaginatedInfo;
 import table.eat.now.review.application.service.dto.response.SearchReviewInfo;
+import table.eat.now.review.global.support.ControllerTestSupport;
 import table.eat.now.review.presentation.dto.request.CreateReviewRequest;
 import table.eat.now.review.presentation.dto.request.UpdateReviewRequest;
 
-@ActiveProfiles("test")
-@Import({
-    WebConfig.class,
-    CustomPageableArgumentResolver.class,
-    CurrentUserInfoResolver.class,
-    GlobalErrorHandler.class,
-    AuthCheckAspect.class
-})
-@EnableAspectJAutoProxy(proxyTargetClass = true)
-@WebMvcTest(ReviewApiController.class)
-class ReviewApiControllerTest {
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @MockitoBean
-  private ReviewService reviewService;
+class ReviewApiControllerTest extends ControllerTestSupport {
 
   @Nested
   class 리뷰_생성_요청시 {
