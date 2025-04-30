@@ -1,0 +1,128 @@
+### 마스터 가입
+POST {{baseUrl}}/api/v1/users/signup
+Content-Type: application/json
+
+{
+  "username": "mas54",
+  "email": "j5@test",
+  "phone": "15",
+  "password": "{{password}}",
+  "role": "MASTER"
+}
+
+> {%
+  client.global.set("username", response.body.username)
+%}
+
+### 마스터 로그인
+POST {{baseUrl}}/api/v1/users/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+> {%
+  client.global.set("access_token", response.headers.valueOf("Authorization"))
+%}
+
+### 식당 생성
+POST {{baseUrl}}/admin/v1/restaurants
+Content-Type: application/json
+Authorization: {{access_token}}
+
+{
+  "ownerId": 102,
+  "name": "청춘고기",
+  "address": "서울특별시 강남구 테헤란로 123",
+  "contactNumber": "02-1234-5678",
+  "openingAt": "09:00:00",
+  "closingAt": "22:00:00",
+  "info": "고기 맛집입니다.",
+  "maxReservationGuestCountPerTeamOnline": 6
+}
+
+> {%
+  const location = response.headers.valueOf("Location")
+  const match = location.match(/[0-9a-fA-F\-]{36}$/)
+
+  if (match) {
+    client.global.set("restaurantUuid", match[0]);
+  }
+%}
+
+###
+PUT {{baseUrl}}/admin/v1/restaurants/{{restaurantUuid}}
+Content-Type: application/json
+Authorization: {{access_token}}
+
+{
+  "name": "내일 먹을 막창 식당",
+  "address": "서울특별시 강남구 테헤란로 123",
+  "contactNumber": "010-1234-5678",
+  "openingAt": "2025-04-17T10:00:00",
+  "closingAt": "2025-04-17T22:00:00",
+  "info": "신선한 재료만 사용하는 건강한 식당입니다.",
+  "status": "INACTIVE",
+  "waitingStatus": "INACTIVE",
+  "maxReservationGuestCountPerTeamOnline": 4,
+  "menus": [
+    {
+      "restaurantMenuUuid": "2710145b-6523-470f-a85f-6fe0d6d8455a",
+      "name": "한지훈이 말아주는 된장찌개",
+      "price": 9000,
+      "status": "INACTIVE"
+    },
+    {
+      "restaurantMenuUuid": null,
+      "name": "강혜주표 3월 17일에 만든 고기 덮밥",
+      "price": 9000,
+      "status": "INACTIVE"
+    },
+    {
+      "restaurantMenuUuid": null,
+      "name": "황하온의 랜덤 음식",
+      "price": 9000,
+      "status": "INACTIVE"
+    }
+  ],
+  "timeslots": [
+    {
+      "restaurantTimeslotUuid": "e61aeb98-b434-447d-8928-b44cf741ca34",
+      "availableDate": "2025-04-18",
+      "maxCapacity": 10,
+      "timeslot": "12:00"
+    },
+    {
+      "restaurantTimeslotUuid": null,
+      "availableDate": "2025-04-18",
+      "maxCapacity": 15,
+      "timeslot": "18:00"
+    }
+  ]
+}
+
+### 직원(또는 식당 주인) id로 식당 정보 조회
+GET {{baseUrl}}/internal/v1/restaurants/my-restaurant
+Authorization: {{access_token}}
+
+### 식당 조회
+GET {{baseUrl}}/admin/v1/restaurants/38125e11-904b-450e-89ae-3a8145e8cd56
+Content-Type: application/json
+Authorization: {{access_token}}
+
+### 식당 검색 목록 조회(내부)
+GET {{baseUrl}}/internal/v1/restaurants
+    ?
+    searchText=막창
+    &restaurantStatus=INACTIVE
+    &waitingStatus=INACTIVE
+    &pageNumber=0
+    &pageSize=10
+    &isAsc=false
+    &sortBy=id
+    &includeDeleted=true
+#    &ownerId=10
+#    &staffId=1
+Authorization: {{access_token}}
