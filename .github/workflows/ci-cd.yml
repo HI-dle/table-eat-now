@@ -18,8 +18,7 @@ jobs:
       - name: Detect changed modules
         id: set-modules
         run: |
-          git fetch origin develop
-          changed_files=$(git diff --name-only origin/develop...${{ github.sha }})
+          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
           changed_modules=$(echo "$changed_files" | cut -d/ -f1 | sort -u)
           
           if echo "$changed_modules" | grep -q '^common$'; then
