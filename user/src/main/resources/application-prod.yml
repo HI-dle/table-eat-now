@@ -45,3 +45,4 @@ management:
   zipkin:
     tracing:
       endpoint: ${PROD_ZIPKIN_ENDPOINT}
+
