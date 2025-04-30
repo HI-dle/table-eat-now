@@ -6,5 +6,6 @@ services:
       - "8087:8087"
     volumes:
       - ./logs:/logs
+      - ./.env.review:/app/.env.review
     environment:
       SPRING_PROFILES_ACTIVE: prod

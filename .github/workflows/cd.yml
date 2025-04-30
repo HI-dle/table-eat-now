@@ -2,25 +2,37 @@ name: "CD - Beanstalk server deploy"
 on:
   workflow_run:
     workflows: ["CI - docker image build and ecr push"]
-    branches:
-      - "feat/#222"
-   #   - main
     types:
       - completed
+    branches:
+      - feat/#222
+   #   - main
+
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
       modules: ${{ steps.set-modules.outputs.modules }}
     steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: commit-sha
+
+      - name: Read SHA
+        id: read_sha
+        run: |
+          SHA=$(cat commit-sha.txt)
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
         with:
+          ref: ${{ steps.read_sha.outputs.sha }} # 해당 워크플로우의 트리거 워크플로우 기준으로 세팅
           fetch-depth: 0
       - name: Detect changed modules
         id: set-modules
         run: |
           git fetch origin develop
-          changed_files=$(git diff --name-only origin/develop...${{ github.sha }})
+          changed_files=$(git diff --name-only origin/develop...${{ steps.read_sha.outputs.sha }})
           changed_modules=$(echo "$changed_files" | cut -d/ -f1 | sort -u)
           
           if echo "$changed_modules" | grep -q '^common$'; then

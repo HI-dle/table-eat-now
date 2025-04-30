@@ -75,8 +75,17 @@ jobs:
           docker build -t ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG -f ${{ matrix.module }}/Dockerfile . 
           docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
   trigger-cd:
+    needs: build-push
     runs-on: ubuntu-latest
     steps:
       - name: Confirmed Parallel job completed And Triggering CD
         run: echo Completed CI
+
+      - name: Save commit SHA
+        run: echo "${GITHUB_SHA}" > commit-sha.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: commit-sha
+          path: commit-sha.txt
 
