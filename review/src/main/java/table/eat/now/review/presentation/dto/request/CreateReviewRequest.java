@@ -15,7 +15,8 @@ public record CreateReviewRequest(
     @NotNull UUID serviceId,
     @NotNull @Min(0) @Max(5) Integer rating,
     @NotBlank String content,
-    @NotNull Boolean isVisible) {
+    @NotNull Boolean isVisible
+) {
 
   public CreateReviewCommand toCommand(CurrentUserInfoDto userInfo) {
     return new CreateReviewCommand(
