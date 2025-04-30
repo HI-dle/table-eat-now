@@ -58,6 +58,15 @@ jobs:
           submodules: true
           fetch-depth: 0  # Shallow clones should be disabled
 
+      - name: Generate deployment package
+        run: |
+          mkdir -p deploy/.platform/nginx/conf.d
+          
+          cp ten-private/.env.${{ matrix.module }} deploy/.env.${{ matrix.module }}
+          cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml
+          cp .platform/nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf
+          cd deploy && zip -r deploy.zip .
+
       - name: Get current time
         uses: 1466587594/get-current-time@v2
         id: deploy-time
@@ -74,5 +83,5 @@ jobs:
           environment_name: Table-eat-now-${{ matrix.module }}-blue-env
           version_label: "github-action--${{ steps.deploy-time.outputs.formattedTime }}"
           region: ap-northeast-2
-          deployment_package: ${{ matrix.module }}/docker-compose.yml
+          deployment_package: deploy/deploy.zip
           wait_for_environment_recovery: 200
