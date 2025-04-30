@@ -3,7 +3,7 @@ services:
     container_name: hidle-gateway
     image: 390403891668.dkr.ecr.ap-northeast-2.amazonaws.com/hidle-ecr:gateway
     ports:
-      - "8080:8080"
+      - "80:8080"
     volumes:
       - ./logs:/logs
       - ./.env.gateway:/app/.env.gateway
