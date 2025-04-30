@@ -1,6 +1,6 @@
 name: CD - Beanstalk server deploy
 on:
-  push:
+#  push:
 #    branches:
 #      - feat/#222
 #      - main
