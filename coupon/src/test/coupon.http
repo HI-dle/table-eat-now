@@ -97,4 +97,3 @@ X-User-Role: CUSTOMER
       client.global.set("userCouponUuid", match[0]);
     }
 %}
-
