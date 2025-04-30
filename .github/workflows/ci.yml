@@ -28,7 +28,7 @@ jobs:
 
             echo "modules=$modules" >> "$GITHUB_OUTPUT"
           else
-            excluded_dirs="\.github|gradle|ten-private|common"
+            excluded_dirs="\.github|gradle|ten-private|common|config"
             pattern=$(find . -maxdepth 1 -type d ! -name '.' \
               | sed 's|^\./||' \
               | grep -vE "^($excluded_dirs)$" \
