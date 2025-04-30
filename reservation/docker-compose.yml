@@ -7,4 +7,4 @@ services:
     volumes:
       - ./logs:/logs
     environment:
-      SPRING_PROFILES_ACTIVE: develop
+      SPRING_PROFILES_ACTIVE: prod
