@@ -18,3 +18,21 @@ Content-Type: application/json
   "username": "test",
   "password": "1234"
 }
+###
+POST http://{{baseUrl}}/admin/v1/notifications
+Content-Type: application/json
+Authorization: {{access_token}}
+X-User-Id: 1
+X-User-Role: MASTER
+
+{
+  "userId": 1,
+  "notificationType": "REMINDER_1HR",
+  "customerName": "홍길동",
+  "reservationTime": "2025-04-30T23:30:00",
+  "restaurantName": "맛있는 식당",
+  "status": "PENDING",
+  "notificationMethod": "SLACK",
+  "scheduledTime": "2025-04-30T23:30:00"
+}
+
