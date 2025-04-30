@@ -1,4 +1,5 @@
-name: CI - docker image build and ecr push
+# docker image build and ecr push + Beanstalk server deploy
+name: CI/CD
 on:
   push:
     branches:
@@ -78,7 +79,53 @@ jobs:
           docker build -t ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG -f ${{ matrix.module }}/Dockerfile . 
           docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
 
-  trigger-cd:
-    needs: build-push
-    if: ${{ success() }}
-    uses: ./.github/workflows/cd.yml
+#  trigger-cd:
+#    needs: build-push
+#    if: ${{ success() }}
+#    uses: ./.github/workflows/cd.yml
+
+  deploy:
+    needs:
+      - detect-changes
+      - build-push
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.modules != '[]' && needs.detect-changes.outputs.modules != '' }}
+    strategy:
+      matrix:
+        module: ${{ fromJson(needs.detect-changes.outputs.modules) }}
+      fail-fast: false  # 첫 번째 실패가 발생해도 나머지 작업들은 계속 진행됨
+    steps:
+      - name: Checkout with exact SHA
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACTION_TOKEN }}
+          submodules: true
+          fetch-depth: 0  # Shallow clones should be disabled
+
+      - name: Generate deployment package
+        run: |
+          mkdir -p deploy/.platform/nginx/conf.d
+
+          cp ten-private/.env.${{ matrix.module }} deploy/.env.${{ matrix.module }} 2>/dev/null
+          cp ${{ matrix.module }}/nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf 2>/dev/null
+          cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml 2>/dev/null
+          cd deploy && zip -r deploy.zip .
+
+      - name: Get current time
+        uses: 1466587594/get-current-time@v2
+        id: deploy-time
+        with:
+          format: YYYYMMDD_HH-mm-ss
+          utcOffset: "+09:00"
+
+      - name: Beanstalk Deploy
+        uses: einaregilsson/beanstalk-deploy@v20
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: table-eat-now-${{ matrix.module }}-blue
+          environment_name: Table-eat-now-${{ matrix.module }}-blue-env
+          version_label: "github-action--${{ steps.deploy-time.outputs.formattedTime }}"
+          region: ap-northeast-2
+          deployment_package: deploy/deploy.zip
+          wait_for_environment_recovery: 200
