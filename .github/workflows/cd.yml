@@ -19,6 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.sha }} # 해당 워크플로우의 트리거 워크플로우 기준으로 세팅
+          token: ${{ secrets.ACTION_TOKEN }}
           fetch-depth: 0
       - name: Detect changed modules
         id: set-modules
