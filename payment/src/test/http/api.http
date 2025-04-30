@@ -23,7 +23,7 @@ Content-Type: application/json
 %}
 
 ### 결제 생성
-POST ec2-43-203-149-244.ap-northeast-2.compute.amazonaws.com/internal/v1/payments
+POST {{basePaymentUrl}}/internal/v1/payments
 Content-Type: application/json
 
 {
