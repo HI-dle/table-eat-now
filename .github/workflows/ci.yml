@@ -1,4 +1,4 @@
-name: "CI - docker image build and ecr push"
+name: CI - docker image build and ecr push
 on:
   push:
     branches:

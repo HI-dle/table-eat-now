@@ -1,7 +1,7 @@
-name: "CD - Beanstalk server deploy"
+name: CD - Beanstalk server deploy
 on:
   workflow_run:
-    workflows: ["CI - docker image build and ecr push"]
+    workflows: CI - docker image build and ecr push
     types:
       - completed
     branches:
@@ -10,6 +10,7 @@ on:
 
 jobs:
   detect-changes:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     outputs:
       modules: ${{ steps.set-modules.outputs.modules }}
