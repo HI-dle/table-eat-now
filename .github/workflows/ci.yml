@@ -1,4 +1,5 @@
-name: CI - docker image build and ecr push
+name: CI
+run-name: CI - docker image build and ecr push
 on:
   push:
     branches:
