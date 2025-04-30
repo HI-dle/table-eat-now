@@ -11,11 +11,11 @@ public class CouponTopicConfig {
 
   public static final String TOPIC_NAME = "coupon-event";
 
-  @Value("${kafka.topic.waiting-request.partitions:3}")
+  @Value("${kafka.topic.coupon.partitions:3}")
   private int partitions;
-  @Value("${kafka.topic.waiting-request.replicas:3}")
+  @Value("${kafka.topic.coupon.replicas:1}")
   private int replicas;
-  @Value("${kafka.topic.waiting-request.min-insync-replicas:2}")
+  @Value("${kafka.topic.coupon.min-insync-replicas:1}")
   private String minInsyncReplicas;
 
   @Bean

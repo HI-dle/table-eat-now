@@ -64,7 +64,9 @@ eureka:
     service-url:
       defaultZone: ${PROD_EUREKA_SERVICE_URL}
   instance:
+    ip-address: ${PROD_EC2_ADDRESS}
     prefer-ip-address: true  # 서비스 등록 시 IP 주소 사용
+
 
 management:
   endpoints:

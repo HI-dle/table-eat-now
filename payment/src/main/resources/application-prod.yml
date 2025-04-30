@@ -37,6 +37,7 @@ eureka:
   instance:
     hostname: ${EUREKA_INSTANCE_HOSTNAME}
     prefer-ip-address: false
+    non-secure-port: 80
 
 server:
   port: 8088

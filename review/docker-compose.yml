@@ -3,7 +3,7 @@ services:
     container_name: hidle-review
     image: 390403891668.dkr.ecr.ap-northeast-2.amazonaws.com/hidle-ecr:review
     ports:
-      - "8087:8087"
+      - "80:8087"
     volumes:
       - ./logs:/logs
       - ./.env.review:/app/.env.review

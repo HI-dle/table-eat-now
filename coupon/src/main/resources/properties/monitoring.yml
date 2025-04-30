@@ -47,7 +47,7 @@ spring:
 management:
   server:
     port: 19044
-    address: 172.31.38.190
+#    address: 172.31.38.190
   endpoints:
     health:
       show-details: always
