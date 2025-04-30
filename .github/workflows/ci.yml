@@ -12,7 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          token: ${{ secrets.ACTION_TOKEN }}
           fetch-depth: 0
+
       - name: Detect changed modules
         id: set-modules
         run: |
@@ -38,6 +40,7 @@ jobs:
             modules=$(echo "$changed_modules" | grep -E "$pattern" | jq -R -s -c 'split("\n") | map(select(length > 0))')
             echo "modules=$modules" >> "$GITHUB_OUTPUT"
           fi
+
   build-push:
     needs: detect-changes
     runs-on: ubuntu-latest
