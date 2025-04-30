@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - feat/#222
-      - main
+    #  - main
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
