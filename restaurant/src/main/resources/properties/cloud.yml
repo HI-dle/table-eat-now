@@ -39,3 +39,7 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: ${PROD_EUREKA_SERVICE_URL}
+  instance:
+    hostname: ${PROD_EUREKA_INSTANCE_HOSTNAME}
+    prefer-ip-address: false
+    non-secure-port: 80
