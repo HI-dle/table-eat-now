@@ -3,8 +3,7 @@ name: CI/CD
 on:
   push:
     branches:
-      - feat/#222
-    #  - main
+      - develop
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
