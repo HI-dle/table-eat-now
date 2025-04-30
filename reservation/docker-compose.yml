@@ -6,5 +6,6 @@ services:
       - "8083:8083"
     volumes:
       - ./logs:/logs
+      - ./.env.reservation:/app/.env.reservation
     environment:
       SPRING_PROFILES_ACTIVE: prod

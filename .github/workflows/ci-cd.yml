@@ -1,9 +1,9 @@
-name: "CI - docker image build and ecr push"
+# docker image build and ecr push + Beanstalk server deploy
+name: CI/CD
 on:
   push:
     branches:
-      - feat/#222
-    #  - main
+      - develop
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
@@ -12,7 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          token: ${{ secrets.ACTION_TOKEN }}
           fetch-depth: 0
+
       - name: Detect changed modules
         id: set-modules
         run: |
@@ -38,6 +40,7 @@ jobs:
             modules=$(echo "$changed_modules" | grep -E "$pattern" | jq -R -s -c 'split("\n") | map(select(length > 0))')
             echo "modules=$modules" >> "$GITHUB_OUTPUT"
           fi
+
   build-push:
     needs: detect-changes
     runs-on: ubuntu-latest
@@ -74,18 +77,65 @@ jobs:
           cp -r ten-private/.env.* . 2>/dev/null
           docker build -t ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG -f ${{ matrix.module }}/Dockerfile . 
           docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
-  trigger-cd:
-    needs: build-push
+
+#  trigger-cd:
+#    needs: build-push
+#    if: ${{ success() }}
+#    uses: ./.github/workflows/cd.yml
+
+  deploy:
+    needs:
+      - detect-changes
+      - build-push
     runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.modules != '[]' && needs.detect-changes.outputs.modules != '' }}
+    strategy:
+      matrix:
+        module: ${{ fromJson(needs.detect-changes.outputs.modules) }}
+      fail-fast: false  # 첫 번째 실패가 발생해도 나머지 작업들은 계속 진행됨
     steps:
-      - name: Confirmed Parallel job completed And Triggering CD
-        run: echo Completed CI
-
-      - name: Save commit SHA
-        run: echo "${GITHUB_SHA}" > commit-sha.txt
-
-      - uses: actions/upload-artifact@v4
+      - name: Checkout with exact SHA
+        uses: actions/checkout@v4
         with:
-          name: commit-sha
-          path: commit-sha.txt
+          token: ${{ secrets.ACTION_TOKEN }}
+          submodules: true
+          fetch-depth: 0  # Shallow clones should be disabled
 
+      - name: Generate deployment package
+        id: ready
+        run: |
+          mkdir -p deploy/.platform/nginx/conf.d
+
+          [ -f ten-private/.env.${{ matrix.module }} ] && cp ten-private/.env.${{ matrix.module }} deploy/.env.${{ matrix.module }} 2>/dev/null
+          [ -f ${{ matrix.module }}/nginx/conf.d/proxy.conf ] && cp ${{ matrix.module }}/nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf 2>/dev/null
+      
+          if [ -f ${{ matrix.module }}/docker-compose.yml ]; then
+            cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml
+            echo "found_docker_compose=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found_docker_compose=false" >> "$GITHUB_OUTPUT"
+          fi
+          
+          cd deploy && zip -r deploy.zip . && mv deploy.zip ..
+
+      - name: Get current time
+        if: steps.ready.outputs.found_docker_compose == 'true'
+        uses: 1466587594/get-current-time@v2
+        id: deploy-time
+        with:
+          format: YYYYMMDD_HH-mm-ss
+          utcOffset: "+09:00"
+
+      - name: Beanstalk Deploy
+        if: steps.ready.outputs.found_docker_compose == 'true'
+        uses: einaregilsson/beanstalk-deploy@v22
+        continue-on-error: true
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: table-eat-now-${{ matrix.module }}-blue
+          environment_name: Table-eat-now-${{ matrix.module }}-blue-env
+          version_label: "github-action--${{ steps.deploy-time.outputs.formattedTime }}"
+          region: ap-northeast-2
+          deployment_package: deploy.zip
+          wait_for_environment_recovery: 20

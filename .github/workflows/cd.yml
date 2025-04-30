@@ -1,38 +1,22 @@
-name: "CD - Beanstalk server deploy"
+name: CD - Beanstalk server deploy
 on:
-  workflow_run:
-    workflows: ["CI - docker image build and ecr push"]
-    types:
-      - completed
-    branches:
-      - feat/#222
-   #   - main
-
+  workflow_call:
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
       modules: ${{ steps.set-modules.outputs.modules }}
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          name: commit-sha
-
-      - name: Read SHA
-        id: read_sha
-        run: |
-          SHA=$(cat commit-sha.txt)
-          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.read_sha.outputs.sha }} # 해당 워크플로우의 트리거 워크플로우 기준으로 세팅
           fetch-depth: 0
+          token: ${{ secrets.ACTION_TOKEN }}
       - name: Detect changed modules
         id: set-modules
         run: |
           git fetch origin develop
-          changed_files=$(git diff --name-only origin/develop...${{ steps.read_sha.outputs.sha }})
+          changed_files=$(git diff --name-only origin/develop...${{ github.sha }})
           changed_modules=$(echo "$changed_files" | cut -d/ -f1 | sort -u)
           
           if echo "$changed_modules" | grep -q '^common$'; then
@@ -62,19 +46,20 @@ jobs:
         module: ${{ fromJson(needs.detect-changes.outputs.modules) }}
       fail-fast: false  # 첫 번째 실패가 발생해도 나머지 작업들은 계속 진행됨
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout with exact SHA
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.ACTION_TOKEN }}
           submodules: true
           fetch-depth: 0  # Shallow clones should be disabled
 
-      # cp ${{ matrix.module }}//nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf 2>/dev/null
       - name: Generate deployment package
         run: |
           mkdir -p deploy/.platform/nginx/conf.d
           
           cp ten-private/.env.${{ matrix.module }} deploy/.env.${{ matrix.module }} 2>/dev/null
-          cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml
+          cp ${{ matrix.module }}/nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf 2>/dev/null
+          cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml 2>/dev/null
           cd deploy && zip -r deploy.zip .
 
       - name: Get current time
