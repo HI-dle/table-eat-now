@@ -1,5 +1,8 @@
 package table.eat.now.coupon.helper;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,5 +36,16 @@ public abstract class IntegrationTestSupport {
 
   void clearRedis() {
     redisTemplate.delete(redisTemplate.keys("*"));
+  }
+
+  protected Exception extractExceptionFromFuture(Future<?> future) {
+    try {
+      future.get(3, TimeUnit.SECONDS);
+    } catch (ExecutionException e) {
+      return (Exception) e.getCause();
+    } catch (Exception e) {
+      return e;
+    }
+    return null;
   }
 }

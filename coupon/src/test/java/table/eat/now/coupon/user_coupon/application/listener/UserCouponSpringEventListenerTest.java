@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import table.eat.now.coupon.coupon.application.dto.event.IssueUserCouponEvent;
+import table.eat.now.coupon.coupon.application.messaging.event.CouponRequestedIssueEvent;
+import table.eat.now.coupon.coupon.application.messaging.event.CouponRequestedIssueEvent.CouponRequestedIssuePayload;
 import table.eat.now.coupon.user_coupon.application.service.UserCouponService;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.event.EventType;
 import table.eat.now.coupon.user_coupon.infrastructure.messaging.spring.UserCouponSpringEventListener;
 
 @ExtendWith(SpringExtension.class)
@@ -37,18 +39,24 @@ class UserCouponSpringEventListenerTest {
     // given
     String couponUuid = UUID.randomUUID().toString();
     String userCouponUuid = UUID.randomUUID().toString();
-    IssueUserCouponEvent issueUserCouponEvent = IssueUserCouponEvent.builder()
-        .couponUuid(couponUuid)
+    CouponRequestedIssueEvent issueUserCouponEvent = CouponRequestedIssueEvent.builder()
+        .eventType(EventType.COUPON_REQUESTED_ISSUE.name())
         .userCouponUuid(userCouponUuid)
-        .userId(2L)
-        .name("4월 정기할인쿠폰")
-        .expiresAt(LocalDateTime.of(2025, 5, 1, 0, 0))
+        .payload(
+            CouponRequestedIssuePayload.builder()
+                .userCouponUuid(userCouponUuid)
+                .couponUuid(couponUuid)
+                .userId(2L)
+                .name("4월 정기할인쿠폰")
+                .expiresAt(LocalDateTime.of(2025, 5, 1, 0, 0))
+                .build()
+        )
         .build();
 
     doNothing().when(userCouponService).createUserCoupon(issueUserCouponEvent.toCommand());
 
     // when
-    userCouponSpringEventListener.listenIssueUserCouponEvent(issueUserCouponEvent);
+    userCouponSpringEventListener.listen(issueUserCouponEvent);
 
     // then
     verify(userCouponService).createUserCoupon(issueUserCouponEvent.toCommand());

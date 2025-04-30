@@ -17,6 +17,7 @@ import table.eat.now.notification.application.dto.response.CreateNotificationInf
 import table.eat.now.notification.application.dto.response.GetNotificationInfo;
 import table.eat.now.notification.application.dto.response.NotificationSearchInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
+import table.eat.now.notification.application.event.produce.NotificationPromotionEvent;
 import table.eat.now.notification.application.event.produce.NotificationScheduleSendEvent;
 import table.eat.now.notification.application.event.produce.NotificationSendEvent;
 import table.eat.now.notification.application.exception.NotificationErrorCode;
@@ -199,6 +200,37 @@ public class NotificationServiceImpl implements NotificationService{
       metrics.incrementSendFail();
     }
   }
+
+  @Override
+  @Transactional
+  public void consumerPromotionSendNotification(NotificationPromotionEvent event) {
+    Timer.Sample sample = metrics.startSendTimer();
+
+    try {
+      NotificationFormatterStrategy strategy =
+          formatterSelector.select(NotificationType.PROMOTION_PARTICIPATE);
+
+      Map<String, String> params = Map.of("customerName", event.payload().userId().toString());
+
+      NotificationTemplate formattedMessage = strategy.format(params);
+
+      NotificationSenderStrategy senderStrategy = sendSelector.select(
+          NotificationMethod.SLACK);
+
+      senderStrategy.send(event.payload().userId(), formattedMessage);
+
+      notificationRepository.save(event.toEntity());
+
+      metrics.incrementSendSuccess();
+      metrics.recordSendLatency(sample, "scheduled");
+
+    } catch (Exception e) {
+      log.error("알림 발송 실패: {}", event.payload().userId(), e);
+      metrics.recordSendLatency(sample, "scheduled");
+      metrics.incrementSendFail();
+    }
+  }
+
 
   private void hasScheduleTimeToSaveNotification(NotificationSendEvent notificationSendEvent) {
     notificationRepository.save(Notification.of(

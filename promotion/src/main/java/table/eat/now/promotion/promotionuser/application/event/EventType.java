@@ -5,4 +5,5 @@ public enum EventType {
   PROMOTION_PARTICIPATED_COUPON,
   START,
   END,
+  SEND,
 }

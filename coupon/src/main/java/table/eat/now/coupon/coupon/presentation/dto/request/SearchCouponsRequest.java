@@ -2,7 +2,7 @@ package table.eat.now.coupon.coupon.presentation.dto.request;
 
 import jakarta.validation.constraints.Pattern;
 import java.time.LocalDateTime;
-import table.eat.now.coupon.coupon.application.dto.request.SearchCouponsQuery;
+import table.eat.now.coupon.coupon.application.service.dto.request.SearchCouponsQuery;
 
 public record SearchCouponsRequest(
     LocalDateTime fromAt,

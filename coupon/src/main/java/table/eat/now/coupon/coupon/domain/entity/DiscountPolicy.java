@@ -1,5 +1,6 @@
 package table.eat.now.coupon.coupon.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,6 +27,7 @@ public class DiscountPolicy extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @JsonIgnore
   @ManyToOne
   @JoinColumn(name = "coupon_uuid", referencedColumnName = "coupon_uuid", unique = true)
   private Coupon coupon;

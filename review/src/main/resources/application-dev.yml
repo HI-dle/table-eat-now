@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: review
+  config:
+    import: optional:file:.env.review[.properties]
+  datasource:
+    url: ${DEV_DB_URL}
+    username: ${DEV_DB_USERNAME}
+    password: ${DEV_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+  kafka:
+    bootstrap-servers: ${DEV_KAFKA_BOOTSTRAP_SERVERS}
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
+      username: ${SPRING_DATA_REDIS_USERNAME}
+#      password: systempass
+
+
+kafka-config:
+  topic:
+    partitions: 3
+    replicas: 1
+    min-insync-replicas: 1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${DEV_EUREKA_URL}
+
+server:
+  port: 8087
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+  tracing:
+    sampling:
+      probability: 1.0
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  zipkin:
+    tracing:
+      endpoint: ${DEV_ZIPKIN_URL}
+  metrics:
+    enable:
+      spring.kafka: true
+
+review:
+  rating:
+    update:
+      recent:
+        delay-ms: 300000
+      daily:
+        cron: 0 0 4 * * *
+      batch-size: 100
+
+distributed-lock:
+  wait-time: 0
+  lease-time: 3
+  time-unit: MINUTES

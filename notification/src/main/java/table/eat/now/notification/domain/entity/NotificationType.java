@@ -20,5 +20,7 @@ public enum NotificationType {
   //대기 신청 완료
   CONFIRM_WAITING,
   //대기 입장 안내
-  INFO_WAITING
+  INFO_WAITING,
+  //프로모션 참여 알림
+  PROMOTION_PARTICIPATE,
 }

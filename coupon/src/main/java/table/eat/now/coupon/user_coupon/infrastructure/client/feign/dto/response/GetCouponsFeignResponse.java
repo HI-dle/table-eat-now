@@ -38,7 +38,8 @@ public record GetCouponsFeignResponse(
       Integer percent,
       Integer maxDiscountAmount,
       LocalDateTime createdAt,
-      Long createdBy
+      Long createdBy,
+      Long version
   ) {
 
     public GetCouponInfoI toInfo() {
@@ -60,6 +61,7 @@ public record GetCouponsFeignResponse(
           .maxDiscountAmount(maxDiscountAmount)
           .createdAt(createdAt)
           .createdBy(createdBy)
+          .version(version)
           .build();
     }
   }

@@ -22,8 +22,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponsInfoI;
 import table.eat.now.coupon.coupon.application.service.CouponService;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
@@ -41,7 +41,7 @@ class CouponInternalControllerTest extends ControllerTestSupport {
 
   @DisplayName("쿠폰 내부 단건 조회 요청 검증 - 200 응답")
   @Test
-  void getCouponInternal() throws Exception {
+  void getCouponInfoInternal() throws Exception {
     // given
     String couponUuid = UUID.randomUUID().toString();
     GetCouponInfo couponInfo = GetCouponInfo.builder()
@@ -60,9 +60,10 @@ class CouponInternalControllerTest extends ControllerTestSupport {
         .maxDiscountAmount(null)
         .createdAt(LocalDateTime.now().minusHours(1))
         .createdBy(1L)
+        .version(3L)
         .build();
 
-    given(couponService.getCoupon(couponUuid)).willReturn(couponInfo);
+    given(couponService.getCouponInfo(couponUuid)).willReturn(couponInfo);
 
     // when
     ResultActions resultActions = mockMvc.perform(

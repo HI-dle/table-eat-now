@@ -6,8 +6,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
-import table.eat.now.coupon.coupon.application.dto.response.AvailableCouponInfo;
-import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.IssuableCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
 import table.eat.now.coupon.coupon.domain.entity.DiscountPolicy;
 
@@ -60,15 +60,16 @@ public class CouponFixture {
             .maxDiscountAmount(null)
             .createdAt(LocalDateTime.now().minusHours(i))
             .createdBy(1L)
+            .version(3L)
             .build()
         )
         .toList();
     return couponInfos;
   }
 
-  public static List<AvailableCouponInfo> createAvailableCouponInfos(int length) {
-    List<AvailableCouponInfo> couponInfos = IntStream.range(0, length)
-        .mapToObj(i -> AvailableCouponInfo.builder()
+  public static List<IssuableCouponInfo> createAvailableCouponInfos(int length) {
+    List<IssuableCouponInfo> couponInfos = IntStream.range(0, length)
+        .mapToObj(i -> IssuableCouponInfo.builder()
             .couponId((long) i)
             .couponUuid(UUID.randomUUID().toString())
             .name("test coupon " + i)
@@ -87,6 +88,7 @@ public class CouponFixture {
             .maxDiscountAmount(null)
             .createdAt(LocalDateTime.now().minusHours(i))
             .createdBy(1L)
+            .version(3L)
             .build()
         )
         .toList();

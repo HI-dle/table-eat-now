@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -25,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -49,6 +51,8 @@ import table.eat.now.notification.application.dto.response.GetNotificationInfo;
 import table.eat.now.notification.application.dto.response.NotificationSearchInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
 import table.eat.now.notification.application.event.EventType;
+import table.eat.now.notification.application.event.produce.NotificationPromotionEvent;
+import table.eat.now.notification.application.event.produce.NotificationPromotionPayload;
 import table.eat.now.notification.application.event.produce.NotificationScheduleSendEvent;
 import table.eat.now.notification.application.event.produce.NotificationScheduleSendPayload;
 import table.eat.now.notification.application.event.produce.NotificationSendEvent;
@@ -65,6 +69,7 @@ import table.eat.now.notification.application.strategy.message.formatter.Confirm
 import table.eat.now.notification.application.strategy.message.formatter.ConfirmWaitingFormatter;
 import table.eat.now.notification.application.strategy.message.formatter.InfoWaitingFormatter;
 import table.eat.now.notification.application.strategy.message.formatter.NoShowFormatter;
+import table.eat.now.notification.application.strategy.message.formatter.PromotionParticipateFormatter;
 import table.eat.now.notification.application.strategy.message.formatter.Reminder1HrFormatter;
 import table.eat.now.notification.application.strategy.message.formatter.Reminder9AmFormatter;
 import table.eat.now.notification.application.strategy.send.NotificationSenderStrategy;
@@ -1223,6 +1228,87 @@ class NotificationServiceImplTest {
     verify(notificationMetrics).incrementSendFail();
   }
 
+  @DisplayName("프로모션 알림 발송 성공")
+  @Test
+  void consumerPromotion_sendNotification_success() {
+    // given
+    Long userId = 1L;
+    NotificationPromotionEvent event = NotificationPromotionEvent.builder()
+        .eventType(EventType.PROMOTION_SEND)
+        .payload(NotificationPromotionPayload.builder()
+            .userId(userId)
+            .promotionUuid("test")
+            .build())
+        .build();
+
+    NotificationFormatterStrategy verifyFormatterStrategy = new PromotionParticipateFormatter();
+    assertThat(verifyFormatterStrategy.getType()).isEqualTo(NotificationType.PROMOTION_PARTICIPATE);
+
+    NotificationSenderStrategy senderStrategy = mock(NotificationSenderStrategy.class);
+
+    when(formatterSelector.select(NotificationType.PROMOTION_PARTICIPATE))
+        .thenReturn(verifyFormatterStrategy);
+    when(sendSelector.select(NotificationMethod.SLACK))
+        .thenReturn(senderStrategy);
+
+    // when
+    notificationService.consumerPromotionSendNotification(event);
+
+    // then
+    verify(formatterSelector).select(NotificationType.PROMOTION_PARTICIPATE);
+    verify(sendSelector).select(NotificationMethod.SLACK);
+
+    ArgumentCaptor<NotificationTemplate> captor = ArgumentCaptor.forClass(NotificationTemplate.class);
+    verify(senderStrategy).send(eq(userId), captor.capture());
+
+    NotificationTemplate actualTemplate = captor.getValue();
+    assertThat(actualTemplate.title()).isEqualTo("프로모션에 신청 되었습니다!");
+    assertThat(actualTemplate.body()).isEqualTo("1님, 신청해주셔서 감사합니다.");
+
+    verify(notificationRepository).save(any(Notification.class));
+    verify(notificationMetrics).incrementSendSuccess();
+  }
+
+
+
+  @DisplayName("프로모션 알림 발송 실패 시 예외 처리")
+  @Test
+  void consumerPromotion_sendNotification_failure() {
+    // given
+    Long userId = 1L;
+    NotificationPromotionEvent event = NotificationPromotionEvent.builder()
+        .eventType(EventType.PROMOTION_SEND)
+        .payload(NotificationPromotionPayload.builder()
+            .userId(userId)
+            .promotionUuid("test")
+            .build())
+        .build();
+
+    NotificationFormatterStrategy formatterStrategy = mock(NotificationFormatterStrategy.class);
+    NotificationSenderStrategy senderStrategy = mock(NotificationSenderStrategy.class);
+    NotificationTemplate template = new NotificationTemplate("제목", "본문");
+
+    when(formatterSelector.select(NotificationType.PROMOTION_PARTICIPATE))
+        .thenReturn(formatterStrategy);
+    when(formatterStrategy.format(any(Map.class)))
+        .thenReturn(template);
+    when(sendSelector.select(NotificationMethod.SLACK))
+        .thenReturn(senderStrategy);
+
+    // Simulate failure in sending the notification
+    doThrow(new RuntimeException("발송 실패")).when(senderStrategy).send(userId, template);
+
+    // when
+    notificationService.consumerPromotionSendNotification(event);
+
+    // then
+    verify(formatterSelector).select(NotificationType.PROMOTION_PARTICIPATE);
+    verify(formatterStrategy).format(any(Map.class));
+    verify(sendSelector).select(NotificationMethod.SLACK);
+    verify(senderStrategy).send(userId, template);
+    verify(notificationRepository, times(0)).save(any(Notification.class)); // 예외 발생으로 저장되지 않음
+    verify(notificationMetrics).incrementSendFail();
+  }
 
 
 

@@ -13,6 +13,9 @@ public class PromotionKafkaTopicConfig {
 
   private static final String PROMOTION_TOPIC_DLT = "promotion-event-dlt";
 
+  private static final String NOTIFICATION_TOPIC_NAME = "notification-event";
+  private static final String NOTIFICATION_TOPIC_DLT = "notification-event-dlt";
+
   @Value("${kafka.topic.promotion.partitions:3}")
   private int partitions;
   @Value("${kafka.topic.promotion.replicas:3}")
@@ -48,4 +51,32 @@ public class PromotionKafkaTopicConfig {
     return PROMOTION_TOPIC_DLT;
   }
 
+
+  @Bean
+  public NewTopic createNotificationTopic() {
+    return TopicBuilder.name(NOTIFICATION_TOPIC_NAME)
+        .partitions(partitions)
+        .replicas(replicas)
+        .config("min.insync.replicas", minInsyncReplicas)
+        .build();
+  }
+
+  @Bean
+  public String notificationTopic() {
+    return NOTIFICATION_TOPIC_NAME;
+  }
+
+  @Bean
+  public NewTopic notificationDlqTopic() {
+    return TopicBuilder.name(NOTIFICATION_TOPIC_DLT)
+        .partitions(partitions)
+        .replicas(replicas)
+        .config("min.insync.replicas", minInsyncReplicas)
+        .build();
+  }
+
+  @Bean
+  public String notificationTopicDlt() {
+    return NOTIFICATION_TOPIC_DLT;
+  }
 }

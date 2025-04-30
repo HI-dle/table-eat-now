@@ -11,21 +11,22 @@ public class DistributedLockKeyGenerator {
   private DistributedLockKeyGenerator() {
     throw new IllegalStateException("Utility class");
   }
-  private static final String COUPON_LOCK_PREFIX = "user:coupon:lock:";
+  private static final String USER_COUPON_LOCK_PREFIX = "user:coupon:lock:";
 
   public static List<String> generateKeys(
+      final String subPrefix,
       final String spelExpression,
       final String[] parameterNames,
       final Object[] args) {
 
     if (spelExpression == null) {
-      return Collections.singletonList(COUPON_LOCK_PREFIX);
+      return Collections.singletonList(USER_COUPON_LOCK_PREFIX);
     }
 
     List<String> keys = CustomSpringELParser.parseExpression(
-        spelExpression, parameterNames, args, new TypeReference<Set<String>>() {})
+        subPrefix,spelExpression, parameterNames, args, new TypeReference<Set<String>>() {})
         .stream()
-        .map(val -> COUPON_LOCK_PREFIX + val)
+        .map(val -> USER_COUPON_LOCK_PREFIX + subPrefix + val)
         .toList();
 
     if (keys.isEmpty()) {

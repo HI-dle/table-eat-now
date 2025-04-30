@@ -23,10 +23,13 @@ import table.eat.now.common.exception.CustomException;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
 import table.eat.now.coupon.coupon.domain.criteria.CouponCriteria;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
+import table.eat.now.coupon.coupon.domain.entity.CouponLabel;
 import table.eat.now.coupon.coupon.domain.entity.CouponType;
 
 @RequiredArgsConstructor
 public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
+
+  private static final String GENERAL = CouponLabel.GENERAL.name();
   private final JPAQueryFactory queryFactory;
 
   @Override
@@ -34,12 +37,12 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
       Pageable pageable, CouponCriteria criteria) {
 
     OrderSpecifier[] orderSpecifiers = createOrderSpecifiers(pageable.getSort());
-
+    BooleanBuilder searchCondition = searchCondition(criteria);
     List<Coupon> dtoList = queryFactory
         .selectFrom(coupon)
         .join(coupon.policy).fetchJoin()
         .where(
-          searchCondition(criteria)
+            searchCondition
         )
         .orderBy(orderSpecifiers)
         .offset(pageable.getOffset())
@@ -50,22 +53,22 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
         .select(coupon.count())
         .from(coupon)
         .where(
-            searchCondition(criteria)
+            searchCondition
         );
 
     return PageableExecutionUtils.getPage(dtoList, pageable, countQuery::fetchOne);
   }
 
   @Override
-  public Page<Coupon> getAvailableCoupons(Pageable pageable, LocalDateTime time) {
+  public Page<Coupon> getAvailableGeneralCoupons(Pageable pageable, LocalDateTime time) {
 
     OrderSpecifier[] orderSpecifiers = createOrderSpecifiers(pageable.getSort());
-
+    BooleanBuilder availableCondition = availableCondition(time);
     List<Coupon> dtoList = queryFactory
         .selectFrom(coupon)
         .join(coupon.policy).fetchJoin()
         .where(
-            betweenPeriod(time)
+            availableCondition
         )
         .orderBy(orderSpecifiers)
         .offset(pageable.getOffset())
@@ -76,7 +79,7 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
         .select(coupon.count())
         .from(coupon)
         .where(
-            betweenPeriod(time)
+            availableCondition
         );
 
     return PageableExecutionUtils.getPage(dtoList, pageable, countQuery::fetchOne);
@@ -85,6 +88,11 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
   private BooleanBuilder searchCondition(CouponCriteria criteria) {
     return betweenFromTo(criteria.fromAt(), criteria.toAt())
         .and(eqType(criteria.type()));
+  }
+
+  private BooleanBuilder availableCondition(LocalDateTime time) {
+    return betweenPeriod(time)
+        .and(eqLabel(GENERAL));
   }
 
   public BooleanBuilder betweenFromTo(LocalDateTime fromAt, LocalDateTime toAt) {
@@ -103,7 +111,16 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
   }
 
   public BooleanBuilder eqType(String type)  {
-    return nullSafeBuilder(() -> coupon.type.eq(CouponType.valueOf(type)));
+    return nullSafeBuilder(() -> coupon.type.eq(CouponType.parse(type)));
+  }
+
+  public BooleanBuilder eqLabel(String label)  {
+    return nullSafeBuilder(() -> coupon.label.eq(CouponLabel.parse(label)));
+  }
+
+  public BooleanBuilder inLabel(List<String> labels)  {
+    return nullSafeBuilder(() -> coupon.label.in(
+        labels.stream().map(CouponLabel::parse).toList()));
   }
 
   private BooleanBuilder betweenPeriod(LocalDateTime time) {

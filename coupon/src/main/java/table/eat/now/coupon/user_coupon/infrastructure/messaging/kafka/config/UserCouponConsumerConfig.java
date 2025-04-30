@@ -22,11 +22,11 @@ import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
-import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.dto.EventType;
-import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.dto.PromotionEvent;
-import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.dto.PromotionParticipatedCouponEvent;
-import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.dto.ReservationCancelledEvent;
-import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.dto.ReservationEvent;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.event.CouponEvent;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.event.CouponRequestedIssueEvent;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.event.EventType;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.event.ReservationCancelledEvent;
+import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.event.ReservationEvent;
 
 @Configuration
 public class UserCouponConsumerConfig {
@@ -37,8 +37,8 @@ public class UserCouponConsumerConfig {
   public final static String GROUP_1 = "user-coupon-group-1";
   public final static String RESERVATION_EVENT = "reservation-event";
   public final static String RESERVATION_EVENT_DLT = "reservation-event-dlt";
-  public static final String PROMOTION_EVENT = "promotion-event";
-  public static final String PROMOTION_EVENT_DLT = "promotion-event-dlt";
+  public static final String COUPON_EVENT = "coupon-event";
+  public static final String COUPON_EVENT_DLT = "coupon-event-dlt";
 
   @Value("${spring.kafka.bootstrap-servers}")
   private String bootstrapServers;
@@ -115,19 +115,20 @@ public class UserCouponConsumerConfig {
     return errorHandler;
   }
 
-  public ConsumerFactory<String, ReservationCancelledEvent> reservationCancelledEventConsumerFactory() {
+  public ConsumerFactory<String, ReservationCancelledEvent>
+  reservationCancelledEventConsumerFactory() {
     return createConsumerFactory(
         GROUP, ReservationCancelledEvent.class, this::getCommonConsumerProps);
   }
 
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, ReservationCancelledEvent>
-  reservationCancelledEventKafkaListenerContainerFactory(KafkaTemplate<String, ReservationEvent> kafkaTemplate) {
+  reservationCancelledEventKafkaListenerContainerFactory(KafkaTemplate<String, ReservationEvent> kafkaReservationDltTemplate) {
     ConcurrentKafkaListenerContainerFactory<String, ReservationCancelledEvent> factory =
         createContainerFactory(
             reservationCancelledEventConsumerFactory(), EventType.RESERVATION_CANCELLED.toString());
 
-    DefaultErrorHandler errorHandler = getDefaultErrorHandler(kafkaTemplate, RESERVATION_EVENT_DLT);
+    DefaultErrorHandler errorHandler = getDefaultErrorHandler(kafkaReservationDltTemplate, RESERVATION_EVENT_DLT);
 
     factory.setCommonErrorHandler(errorHandler);
     factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
@@ -154,20 +155,20 @@ public class UserCouponConsumerConfig {
     return props;
   }
 
-  public ConsumerFactory<String, PromotionParticipatedCouponEvent>
-  promotionParticipatedCouponEventConsumerFactory() {
+  public ConsumerFactory<String, CouponRequestedIssueEvent>
+  couponRequestedIssueEventConsumerFactory() {
     return createConsumerFactory(
-        GROUP_1, PromotionParticipatedCouponEvent.class, this::getBatchConsumerProps);
+        GROUP_1, CouponRequestedIssueEvent.class, this::getBatchConsumerProps);
   }
 
   @Bean
-  public ConcurrentKafkaListenerContainerFactory<String, PromotionParticipatedCouponEvent>
-  promotionParticipatedCouponEventKafkaListenerContainerFactory(KafkaTemplate<String, PromotionEvent> kafkaPromotionTemplate) {
-    ConcurrentKafkaListenerContainerFactory<String, PromotionParticipatedCouponEvent> factory =
+  public ConcurrentKafkaListenerContainerFactory<String, CouponRequestedIssueEvent>
+  couponRequestedIssueEventKafkaListenerContainerFactory(KafkaTemplate<String, CouponEvent> kafkaCouponDltTemplate) {
+    ConcurrentKafkaListenerContainerFactory<String, CouponRequestedIssueEvent> factory =
         createContainerFactory(
-            promotionParticipatedCouponEventConsumerFactory(), EventType.PROMOTION_PARTICIPATED_COUPON.toString());
+            couponRequestedIssueEventConsumerFactory(), EventType.COUPON_REQUESTED_ISSUE.toString());
 
-    DefaultErrorHandler errorHandler = getDefaultErrorHandler(kafkaPromotionTemplate, PROMOTION_EVENT_DLT);
+    DefaultErrorHandler errorHandler = getDefaultErrorHandler(kafkaCouponDltTemplate, COUPON_EVENT_DLT);
 
     factory.setCommonErrorHandler(errorHandler);
     factory.getContainerProperties().setIdleBetweenPolls(5000);
@@ -177,11 +178,11 @@ public class UserCouponConsumerConfig {
   }
 
   @Bean
-  public ConcurrentKafkaListenerContainerFactory<String, PromotionParticipatedCouponEvent>
-  promotionParticipatedCouponEventDltKafkaListenerContainerFactory() {
-    ConcurrentKafkaListenerContainerFactory<String, PromotionParticipatedCouponEvent> factory =
+  public ConcurrentKafkaListenerContainerFactory<String, CouponRequestedIssueEvent>
+  couponRequestedIssueEventDltKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, CouponRequestedIssueEvent> factory =
         createContainerFactory(
-            promotionParticipatedCouponEventConsumerFactory(), EventType.PROMOTION_PARTICIPATED_COUPON.toString());
+            couponRequestedIssueEventConsumerFactory(), EventType.COUPON_REQUESTED_ISSUE.toString());
 
     factory.getContainerProperties().setIdleBetweenPolls(60000);
     factory.setBatchListener(true);

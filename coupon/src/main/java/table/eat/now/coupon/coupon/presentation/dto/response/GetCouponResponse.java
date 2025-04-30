@@ -2,7 +2,7 @@ package table.eat.now.coupon.coupon.presentation.dto.response;
 
 import java.time.LocalDateTime;
 import lombok.Builder;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponInfo;
 
 @Builder
 public record GetCouponResponse(
@@ -22,7 +22,8 @@ public record GetCouponResponse(
     Integer percent,
     Integer maxDiscountAmount,
     LocalDateTime createdAt,
-    Long createdBy
+    Long createdBy,
+    Long version
 ) {
 
   public static GetCouponResponse from(GetCouponInfo coupon) {
@@ -44,6 +45,7 @@ public record GetCouponResponse(
         .maxDiscountAmount(coupon.maxDiscountAmount())
         .createdAt(coupon.createdAt())
         .createdBy(coupon.createdBy())
+        .version(coupon.version())
         .build();
   }
 }
