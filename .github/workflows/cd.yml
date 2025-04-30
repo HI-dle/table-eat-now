@@ -11,6 +11,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.ACTION_TOKEN }}
       - name: Detect changed modules
         id: set-modules
         run: |
