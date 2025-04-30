@@ -1,4 +1,4 @@
-name: "CI"
+name: "CI - docker image build and ecr push"
 on:
   push:
     branches:
@@ -74,5 +74,9 @@ jobs:
           cp -r ten-private/.env.* . 2>/dev/null
           docker build -t ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG -f ${{ matrix.module }}/Dockerfile . 
           docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
-
+  trigger-cd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirmed Parallel job completed And Triggering CD
+        run: echo Completed CI
 

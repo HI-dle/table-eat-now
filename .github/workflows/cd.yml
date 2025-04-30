@@ -1,7 +1,7 @@
-name: "CD"
+name: "CD - Beanstalk server deploy"
 on:
   workflow_run:
-    workflows: ["CI"]
+    workflows: ["CI - docker image build and ecr push"]
     branches:
       - "feat/#222"
    #   - main
