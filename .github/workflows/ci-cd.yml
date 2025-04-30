@@ -128,7 +128,6 @@ jobs:
       - name: Beanstalk Deploy
         if: steps.ready.outputs.found_docker_compose == 'true'
         uses: einaregilsson/beanstalk-deploy@v22
-        continue-on-error: true
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
