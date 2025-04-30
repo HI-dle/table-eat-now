@@ -1,21 +1,17 @@
-name: "CD"
+name: CD - Beanstalk server deploy
 on:
-  workflow_run:
-    workflows: ["CI"]
-    branches:
-      - "feat/#222"
-   #   - main
-    types:
-      - completed
+  workflow_call:
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
       modules: ${{ steps.set-modules.outputs.modules }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.ACTION_TOKEN }}
       - name: Detect changed modules
         id: set-modules
         run: |
@@ -50,19 +46,20 @@ jobs:
         module: ${{ fromJson(needs.detect-changes.outputs.modules) }}
       fail-fast: false  # 첫 번째 실패가 발생해도 나머지 작업들은 계속 진행됨
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout with exact SHA
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.ACTION_TOKEN }}
           submodules: true
           fetch-depth: 0  # Shallow clones should be disabled
 
-      # cp ${{ matrix.module }}//nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf 2>/dev/null
       - name: Generate deployment package
         run: |
           mkdir -p deploy/.platform/nginx/conf.d
           
           cp ten-private/.env.${{ matrix.module }} deploy/.env.${{ matrix.module }} 2>/dev/null
-          cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml
+          cp ${{ matrix.module }}/nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf 2>/dev/null
+          cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml 2>/dev/null
           cd deploy && zip -r deploy.zip .
 
       - name: Get current time

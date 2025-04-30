@@ -3,7 +3,7 @@ services:
     container_name: hidle-server
     image: 390403891668.dkr.ecr.ap-northeast-2.amazonaws.com/hidle-ecr:server
     ports:
-      - "8761:8761"
+      - "80:8761"
     volumes:
       - ./logs:/logs
     environment:
