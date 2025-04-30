@@ -1,14 +1,16 @@
 name: CD - Beanstalk server deploy
 on:
   push:
+#    branches:
+#      - feat/#222
+#      - main
+  workflow_run:
+    workflows: CI - docker image build and ecr push
     branches:
-      - feat/#222
       - main
-#  workflow_run:
-#    workflows: CI - docker image build and ecr push
-#    branches: main
-#    types:
-#      - completed
+      - feat/#222
+    types:
+      - completed
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
@@ -58,12 +60,12 @@ jobs:
           submodules: true
           fetch-depth: 0  # Shallow clones should be disabled
 
-      # cp ${{ matrix.module }}//nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf
+      # cp ${{ matrix.module }}//nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf 2>/dev/null
       - name: Generate deployment package
         run: |
           mkdir -p deploy/.platform/nginx/conf.d
           
-          cp ten-private/.env.${{ matrix.module }} deploy/.env.${{ matrix.module }}
+          cp ten-private/.env.${{ matrix.module }} deploy/.env.${{ matrix.module }} 2>/dev/null
           cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml
           cd deploy && zip -r deploy.zip .
 

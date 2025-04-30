@@ -2,6 +2,7 @@ name: CI - docker image build and ecr push
 on:
   push:
     branches:
+      - feat/#222
       - main
 jobs:
   detect-changes:
@@ -68,7 +69,7 @@ jobs:
           REGION="ap-northeast-2"
           ECR_REPOSITORY="hidle-ecr"
           IMAGE_TAG=${{ matrix.module }}
-          cp -r ten-private/.env.* .
+          cp -r ten-private/.env.* . 2>/dev/null
           docker build -t ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG -f ${{ matrix.module }}/Dockerfile . 
           docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
 
