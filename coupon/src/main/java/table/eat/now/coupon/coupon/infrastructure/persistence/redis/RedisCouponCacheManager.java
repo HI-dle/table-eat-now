@@ -43,13 +43,6 @@ public class RedisCouponCacheManager {
   private final RedisTemplate<String, Object> couponRedisTemplate;
   private final StringRedisTemplate stringRedisTemplate;
 
-//  public RedisCouponCacheManager(
-//      @Qualifier("couponRedisTemplate") RedisTemplate<String, Object> couponRedisTemplate,
-//      StringRedisTemplate stringRedisTemplate) {
-//    this.couponRedisTemplate = couponRedisTemplate;
-//    this.stringRedisTemplate = stringRedisTemplate;
-//  }
-
   public Coupon getCouponCache(String couponUuid) {
     String cacheKey = COUPON_CACHE + couponUuid;
     Map<Object, Object> couponMap = couponRedisTemplate.opsForHash().entries(cacheKey);
@@ -91,6 +84,7 @@ public class RedisCouponCacheManager {
             for (CouponCachingAndIndexing coupon : coupons) {
               String cacheKey = COUPON_CACHE + coupon.couponUuid();
               operations.opsForHash().putAll(cacheKey, coupon.couponMap());
+              couponRedisTemplate.expire(cacheKey, coupon.ttl());
               operations.opsForZSet().add(
                   coupon.label() == CouponLabel.PROMOTION ? promoIndexKey : hotIndexKey,
                   cacheKey,
@@ -98,6 +92,28 @@ public class RedisCouponCacheManager {
             }
             return null;
           }
+    });
+
+    for (int i = 0; i < result.size(); i++) {
+      Boolean success = (Boolean) result.get(i);
+      if (success == null || !success) {
+        log.error("REDIS Pipeline: 개별 쿠폰 캐시 입력 실패: {}", coupons.get(i).couponUuid());
+      }
+    }
+  }
+
+  public void pipelinedPutCouponsCache(List<CouponCachingAndIndexing> coupons) {
+    List<Object> result = couponRedisTemplate.executePipelined(new SessionCallback<> () {
+      @Override
+      public Object execute(RedisOperations operations) {
+
+        for (CouponCachingAndIndexing coupon : coupons) {
+          String cacheKey = COUPON_CACHE + coupon.couponUuid();
+          operations.opsForHash().putAll(cacheKey, coupon.couponMap());
+          couponRedisTemplate.expire(cacheKey, coupon.ttl());
+        }
+        return null;
+      }
     });
 
     for (int i = 0; i < result.size(); i++) {

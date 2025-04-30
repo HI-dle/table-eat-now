@@ -1,6 +1,7 @@
 package table.eat.now.coupon.coupon.domain.command;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.time.Duration;
 import java.util.Map;
 import lombok.Builder;
 import table.eat.now.coupon.coupon.application.utils.MapperProvider;
@@ -13,7 +14,8 @@ public record CouponCachingAndIndexing(
     String couponUuid,
     CouponLabel label,
     Map<String, Object> couponMap,
-    Long expiredAt
+    Long expiredAt,
+    Duration ttl
 ) {
 
   public static CouponCachingAndIndexing from(Coupon coupon) {
@@ -22,6 +24,7 @@ public record CouponCachingAndIndexing(
         .label(coupon.getLabel())
         .couponMap(MapperProvider.convertValue(coupon, new TypeReference<>() {}))
         .expiredAt(TimeProvider.getEpochMillis(coupon.calcExpireAt()))
+        .ttl(TimeProvider.getDuration(coupon.calcExpireAt(), 60))
         .build();
   }
 }
