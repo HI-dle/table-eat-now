@@ -4,8 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,18 +14,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ContainerProperties.AckMode;
-import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.util.backoff.FixedBackOff;
-import table.eat.now.coupon.coupon.infrastructure.messaging.kafka.dto.PromotionEvent;
 import table.eat.now.coupon.coupon.infrastructure.messaging.kafka.dto.PromotionParticipatedCouponEvent;
 import table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.event.EventType;
 
+@RequiredArgsConstructor
 @Configuration
 public class CouponConsumerConfig {
 
@@ -42,6 +39,8 @@ public class CouponConsumerConfig {
   private String autoOffsetReset;
   @Value("${spring.kafka.consumer.enable-auto-commit}")
   private boolean enableAutoCommit;
+
+  private final DefaultErrorHandler kafkaErrorHandler;
 
   private static <T> JsonDeserializer<T> getTJsonDeserializer(Class<T> targetType) {
     JsonDeserializer<T> jsonDeserializer = new JsonDeserializer<>(targetType);
@@ -95,21 +94,6 @@ public class CouponConsumerConfig {
     return factory;
   }
 
-  private <T> DefaultErrorHandler getDefaultErrorHandler(
-      KafkaTemplate<String, T> kafkaTemplate, String topicName) {
-
-    DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
-        kafkaTemplate,
-        (record, ex) ->
-            new TopicPartition(topicName, record.partition())
-    );
-    DefaultErrorHandler errorHandler = new DefaultErrorHandler(
-        recoverer,
-        new FixedBackOff(1000L, 3)
-    );
-    //errorHandler.addNotRetryableExceptions(DeserializationException.class);
-    return errorHandler;
-  }
 
   public ConsumerFactory<String, PromotionParticipatedCouponEvent> promotionParticipatedEventConsumerFactory() {
     return createConsumerFactory(
@@ -118,13 +102,13 @@ public class CouponConsumerConfig {
 
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, PromotionParticipatedCouponEvent>
-  promotionParticipatedEventKafkaListenerContainerFactory(KafkaTemplate<String, PromotionEvent> kafkaPromotionDltTemplate) {
+  promotionParticipatedEventKafkaListenerContainerFactory() {
     ConcurrentKafkaListenerContainerFactory<String, PromotionParticipatedCouponEvent> factory =
         createContainerFactory(
             promotionParticipatedEventConsumerFactory(), EventType.PROMOTION_PARTICIPATED_COUPON.toString());
 
-    DefaultErrorHandler errorHandler = getDefaultErrorHandler(kafkaPromotionDltTemplate, PROMOTION_EVENT_DLT);
-
+    DefaultErrorHandler errorHandler = kafkaErrorHandler;
+    //errorHandler.addNotRetryableExceptions(DeserializationException.class);
     factory.setCommonErrorHandler(errorHandler);
     factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
     return factory;

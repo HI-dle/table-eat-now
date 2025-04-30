@@ -15,7 +15,7 @@ public class CouponScheduler {
   private final PrepareCouponIssuanceUsecase prepareCouponIssuanceUsecase;
   private final PrepareDailyCouponCacheUsecase prepareDailyCouponCacheUsecase;
 
-  @DistributedLock(subPrefix = "schedule:hourlycaching", waitTime = 0L)
+  @DistributedLock(subPrefix = "schedule:hourlycaching", waitTime = 0L, leaseTime = 60)
   @Scheduled(cron="0 0 * * * *")
   public void setCouponIssuanceInfo() {
     log.info("쿠폰 발급 정보::레디스에 로드 시작");
@@ -23,7 +23,7 @@ public class CouponScheduler {
     log.info("쿠폰 발급 정보::레디스에 로드 완료");
   }
 
-  @DistributedLock(subPrefix = "schedule:dailycaching", waitTime = 0L)
+  @DistributedLock(subPrefix = "schedule:dailycaching", waitTime = 0L, leaseTime = 60)
   @Scheduled(cron="0 0 0/23 * * *")
   public void prepareDailyCouponCache() {
     prepareDailyCouponCacheUsecase.execute();
