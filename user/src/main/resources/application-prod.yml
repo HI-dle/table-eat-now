@@ -27,6 +27,7 @@ eureka:
       defaultZone: ${PROD_EUREKA_SERVICE_URL}
   instance:
     prefer-ip-address: true
+    ip-address: ${PROD_EC2_ADDRESS}
 
 jwt:
   secret: ${JWT_SECRET}
