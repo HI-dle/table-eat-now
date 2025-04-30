@@ -3,7 +3,7 @@ on:
   workflow_run:
     workflows: ["CI - docker image build and ecr push"]
     branches:
-      - feat/#222
+      - "feat/#222"
    #   - main
     types:
       - completed
