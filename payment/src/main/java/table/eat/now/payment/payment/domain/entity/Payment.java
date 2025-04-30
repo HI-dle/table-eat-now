@@ -28,11 +28,11 @@ public class Payment extends BaseEntity {
 
   @Embedded
   private PaymentIdentifier identifier;
-  
+
   @Column(unique = true)
   private String paymentKey;
   @Column(nullable = false)
-  
+
   @Enumerated(EnumType.STRING)
   private PaymentStatus paymentStatus;
 
@@ -69,7 +69,7 @@ public class Payment extends BaseEntity {
   }
 
   private PaymentStatus validateStatus(PaymentStatus nextStatus) {
-    if(this.paymentStatus.canChangeTo(nextStatus)){
+    if (this.paymentStatus.canChangeTo(nextStatus)) {
       return nextStatus;
     }
     throw new IllegalArgumentException("해당 상태로 변경할 수 없습니다.");
