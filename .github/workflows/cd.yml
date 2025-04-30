@@ -58,13 +58,13 @@ jobs:
           submodules: true
           fetch-depth: 0  # Shallow clones should be disabled
 
+      # cp ${{ matrix.module }}//nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf
       - name: Generate deployment package
         run: |
           mkdir -p deploy/.platform/nginx/conf.d
           
           cp ten-private/.env.${{ matrix.module }} deploy/.env.${{ matrix.module }}
           cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml
-          cp .platform/nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf
           cd deploy && zip -r deploy.zip .
 
       - name: Get current time
