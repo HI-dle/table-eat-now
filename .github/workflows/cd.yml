@@ -1,14 +1,12 @@
-name: CD - Beanstalk server deploy
+name: "CD - Beanstalk server deploy"
 on:
-  push:
+  workflow_run:
+    workflows: ["CI - docker image build and ecr push"]
     branches:
-      - feat/#222
-      - main
-#  workflow_run:
-#    workflows: CI - docker image build and ecr push
-#    branches: main
-#    types:
-#      - completed
+      - "feat/#222"
+   #   - main
+    types:
+      - completed
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
@@ -58,6 +56,15 @@ jobs:
           submodules: true
           fetch-depth: 0  # Shallow clones should be disabled
 
+      # cp ${{ matrix.module }}//nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf 2>/dev/null
+      - name: Generate deployment package
+        run: |
+          mkdir -p deploy/.platform/nginx/conf.d
+          
+          cp ten-private/.env.${{ matrix.module }} deploy/.env.${{ matrix.module }} 2>/dev/null
+          cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml
+          cd deploy && zip -r deploy.zip .
+
       - name: Get current time
         uses: 1466587594/get-current-time@v2
         id: deploy-time
@@ -74,4 +81,5 @@ jobs:
           environment_name: Table-eat-now-${{ matrix.module }}-blue-env
           version_label: "github-action--${{ steps.deploy-time.outputs.formattedTime }}"
           region: ap-northeast-2
-          deployment_package: ${{ matrix.module }}/docker-compose.yml
+          deployment_package: deploy/deploy.zip
+          wait_for_environment_recovery: 200
