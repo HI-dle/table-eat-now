@@ -117,7 +117,7 @@ jobs:
             echo "found_docker_compose=false" >> "$GITHUB_OUTPUT"
           fi
           
-          cd deploy && zip -r deploy.zip .
+          cd deploy && zip -r deploy.zip . && mv deploy.zip ..
 
       - name: Get current time
         if: steps.ready.outputs.found_docker_compose == 'true'
@@ -129,7 +129,8 @@ jobs:
 
       - name: Beanstalk Deploy
         if: steps.ready.outputs.found_docker_compose == 'true'
-        uses: einaregilsson/beanstalk-deploy@v20
+        uses: einaregilsson/beanstalk-deploy@v22
+        continue-on-error: true
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -137,5 +138,5 @@ jobs:
           environment_name: Table-eat-now-${{ matrix.module }}-blue-env
           version_label: "github-action--${{ steps.deploy-time.outputs.formattedTime }}"
           region: ap-northeast-2
-          deployment_package: deploy/deploy.zip
-          wait_for_environment_recovery: 200
+          deployment_package: deploy.zip
+          wait_for_environment_recovery: 20
