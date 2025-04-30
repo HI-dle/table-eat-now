@@ -6,5 +6,6 @@ services:
       - "8088:8088"
     volumes:
       - ./logs:/logs
+      - ./.env.payment:/app/.env.payment
     environment:
       SPRING_PROFILES_ACTIVE: prod
