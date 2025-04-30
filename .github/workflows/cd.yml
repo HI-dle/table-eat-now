@@ -2,13 +2,13 @@ name: "CD - Beanstalk server deploy"
 on:
   workflow_run:
     workflows: ["CI - docker image build and ecr push"]
-    branches:
-      - "feat/#222"
-   #   - main
     types:
       - completed
-jobs:
+    branches:
+      - feat/#222
+   #   - main
 
+jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
@@ -26,6 +26,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
+          ref: ${{ steps.read_sha.outputs.sha }} # 해당 워크플로우의 트리거 워크플로우 기준으로 세팅
           fetch-depth: 0
       - name: Detect changed modules
         id: set-modules
