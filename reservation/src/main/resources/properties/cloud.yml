@@ -29,3 +29,14 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://eureka-service:8761/eureka
+
+---
+# prod 환경
+spring:
+  config.activate.on-profile: prod
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${PROD_EUREKA_SERVICE_URL}

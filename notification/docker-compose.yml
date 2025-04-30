@@ -1,0 +1,10 @@
+services:
+  notification:
+    container_name: hidle-notification
+    image: 390403891668.dkr.ecr.ap-northeast-2.amazonaws.com/hidle-ecr:notification
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./logs:/logs
+    environment:
+      SPRING_PROFILES_ACTIVE: prod

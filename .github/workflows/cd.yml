@@ -1,9 +1,12 @@
-name: "CI - docker image build and ecr push"
+name: "CD - Beanstalk server deploy"
 on:
-  push:
+  workflow_run:
+    workflows: ["CI - docker image build and ecr push"]
     branches:
-      - feat/#222
-    #  - main
+      - "feat/#222"
+   #   - main
+    types:
+      - completed
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
@@ -28,7 +31,7 @@ jobs:
 
             echo "modules=$modules" >> "$GITHUB_OUTPUT"
           else
-            excluded_dirs="\.github|gradle|ten-private|common|config"
+            excluded_dirs="\.github|gradle|ten-private|common"
             pattern=$(find . -maxdepth 1 -type d ! -name '.' \
               | sed 's|^\./||' \
               | grep -vE "^($excluded_dirs)$" \
@@ -38,7 +41,7 @@ jobs:
             modules=$(echo "$changed_modules" | grep -E "$pattern" | jq -R -s -c 'split("\n") | map(select(length > 0))')
             echo "modules=$modules" >> "$GITHUB_OUTPUT"
           fi
-  build-push:
+  deploy:
     needs: detect-changes
     runs-on: ubuntu-latest
     if: ${{ needs.detect-changes.outputs.modules != '[]' && needs.detect-changes.outputs.modules != '' }}
@@ -53,30 +56,30 @@ jobs:
           submodules: true
           fetch-depth: 0  # Shallow clones should be disabled
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-2
-
-      - name: Log in to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-        with:
-          mask-password: 'true'
-
-      - name: Build and push image to Amazon ECR
+      # cp ${{ matrix.module }}//nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf 2>/dev/null
+      - name: Generate deployment package
         run: |
-          REGION="ap-northeast-2"
-          ECR_REPOSITORY="hidle-ecr"
-          IMAGE_TAG=${{ matrix.module }}
-          cp -r ten-private/.env.* . 2>/dev/null
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG -f ${{ matrix.module }}/Dockerfile . 
-          docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
-  trigger-cd:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Confirmed Parallel job completed And Triggering CD
-        run: echo Completed CI
+          mkdir -p deploy/.platform/nginx/conf.d
+          
+          cp ten-private/.env.${{ matrix.module }} deploy/.env.${{ matrix.module }} 2>/dev/null
+          cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml
+          cd deploy && zip -r deploy.zip .
 
+      - name: Get current time
+        uses: 1466587594/get-current-time@v2
+        id: deploy-time
+        with:
+          format: YYYYMMDD_HH-mm-ss
+          utcOffset: "+09:00"
+
+      - name: Beanstalk Deploy
+        uses: einaregilsson/beanstalk-deploy@v20
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: table-eat-now-${{ matrix.module }}-blue
+          environment_name: Table-eat-now-${{ matrix.module }}-blue-env
+          version_label: "github-action--${{ steps.deploy-time.outputs.formattedTime }}"
+          region: ap-northeast-2
+          deployment_package: deploy/deploy.zip
+          wait_for_environment_recovery: 200

@@ -26,3 +26,13 @@ spring:
       accept-case-insensitive-enums: true
 server:
   port: 8082
+
+---
+# prod 환경
+spring:
+  config.activate.on-profile: prod
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+server:
+  port: 8082

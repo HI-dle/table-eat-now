@@ -1,0 +1,11 @@
+services:
+  coupon:
+    container_name: hidle-coupon
+    image: 390403891668.dkr.ecr.ap-northeast-2.amazonaws.com/hidle-ecr:coupon
+    ports:
+      - "8085:8085"
+    volumes:
+      - ./logs:/logs
+      - ./.env.coupon:./.env.coupon
+    environment:
+      SPRING_PROFILES_ACTIVE: prod

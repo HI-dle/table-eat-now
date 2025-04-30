@@ -20,3 +20,15 @@ management:
   tracing:
     sampling:
       probability: 1.0
+
+---
+# prod 환경
+spring:
+  config.activate.on-profile: prod
+management:
+  zipkin:
+    tracing:
+      endpoint: ${PROD_ZIPKIN_ENDPOINT}
+  tracing:
+    sampling:
+      probability: 1.0

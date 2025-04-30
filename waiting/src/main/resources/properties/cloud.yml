@@ -1,6 +1,9 @@
 # local 환경
 spring:
   config.activate.on-profile: local
+  cloud:
+    config:
+      enabled: false
 eureka:
   client:
     register-with-eureka: true
@@ -12,6 +15,9 @@ eureka:
 # test 환경
 spring:
   config.activate.on-profile: test
+  cloud:
+    config:
+      enabled: false
 eureka:
   client:
     register-with-eureka: false
@@ -23,9 +29,26 @@ eureka:
 # dev 환경
 spring:
   config.activate.on-profile: develop
+  cloud:
+    config:
+      enabled: false
 eureka:
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
       defaultZone: http://eureka-service:8761/eureka
+
+---
+# prod 환경
+spring:
+  config.activate.on-profile: prod
+  cloud:
+    config:
+      enabled: false
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${PROD_EUREKA_SERVER}

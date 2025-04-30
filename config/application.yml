@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: config
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/HI-dle/ten-private
+          username: ${GITHUB_USERNAME}
+          password: ${GITHUB_PASSWORD}
+          default-label: main
+          search-paths: dev, prod
+          basedir: config
+server:
+  port: 8888
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER:http://localhost:8761/eureka/}

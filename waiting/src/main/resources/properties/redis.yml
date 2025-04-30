@@ -29,3 +29,14 @@ spring:
       port:
       username:
 #      password: systempass
+
+---
+# prod 환경
+spring:
+  config.activate.on-profile: prod
+  data:
+    redis:
+      host: ${PROD_REDIS_HOST}
+      port: ${PROD_REDIS_PORT}
+      username: ${PROD_REDIS_USERNAME}
+#      password: ${DEV_REDIS_PASSWORD}
