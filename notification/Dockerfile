@@ -7,7 +7,6 @@ COPY build.gradle .
 COPY gradlew .
 COPY gradle gradle
 
-COPY notification/.env.notification .env.notification
 COPY common common
 COPY notification notification
 
