@@ -7,7 +7,7 @@ jobs:
     outputs:
       modules: ${{ steps.set-modules.outputs.modules }}
     steps:
-      - name: Checkout with exact SHA
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -53,13 +53,13 @@ jobs:
           submodules: true
           fetch-depth: 0  # Shallow clones should be disabled
 
-      # cp ${{ matrix.module }}//nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf 2>/dev/null
       - name: Generate deployment package
         run: |
           mkdir -p deploy/.platform/nginx/conf.d
           
           cp ten-private/.env.${{ matrix.module }} deploy/.env.${{ matrix.module }} 2>/dev/null
-          cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml
+          cp ${{ matrix.module }}/nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf 2>/dev/null
+          cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml 2>/dev/null
           cd deploy && zip -r deploy.zip .
 
       - name: Get current time
