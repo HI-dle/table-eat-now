@@ -10,6 +10,7 @@ import table.eat.now.notification.application.dto.response.CreateNotificationInf
 import table.eat.now.notification.application.dto.response.GetNotificationInfo;
 import table.eat.now.notification.application.dto.response.NotificationSearchInfo;
 import table.eat.now.notification.application.dto.response.UpdateNotificationInfo;
+import table.eat.now.notification.application.event.produce.NotificationPromotionEvent;
 import table.eat.now.notification.application.event.produce.NotificationScheduleSendEvent;
 import table.eat.now.notification.application.event.produce.NotificationSendEvent;
 
@@ -34,4 +35,5 @@ public interface NotificationService {
   void sendNotification(String notificationUuid);
   void consumerNotification(NotificationSendEvent notificationSendEvent);
   void consumerScheduleSendNotification(NotificationScheduleSendEvent event);
+  void consumerPromotionSendNotification(NotificationPromotionEvent event);
 }

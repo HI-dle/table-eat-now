@@ -14,4 +14,8 @@ public enum CouponLabel {
       throw new IllegalArgumentException("지원하지 않는 쿠폰 라벨입니다: " + label);
     }
   }
+
+  public boolean isNotSystem() {
+    return this != CouponLabel.SYSTEM;
+  }
 }

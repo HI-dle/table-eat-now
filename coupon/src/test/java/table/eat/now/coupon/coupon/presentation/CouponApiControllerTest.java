@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.IntStream;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,9 +30,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
-import table.eat.now.coupon.coupon.application.dto.response.AvailableCouponInfo;
-import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
 import table.eat.now.coupon.coupon.application.service.CouponService;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponsInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponsInfo.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.IssuableCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.PageResponse;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
 import table.eat.now.coupon.helper.ControllerTestSupport;
 
@@ -75,18 +78,18 @@ class CouponApiControllerTest extends ControllerTestSupport {
   void getAvailableCoupons() throws Exception {
 
     // given
-    List<AvailableCouponInfo> couponInfos = CouponFixture.createAvailableCouponInfos(20);
-    PageResponse<AvailableCouponInfo> couponInfoPage = PageResponse.of(
+    List<IssuableCouponInfo> couponInfos = CouponFixture.createAvailableCouponInfos(20);
+    PageResponse<IssuableCouponInfo> couponInfoPage = PageResponse.of(
         couponInfos, 20, 2, 1, 10);
 
-    given(couponService.getAvailableCoupons(any(), any())).willReturn(couponInfoPage);
+    given(couponService.getAvailableGeneralCoupons(any(), any())).willReturn(couponInfoPage);
 
     // when
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
     params.add("time", LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).toString());
 
     ResultActions resultActions = mockMvc.perform(
-        get("/api/v1/coupons/available")
+        get("/api/v1/coupons/daily/general")
             .params(params));
 
     // then
@@ -97,5 +100,49 @@ class CouponApiControllerTest extends ControllerTestSupport {
       .andExpect(jsonPath("$.totalElements").value(20))
       .andExpect(jsonPath("$.coupons[0].couponUuid").value(couponInfos.get(0).couponUuid()))
       .andDo(print());
+  }
+
+  @DisplayName("오늘 발급 가능 프로모션 쿠폰 조회 요청 - 200 응답")
+  @Test
+  void getDailyIssuablePromotionCoupons() throws Exception {
+
+    // given
+    GetCouponsInfo infos = GetCouponsInfo.builder()
+        .coupons(IntStream.range(0, 20)
+            .mapToObj(i -> GetCouponInfo.builder()
+                .couponId((long) i)
+                .couponUuid(UUID.randomUUID().toString())
+                .name("test " + i)
+                .label("PROMOTION")
+                .type("FIXED_DISCOUNT")
+                .count(100)
+                .issuedCount(10)
+                .allowDuplicate(false)
+                .minPurchaseAmount(100000)
+                .amount(1000)
+                .percent(null)
+                .maxDiscountAmount(null)
+                .issueStartAt(LocalDateTime.now().minusDays(1))
+                .issueEndAt(LocalDateTime.now().plusHours(1))
+                .createdAt(LocalDateTime.now().minusDays(2))
+                .createdBy(1004L)
+                .build())
+            .toList()
+        )
+        .build();
+
+    given(couponService.getDailyIssuablePromotionCoupons()).willReturn(infos);
+
+    // when
+    ResultActions resultActions = mockMvc.perform(
+        get("/api/v1/coupons/daily/promotion"));
+
+    // then
+    resultActions.andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.coupons").isArray())
+        .andExpect(jsonPath("$.coupons.length()").value(infos.coupons().size()))
+        .andExpect(jsonPath("$.coupons[0].couponUuid").value(infos.coupons().get(0).couponUuid()))
+        .andDo(print());
   }
 }

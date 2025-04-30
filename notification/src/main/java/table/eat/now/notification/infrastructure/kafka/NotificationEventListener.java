@@ -8,6 +8,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
+import table.eat.now.notification.application.event.produce.NotificationPromotionEvent;
 import table.eat.now.notification.application.event.produce.NotificationScheduleSendEvent;
 import table.eat.now.notification.application.event.produce.NotificationSendEvent;
 import table.eat.now.notification.application.service.NotificationService;
@@ -45,6 +46,7 @@ public class NotificationEventListener {
       throw e;
     }
   }
+
   @KafkaListener(
       topics = "Notification-event-dlt",
       containerFactory = "notificationSendEventDltKafkaListenerContainerFactory"
@@ -67,9 +69,10 @@ public class NotificationEventListener {
       ack.acknowledge();
     }
   }
+
   @KafkaListener(
       topics = "Notification-schedule-event-dlt",
-      containerFactory = "notificationScheduleSendEventDltKafkaListenerContainerFactory"
+      containerFactory = "scheduleSendNotificationEventDltKafkaListenerContainerFactory"
   )
   public void handleNotificationScheduleSendDlt(
       NotificationScheduleSendEvent event,
@@ -78,17 +81,56 @@ public class NotificationEventListener {
       @Header(KafkaHeaders.OFFSET) Long offset,
       @Header(value = KafkaHeaders.EXCEPTION_MESSAGE, required = false) String errorMessage
   ) {
-    log.warn("NotificationScheduleSendEvent DLT 처리 시작 - partition: {}, offset: {}, errorMessage: {}",
+    log.warn(
+        "NotificationScheduleSendEvent DLT 처리 시작 - partition: {}, offset: {}, errorMessage: {}",
         partitionId, offset, errorMessage);
 
     try {
       notificationService.consumerScheduleSendNotification(event);
     } catch (Throwable e) {
-      log.error("NotificationScheduleSendEvent DLT 처리 실패 - 수동 처리 필요 - partition: {}, offset: {}, error: {}",
+      log.error(
+          "NotificationScheduleSendEvent DLT 처리 실패 - 수동 처리 필요 - partition: {}, offset: {}, error: {}",
           partitionId, offset, e.getMessage(), e);
     } finally {
       ack.acknowledge();
     }
   }
 
+  @KafkaListener(
+      topics = NOTIFICATION_TOPIC_NAME,
+      containerFactory = "promotionSendNotificationEventKafkaListenerContainerFactory"
+  )
+  public void handlePromotionSend(NotificationPromotionEvent event) {
+    try {
+      notificationService.consumerPromotionSendNotification(event);
+    } catch (Throwable e) {
+      log.error("PromotionSendEvent 처리 실패 {}", e.getMessage());
+      throw e;
+    }
+  }
+
+  @KafkaListener(
+      topics = "Notification-event-dlt",
+      containerFactory = "promotionSendNotificationEventDltKafkaListenerContainerFactory"
+  )
+  public void handlePromotionSendDlt(
+      NotificationPromotionEvent event,
+      Acknowledgment ack,
+      @Header(KafkaHeaders.RECEIVED_PARTITION) int partitionId,
+      @Header(KafkaHeaders.OFFSET) Long offset,
+      @Header(value = KafkaHeaders.EXCEPTION_MESSAGE, required = false) String errorMessage
+  ) {
+    log.warn("NotificationPromotionEvent DLT 처리 시작 - partition: {}, offset: {}, errorMessage: {}",
+        partitionId, offset, errorMessage);
+
+    try {
+      notificationService.consumerPromotionSendNotification(event);
+    } catch (Throwable e) {
+      log.error(
+          "NotificationPromotionEvent DLT 처리 실패 - 수동 처리 필요 - partition: {}, offset: {}, error: {}",
+          partitionId, offset, e.getMessage(), e);
+    } finally {
+      ack.acknowledge();
+    }
+  }
 }

@@ -6,5 +6,6 @@ services:
       - "8085:8085"
     volumes:
       - ./logs:/logs
+      - ./.env.coupon:/app/.env.coupon
     environment:
       SPRING_PROFILES_ACTIVE: prod

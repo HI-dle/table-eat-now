@@ -4,7 +4,5 @@ public interface PaymentEventPublisher {
 
   void publish(ReservationPaymentSucceedEvent createdEvent);
 
-  void publish(ReservationPaymentFailedEvent failedEvent);
-
   void publish(ReservationPaymentCancelledEvent canceledEvent);
 }

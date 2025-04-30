@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 
 import jakarta.annotation.Resource;
+import jakarta.persistence.EntityManager;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -27,20 +28,25 @@ import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
-import table.eat.now.coupon.coupon.application.dto.event.IssueUserCouponEvent;
-import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
-import table.eat.now.coupon.coupon.application.dto.request.SearchCouponsQuery;
-import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
-import table.eat.now.coupon.coupon.application.dto.response.AvailableCouponInfo;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI.GetCouponInfoI;
-import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
-import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
+import table.eat.now.coupon.coupon.application.messaging.event.CouponRequestedIssueEvent;
+import table.eat.now.coupon.coupon.application.service.dto.request.CreateCouponCommand;
+import table.eat.now.coupon.coupon.application.service.dto.request.SearchCouponsQuery;
+import table.eat.now.coupon.coupon.application.service.dto.request.UpdateCouponCommand;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponsInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponsInfoI;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponsInfoI.GetCouponInfoI;
+import table.eat.now.coupon.coupon.application.service.dto.response.IssuableCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.PageResponse;
+import table.eat.now.coupon.coupon.application.service.dto.response.SearchCouponInfo;
+import table.eat.now.coupon.coupon.domain.command.CouponCachingAndIndexing;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
-import table.eat.now.coupon.coupon.domain.repository.CouponRepository;
+import table.eat.now.coupon.coupon.domain.entity.CouponLabel;
+import table.eat.now.coupon.coupon.domain.reader.CouponReader;
+import table.eat.now.coupon.coupon.domain.store.CouponStore;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
+import table.eat.now.coupon.coupon.infrastructure.persistence.redis.RedisCouponCacheManager;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
 import table.eat.now.coupon.user_coupon.infrastructure.messaging.spring.UserCouponSpringEventListener;
 
@@ -51,7 +57,13 @@ class CouponServiceImplTest extends IntegrationTestSupport {
   private CouponService couponService;
 
   @Autowired
-  private CouponRepository couponRepository;
+  private CouponReader couponReader;
+  @Autowired
+  private CouponStore couponStore;
+  @Autowired
+  private RedisCouponCacheManager redisCouponCacheManager;
+  @Autowired
+  private EntityManager em;
 
   @Resource
   ApplicationEvents applicationEvents;
@@ -61,23 +73,27 @@ class CouponServiceImplTest extends IntegrationTestSupport {
 
   private List<Coupon> coupons;
 
+  private Coupon coupon;
+
   @BeforeEach
   void setUp() {
     coupons = CouponFixture.createCoupons(20);
-    couponRepository.saveAll(coupons);
+    couponStore.saveAll(coupons);
+
+    coupon = coupons.get(0);
   }
 
-  @DisplayName("쿠폰 생성 검증 - 생성 성공")
+  @DisplayName("발급 가능한 핫 쿠폰 생성 및 캐싱 수행 검증 - 성공")
   @Test
   void createCoupon() {
     // given
     CreateCouponCommand command = CreateCouponCommand.builder()
         .name("test")
         .type("FIXED_DISCOUNT")
-        .label("GENERAL")
+        .label("HOT")
         .count(10000)
-        .issueStartAt(LocalDateTime.now().plusDays(1))
-        .issueEndAt(LocalDateTime.now().plusDays(10))
+        .issueStartAt(LocalDateTime.now().plusHours(2).plusSeconds(10))
+        .issueEndAt(LocalDateTime.now().plusHours(3))
         .validDays(7)
         .allowDuplicate(true)
         .minPurchaseAmount(30000)
@@ -90,12 +106,15 @@ class CouponServiceImplTest extends IntegrationTestSupport {
     String couponUuid = couponService.createCoupon(command);
 
     // then
-    Coupon coupon = couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(couponUuid)
+    Coupon coupon = couponReader.findValidCouponByUuid(couponUuid)
         .orElseThrow(() -> CustomException.from(CouponErrorCode.INVALID_COUPON_UUID));
     assertThat(coupon.getCount()).isEqualTo(command.count());
+    Coupon couponCache = redisCouponCacheManager.getCouponCache(couponUuid);
+    assertThat(couponCache).isNotNull();
+    assertThat(couponCache.getName()).isEqualTo(coupon.getName());
   }
 
-  @DisplayName("쿠폰 수정 검증 - 수정 성공")
+  @DisplayName("쿠폰 수정 검증 - 성공")
   @Test
   void updateCoupon() {
     // given
@@ -103,7 +122,7 @@ class CouponServiceImplTest extends IntegrationTestSupport {
         .name("test")
         .type("FIXED_DISCOUNT")
         .label("SYSTEM")
-        .count(50000)
+        .count(5)
         .issueStartAt(LocalDateTime.now().plusDays(1))
         .issueEndAt(LocalDateTime.now().plusDays(10))
         .validDays(7)
@@ -112,23 +131,26 @@ class CouponServiceImplTest extends IntegrationTestSupport {
         .amount(1000)
         .percent(null)
         .maxDiscountAmount(null)
+        .version(4L)
         .build();
 
     // when
     couponService.updateCoupon(coupons.get(0).getCouponUuid(), command);
 
     // then
-    Coupon updated = couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(coupons.get(0).getCouponUuid())
+    Coupon updated = couponReader.findValidCouponByUuid(coupons.get(0).getCouponUuid())
         .orElseThrow(() -> CustomException.from(CouponErrorCode.INVALID_COUPON_UUID));
+
     assertThat(updated.getCount()).isEqualTo(command.count());
+    assertThat(updated.getVersion()).isEqualTo(1L);
   }
 
   @DisplayName("쿠폰 조회 검증 - 조회 성공")
   @Test
-  void getCoupon() {
+  void getCouponInfo() {
     // given
     // when
-    GetCouponInfo couponInfo = couponService.getCoupon(coupons.get(0).getCouponUuid());
+    GetCouponInfo couponInfo = couponService.getCouponInfo(coupons.get(0).getCouponUuid());
 
     // then
     assertThat(couponInfo.name()).isEqualTo(coupons.get(0).getName());
@@ -149,7 +171,7 @@ class CouponServiceImplTest extends IntegrationTestSupport {
 
     // then
     assertThatThrownBy(() ->
-      couponRepository.findByCouponUuidAndDeletedAtIsNullFetchJoin(coupons.get(0).getCouponUuid())
+        couponReader.findValidCouponByUuid(coupons.get(0).getCouponUuid())
         .orElseThrow(() -> CustomException.from(CouponErrorCode.INVALID_COUPON_UUID))
     ).isInstanceOf(CustomException.class);
   }
@@ -198,17 +220,17 @@ class CouponServiceImplTest extends IntegrationTestSupport {
     // given
     Coupon coupon = coupons.get(0);
     ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().minusDays(1));
-    couponRepository.save(coupon);
+    couponStore.save(coupon);
 
     Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getIssueEndAt())
         .plusMinutes(10);
-    couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
-    couponRepository.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
+    couponStore.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
+    couponStore.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
 
     Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "issueEndAt"));
 
     // when
-    PageResponse<AvailableCouponInfo> availableCoupons = couponService.getAvailableCoupons(
+    PageResponse<IssuableCouponInfo> availableCoupons = couponService.getAvailableGeneralCoupons(
         pageable, LocalDateTime.now());
 
     // then
@@ -224,12 +246,12 @@ class CouponServiceImplTest extends IntegrationTestSupport {
     // given
     Coupon coupon = coupons.get(0);
     ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().minusDays(1));
-    couponRepository.save(coupon);
+    couponStore.save(coupon);
 
     Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getIssueEndAt())
         .plusMinutes(10);
-    couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
-    couponRepository.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
+    couponStore.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
+    couponStore.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
 
     CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(3L, UserRole.CUSTOMER);
 
@@ -237,7 +259,7 @@ class CouponServiceImplTest extends IntegrationTestSupport {
     couponService.requestCouponIssue(userInfo, coupon.getCouponUuid());
 
     // then
-    boolean result = couponRepository.isAlreadyIssued(coupon.getCouponUuid(), userInfo.userId());
+    boolean result = couponReader.isAlreadyIssued(coupon.getCouponUuid(), userInfo.userId());
     assertThat(result).isTrue();
   }
 
@@ -247,12 +269,12 @@ class CouponServiceImplTest extends IntegrationTestSupport {
     // given
     Coupon coupon = coupons.get(0);
     ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().minusDays(1));
-    couponRepository.save(coupon);
+    couponStore.save(coupon);
 
     Duration duration = Duration.between(LocalDateTime.now(), coupon.getPeriod().getIssueEndAt())
         .plusMinutes(10);
-    couponRepository.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
-    couponRepository.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
+    couponStore.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
+    couponStore.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
 
     CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(3L, UserRole.CUSTOMER);
 
@@ -261,8 +283,75 @@ class CouponServiceImplTest extends IntegrationTestSupport {
 
     // then
     // 이벤트 발행이 잘 되었는지 확인
-    assertThat(applicationEvents.stream(IssueUserCouponEvent.class).count()).isEqualTo(1);
-    ArgumentCaptor<IssueUserCouponEvent> captor = ArgumentCaptor.forClass(IssueUserCouponEvent.class);
-    verify(userCouponSpringEventListener).listenIssueUserCouponEvent(captor.capture());
+    assertThat(applicationEvents.stream(CouponRequestedIssueEvent.class).count()).isEqualTo(1);
+
+    // 유저 쿠폰
+    ArgumentCaptor<CouponRequestedIssueEvent> captor =
+        ArgumentCaptor.forClass(CouponRequestedIssueEvent.class);
+
+    verify(userCouponSpringEventListener).listen(captor.capture());
+    CouponRequestedIssueEvent value = captor.getValue();
+
+    assertThat(value.payload().couponUuid()).isEqualTo(coupon.getCouponUuid());
+  }
+
+  @DisplayName("일간 발급 가능 프로모션 쿠폰 조회: 캐싱 데이터 사용 확인 - 성공")
+  @Test
+  void getDailyIssuablePromotionCoupons() {
+    // given
+    coupons.forEach(coupon -> {
+      ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().minusDays(1));
+      ReflectionTestUtils.setField(coupon, "label", CouponLabel.PROMOTION);
+    });
+    couponStore.saveAll(coupons);
+
+    Coupon coupon = coupons.get(0);
+    String couponName = "캐싱 데이터를 잘 가져오는지 보기 위한 쿠폰명";
+    ReflectionTestUtils.setField(coupon, "name", couponName);
+
+    redisCouponCacheManager.pipelinedPutCouponsCacheAndIndex(coupons.stream()
+        .map(CouponCachingAndIndexing::from)
+        .toList());
+
+    // when
+    GetCouponsInfo dailyIssuablePromotionCoupons = couponService.getDailyIssuablePromotionCoupons();
+
+    // then
+    assertThat(dailyIssuablePromotionCoupons.coupons()
+        .stream()
+        .filter(info -> info.couponUuid().equals(coupon.getCouponUuid()))
+        .findAny()
+        .orElse(null)
+        .name()).isEqualTo(couponName);
+  }
+
+  @DisplayName("일간 발급 가능 프로모션 쿠폰 조회: 캐싱 데이터 사용 확인 - 성공")
+  @Test
+  void getDailyIssuablePromotionCouponsInternal() {
+    // given
+    coupons.forEach(coupon -> {
+      ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().minusDays(1));
+      ReflectionTestUtils.setField(coupon, "label", CouponLabel.PROMOTION);
+    });
+    couponStore.saveAll(coupons);
+
+    Coupon coupon = coupons.get(0);
+    String couponName = "캐싱 데이터를 잘 가져오는지 보기 위한 쿠폰명";
+    ReflectionTestUtils.setField(coupon, "name", couponName);
+
+    redisCouponCacheManager.pipelinedPutCouponsCacheAndIndex(coupons.stream()
+        .map(CouponCachingAndIndexing::from)
+        .toList());
+
+    // when
+    GetCouponsInfoI dailyIssuablePromotionCoupons = couponService.getDailyIssuablePromotionCouponsInternal();
+
+    // then
+    assertThat(dailyIssuablePromotionCoupons.coupons()
+        .stream()
+        .filter(info -> info.couponUuid().equals(coupon.getCouponUuid()))
+        .findAny()
+        .orElse(null)
+        .name()).isEqualTo(couponName);
   }
 }

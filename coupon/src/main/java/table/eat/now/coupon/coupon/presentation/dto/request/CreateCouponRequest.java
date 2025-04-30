@@ -9,7 +9,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import lombok.Builder;
-import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
+import table.eat.now.coupon.coupon.application.service.dto.request.CreateCouponCommand;
 
 @Builder
 public record CreateCouponRequest(

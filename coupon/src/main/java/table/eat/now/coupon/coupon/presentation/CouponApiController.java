@@ -19,10 +19,12 @@ import table.eat.now.common.aop.annotation.AuthCheck;
 import table.eat.now.common.resolver.annotation.CurrentUserInfo;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
-import table.eat.now.coupon.coupon.application.dto.response.AvailableCouponInfo;
-import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
 import table.eat.now.coupon.coupon.application.service.CouponService;
-import table.eat.now.coupon.coupon.presentation.dto.response.AvailableCouponsResponse;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponsInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.IssuableCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.PageResponse;
+import table.eat.now.coupon.coupon.presentation.dto.response.GetCouponsResponse;
+import table.eat.now.coupon.coupon.presentation.dto.response.IssuableCouponsResponse;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/coupons")
@@ -30,8 +32,8 @@ import table.eat.now.coupon.coupon.presentation.dto.response.AvailableCouponsRes
 public class CouponApiController {
   private final CouponService couponService;
 
-  @GetMapping("/available")
-  public ResponseEntity<AvailableCouponsResponse> getAvailableCoupons(
+  @GetMapping("/daily/general")
+  public ResponseEntity<IssuableCouponsResponse> getIssuableCoupons(
       @PageableDefault
       @SortDefault.SortDefaults({
           @SortDefault(sort = "issueEndAt", direction = Sort.Direction.ASC),
@@ -40,9 +42,17 @@ public class CouponApiController {
       @RequestParam LocalDateTime time
   ) {
 
-    PageResponse<AvailableCouponInfo> coupons = couponService.getAvailableCoupons(pageable, time);
+    PageResponse<IssuableCouponInfo> coupons = couponService.getAvailableGeneralCoupons(pageable, time);
     return ResponseEntity.ok()
-        .body(AvailableCouponsResponse.from(coupons));
+        .body(IssuableCouponsResponse.from(coupons));
+  }
+
+  @GetMapping("/daily/promotion")
+  public ResponseEntity<GetCouponsResponse> getIssuablePromotionCoupons() {
+
+    GetCouponsInfo coupons = couponService.getDailyIssuablePromotionCoupons();
+    return ResponseEntity.ok()
+        .body(GetCouponsResponse.from(coupons));
   }
 
   @AuthCheck(roles = {UserRole.CUSTOMER, UserRole.MASTER})

@@ -11,6 +11,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,12 +20,14 @@ import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import table.eat.now.common.domain.BaseEntity;
 import table.eat.now.coupon.coupon.domain.command.UpdateCoupon;
 
 @Table(name="p_coupon")
 @Getter
 @Entity
+@ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Coupon extends BaseEntity {
 
@@ -60,10 +64,14 @@ public class Coupon extends BaseEntity {
   @OneToMany(mappedBy = "coupon", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<DiscountPolicy> policy;
 
+  @Version
+  private Long version;
+
   private Coupon(
       String name, CouponType type, CouponLabel label,
       LocalDateTime issueStartAt, LocalDateTime issueEndAt, LocalDateTime expireAt,
       Integer validDays, Integer count, Boolean allowDuplicate) {
+
     this.couponUuid = UUID.randomUUID().toString();
     this.name = name;
     this.type = type;
@@ -97,6 +105,9 @@ public class Coupon extends BaseEntity {
 
   public void modify(UpdateCoupon command) {
 
+    if (command.version() < this.version) {
+      throw new IllegalArgumentException("이미 갱신된 쿠폰 정보가 확인되었습니다.");
+    }
     if (!period.is2HourBeforeIssueStartAt()) {
       throw new IllegalArgumentException("쿠폰 가용 시각으로부터 2 시간 이전까지만 수정이 가능합니다.");
     }
@@ -129,5 +140,21 @@ public class Coupon extends BaseEntity {
     this.issuedCount = remainder == null
         ? this.issuedCount
         : remainder <= 0 ? this.count : this.count - remainder;
+  }
+
+  public boolean isPromoLabel() {
+    return this.label == CouponLabel.PROMOTION;
+  }
+
+  public boolean isHotLabel() {
+    return this.label == CouponLabel.HOT;
+  }
+
+  public LocalDateTime calcExpireAt() {
+    return this.period.calcExpireAt();
+  }
+
+  public boolean isIssuableIn(LocalDate today) {
+    return this.period.isIssuableIn(today);
   }
 }

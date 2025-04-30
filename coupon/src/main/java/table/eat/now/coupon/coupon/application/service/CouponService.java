@@ -5,14 +5,15 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
-import table.eat.now.coupon.coupon.application.dto.request.CreateCouponCommand;
-import table.eat.now.coupon.coupon.application.dto.request.SearchCouponsQuery;
-import table.eat.now.coupon.coupon.application.dto.request.UpdateCouponCommand;
-import table.eat.now.coupon.coupon.application.dto.response.AvailableCouponInfo;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponInfo;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI;
-import table.eat.now.coupon.coupon.application.dto.response.PageResponse;
-import table.eat.now.coupon.coupon.application.dto.response.SearchCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.request.CreateCouponCommand;
+import table.eat.now.coupon.coupon.application.service.dto.request.SearchCouponsQuery;
+import table.eat.now.coupon.coupon.application.service.dto.request.UpdateCouponCommand;
+import table.eat.now.coupon.coupon.application.service.dto.response.IssuableCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponsInfo;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponsInfoI;
+import table.eat.now.coupon.coupon.application.service.dto.response.PageResponse;
+import table.eat.now.coupon.coupon.application.service.dto.response.SearchCouponInfo;
 
 public interface CouponService {
 
@@ -20,7 +21,7 @@ public interface CouponService {
 
   void updateCoupon(String couponUuid, UpdateCouponCommand command);
 
-  GetCouponInfo getCoupon(String couponUuid);
+  GetCouponInfo getCouponInfo(String couponUuid);
 
   void deleteCoupon(CurrentUserInfoDto userInfo, String couponUuid);
 
@@ -28,7 +29,11 @@ public interface CouponService {
 
   GetCouponsInfoI getCouponsInternal(Set<UUID> couponUuids);
 
-  PageResponse<AvailableCouponInfo> getAvailableCoupons(Pageable pageable, LocalDateTime time);
+  PageResponse<IssuableCouponInfo> getAvailableGeneralCoupons(Pageable pageable, LocalDateTime time);
+
+  GetCouponsInfo getDailyIssuablePromotionCoupons();
+
+  GetCouponsInfoI getDailyIssuablePromotionCouponsInternal();
 
   String requestCouponIssue(CurrentUserInfoDto userInfoDto, String couponUuid);
 }

@@ -21,3 +21,4 @@ WORKDIR /app
 COPY --from=build /workspace/notification/build/libs/*.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+

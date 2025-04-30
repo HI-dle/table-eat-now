@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.Builder;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI;
-import table.eat.now.coupon.coupon.application.dto.response.GetCouponsInfoI.GetCouponInfoI;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponsInfoI;
+import table.eat.now.coupon.coupon.application.service.dto.response.GetCouponsInfoI.GetCouponInfoI;
 
 @Builder
 public record GetCouponsResponseI(
@@ -44,7 +44,8 @@ public record GetCouponsResponseI(
       Integer percent,
       Integer maxDiscountAmount,
       LocalDateTime createdAt,
-      Long createdBy
+      Long createdBy,
+      Long version
   ) {
 
     public static GetCouponResponseI from(
@@ -67,6 +68,7 @@ public record GetCouponsResponseI(
           .maxDiscountAmount(coupon.maxDiscountAmount())
           .createdAt(coupon.createdAt())
           .createdBy(coupon.createdBy())
+          .version(coupon.version())
           .build();
     }
   }

@@ -19,7 +19,8 @@ public record UpdateCoupon(
     Integer minPurchaseAmount,
     Integer amount,
     Integer percent,
-    Integer maxDiscountAmount
+    Integer maxDiscountAmount,
+    Long version
 ) {
 
 }
