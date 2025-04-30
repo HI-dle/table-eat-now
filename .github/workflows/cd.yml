@@ -1,14 +1,6 @@
 name: CD - Beanstalk server deploy
 on:
   workflow_call:
-    inputs:
-      sha:
-        required: true
-        type: string
-      ref:
-        required: true
-        type: string
-
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
@@ -18,14 +10,12 @@ jobs:
       - name: Checkout with exact SHA
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.sha }} # 해당 워크플로우의 트리거 워크플로우 기준으로 세팅
-          token: ${{ secrets.ACTION_TOKEN }}
           fetch-depth: 0
       - name: Detect changed modules
         id: set-modules
         run: |
           git fetch origin develop
-          changed_files=$(git diff --name-only origin/develop...${{ steps.read_sha.outputs.sha }})
+          changed_files=$(git diff --name-only origin/develop...${{ github.sha }})
           changed_modules=$(echo "$changed_files" | cut -d/ -f1 | sort -u)
           
           if echo "$changed_modules" | grep -q '^common$'; then
@@ -58,7 +48,6 @@ jobs:
       - name: Checkout with exact SHA
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.sha }}
           token: ${{ secrets.ACTION_TOKEN }}
           submodules: true
           fetch-depth: 0  # Shallow clones should be disabled

@@ -82,6 +82,3 @@ jobs:
     needs: build-push
     if: ${{ success() }}
     uses: ./.github/workflows/cd.yml
-    with:
-      sha: ${{ github.sha }}
-      ref: ${{ github.ref_name }}
