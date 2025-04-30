@@ -103,15 +103,24 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled
 
       - name: Generate deployment package
+        id: ready
         run: |
           mkdir -p deploy/.platform/nginx/conf.d
 
-          cp ten-private/.env.${{ matrix.module }} deploy/.env.${{ matrix.module }} 2>/dev/null
-          cp ${{ matrix.module }}/nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf 2>/dev/null
-          cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml 2>/dev/null
+          [ -f ten-private/.env.${{ matrix.module }} ] && cp ten-private/.env.${{ matrix.module }} deploy/.env.${{ matrix.module }} 2>/dev/null
+          [ -f ${{ matrix.module }}/nginx/conf.d/proxy.conf ] && cp ${{ matrix.module }}/nginx/conf.d/proxy.conf deploy/.platform/nginx/conf.d/proxy.conf 2>/dev/null
+      
+          if [ -f ${{ matrix.module }}/docker-compose.yml ]; then
+            cp ${{ matrix.module }}/docker-compose.yml deploy/docker-compose.yml
+            echo "found_docker_compose=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found_docker_compose=false" >> "$GITHUB_OUTPUT"
+          fi
+          
           cd deploy && zip -r deploy.zip .
 
       - name: Get current time
+        if: steps.ready.outputs.found_docker_compose == 'true'
         uses: 1466587594/get-current-time@v2
         id: deploy-time
         with:
@@ -119,6 +128,7 @@ jobs:
           utcOffset: "+09:00"
 
       - name: Beanstalk Deploy
+        if: steps.ready.outputs.found_docker_compose == 'true'
         uses: einaregilsson/beanstalk-deploy@v20
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
