@@ -59,7 +59,7 @@ public class CouponTestDataSaver extends IntegrationDataCreationSupport {
 
             Duration duration = TimeProvider.getDuration(coupon.getPeriod().getIssueEndAt(), 60);
             redisCouponCacheManager.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
-            redisCouponCacheManager.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
+            redisCouponCacheManager.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
             return CouponCachingAndIndexing.from(coupon);
           })
           .toList();
