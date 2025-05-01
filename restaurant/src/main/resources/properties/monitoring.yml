@@ -1,0 +1,60 @@
+spring:
+  config.activate.on-profile: local
+management:
+  server:
+    port: 19043
+    address: 127.0.0.1
+  endpoints:
+    health:
+      show-details: always
+    web:
+      exposure:
+        include: "*"
+        exclude: "env, beans"
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+  tracing:
+    sampling:
+      probability: 1.0
+
+---
+
+spring:
+  config.activate.on-profile: develop
+management:
+  server:
+    port: 19043
+    address: 127.0.0.1
+  endpoints:
+    health:
+      show-details: always
+    web:
+      exposure:
+        include: "*"
+        exclude: "env, beans"
+  zipkin:
+    tracing:
+      endpoint: ${DEV_ZIPKIN_ENDPOINT}
+  tracing:
+    sampling:
+      probability: 1.0
+
+---
+
+spring:
+  config.activate.on-profile: prod
+management:
+  endpoints:
+    health:
+      show-details: always
+    web:
+      exposure:
+        include: "*"
+        exclude: "env, beans"
+  zipkin:
+    tracing:
+      endpoint: ${PROD_ZIPKIN_ENDPOINT}
+  tracing:
+    sampling:
+      probability: 1.0
