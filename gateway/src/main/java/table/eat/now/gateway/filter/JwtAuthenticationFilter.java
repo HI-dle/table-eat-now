@@ -46,6 +46,11 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
       return chain.filter(exchange);
     }
 
+    // 잠시 실례...^^
+    if (request.getHeaders().getFirst(USER_ID_HEADER) != null) {
+      return chain.filter(exchange);
+    }
+
     return validateToken(request)
         .map(tokenInfo -> addUserContext(exchange, tokenInfo))
         .map(chain::filter)

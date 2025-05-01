@@ -45,9 +45,6 @@ management:
 spring:
   config.activate.on-profile: prod
 management:
-  server:
-    port: 19044
-#    address: 172.31.38.190
   endpoints:
     health:
       show-details: always

@@ -31,7 +31,7 @@ services:
     ports:
       - "9090:9090"  # Prometheus 기본 포트
     volumes:
-      - ./server/src/main/resources/prometheus.yml:/etc/prometheus/prometheus.yml  # prometheus.yml 파일 경로 수정
+      - ./prometheus/prometheus-local.yml:/etc/prometheus/prometheus.yml  # prometheus.yml 파일 경로 수정
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
 
