@@ -3,20 +3,20 @@ POST http://{{baseUrl}}/api/v1/users/signup
 Content-Type: application/json
 
 {
-  "username": "test",
-  "email": "test@test",
-  "phone": "123",
-  "password": "1234",
+  "username": "test1",
+  "email": "test1@test1",
+  "phone": "1231",
+  "password": "12345",
   "role": "MASTER"
 }
 
-###
+### Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIyMSIsInJvbGUiOiJNQVNURVIiLCJ1c2VybmFtZSI6InRlc3QxIiwiaWF0IjoxNzQ2MDY2MTIzLCJleHAiOjE3NDYwNjk3MjN9.Ks7eFhpIvr3hTNWlUUzHYSd-3hwwZaSfr_nvFmfIJSlnt3v7zgLKlGdKalL51nvdqaPJJDJJ7DuwsIqfQ0YNuA
 POST http://{{baseUrl}}/api/v1/users/login
 Content-Type: application/json
 
 {
-  "username": "test",
-  "password": "1234"
+  "username": "test1",
+  "password": "12345"
 }
 ###
 POST http://{{baseUrl}}/admin/v1/notifications
@@ -35,4 +35,28 @@ X-User-Role: MASTER
   "notificationMethod": "SLACK",
   "scheduledTime": "2025-04-30T23:30:00"
 }
+
+###
+POST http://{{baseUrl}}/admin/v1/promotions
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIyMSIsInJvbGUiOiJNQVNURVIiLCJ1c2VybmFtZSI6InRlc3QxIiwiaWF0IjoxNzQ2MDY2MTIzLCJleHAiOjE3NDYwNjk3MjN9.Ks7eFhpIvr3hTNWlUUzHYSd-3hwwZaSfr_nvFmfIJSlnt3v7zgLKlGdKalL51nvdqaPJJDJJ7DuwsIqfQ0YNuA
+#X-User-Role: MASTER
+#X-User-Id: 1
+#Authorization: {{access_token}}
+
+{
+
+  "promotionName": "자리 eat now 오픈 프로모션입니다.20",
+  "description": "전 메뉴 3000원 할인 쿠폰",
+  "startTime": "2025-05-01T02:24:00",
+  "endTime": "2025-05-01T04:20:00",
+  "discountAmount": 3000,
+  "promotionStatus": "READY",
+  "promotionType": "COUPON",
+  "maxParticipant": 10000
+}
+
+###
+GET http://{{baseUrl}}/api/v1/promotions?promotionStatus=READY&isAsc=true&sortBy=startTime&page=0&size=2
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIyMSIsInJvbGUiOiJNQVNURVIiLCJ1c2VybmFtZSI6InRlc3QxIiwiaWF0IjoxNzQ2MDM3NzQ0LCJleHAiOjE3NDYwNDEzNDR9.rQc-esecztO3_gcsN1jxWFLg-O_BVPk3hIKJxF01QswKsB5pRFSsA8WETtILC93l7z1oUWLx_30YDx1qcOgARQ
 
