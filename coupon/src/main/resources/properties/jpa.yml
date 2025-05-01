@@ -12,7 +12,7 @@ spring:
         order_inserts: true
         order_updates: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     defer-datasource-initialization: true # hibernate가 초기화되기 전 data.sql 실행하는 것을 방지
     open-in-view: false
 
@@ -22,10 +22,9 @@ spring:
   config.activate.on-profile: test
   jpa:
     generate-ddl: true
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
         jdbc:
           batch_size: 1000
         order_inserts: true

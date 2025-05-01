@@ -82,3 +82,7 @@ services:
 
 volumes:
   grafana-storage:
+
+networks:
+  app_network:
+    driver: bridge
