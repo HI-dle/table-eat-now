@@ -46,7 +46,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
       return chain.filter(exchange);
     }
 
-    // 잠시 실례...^^
+    // 잠시 실례...^^~!! todo 제거하기
     if (request.getHeaders().getFirst(USER_ID_HEADER) != null) {
       return chain.filter(exchange);
     }
