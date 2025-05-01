@@ -7,6 +7,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import table.eat.now.waiting.waiting_request.application.client.RestaurantClient;
+import table.eat.now.waiting.waiting_request.application.client.WaitingClient;
+import table.eat.now.waiting.waiting_request.application.messaging.EventPublisher;
+import table.eat.now.waiting.waiting_request.application.messaging.dto.WaitingRequestEvent;
 
 @ExtendWith(RedisTestContainerExtension.class)
 @Import(DatabaseCleanUp.class)
@@ -19,6 +24,15 @@ public abstract class IntegrationTestSupport {
 
   @Autowired
   private DatabaseCleanUp databaseCleanUp;
+
+  @MockitoBean
+  protected RestaurantClient restaurantClient;
+
+  @MockitoBean
+  protected WaitingClient waitingClient;
+
+  @MockitoBean
+  protected EventPublisher<WaitingRequestEvent> eventPublisher;
 
   @AfterEach
   void tearDown() {

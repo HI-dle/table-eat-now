@@ -18,10 +18,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
-import table.eat.now.coupon.coupon.application.messaging.EventPublisher;
 import table.eat.now.coupon.coupon.application.messaging.event.CouponRequestedIssueEvent;
 import table.eat.now.coupon.coupon.application.usecase.dto.request.IssuePromotionCouponCommand;
 import table.eat.now.coupon.coupon.application.utils.TimeProvider;
@@ -44,9 +42,6 @@ class IssuePromotionCouponUsecaseTest extends IntegrationTestSupport {
   private CouponStore couponStore;
   @Autowired
   private RedisCouponCacheManager redisCouponCacheManager;
-
-  @MockitoBean
-  private EventPublisher<CouponRequestedIssueEvent> eventPublisher;
 
   private Coupon coupon;
 

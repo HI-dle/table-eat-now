@@ -8,20 +8,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static table.eat.now.common.constant.UserInfoConstant.USER_ID_HEADER;
 import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import table.eat.now.promotion.global.support.ControllerTestSupport;
 import table.eat.now.promotion.promotionuser.application.dto.response.CreatePromotionUserInfo;
-import table.eat.now.promotion.promotionuser.application.service.PromotionUserService;
 import table.eat.now.promotion.promotionuser.domain.entity.PromotionUser;
 import table.eat.now.promotion.promotionuser.presentation.dto.request.CreatePromotionUserRequest;
 
@@ -29,19 +22,7 @@ import table.eat.now.promotion.promotionuser.presentation.dto.request.CreateProm
  * @author : hanjihoon
  * @Date : 2025. 04. 08.
  */
-@AutoConfigureMockMvc
-@WebMvcTest(PromotionUserController.class)
-@ActiveProfiles("test")
-class PromotionUserControllerTest {
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @MockitoBean
-  private PromotionUserService promotionUserService;
+class PromotionUserControllerTest extends ControllerTestSupport {
 
   @DisplayName("프로모션 유저 생성 테스트")
   @Test

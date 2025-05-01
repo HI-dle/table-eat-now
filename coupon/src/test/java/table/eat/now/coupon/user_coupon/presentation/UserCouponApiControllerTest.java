@@ -12,24 +12,19 @@ import static table.eat.now.common.constant.UserInfoConstant.USER_ROLE_HEADER;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.coupon.helper.ControllerTestSupport;
 import table.eat.now.coupon.user_coupon.application.dto.response.GetUserCouponInfo;
 import table.eat.now.coupon.user_coupon.application.dto.response.PageResponse;
-import table.eat.now.coupon.user_coupon.application.service.UserCouponService;
 import table.eat.now.coupon.user_coupon.fixture.UserCouponFixture;
 
-@WebMvcTest(UserCouponApiController.class)
 class UserCouponApiControllerTest extends ControllerTestSupport {
-  @MockitoBean
-  private UserCouponService userCouponService;
+
 
   @DisplayName("사용자별 쿠폰 조회 성공 - 200 응답")
   @Test

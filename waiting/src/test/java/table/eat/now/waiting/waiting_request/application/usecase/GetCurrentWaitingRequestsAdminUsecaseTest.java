@@ -13,16 +13,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.helper.IntegrationTestSupport;
-import table.eat.now.waiting.waiting_request.application.client.RestaurantClient;
-import table.eat.now.waiting.waiting_request.application.client.WaitingClient;
 import table.eat.now.waiting.waiting_request.application.client.dto.response.GetDailyWaitingInfo;
 import table.eat.now.waiting.waiting_request.application.client.dto.response.GetRestaurantInfo;
-import table.eat.now.waiting.waiting_request.application.messaging.EventPublisher;
-import table.eat.now.waiting.waiting_request.application.messaging.dto.WaitingRequestEvent;
 import table.eat.now.waiting.waiting_request.application.usecase.dto.query.GetCurrentWaitingRequestsAdminQuery;
 import table.eat.now.waiting.waiting_request.application.usecase.dto.response.GetWaitingRequestInfo;
 import table.eat.now.waiting.waiting_request.application.usecase.dto.response.PageResult;
@@ -42,15 +37,6 @@ class GetCurrentWaitingRequestsAdminUsecaseTest  extends IntegrationTestSupport 
 
   @Autowired
   private WaitingRequestStore store;
-
-  @MockitoBean
-  private RestaurantClient restaurantClient;
-
-  @MockitoBean
-  private WaitingClient waitingClient;
-
-  @MockitoBean
-  private EventPublisher<WaitingRequestEvent> eventPublisher;
 
   private WaitingRequest waitingRequest;
   private List<WaitingRequest> waitingRequests;

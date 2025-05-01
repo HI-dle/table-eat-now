@@ -1,12 +1,10 @@
-package table.eat.now.waiting.helper;
+package table.eat.now.payment.payment.global.support;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import table.eat.now.common.aop.AuthCheckAspect;
@@ -14,18 +12,17 @@ import table.eat.now.common.config.WebConfig;
 import table.eat.now.common.exception.GlobalErrorHandler;
 import table.eat.now.common.resolver.CurrentUserInfoResolver;
 import table.eat.now.common.resolver.CustomPageableArgumentResolver;
-import table.eat.now.waiting.waiting.application.service.WaitingService;
-import table.eat.now.waiting.waiting.presentation.WaitingInternalController;
-import table.eat.now.waiting.waiting_request.application.router.UsecaseRouter;
-import table.eat.now.waiting.waiting_request.presentation.WaitingRequestAdminController;
-import table.eat.now.waiting.waiting_request.presentation.WaitingRequestApiController;
-import table.eat.now.waiting.waiting_request.presentation.WaitingRequestInternalController;
+import table.eat.now.payment.payment.application.PaymentService;
+import table.eat.now.payment.payment.presentation.PaymentAdminController;
+import table.eat.now.payment.payment.presentation.PaymentApiController;
+import table.eat.now.payment.payment.presentation.PaymentInternalController;
+import table.eat.now.payment.payment.presentation.PaymentViewController;
 
-@WebMvcTest({
-    WaitingInternalController.class,
-    WaitingRequestAdminController.class,
-    WaitingRequestApiController.class,
-    WaitingRequestInternalController.class
+@WebMvcTest(controllers = {
+    PaymentAdminController.class,
+    PaymentApiController.class,
+    PaymentInternalController.class,
+    PaymentViewController.class
 })
 @Import({
     WebConfig.class,
@@ -34,11 +31,8 @@ import table.eat.now.waiting.waiting_request.presentation.WaitingRequestInternal
     GlobalErrorHandler.class,
     AuthCheckAspect.class
 })
-@EnableAspectJAutoProxy
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 public abstract class ControllerTestSupport {
-
   @Autowired
   protected MockMvc mockMvc;
 
@@ -46,8 +40,6 @@ public abstract class ControllerTestSupport {
   protected ObjectMapper objectMapper;
 
   @MockitoBean
-  protected WaitingService waitingService;
+  protected PaymentService paymentService;
 
-  @MockitoBean
-  protected UsecaseRouter router;
 }

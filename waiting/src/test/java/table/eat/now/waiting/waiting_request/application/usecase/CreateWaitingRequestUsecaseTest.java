@@ -13,18 +13,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.helper.IntegrationTestSupport;
-import table.eat.now.waiting.waiting_request.application.client.RestaurantClient;
-import table.eat.now.waiting.waiting_request.application.client.WaitingClient;
 import table.eat.now.waiting.waiting_request.application.client.dto.response.GetDailyWaitingInfo;
 import table.eat.now.waiting.waiting_request.application.exception.WaitingRequestErrorCode;
-import table.eat.now.waiting.waiting_request.application.messaging.EventPublisher;
 import table.eat.now.waiting.waiting_request.application.messaging.dto.WaitingRequestCreatedEvent;
-import table.eat.now.waiting.waiting_request.application.messaging.dto.WaitingRequestEvent;
 import table.eat.now.waiting.waiting_request.application.usecase.dto.command.CreateWaitingRequestCommand;
 import table.eat.now.waiting.waiting_request.domain.entity.WaitingRequest;
 import table.eat.now.waiting.waiting_request.domain.reader.WaitingRequestReader;
@@ -41,15 +36,6 @@ class CreateWaitingRequestUsecaseTest extends IntegrationTestSupport {
 
   @Autowired
   private WaitingRequestStore store;
-
-  @MockitoBean
-  private RestaurantClient restaurantClient;
-
-  @MockitoBean
-  private WaitingClient waitingClient;
-
-  @MockitoBean
-  private EventPublisher<WaitingRequestEvent> eventPublisher;
 
   private WaitingRequest waitingRequest;
 

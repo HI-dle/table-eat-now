@@ -16,25 +16,18 @@ import java.util.UUID;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.waiting.helper.ControllerTestSupport;
-import table.eat.now.waiting.waiting_request.application.router.UsecaseRouter;
 import table.eat.now.waiting.waiting_request.application.usecase.dto.command.CancelWaitingRequestCommand;
 import table.eat.now.waiting.waiting_request.application.usecase.dto.command.PostponeWaitingRequestCommand;
 import table.eat.now.waiting.waiting_request.application.usecase.dto.query.GetWaitingRequestQuery;
 import table.eat.now.waiting.waiting_request.fixture.GetWaitingRequestInfoFixture;
 import table.eat.now.waiting.waiting_request.presentation.dto.request.CreateWaitingRequestRequest;
 
-@WebMvcTest(WaitingRequestApiController.class)
 class WaitingRequestApiControllerTest extends ControllerTestSupport {
-
-  @MockitoBean
-  private UsecaseRouter router;
 
   @DisplayName("대기 요청 생성 검증 - 201 응답")
   @Test

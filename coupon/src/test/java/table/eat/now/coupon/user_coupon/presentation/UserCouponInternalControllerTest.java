@@ -19,23 +19,16 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.common.resolver.dto.UserRole;
 import table.eat.now.coupon.helper.ControllerTestSupport;
 import table.eat.now.coupon.user_coupon.application.client.dto.response.GetCouponInfoI;
 import table.eat.now.coupon.user_coupon.application.dto.response.GetUserCouponInfoI;
-import table.eat.now.coupon.user_coupon.application.service.UserCouponService;
 import table.eat.now.coupon.user_coupon.presentation.dto.request.PreemptUserCouponRequest;
 
-@WebMvcTest(UserCouponInternalController.class)
 class UserCouponInternalControllerTest extends ControllerTestSupport {
-
-  @MockitoBean
-  private UserCouponService userCouponService;
 
   @BeforeEach
   void setUp() {

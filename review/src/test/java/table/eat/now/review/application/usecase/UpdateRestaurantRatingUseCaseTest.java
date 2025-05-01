@@ -14,13 +14,10 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.review.application.batch.Cursor;
 import table.eat.now.review.application.batch.CursorKey;
 import table.eat.now.review.application.batch.CursorStore;
-import table.eat.now.review.application.event.ReviewEventPublisher;
 import table.eat.now.review.domain.entity.Review;
 import table.eat.now.review.domain.entity.ReviewContent;
 import table.eat.now.review.domain.entity.ReviewReference;
@@ -29,9 +26,6 @@ import table.eat.now.review.domain.entity.ServiceType;
 import table.eat.now.review.domain.repository.ReviewRepository;
 import table.eat.now.review.helper.IntegrationTestSupport;
 
-@TestPropertySource(properties = {
-    "review.rating.update.batch-size=3"
-})
 class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
 
   @Autowired
@@ -42,9 +36,6 @@ class UpdateRestaurantRatingUseCaseTest extends IntegrationTestSupport {
 
   @Autowired
   private CursorStore cursorStore;
-
-  @MockitoBean
-  private ReviewEventPublisher reviewEventPublisher;
 
   private final CursorKey cursorKey = CursorKey.RATING_UPDATE_RECENT_CURSOR;
   private final Duration interval = Duration.ofMinutes(5L);

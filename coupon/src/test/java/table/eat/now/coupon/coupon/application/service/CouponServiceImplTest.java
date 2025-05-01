@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -48,7 +47,6 @@ import table.eat.now.coupon.coupon.domain.store.CouponStore;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
 import table.eat.now.coupon.coupon.infrastructure.persistence.redis.RedisCouponCacheManager;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
-import table.eat.now.coupon.user_coupon.infrastructure.messaging.spring.UserCouponSpringEventListener;
 
 @RecordApplicationEvents
 class CouponServiceImplTest extends IntegrationTestSupport {
@@ -67,9 +65,6 @@ class CouponServiceImplTest extends IntegrationTestSupport {
 
   @Resource
   ApplicationEvents applicationEvents;
-
-  @MockitoBean
-  UserCouponSpringEventListener userCouponSpringEventListener;
 
   private List<Coupon> coupons;
 
