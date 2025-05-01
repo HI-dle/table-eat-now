@@ -6,6 +6,6 @@ services:
       - "8084:8084"
     volumes:
       - ./logs:/logs
-      - ./.env.user:/app/.env.user
+      - ./.env.promotion:/app/.env.promotion
     environment:
       SPRING_PROFILES_ACTIVE: prod
