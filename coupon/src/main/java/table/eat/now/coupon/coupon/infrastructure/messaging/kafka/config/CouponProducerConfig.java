@@ -11,6 +11,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import table.eat.now.coupon.coupon.application.messaging.event.CommonEvent;
 import table.eat.now.coupon.coupon.application.messaging.event.CouponEvent;
 import table.eat.now.coupon.coupon.infrastructure.messaging.kafka.dto.PromotionEvent;
 import table.eat.now.coupon.coupon.infrastructure.messaging.kafka.interceptor.EventTypeHeaderInterceptor;
@@ -51,6 +52,11 @@ public class CouponProducerConfig {
     props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, BUFFER_MEMORY);
     props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, COMPRESSION_TYPE);
     return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean
+  public KafkaTemplate<String, CommonEvent> kafkaTemplate() {
+    return new KafkaTemplate<>(batchProducerFactory());
   }
 
   @Bean
