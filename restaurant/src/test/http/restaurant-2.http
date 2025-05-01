@@ -1,20 +1,24 @@
-### 마스터 가입
+### 오너 가입 (username에 숫자(식당 생성될 ownerId) 넣어주면 전체 진행됩니다.)
 POST {{baseUrl}}/api/v1/users/signup
 Content-Type: application/json
 
 {
-  "username": "mas54",
-  "email": "j5@test",
-  "phone": "15",
+  "username": "abc11",
+  "email": "j11@test",
+  "phone": "11",
   "password": "{{password}}",
   "role": "MASTER"
 }
 
 > {%
   client.global.set("username", response.body.username)
+  const username = response.body.username;
+  const match = username.match(/\d+/); // 숫자만 추출
+  const numberPart = match ? match[0] : "";
+  client.global.set("num", numberPart);
 %}
 
-### 마스터 로그인
+### 오너 로그인
 POST {{baseUrl}}/api/v1/users/login
 Content-Type: application/json
 
@@ -27,13 +31,14 @@ Content-Type: application/json
   client.global.set("access_token", response.headers.valueOf("Authorization"))
 %}
 
+
 ### 식당 생성
 POST {{baseUrl}}/admin/v1/restaurants
 Content-Type: application/json
 Authorization: {{access_token}}
 
 {
-  "ownerId": 102,
+  "ownerId": {{num}},
   "name": "청춘고기",
   "address": "서울특별시 강남구 테헤란로 123",
   "contactNumber": "02-1234-5678",
@@ -52,7 +57,8 @@ Authorization: {{access_token}}
   }
 %}
 
-###
+
+### 오너의 식당 수정
 PUT {{baseUrl}}/admin/v1/restaurants/{{restaurantUuid}}
 Content-Type: application/json
 Authorization: {{access_token}}
@@ -103,12 +109,8 @@ Authorization: {{access_token}}
   ]
 }
 
-### 직원(또는 식당 주인) id로 식당 정보 조회
-GET {{baseUrl}}/internal/v1/restaurants/my-restaurant
-Authorization: {{access_token}}
-
 ### 식당 조회
-GET {{baseUrl}}/admin/v1/restaurants/38125e11-904b-450e-89ae-3a8145e8cd56
+GET {{baseUrl}}/admin/v1/restaurants/{{restaurantUuid}}
 Content-Type: application/json
 Authorization: {{access_token}}
 
@@ -125,4 +127,8 @@ GET {{baseUrl}}/internal/v1/restaurants
     &includeDeleted=true
 #    &ownerId=10
 #    &staffId=1
+Authorization: {{access_token}}
+
+### 직원(또는 식당 주인) id로 식당 정보 조회
+GET {{baseUrl}}/internal/v1/restaurants/my-restaurant
 Authorization: {{access_token}}
