@@ -63,3 +63,7 @@ eureka:
   client:
     service-url:
       defaultZone: ${PROD_EUREKA_SERVICE_URL}
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME}
+    prefer-ip-address: false
+    non-secure-port: 80

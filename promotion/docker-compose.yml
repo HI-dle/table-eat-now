@@ -3,7 +3,7 @@ services:
     container_name: hidle-promotion
     image: 390403891668.dkr.ecr.ap-northeast-2.amazonaws.com/hidle-ecr:promotion
     ports:
-      - "8084:8084"
+      - "80:8084"
     volumes:
       - ./logs:/logs
       - ./.env.promotion:/app/.env.promotion

@@ -26,8 +26,9 @@ eureka:
     service-url:
       defaultZone: ${PROD_EUREKA_SERVICE_URL}
   instance:
-    prefer-ip-address: true
-    ip-address: ${PROD_EC2_ADDRESS}
+    hostname: ${EUREKA_INSTANCE_HOSTNAME}
+    prefer-ip-address: false
+    non-secure-port: 80
 
 jwt:
   secret: ${JWT_SECRET}

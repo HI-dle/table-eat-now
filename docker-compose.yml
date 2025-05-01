@@ -25,6 +25,14 @@ services:
     ports:
       - "6380:6379"  # 레디스 기본 포트
 
+  redis-insight:
+    container_name: ten-redis-insight
+    image: redis/redisinsight
+    ports:
+      - 5540:5540
+    networks:
+      - app_network
+
   prometheus:
     container_name: ten-prometheus
     image: prom/prometheus:latest
@@ -82,3 +90,7 @@ services:
 
 volumes:
   grafana-storage:
+
+networks:
+  app_network:
+    driver: bridge

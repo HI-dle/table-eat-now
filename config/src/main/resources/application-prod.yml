@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: config
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/HI-dle/ten-private
+          username: ${GITHUB_USERNAME}
+          password: ${GITHUB_PASSWORD}
+          default-label: main
+          search-paths: dev, prod
+          basedir: config
+server:
+  port: 8888
+
+eureka:
+  client:
+    register-with-eureka: true  # Eureka Server에 등록
+    fetch-registry: true  # Eureka Server에서 서비스 목록 가져오기
+    service-url:
+      defaultZone: ${PROD_EUREKA_SERVICE_URL}
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME}
+    prefer-ip-address: false
+    non-secure-port: 80

@@ -3,7 +3,7 @@ services:
     container_name: hidle-user
     image: 390403891668.dkr.ecr.ap-northeast-2.amazonaws.com/hidle-ecr:user
     ports:
-      - "8081:8081"
+      - "80:8081"
     volumes:
       - ./logs:/logs
       - ./.env.user:/app/.env.user
