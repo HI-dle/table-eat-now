@@ -11,8 +11,8 @@ spring:
           default-label: main
           search-paths: dev, prod
           basedir: config
-server:
-  port: 8888
+#server:
+#  port: 8888
 
 eureka:
   client:
