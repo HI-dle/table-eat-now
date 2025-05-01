@@ -30,6 +30,8 @@ public class RestaurantKafkaConsumerConfig {
   private String autoOffsetReset;
   @Value("${spring.kafka.consumer.enable-auto-commit}")
   private boolean enableAutoCommit;
+  @Value("${spring.kafka.consumer.concurrency:3}")
+  private Integer concurrency;
 
   // 공통 기본 설정 생성 메서드
   private Map<String, Object> createCommonConsumerProps(String groupId) {
@@ -121,6 +123,7 @@ public class RestaurantKafkaConsumerConfig {
     factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
     factory.getContainerProperties().setIdleBetweenPolls(60_000); // 1분
     factory.setBatchListener(true);
+    factory.setConcurrency(concurrency);
     return factory;
   }
 
