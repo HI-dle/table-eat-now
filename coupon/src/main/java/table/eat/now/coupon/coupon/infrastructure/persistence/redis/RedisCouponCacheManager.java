@@ -84,7 +84,7 @@ public class RedisCouponCacheManager {
             for (CouponCachingAndIndexing coupon : coupons) {
               String cacheKey = COUPON_CACHE + coupon.couponUuid();
               operations.opsForHash().putAll(cacheKey, coupon.couponMap());
-              couponRedisTemplate.expire(cacheKey, coupon.ttl());
+              operations.expire(cacheKey, coupon.ttl());
               operations.opsForZSet().add(
                   coupon.label() == CouponLabel.PROMOTION ? promoIndexKey : hotIndexKey,
                   cacheKey,
@@ -110,7 +110,7 @@ public class RedisCouponCacheManager {
         for (CouponCachingAndIndexing coupon : coupons) {
           String cacheKey = COUPON_CACHE + coupon.couponUuid();
           operations.opsForHash().putAll(cacheKey, coupon.couponMap());
-          couponRedisTemplate.expire(cacheKey, coupon.ttl());
+          operations.expire(cacheKey, coupon.ttl());
         }
         return null;
       }

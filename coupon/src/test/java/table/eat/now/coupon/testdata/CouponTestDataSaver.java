@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ import table.eat.now.coupon.helper.IntegrationDataCreationSupport;
 
 
 @DisplayName("편의로 만든 클래스 입니다. Disabled 주석 처리하고 돌려서 데이터 세팅하기!")
-//@Disabled
+@Disabled("수동으로 실행할 때만 @Disabled 주석을 제거하세요. CI/CD 파이프라인에서 실행되지 않도록 합니다.")
 public class CouponTestDataSaver extends IntegrationDataCreationSupport {
 
   @Autowired

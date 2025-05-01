@@ -24,20 +24,42 @@ public class CouponFixture {
         .toList();
   }
 
-  public static Coupon createCoupon(
-      int i, String type, String label, Integer count, boolean allowDuplicate,
+  private static Coupon createCouponBase(
+      int i, String type, String label, LocalDateTime issueEndAt,
+      Integer count, boolean allowDuplicate,
       Integer amount, Integer percent, Integer maxDiscountAmount
   ) {
-
     Coupon coupon = Coupon.of("test 쿠폰 " + i, type, label,
         LocalDateTime.now().plusDays(2+i).truncatedTo(ChronoUnit.DAYS),
-        LocalDateTime.now().plusDays(12+i).truncatedTo(ChronoUnit.DAYS),
+        issueEndAt,
         LocalDateTime.now().plusDays(12+i).truncatedTo(ChronoUnit.DAYS),
         7, count, allowDuplicate);
     DiscountPolicy policy = DiscountPolicy.of(
         10000, amount, percent, maxDiscountAmount);
     coupon.registerPolicy(policy);
     return coupon;
+  }
+
+  public static Coupon createCoupon(
+      int i, String type, String label, Integer count, boolean allowDuplicate,
+      Integer amount, Integer percent, Integer maxDiscountAmount
+  ) {
+
+    return createCouponBase(
+        i, type, label,
+        LocalDateTime.now().plusDays(12+i).truncatedTo(ChronoUnit.DAYS),
+        count, allowDuplicate, amount, percent, maxDiscountAmount);
+  }
+
+  public static Coupon createHotCoupon(
+      int i, String type, String label, Integer count, boolean allowDuplicate,
+      Integer amount, Integer percent, Integer maxDiscountAmount
+  ) {
+
+    return createCouponBase(
+        i, type, label,
+        LocalDateTime.now().plusDays(2+i).plusMinutes(59).truncatedTo(ChronoUnit.DAYS),
+        count, allowDuplicate, amount, percent, maxDiscountAmount);
   }
 
   public static List<SearchCouponInfo> createCouponInfos(int length) {
@@ -93,21 +115,5 @@ public class CouponFixture {
         )
         .toList();
     return couponInfos;
-  }
-
-  public static Coupon createHotCoupon(
-      int i, String type, String label, Integer count, boolean allowDuplicate,
-      Integer amount, Integer percent, Integer maxDiscountAmount
-  ) {
-
-    Coupon coupon = Coupon.of("test 쿠폰 " + i, type, label,
-        LocalDateTime.now().plusDays(2+i).truncatedTo(ChronoUnit.DAYS),
-        LocalDateTime.now().plusDays(2+i).plusMinutes(59).truncatedTo(ChronoUnit.DAYS),
-        LocalDateTime.now().plusDays(12+i).truncatedTo(ChronoUnit.DAYS),
-        7, count, allowDuplicate);
-    DiscountPolicy policy = DiscountPolicy.of(
-        10000, amount, percent, maxDiscountAmount);
-    coupon.registerPolicy(policy);
-    return coupon;
   }
 }

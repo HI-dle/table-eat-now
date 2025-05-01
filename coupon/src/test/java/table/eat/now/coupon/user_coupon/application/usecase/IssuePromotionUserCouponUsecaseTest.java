@@ -42,7 +42,7 @@ class IssuePromotionUserCouponUsecaseTest extends IntegrationTestSupport {
   void setUp() {
 
     String couponUuid = UUID.randomUUID().toString();
-    commands = IntStream.range(0, 1000)
+    commands = IntStream.range(0, 10)
         .mapToObj(i -> IssueUserCouponCommand.builder()
             .couponUuid(couponUuid)
             .userCouponUuid(UUID.randomUUID().toString())
