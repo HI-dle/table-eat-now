@@ -13,7 +13,7 @@ import table.eat.now.review.application.executor.lock.LockProvider;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DistributedLockProvider implements LockProvider {
+public class RedissonDistributedLockProvider implements LockProvider {
 
   private final RedissonClient redissonClient;
 
