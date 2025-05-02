@@ -42,11 +42,11 @@ Content-Type: application/json
 GET http://localhost:8088/checkout?idempotencyKey={{idempotencyKey}}
 
 ### Checkout 상세 조회
-GET http://localhost:8088/api/v1/payments/checkout-info?idempotencyKey={{idempotencyKey}}
+GET http://{{baseUrl}}/api/v1/payments/checkout-info?idempotencyKey={{idempotencyKey}}
 Content-Type: application/json
 
 ### 결제 확정 요청 (클라이언트에서 내부적으로 수행됩니다)
-PATCH http://localhost:8088/api/v1/payments/confirm?reservationUuid=00000000-0000-0000-0000-000000000001
+PATCH http://{{baseUrl}}/api/v1/payments/confirm?reservationUuid=00000000-0000-0000-0000-000000000001
 Content-Type: application/json
 
 {
@@ -55,10 +55,10 @@ Content-Type: application/json
 }
 
 ### 결제 조회
-GET localhost:8088/api/v1/payments/{{paymentUuid}}
+GET {{basePaymentUrl}}/api/v1/payments/{{paymentUuid}}
 Content-Type: application/json
 X-User-Id: 123
-X-User-Role: CUSTOMER
+X-User-Role: MASTER
 
 ### 토스페이 거래내역 상세조회 (부분취소 결과입니다! - 토스로의 요청이라 확인 바로 가능합니다~!)
 GET https://api.tosspayments.com/v1/payments/orders/00000000-0000-0000-0000-000000000047
@@ -66,55 +66,55 @@ Authorization: Basic dGVzdF9za19BTG5RdkRkMlZKR2s0eUdLR1E5TnJNajdYNDFtOg
 Content-Type: application/json
 
 ### 내 결제 목록 조회 (정렬)
-GET http://localhost:8088/api/v1/payments/my?orderBy=createdAt&sort=desc
+GET http://{{baseUrl}}/api/v1/payments/my?orderBy=createdAt&sort=desc
 Content-Type: application/json
 X-User-Id: 123
 X-User-Role: CUSTOMER
 
 ### 내 결제 목록 조회 (식당별 필터링)
-GET http://localhost:8088/api/v1/payments/my?restaurantUuid=00000
+GET http://{{baseUrl}}/api/v1/payments/my?restaurantUuid=00000
 Content-Type: application/json
 X-User-Id: 123
 X-User-Role: CUSTOMER
 
 ### 내 결제 목록 조회 (결제 상태별 필터링)
-GET http://localhost:8088/api/v1/payments/my?paymentStatus=PENDING
+GET http://{{baseUrl}}/api/v1/payments/my?paymentStatus=PENDING
 Content-Type: application/json
 X-User-Id: 123
 X-User-Role: CUSTOMER
 
 ### 내 결제 목록 조회 (날짜 범위 필터링)
-GET http://localhost:8088/api/v1/payments/my?startDate=2025-03-01&endDate=2025-04-17
+GET http://{{baseUrl}}/api/v1/payments/my?startDate=2025-03-01&endDate=2025-04-17
 Content-Type: application/json
 X-User-Id: 123
 X-User-Role: CUSTOMER
 
 ### 내 결제 목록 조회 (모든 필터 조합)
-GET http://localhost:8088/api/v1/payments/my?paymentStatus=APPROVED&startDate=2025-03-01&endDate=2025-04-16&orderBy=createdAt&sort=desc&page=0&size=10
+GET http://{{baseUrl}}/api/v1/payments/my?paymentStatus=APPROVED&startDate=2025-03-01&endDate=2025-04-16&orderBy=createdAt&sort=desc&page=0&size=10
 Content-Type: application/json
 X-User-Id: 123
 X-User-Role: CUSTOMER
 
 ### 관리자 권한으로 결제 목록 조회 (필터링)
-GET http://localhost:8088/admin/v1/payments?userId=567
+GET http://{{baseUrl}}/admin/v1/payments?userId=567
 Content-Type: application/json
 X-User-Id: 456
 X-User-Role: MASTER
 
 ### 사용자 권한으로 관리자 결제 목록 조회 (예외)
-GET http://localhost:8088/admin/v1/payments
+GET http://{{baseUrl}}/admin/v1/payments
 Content-Type: application/json
 X-User-Id: 456
 X-User-Role: CUSTOMER
 
 ### 잘못된 날짜 형식으로 요청 (에러 테스트)
-GET http://localhost:8088/api/v1/payments/my?startDate=invalid-date
+GET http://{{baseUrl}}/api/v1/payments/my?startDate=invalid-date
 Content-Type: application/json
 X-User-Id: 123
 X-User-Role: CUSTOMER
 
 ### 잘못된 정렬 필드로 요청 (에러 테스트)
-GET http://localhost:8088/api/v1/payments/my?orderBy=invalidField
+GET http://{{baseUrl}}/api/v1/payments/my?orderBy=invalidField
 Content-Type: application/json
 X-User-Id: 123
 X-User-Role: CUSTOMER
