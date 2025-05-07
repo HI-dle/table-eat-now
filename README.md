@@ -1,8 +1,16 @@
-# 🧾 자리있나 (Table Eat Now)
-<img width="708" alt="스크린샷 2025-05-08 오전 12 18 53" src="https://github.com/user-attachments/assets/931dd0aa-10f6-4099-ba16-aa70508bd1cc" />
+# 🧾 **자리있나 (Table Eat Now)**
 
-자리있나 (Table Eat Now)는 식당 예약 서비스로 식당관리, 사용자 관리, 예약, 결제, 웨이팅, 쿠폰, 이벤트, 리뷰 등 
-다양한 서비스를 제공하여 고객에게 최상의 경험을 선사하고자 합니다.
+<p align="center">
+  <img width="700" alt="자리있나 이미지" src="https://github.com/user-attachments/assets/931dd0aa-10f6-4099-ba16-aa70508bd1cc" />
+</p>
+
+**Table Eat Now**는  
+**식당 예약 · 웨이팅 · 결제 · 리뷰 · 쿠폰 · 이벤트** 등  
+고객과 식당을 위한 **All-in-One 통합 예약 플랫폼**입니다.
+
+> 고객에게는 **편리한 예약 경험**을,  
+> 식당에게는 **효율적인 운영 관리 도구**를 제공합니다.
+
 
 ## 🔗 목차
 
