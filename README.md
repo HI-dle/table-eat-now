@@ -1,157 +1,77 @@
-
 # 🧾 자리있나 (Table Eat Now)
+<img width="708" alt="스크린샷 2025-05-08 오전 12 18 53" src="https://github.com/user-attachments/assets/931dd0aa-10f6-4099-ba16-aa70508bd1cc" />
 
-**식당 예약 서비스를 중심으로 식당관리, 사용자 관리, 예약, 결제, 웨이팅, 쿠폰, 이벤트, 리뷰 등 다양한 기능을 통합한 통합 플랫폼**
+자리있나 (Table Eat Now)는 식당 예약 서비스로 식당관리, 사용자 관리, 예약, 결제, 웨이팅, 쿠폰, 이벤트, 리뷰 등 
+다양한 서비스를 제공하여 고객에게 최상의 경험을 선사하고자 합니다.
 
----
+## 🔗 목차
 
-## 🎯 서비스/프로젝트 목표
-
-- **MAU 300만** 고객 대상 식당 예약 서비스 구축
-- **7,000개 가맹점** 지원
-- **식당별 최대 10,000명 동시 예약** 처리
-- **프로모션 참여자 최대 1,000명** 동시 참여 안정성 확보
-
----
-
-## 🏗️ 인프라 아키텍처
-
-<img width="711" alt="스크린샷 2025-05-08 오전 12 07 03" src="https://github.com/user-attachments/assets/b2d61fc5-2596-4007-92ba-b07314ac7df7" />
-
-- 인프라 아키텍쳐 상세 
-<img width="1072" alt="스크린샷 2025-05-08 오전 12 10 03" src="https://github.com/user-attachments/assets/1fc84216-60ca-48be-a68c-14b09e33a8b2" />
-
-
-
-### CI/CD Workflow
-
-```mermaid
-sequenceDiagram
-    participant Developer
-    participant GitHub
-    participant Workflow (detect-changes)
-    participant Workflow (deploy)
-    participant AWS Elastic Beanstalk
-
-    Developer->>GitHub: Push to feat/#222 or main branch
-    GitHub->>Workflow (detect-changes): Trigger workflow
-    Workflow (detect-changes)->>GitHub: Fetch git history & changed files
-    Workflow (detect-changes)->>Workflow (deploy): Output list of changed modules
-    alt If changed modules exist
-        Workflow (deploy)->>AWS Elastic Beanstalk: Deploy each changed module (parallel)
-    end
-````
+[![기술 스택](https://img.shields.io/badge/🛠️-기술_스택-24435C?style=flat-square\&logoColor=white)](#️-기술-스택)
+[![설계 산출물](https://img.shields.io/badge/📐-설계_산출물-2E556E?style=flat-square\&logoColor=white)](#-설계-산출물)
+[![트러블슈팅](https://img.shields.io/badge/🔍-트러블슈팅-2E556E?style=flat-square\&logoColor=white)](#-트러블슈팅)
+[![요구사항](https://img.shields.io/badge/📝-요구사항-1F3A53?style=flat-square\&logoColor=white)](#-요구사항)
+[![팀원 소개](https://img.shields.io/badge/👥-팀원_소개-1A314A?style=flat-square\&logoColor=white)](#-팀원-소개)
 
 ---
 
-## 🔧 주요 기능
+## 📌 프로젝트 개요
 
-### 식당
+**식당 예약 서비스 플랫폼**
 
-* 식당 개설 / 정보 관리 / 타임슬롯 관리 / 리뷰 평점 업데이트 / 조회
-
-### 예약
-
-* 예약 신청 / 취소 / 상태 관리 / 예약 조회
-
-### 대기 (웨이팅)
-
-* 당일 웨이팅 / 대기 시간 안내 / 알림 / 상태 관리 / 취소
-
-### 리뷰
-
-* 평점 등록 / 수정 / 공개 범위 제어 / 주기적 갱신 / 필터링
-
-### 결제
-
-* 토스페이먼츠 연동 / 부분 취소 / 전액 환불
-
-### 알림
-
-* 식당 및 결제 상태 알림 (Slack/Email) / 예약 리마인더 / 프로모션 알림
-
-### 쿠폰
-
-* 다양한 쿠폰 타입 / 재고 관리 / 핫딜 / 프로모션 쿠폰
-
-### 프로모션
-
-* 참여형 프로모션 / 예약 실행 관리 / 성능 최적화 대응
+* 식당, 사용자, 예약, 결제, 웨이팅, 리뷰 등 통합 관리 서비스
+* 7,000개 가맹점, 식당별 최대 10,000명 동시 예약 처리
+* 프로모션 동시 참여자 1,000명 이상을 고려한 시스템 안정성 확보
 
 ---
 
-## ⚙️ 기술 스택
+## 🛠️ 기술 스택
 
-### 프레임워크 & 라이브러리
-
-* Java 17, Spring Boot 3.4.4, Spring Cloud, Spring Data JPA, QueryDSL, Redisson
-
-### 데이터베이스
-
-* PostgreSQL, Redis
-
-### 메시징
-
-* Apache Kafka
-
-### 모니터링
-
-* Prometheus, Grafana, Zipkin
-
-### 인프라
-
-* Docker, AWS EC2, Elastic Beanstalk, CloudWatch, GitHub Actions
-
-### 기타
-
-* SonarQube, JaCoCo, JMeter, CodeRabbit, Slack, Notion, Toss Payments
+| 분류         | 기술                                                                 |
+| ---------- | ------------------------------------------------------------------ |
+| Language   | Java 17                                                            |
+| Framework  | Spring Boot 3.4.4, Spring Cloud (Eureka, Gateway, OpenFeign)       |
+| DB         | PostgreSQL, Redis                                                  |
+| ORM        | Spring Data JPA, QueryDSL 5.0.0                                    |
+| Messaging  | Apache Kafka                                                       |
+| Infra      | Docker, AWS EC2, AWS Elastic Beanstalk, CloudWatch, GitHub Actions |
+| Monitoring | Prometheus, Grafana, Zipkin                                        |
+| Testing    | JUnit 5, Mockito, JaCoCo, SonarQube                                |
+| Tools      | Notion, Slack, GitHub, Toss Payments                               |
 
 ---
 
-## 🚨 트러블슈팅
+## 📐 설계 산출물
 
-* [✅ 스케줄러 분산락 적용](https://www.notion.so/1e42dc3ef5148040abc5f50e95a274da?pvs=21)
-* [✅ 알림 Polling → Kafka/Redis 개선](https://www.notion.so/DB-Polling-1e42dc3ef51480299cd0efb72785c4d8?pvs=21)
-* [✅ Cursor + FixedDelay 기반 스케줄러 개선](https://www.notion.so/Cursor-FixedDelay-1e42dc3ef5148006a53bec06bfd4d3ba?pvs=21)
-* [✅ GitHub Actions 활용 개선](https://www.notion.so/Github-actions-1e42dc3ef5148097b55ed56d1bdb313b?pvs=21)
-* [✅ 프로모션 부하 테스트 및 최적화](https://www.notion.so/1e42dc3ef51480bba464d4d02fcb8895?pvs=21)
+* **API 명세**: [API 정의서 (Notion)](https://climbing-centipede-b7f.notion.site/API-1cc67f8e8327800aa312d744a92a162b?pvs=4)
+* **ERD**: [ERD 보기 (Notion)](https://climbing-centipede-b7f.notion.site/ERD-1ca67f8e832780cda0cbd92cb0e6213c?pvs=4)
+* **아키텍처**: [아키텍처 개요](https://github.com/HI-dle/table-eat-now/wiki/architecture)
 
 ---
 
-## 🧑‍💻 Contributors
+## 🔍 트러블슈팅
 
-| 이름      | 포지션                             | 기여 내용                                                                                       | 테스트 수 |
-| ------- | ------------------------------- | ------------------------------------------------------------------------------------------- | ----- |
-| **한지훈** | 팀장<br/>Notification/Promotion   | 전략 패턴 기반 알림/프로모션 처리<br/>Kafka, Redis 딜레이 큐 사용<br/>DLQ, 루아 스크립트, 모니터링 구성                     | 96    |
-| **박지은** | 테크리더<br/>Restaurant/Reservation | 비관락, Kafka 배치, DLQ 처리<br/>예약 유효성 검증 전략 구성<br/>GitHub Actions 기반 테스트 자동화                     | 146   |
-| **황하온** | Coupon/Waiting                  | 쿠폰 전략/중복 방지 처리<br/>루아 스크립트, ZSet, Redis 활용<br/>ZSet 기반 대기열 관리                               | 77    |
-| **강혜주** | Payment/Review                  | 분산락 + 커서 기반 배치 최적화<br/>Kafka DLQ/리트라이 + Prometheus 지표 수집<br/>RestClient PG 연동 및 데코레이터 패턴 적용 | 255   |
-
----
-
-## 📊 API 현황
-
-```bash
-- GET: 39
-- POST: 15
-- PATCH: 11
-- PUT: 5
-- DELETE: 6
-- TOTAL: 76
-```
+* [스케줄러 분산락 적용](https://github.com/HI-dle/table-eat-now/wiki/%EC%8A%A4%EC%BC%80%EC%A4%84%EB%9F%AC-%EB%B6%84%EC%82%B0%EB%9D%BD-%EC%A0%81%EC%9A%A9)
+* [DB Polling 방식 리팩토링](https://github.com/HI-dle/table-eat-now/wiki/%EC%95%8C%EB%A6%BC-DB-Polling-%EB%B0%A9%EC%8B%9D-%EB%A6%AC%ED%8C%A9%ED%86%A0%EB%A7%81%EC%9C%BC%EB%A1%9C-%EC%84%B1%EB%8A%A5-%EC%B5%9C%EC%A0%81%ED%99%94)
+* [Cursor + FixedDelay 기반 스케줄러 전환](https://github.com/HI-dle/table-eat-now/wiki/Cursor---FixedDelay-%EA%B8%B0%EB%B0%98-%EC%8A%A4%EC%BC%80%EC%A4%84%EB%9F%AC-%EC%A0%84%ED%99%98)
+* [GitHub Actions 개선](https://github.com/HI-dle/table-eat-now/wiki/Github-actions-%ED%99%9C%EC%9A%A9-%EB%B0%8F-%EA%B0%9C%EC%84%A0)
+* [프로모션 성능 테스트](https://github.com/HI-dle/table-eat-now/wiki/%ED%94%84%EB%A1%9C%EB%AA%A8%EC%85%98-%EC%84%B1%EB%8A%A5-%EB%AA%A9%ED%91%9C%EC%B9%98-%ED%85%8C%EC%8A%A4%ED%8A%B8)
 
 ---
 
-## 📁 GitHub 활동
+## 📝 요구사항
 
-* **Issues:** 102건
-* **Pull Requests:** 106건
-* **Test Files:** 총 562개
-* **Test Coverage:** 프레젠테이션/애플리케이션 레이어 97.4% 이상
+* 식당, 예약, 리뷰, 결제, 쿠폰, 프로모션 등 CRUD 및 동시성 고려
+* MSA 구조에 기반한 도메인 분리 및 서비스 간 Kafka 연동
+* 실시간 예약 및 대기열 처리, 리뷰 평점 주기적 갱신, 알림 시스템
+* 테스트 커버리지 80% 이상 기준으로 PR 제한 (SonarQube, JaCoCo 연동)
 
 ---
 
-## 📬 문의
+## 👥 팀원 소개
 
-> 기술적 내용, 구조 및 설계 관련 문의는 각 담당자 GitHub 통해 이슈 남겨주세요.
-
+| 이름  | 포지션                               | 주요 기여                                                                                            |
+| --- | --------------------------------- | ------------------------------------------------------------------------------------------------ |
+| 한지훈 | 팀장<br/>Notification / Promotion   | Kafka 기반 알림 시스템 / Redis 딜레이 큐 / DLQ 및 모니터링 / 프로모션 성능 최적화 및 원자성 보장                                |
+| 박지은 | 테크리더<br/>Restaurant / Reservation | 예약 유효성 검증 전략 / Kafka 상태 관리 / DLQ / FeignClient 통한 멱등성 관리 / 테스트 자동화 환경 구성                         |
+| 황하온 | Coupon / Waiting                  | 쿠폰 전략/루아스크립트 처리 / Redis ZSet 기반 대기열 처리 / 이벤트 중복 방지 / GitHub Actions 속도 개선                        |
+| 강혜주 | Review / Payment                  | Redisson 분산락 + 커서 기반 배치 최적화 / RestClient PG 연동 / Kafka DLQ + 지표 수집 / 데코레이터 패턴 기반 TaskExecutor 구성 |
