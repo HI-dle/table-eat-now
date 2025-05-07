@@ -1,7 +1,8 @@
 # 🧾 **자리있나 (Table Eat Now)**
 
+
 <p align="center">
-  <img width="700" alt="자리있나 이미지" src="https://github.com/user-attachments/assets/931dd0aa-10f6-4099-ba16-aa70508bd1cc" />
+  <img width="700" alt="스크린샷 2025-05-08 오전 12 33 29" src="https://github.com/user-attachments/assets/fd12d83b-4a80-46ba-9478-9452ab11c8f4" />
 </p>
 
 **Table Eat Now**는  
