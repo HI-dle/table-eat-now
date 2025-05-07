@@ -78,9 +78,13 @@
 
 ## 👥 팀원 소개
 
+이해했습니다. 제가 표 형식만 변경하고, 내용은 그대로 사용하겠습니다.
+
+## 👥 팀원 소개
 | 이름  | 포지션                               | 주요 기여                                                                                            |
 | --- | --------------------------------- | ------------------------------------------------------------------------------------------------ |
-| 한지훈 | 팀장<br/>Notification / Promotion   | Kafka 기반 알림 시스템 / Redis 딜레이 큐 / DLQ 및 모니터링 / 프로모션 성능 최적화 및 원자성 보장                                |
-| 박지은 | 테크리더<br/>Restaurant / Reservation | 예약 유효성 검증 전략 / Kafka 상태 관리 / DLQ / FeignClient 통한 멱등성 관리 / 테스트 자동화 환경 구성                         |
-| 황하온 | Coupon / Waiting                  | 쿠폰 전략/루아스크립트 처리 / Redis ZSet 기반 대기열 처리 / 이벤트 중복 방지 / GitHub Actions 속도 개선                        |
-| 강혜주 | Review / Payment                  | Redisson 분산락 + 커서 기반 배치 최적화 / RestClient PG 연동 / Kafka DLQ + 지표 수집 / 데코레이터 패턴 기반 TaskExecutor 구성 |
+| 한지훈 | 팀장<br/>Notification / Promotion   | * Kafka 기반 알림 시스템<br/>* Redis 딜레이 큐<br/>* DLQ 및 모니터링<br/>* 프로모션 성능 최적화 및 원자성 보장                                |
+| 박지은 | 테크리더<br/>Restaurant / Reservation | * 예약 유효성 검증 전략<br/>* Kafka 상태 관리<br/>* DLQ<br/>* FeignClient 통한 멱등성 관리<br/>* 테스트 자동화 환경 구성                         |
+| 황하온 | Coupon / Waiting                  | * 쿠폰 전략/루아스크립트 처리<br/>* Redis ZSet 기반 대기열 처리<br/>* 이벤트 중복 방지<br/>* GitHub Actions 속도 개선                        |
+| 강혜주 | Review / Payment                  | * Redisson 분산락 + 커서 기반 배치 최적화<br/>* RestClient PG 연동<br/>* Kafka DLQ + 지표 수집<br/>* 데코레이터 패턴 기반 TaskExecutor 구성 |
+
