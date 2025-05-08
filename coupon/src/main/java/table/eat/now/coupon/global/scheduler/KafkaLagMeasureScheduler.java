@@ -23,7 +23,7 @@ public class KafkaLagMeasureScheduler {
   private static final List<String> GROUP_IDS = List.of(
       UserCouponConsumerConfig.GROUP, UserCouponConsumerConfig.GROUP_1, "for-test");
 
-  @Scheduled(fixedRate = 1000)
+  @Scheduled(fixedRate = 5000)
   public void updateConsumerLag() {
     GROUP_IDS.forEach(this::publishConsumerLagToMetrics);
   }

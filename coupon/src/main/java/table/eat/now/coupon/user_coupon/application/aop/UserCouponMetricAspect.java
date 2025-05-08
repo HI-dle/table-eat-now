@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -60,10 +59,10 @@ public class UserCouponMetricAspect {
   }
 
   private Integer getBatchSize(Object[] args) {
-    List<?> tasks = (List<?>) Arrays.stream(args)
-        .filter(arg -> arg instanceof List && ((List<?>) arg).get(0) instanceof ConsumerRecord)
+    return Arrays.stream(args)
+        .filter(arg -> arg instanceof List<?>)
+        .map(arg -> ((List<?>) arg).size())
         .findAny()
-        .get();
-    return tasks.size();
+        .orElse(0);
   }
 }

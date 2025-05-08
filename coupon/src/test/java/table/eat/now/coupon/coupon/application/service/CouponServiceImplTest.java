@@ -2,6 +2,7 @@ package table.eat.now.coupon.coupon.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import jakarta.annotation.Resource;
@@ -247,6 +248,7 @@ class CouponServiceImplTest extends IntegrationTestSupport {
         .plusMinutes(10);
     couponStore.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
     couponStore.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
+    couponStore.insertCouponCache(coupon.getCouponUuid(), coupon, duration);
 
     CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(3L, UserRole.CUSTOMER);
 
@@ -270,6 +272,7 @@ class CouponServiceImplTest extends IntegrationTestSupport {
         .plusMinutes(10);
     couponStore.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
     couponStore.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
+    couponStore.insertCouponCache(coupon.getCouponUuid(), coupon, duration);
 
     CurrentUserInfoDto userInfo = CurrentUserInfoDto.of(3L, UserRole.CUSTOMER);
 
@@ -278,15 +281,12 @@ class CouponServiceImplTest extends IntegrationTestSupport {
 
     // then
     // 이벤트 발행이 잘 되었는지 확인
-    assertThat(applicationEvents.stream(CouponRequestedIssueEvent.class).count()).isEqualTo(1);
-
-    // 유저 쿠폰
     ArgumentCaptor<CouponRequestedIssueEvent> captor =
         ArgumentCaptor.forClass(CouponRequestedIssueEvent.class);
 
-    verify(userCouponSpringEventListener).listen(captor.capture());
-    CouponRequestedIssueEvent value = captor.getValue();
+    verify(eventPublisher, times(1)).publish(captor.capture());
 
+    CouponRequestedIssueEvent value = captor.getValue();
     assertThat(value.payload().couponUuid()).isEqualTo(coupon.getCouponUuid());
   }
 

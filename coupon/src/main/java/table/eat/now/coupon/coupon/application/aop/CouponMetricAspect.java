@@ -60,10 +60,10 @@ public class CouponMetricAspect {
   }
 
   private Integer getBatchSize(Object[] args) {
-    List<?> tasks = (List<?>) Arrays.stream(args)
-        .filter(arg -> arg instanceof List)
+    return Arrays.stream(args)
+        .filter(arg -> arg instanceof List<?>)
+        .map(arg -> ((List<?>) arg).size())
         .findAny()
-        .get();
-    return tasks.size();
+        .orElse(0);
   }
 }

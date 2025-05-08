@@ -75,7 +75,7 @@ public class UserCouponKafkaEventListener {
       topics = COUPON_EVENT,
       containerFactory = "couponRequestedIssueEventKafkaListenerContainerFactory"
   )
-  @WithMetric(info = UserCouponMetricInfo.USER_COUPON_CONSUME_REQUSETD_BATCH)
+  @WithMetric(info = UserCouponMetricInfo.USER_COUPON_CONSUME_REQUESTED_BATCH)
   public void listenCouponRequestedIssueEvent(
       List<ConsumerRecord<String, CouponRequestedIssueEvent>> records, Acknowledgment ack) {
     log.info("쿠폰 발행 이벤트 처리: from: {}, to: {}",
@@ -103,7 +103,7 @@ public class UserCouponKafkaEventListener {
       groupId = "for-test",
       containerFactory = "testCouponRequestedIssueEventKafkaListenerContainerFactory"
   )
-  @WithMetric(info=UserCouponMetricInfo.USER_COUPON_CONSUME_REQUSETD_ONE)
+  @WithMetric(info=UserCouponMetricInfo.USER_COUPON_CONSUME_REQUESTED_ONE)
   public void forTestComparedSingleEventListener(
       ConsumerRecord<String, CouponRequestedIssueEvent> record, Acknowledgment ack) {
     try {

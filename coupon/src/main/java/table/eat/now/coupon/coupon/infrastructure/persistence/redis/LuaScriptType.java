@@ -35,7 +35,7 @@ public enum LuaScriptType {
   private String luaSha;
 
   // 루아스크립트가 늘어나면 해시맵에 캐싱해두는 걸로 리팩토링할 필요성이 존재함
-  public LuaScriptType from(CouponProfile profile) {
+  public static LuaScriptType from(CouponProfile profile) {
     return Arrays.stream(LuaScriptType.values())
         .filter(type -> type.getProfiles().contains(profile))
         .findFirst()
@@ -43,7 +43,7 @@ public enum LuaScriptType {
   }
 
   // 루아스크립트를 레디스에 로드하는 경우 활용가능
-  public String getLusSha(StringRedisTemplate redisTemplate) {
+  public String getCachedLusSha(StringRedisTemplate redisTemplate) {
     if (this.luaSha == null) {
       luaSha = loadScriptAndGetSha(redisTemplate);
     }

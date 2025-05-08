@@ -8,8 +8,8 @@ import table.eat.now.coupon.global.metric.MetricInfo;
 @RequiredArgsConstructor
 public enum UserCouponMetricInfo implements MetricInfo {
 
-  USER_COUPON_CONSUME_REQUSETD_BATCH("user.coupon", true),
-  USER_COUPON_CONSUME_REQUSETD_ONE("user.coupon", false),
+  USER_COUPON_CONSUME_REQUESTED_BATCH("user.coupon", true),
+  USER_COUPON_CONSUME_REQUESTED_ONE("user.coupon", false),
   ;
 
   private final String name;

@@ -215,7 +215,6 @@ public class RedisCouponCacheManager {
         .append("-")
         .append(command.timestamp())
         .toString();
-    // todo. 현재 idempotency 키가 명확하지 않음. 리팩토링 가능
 
     Long currentTimestamp = TimeProvider.getEpochMillis(LocalDateTime.now());
 
@@ -224,7 +223,7 @@ public class RedisCouponCacheManager {
 
     Long result;
     try {
-      String sha = "";
+      String sha = LuaScriptType.LIMITED_NONDUP.getCachedLusSha(stringRedisTemplate);
       result = stringRedisTemplate.execute((RedisCallback<Long>) connection ->
           connection.evalSha(sha.getBytes(StandardCharsets.UTF_8), ReturnType.INTEGER,
               4,

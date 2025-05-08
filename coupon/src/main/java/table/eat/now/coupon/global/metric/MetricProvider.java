@@ -14,9 +14,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class MetricProvider {
 
-  private final static String TIMER_SUFFIX = ".timer";
-  private final static String BATCH_SUFFIX = ".batch";
-  private final static String KAFKA_CONSUMER_LAG = "kafka.consumer.lag";
+  private static final String TIMER_SUFFIX = ".timer";
+  private static final String BATCH_SUFFIX = ".batch";
+  private static final String KAFKA_CONSUMER_LAG = "kafka.consumer.lag";
   public static final String FAIL = "fail";
   public static final String SUCCESS = "success";
   public static final String STATUS_TAG = "status";

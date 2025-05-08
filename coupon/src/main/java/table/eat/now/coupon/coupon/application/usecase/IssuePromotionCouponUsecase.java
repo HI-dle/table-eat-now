@@ -25,7 +25,7 @@ public class IssuePromotionCouponUsecase {
     Coupon coupon = couponReader.findValidCouponByUuid(
         command.couponUuid())
         .orElseThrow(() -> CustomException.from(CouponErrorCode.INVALID_COUPON_UUID));
-
+    // 쿠폰 발급 가능일자 검증 추가하면 좋을 듯
     CouponProfile couponProfile = CouponProfile.parse(coupon);
 
     couponStore.requestIssue(command.toDomain(couponProfile));

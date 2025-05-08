@@ -29,10 +29,7 @@ public class KafkaLagMetricProvider {
     Map<TopicPartition, ListOffsetsResultInfo> endOffsets = adminClient.listOffsets(
             consumerOffsets.keySet()
                 .stream()
-                .collect(
-                    Collectors
-                        .toMap(tp -> tp, tp -> OffsetSpec.latest())
-                )
+                .collect(Collectors.toMap(tp -> tp, tp -> OffsetSpec.latest()))
         )
         .all().get();
 

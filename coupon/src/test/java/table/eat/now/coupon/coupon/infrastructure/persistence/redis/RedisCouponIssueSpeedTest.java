@@ -205,7 +205,7 @@ public class RedisCouponIssueSpeedTest extends IntegrationTestSupport {
 
   private void requestIssueByLuaForTest(CouponIssuance command) {
 
-    String userSetKey = COUPON_USER_SET + command.couponUuid();;
+    String userSetKey = COUPON_USER_SET + command.couponUuid();
     String couponCountKey = COUPON_COUNT + command.couponUuid();
 
     List<String> keys = List.of(userSetKey, couponCountKey);
