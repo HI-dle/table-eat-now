@@ -26,7 +26,7 @@ public enum CouponInfraErrorCode implements ErrorCode {
       "쿠폰의 재고 정보가 올바르지 않습니다.",
       HttpStatus.INTERNAL_SERVER_ERROR),
   NOT_FOUND_LUA_SCRIPT(
-      "서버 오류가 발생하였습니다.",
+      "루아 스크립트가 존재하지 않아 오류가 발생하였습니다.",
       HttpStatus.INTERNAL_SERVER_ERROR),
   FAILED_LUA_SCRIPT(
       "루아 스크립트 실행에 실패하였습니다.",

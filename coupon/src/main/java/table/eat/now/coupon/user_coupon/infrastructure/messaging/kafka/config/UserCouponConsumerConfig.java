@@ -151,7 +151,7 @@ public class UserCouponConsumerConfig {
     Map<String, Object> props = getCommonConsumerProps(groupId);
     props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1000);
     props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000); // 5분
-    props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 5000); // 5초
+    props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 500); // 0.5초
     return props;
   }
 
@@ -171,7 +171,7 @@ public class UserCouponConsumerConfig {
     DefaultErrorHandler errorHandler = getDefaultErrorHandler(kafkaCouponDltTemplate, COUPON_EVENT_DLT);
 
     factory.setCommonErrorHandler(errorHandler);
-    factory.getContainerProperties().setIdleBetweenPolls(5000);
+    factory.getContainerProperties().setIdleBetweenPolls(200);
     factory.setBatchListener(true);
     factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
     return factory;
@@ -184,8 +184,22 @@ public class UserCouponConsumerConfig {
         createContainerFactory(
             couponRequestedIssueEventConsumerFactory(), EventType.COUPON_REQUESTED_ISSUE.toString());
 
-    factory.getContainerProperties().setIdleBetweenPolls(60000);
+    factory.getContainerProperties().setIdleBetweenPolls(200);
     factory.setBatchListener(true);
+    factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
+    return factory;
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, CouponRequestedIssueEvent>
+  testCouponRequestedIssueEventKafkaListenerContainerFactory(KafkaTemplate<String, CouponEvent> kafkaCouponDltTemplate) {
+    ConcurrentKafkaListenerContainerFactory<String, CouponRequestedIssueEvent> factory =
+        createContainerFactory(
+            couponRequestedIssueEventConsumerFactory(), EventType.COUPON_REQUESTED_ISSUE.toString());
+
+    DefaultErrorHandler errorHandler = getDefaultErrorHandler(kafkaCouponDltTemplate, COUPON_EVENT_DLT);
+
+    factory.setCommonErrorHandler(errorHandler);
     factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
     return factory;
   }

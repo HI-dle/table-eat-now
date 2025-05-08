@@ -14,7 +14,7 @@ public interface CouponStore {
 
   void insertCouponsCacheAndSubIndex(List<CouponCachingAndIndexing> command);
 
-  void requestIssue(CouponIssuance domain);
+  void requestIssue(CouponIssuance domainCommand);
 
   Coupon save(Coupon coupon);
 
@@ -29,5 +29,4 @@ public interface CouponStore {
   boolean markAsIssued(String couponUuid, Long userId);
 
   Long increaseCouponCount(String couponUuid);
-
 }

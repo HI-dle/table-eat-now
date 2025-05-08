@@ -14,6 +14,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import table.eat.now.coupon.coupon.infrastructure.exception.CouponInfraErrorCode
 import table.eat.now.coupon.coupon.infrastructure.persistence.redis.RedisCouponCacheManager;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
 
+@Slf4j
 class IssuePromotionCouponUsecaseTest extends IntegrationTestSupport {
 
   @Autowired
@@ -47,6 +49,7 @@ class IssuePromotionCouponUsecaseTest extends IntegrationTestSupport {
 
   @BeforeEach
   void setUp() {
+    // 프로모션 쿠폰
     coupon = CouponFixture.createCoupon(
         1, "FIXED_DISCOUNT", "PROMOTION",2, false, 2000, null, null);
     ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().minusDays(1));
@@ -111,10 +114,11 @@ class IssuePromotionCouponUsecaseTest extends IntegrationTestSupport {
   @Test
   void successWithConcurrentRequest() {
     // given
-    ReflectionTestUtils.setField(coupon, "count", 100);
+    int requestCount = 100;
+    ReflectionTestUtils.setField(coupon, "count", requestCount);
     redisCouponCacheManager.putCouponCache(coupon.getCouponUuid(), coupon);
 
-    List<IssuePromotionCouponCommand> commands = IntStream.range(0, 100)
+    List<IssuePromotionCouponCommand> commands = IntStream.range(0, requestCount)
         .mapToObj(i -> IssuePromotionCouponCommand.builder()
             .couponUuid(coupon.getCouponUuid())
             .userId((long) i)
@@ -126,17 +130,16 @@ class IssuePromotionCouponUsecaseTest extends IntegrationTestSupport {
     ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
 
     // when
-    List<CompletableFuture<Void>> futures = IntStream.range(0, 100)
-        .mapToObj(i -> CompletableFuture.runAsync(() ->
-            issuePromotionCouponUsecase.execute(commands.get(i)),
-            executorService)
-        )
+    List<CompletableFuture<Void>> futures = IntStream.range(0, requestCount)
+        .mapToObj(i -> CompletableFuture.runAsync(() -> {
+          issuePromotionCouponUsecase.execute(commands.get(i));
+          }, executorService))
         .toList();
 
     futures.forEach(CompletableFuture::join);
 
     // then
     Coupon updated = redisCouponCacheManager.getCouponCache(coupon.getCouponUuid());
-    assertThat(updated.getIssuedCount()).isEqualTo(100);
+    assertThat(updated.getIssuedCount()).isEqualTo(requestCount);
   }
 }

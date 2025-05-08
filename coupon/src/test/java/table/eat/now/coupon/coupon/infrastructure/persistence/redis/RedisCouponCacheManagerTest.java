@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import table.eat.now.coupon.coupon.application.utils.TimeProvider;
 import table.eat.now.coupon.coupon.domain.command.CouponCachingAndIndexing;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
@@ -41,7 +42,8 @@ class RedisCouponCacheManagerTest extends IntegrationTestSupport {
     // when
     long start = System.nanoTime();
     for (Coupon coupon : coupons) {
-      redisCouponCacheManager.putCouponCache(UUID.randomUUID().toString(), coupon);
+      redisCouponCacheManager.putCouponCache(
+          UUID.randomUUID().toString(), coupon, TimeProvider.getDuration(coupon.calcExpireAt(), 60));
     }
     long end = System.nanoTime();
     log.info("수행 시간(ms): {}", (end - start) / 1_000_000);

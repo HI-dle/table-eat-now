@@ -75,5 +75,4 @@ public class CouponReaderImpl implements CouponReader {
   public boolean isAlreadyIssued(String couponUuid, Long userId) {
     return redisCouponCacheManager.isAlreadyIssued(couponUuid, userId);
   }
-
 }

@@ -4,7 +4,6 @@ import static table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.co
 import static table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.config.UserCouponConsumerConfig.RESERVATION_EVENT;
 import static table.eat.now.coupon.user_coupon.infrastructure.messaging.kafka.config.UserCouponConsumerConfig.RESERVATION_EVENT_DLT;
 
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +13,8 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
+import table.eat.now.coupon.user_coupon.application.aop.annotation.WithMetric;
+import table.eat.now.coupon.user_coupon.application.aop.enums.UserCouponMetricInfo;
 import table.eat.now.coupon.user_coupon.application.dto.request.IssueUserCouponCommand;
 import table.eat.now.coupon.user_coupon.application.service.UserCouponService;
 import table.eat.now.coupon.user_coupon.application.usecase.IssuePromotionUserCouponUsecase;
@@ -74,6 +75,7 @@ public class UserCouponKafkaEventListener {
       topics = COUPON_EVENT,
       containerFactory = "couponRequestedIssueEventKafkaListenerContainerFactory"
   )
+  @WithMetric(info = UserCouponMetricInfo.USER_COUPON_CONSUME_REQUSETD_BATCH)
   public void listenCouponRequestedIssueEvent(
       List<ConsumerRecord<String, CouponRequestedIssueEvent>> records, Acknowledgment ack) {
     log.info("쿠폰 발행 이벤트 처리: from: {}, to: {}",
@@ -81,13 +83,9 @@ public class UserCouponKafkaEventListener {
         records.get(records.size() - 1).offset());
     try {
 
-      List<IssueUserCouponCommand> commands = new ArrayList<>();
-
-      for (ConsumerRecord<String, CouponRequestedIssueEvent> record : records) {
-        CouponRequestedIssueEvent event = record.value();
-
-        commands.add(event.toCommand());
-      }
+      List<IssueUserCouponCommand> commands = records.stream()
+          .map(record -> record.value().toCommand())
+          .toList();
       ipucUsecase.execute(commands);
 
       ack.acknowledge();
@@ -96,6 +94,24 @@ public class UserCouponKafkaEventListener {
           records.get(0).offset(),
           records.get(records.size() - 1).offset(),
           e);
+      throw e;
+    }
+  }
+
+  @KafkaListener(
+      topics = COUPON_EVENT,
+      groupId = "for-test",
+      containerFactory = "testCouponRequestedIssueEventKafkaListenerContainerFactory"
+  )
+  @WithMetric(info=UserCouponMetricInfo.USER_COUPON_CONSUME_REQUSETD_ONE)
+  public void forTestComparedSingleEventListener(
+      ConsumerRecord<String, CouponRequestedIssueEvent> record, Acknowledgment ack) {
+    try {
+      log.info("하나씩 발급되는 유저쿠폰!");
+      CouponRequestedIssueEvent event = record.value();
+      ipucUsecase.execute(List.of(event.toCommand()));
+      ack.acknowledge();
+    } catch (Throwable e) {
       throw e;
     }
   }

@@ -130,7 +130,7 @@ public class CouponConsumerConfig {
     Map<String, Object> props = getCommonConsumerProps(groupId);
     props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1000);
     props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000); // 5분
-    props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 5000); // 5초
+    props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 500); // 0.5초
     return props;
   }
 

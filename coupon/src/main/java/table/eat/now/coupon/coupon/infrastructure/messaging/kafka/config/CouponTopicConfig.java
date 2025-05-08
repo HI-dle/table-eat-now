@@ -10,6 +10,7 @@ import org.springframework.kafka.config.TopicBuilder;
 public class CouponTopicConfig {
 
   public static final String TOPIC_NAME = "coupon-event";
+  public static final String TOPIC_DLT_NAME = "coupon-event-dlt";
 
   @Value("${kafka.topic.coupon.partitions:3}")
   private int partitions;
@@ -21,6 +22,15 @@ public class CouponTopicConfig {
   @Bean
   public NewTopic createCouponTopic() {
     return TopicBuilder.name(TOPIC_NAME)
+        .partitions(partitions)
+        .replicas(replicas)
+        .config("min.insync.replicas", minInsyncReplicas)
+        .build();
+  }
+
+  @Bean
+  public NewTopic createCouponDltTopic() {
+    return TopicBuilder.name(TOPIC_DLT_NAME)
         .partitions(partitions)
         .replicas(replicas)
         .config("min.insync.replicas", minInsyncReplicas)

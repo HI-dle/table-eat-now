@@ -1,10 +1,13 @@
 package table.eat.now.coupon.coupon.application.strategy;
 
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import table.eat.now.common.exception.CustomException;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
+import table.eat.now.coupon.coupon.application.utils.TimeProvider;
+import table.eat.now.coupon.coupon.domain.command.CouponIssuance;
 import table.eat.now.coupon.coupon.domain.info.CouponProfile;
 import table.eat.now.coupon.coupon.domain.reader.CouponReader;
 import table.eat.now.coupon.coupon.domain.store.CouponStore;
@@ -18,14 +21,22 @@ public class IssueLimitedNonDupHotStrategy implements IssueStrategy {
 
   @Override
   public void requestIssue(String couponUuid, Long userId) {
-    checkAlreadyIssued(couponUuid, userId);
-    try {
-      checkStockAndDecrease(couponUuid);
-      markAsIssued(couponUuid, userId);
-    } catch (CustomException e) {
-      rollbackStock(couponUuid);
-      throw e;
-    }
+
+    couponStore.requestIssue(CouponIssuance.builder()
+            .couponUuid(couponUuid)
+            .timestamp(TimeProvider.getEpochMillis(LocalDateTime.now()))
+            .couponProfile(this.couponProfile())
+            .userId(userId)
+        .build());
+
+//    checkAlreadyIssued(couponUuid, userId);
+//    try {
+//      checkStockAndDecrease(couponUuid);
+//      markAsIssued(couponUuid, userId);
+//    } catch (CustomException e) {
+//      rollbackStock(couponUuid);
+//      throw e;
+//    }
   }
 
   @Override

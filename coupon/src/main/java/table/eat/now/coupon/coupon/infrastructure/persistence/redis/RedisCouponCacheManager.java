@@ -1,12 +1,14 @@
 package table.eat.now.coupon.coupon.infrastructure.persistence.redis;
 
 import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.COUPON_CACHE;
+import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.COUPON_COUNT;
 import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.COUPON_USER_SET;
 import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.DAILY_ISSUABLE_HOT_COUPON_INDEX;
 import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.DAILY_ISSUABLE_PROMO_COUPON_INDEX;
 import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.DIRTY_COUPON_SET;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,6 +18,8 @@ import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
@@ -37,8 +41,6 @@ import table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.Cou
 @RequiredArgsConstructor
 @Repository
 public class RedisCouponCacheManager {
-
-  private static final String COUNT_PREFIX = "coupon:count:";
 
   private final RedisTemplate<String, Object> couponRedisTemplate;
   private final StringRedisTemplate stringRedisTemplate;
@@ -202,6 +204,70 @@ public class RedisCouponCacheManager {
     }
   }
 
+  public void requestIssueByLuaSha(CouponIssuance command) {
+
+    String userSetKey = COUPON_USER_SET + command.couponUuid();;
+    String couponKey = COUPON_CACHE + command.couponUuid();
+    String idempotencyKey = new StringBuilder().append(COUPON_CACHE)
+        .append(command.couponUuid())
+        .append("-")
+        .append(command.userId())
+        .append("-")
+        .append(command.timestamp())
+        .toString();
+    // todo. 현재 idempotency 키가 명확하지 않음. 리팩토링 가능
+
+    Long currentTimestamp = TimeProvider.getEpochMillis(LocalDateTime.now());
+
+    List<String> keys = List.of(userSetKey, couponKey, idempotencyKey, DIRTY_COUPON_SET);
+    List<String> args = List.of(command.userId().toString(), currentTimestamp.toString());
+
+    Long result;
+    try {
+      String sha = "";
+      result = stringRedisTemplate.execute((RedisCallback<Long>) connection ->
+          connection.evalSha(sha.getBytes(StandardCharsets.UTF_8), ReturnType.INTEGER,
+              4,
+              userSetKey.getBytes(StandardCharsets.UTF_8),
+              couponKey.getBytes(StandardCharsets.UTF_8),
+              idempotencyKey.getBytes(StandardCharsets.UTF_8),
+              DIRTY_COUPON_SET.getBytes(StandardCharsets.UTF_8),
+              args.get(0).getBytes(StandardCharsets.UTF_8),
+              args.get(1).getBytes(StandardCharsets.UTF_8))
+      );
+    } catch (Exception e) {
+      throw CustomException.from(CouponInfraErrorCode.FAILED_LUA_SCRIPT);
+    }
+
+    if (result != 1) {
+      throw CustomException.from(IssueResult.parseToErrorCode(result));
+    }
+  }
+
+  public void requestIssueByLuaForTest(CouponIssuance command) {
+
+    String userSetKey = COUPON_USER_SET + command.couponUuid();;
+    String couponCountKey = COUPON_COUNT + command.couponUuid();
+
+    List<String> keys = List.of(userSetKey, couponCountKey);
+    List<String> args = List.of(command.userId().toString());
+
+    Long result;
+    try {
+      result = executeLuaScript(
+          LuaScriptType.LIMITED_NONDUP,
+          keys,
+          args);
+
+    } catch (Exception e) {
+      throw CustomException.from(CouponInfraErrorCode.FAILED_LUA_SCRIPT);
+    }
+
+    if (result != 1) {
+      throw CustomException.from(IssueResult.parseToErrorCode(result));
+    }
+  }
+
   private Long executeLuaScript(
       LuaScriptType luaScriptType, List<String> keys, List<String> args) {
 
@@ -210,7 +276,7 @@ public class RedisCouponCacheManager {
   }
 
   public void setCouponCountWithTtl(String couponUuid, Integer value, Duration ttl) {
-    couponRedisTemplate.opsForValue().set(COUNT_PREFIX + couponUuid, value, ttl);
+    couponRedisTemplate.opsForValue().set(COUPON_COUNT + couponUuid, value, ttl);
   }
 
   public void setCouponSetWithTtl(String couponUuid, Duration ttl) {
@@ -220,7 +286,7 @@ public class RedisCouponCacheManager {
   }
 
   public Long decreaseCouponCount(String couponUuid) {
-    return couponRedisTemplate.opsForValue().decrement(COUNT_PREFIX + couponUuid);
+    return couponRedisTemplate.opsForValue().decrement(COUPON_COUNT + couponUuid);
   }
 
   public boolean isAlreadyIssued(String couponUuid, Long userId) {
@@ -234,10 +300,10 @@ public class RedisCouponCacheManager {
   }
 
   public Long increaseCouponCount(String couponUuid) {
-    return couponRedisTemplate.opsForValue().increment(COUNT_PREFIX + couponUuid);
+    return couponRedisTemplate.opsForValue().increment(COUPON_COUNT + couponUuid);
   }
 
   public Integer getCouponCount(String couponUuid) {
-    return (Integer) couponRedisTemplate.opsForValue().get(COUNT_PREFIX + couponUuid);
+    return (Integer) couponRedisTemplate.opsForValue().get(COUPON_COUNT + couponUuid);
   }
 }
