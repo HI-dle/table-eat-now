@@ -9,6 +9,7 @@ public class CouponCacheConstant {
 
   public static final String COUPON_CACHE = "coupon:";
   public static final String COUPON_USER_SET = "coupon:user:";
+  public static final String COUPON_COUNT = "coupon:count:";
 
   public static final String DAILY_ISSUABLE_PROMO_COUPON_INDEX = "coupon:iss:promo:index";
   public static final String DAILY_ISSUABLE_HOT_COUPON_INDEX = "coupon:iss:hot:index";

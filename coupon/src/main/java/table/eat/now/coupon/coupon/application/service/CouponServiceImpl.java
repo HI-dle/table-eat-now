@@ -20,6 +20,7 @@ import table.eat.now.common.resolver.dto.CurrentUserInfoDto;
 import table.eat.now.coupon.coupon.application.aop.annotation.DistributedLock;
 import table.eat.now.coupon.coupon.application.aop.annotation.WithSimpleTransaction;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
+import table.eat.now.coupon.coupon.application.messaging.EventPublisher;
 import table.eat.now.coupon.coupon.application.messaging.event.CouponRequestedIssueEvent;
 import table.eat.now.coupon.coupon.application.service.dto.request.CreateCouponCommand;
 import table.eat.now.coupon.coupon.application.service.dto.request.SearchCouponsQuery;
@@ -44,8 +45,9 @@ import table.eat.now.coupon.coupon.domain.store.CouponStore;
 public class CouponServiceImpl implements CouponService {
   private final CouponReader couponReader;
   private final CouponStore couponStore;
-  private final ApplicationEventPublisher eventPublisher;
+  private final ApplicationEventPublisher springEventPublisher;
   private final IssueStrategyResolver issueStrategyResolver;
+  private final EventPublisher<CouponRequestedIssueEvent> eventPublisher;
 
   @Override
   public String createCoupon(CreateCouponCommand command) {
@@ -148,7 +150,8 @@ public class CouponServiceImpl implements CouponService {
     strategy.requestIssue(couponUuid, userInfoDto.userId());
 
     String userCouponUuid = UUID.randomUUID().toString();
-    eventPublisher.publishEvent(CouponRequestedIssueEvent.of(userCouponUuid, userInfoDto, coupon));
+    //springEventPublisher.publishEvent(CouponRequestedIssueEvent.of(userCouponUuid, userInfoDto, coupon));
+    eventPublisher.publish(CouponRequestedIssueEvent.of(userCouponUuid, userInfoDto.userId(), coupon));
     return userCouponUuid;
   }
 

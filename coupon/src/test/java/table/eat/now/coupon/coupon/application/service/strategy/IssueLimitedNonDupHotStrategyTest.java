@@ -15,13 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 import table.eat.now.common.exception.CustomException;
-import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
 import table.eat.now.coupon.coupon.application.strategy.IssueLimitedNonDupHotStrategy;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
 import table.eat.now.coupon.coupon.domain.info.CouponProfile;
 import table.eat.now.coupon.coupon.domain.reader.CouponReader;
 import table.eat.now.coupon.coupon.domain.store.CouponStore;
 import table.eat.now.coupon.coupon.fixture.CouponFixture;
+import table.eat.now.coupon.coupon.infrastructure.exception.CouponInfraErrorCode;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
 
 @Slf4j
@@ -49,6 +49,7 @@ class IssueLimitedNonDupHotStrategyTest extends IntegrationTestSupport {
         .plusMinutes(10);
     couponStore.setCouponCountWithTtl(coupon.getCouponUuid(), coupon.getCount(), duration);
     couponStore.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
+    couponStore.insertCouponCache(coupon.getCouponUuid(), coupon, duration);
   }
 
   @DisplayName("중복 발급 제한 및 수량 제한 쿠폰 발급 전략이 발급 전략 별명을 잘 반환하는지 확인 - 성공")
@@ -80,7 +81,7 @@ class IssueLimitedNonDupHotStrategyTest extends IntegrationTestSupport {
     // when, then
     assertThatThrownBy(() -> issueLimitedNonDupHotStrategy.requestIssue(coupon.getCouponUuid(), 2L))
         .isInstanceOf(CustomException.class)
-        .hasMessage(CouponErrorCode.ALREADY_ISSUED.getMessage());
+        .hasMessage(CouponInfraErrorCode.DUPLICATED_REQUEST.getMessage());
   }
 
   @DisplayName("중복 발급 제한 및 수량 제한 쿠폰을 수량 제한해서 발급하는지 확인 - 수량 초과시 예외 발생")
@@ -93,7 +94,7 @@ class IssueLimitedNonDupHotStrategyTest extends IntegrationTestSupport {
     // when, then
     assertThatThrownBy(() -> issueLimitedNonDupHotStrategy.requestIssue(coupon.getCouponUuid(), 4L))
         .isInstanceOf(CustomException.class)
-        .hasMessage(CouponErrorCode.INSUFFICIENT_STOCK.getMessage());
+        .hasMessage(CouponInfraErrorCode.NOT_ENOUGH_STOCK.getMessage());
   }
 
 
@@ -123,7 +124,9 @@ class IssueLimitedNonDupHotStrategyTest extends IntegrationTestSupport {
     // then
     assertThat(couponReader.isAlreadyIssued(coupon.getCouponUuid(), 2L))
         .isTrue();
-    assertThat(couponReader.getCouponCount(coupon.getCouponUuid()))
-        .isEqualTo(coupon.getCount()-1);
+
+    Coupon updated = couponReader.findValidCouponByUuid(coupon.getCouponUuid())
+        .orElseThrow(() -> new RuntimeException("쿠폰 조회 실패"));
+    assertThat(updated.getIssuedCount()).isEqualTo(1);
   }
 }

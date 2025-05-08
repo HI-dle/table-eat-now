@@ -22,7 +22,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import table.eat.now.common.domain.BaseEntity;
+import table.eat.now.coupon.coupon.domain.command.CouponIssuance;
 import table.eat.now.coupon.coupon.domain.command.UpdateCoupon;
+import table.eat.now.coupon.coupon.domain.info.CouponProfile;
 
 @Table(name="p_coupon")
 @Getter
@@ -156,5 +158,14 @@ public class Coupon extends BaseEntity {
 
   public boolean isIssuableIn(LocalDate today) {
     return this.period.isIssuableIn(today);
+  }
+
+  public CouponIssuance toIssuance(Long userId, Long timestamp) {
+    return CouponIssuance.builder()
+        .couponProfile(CouponProfile.parse(this))
+        .userId(userId)
+        .timestamp(timestamp)
+        .couponUuid(this.couponUuid)
+        .build();
   }
 }

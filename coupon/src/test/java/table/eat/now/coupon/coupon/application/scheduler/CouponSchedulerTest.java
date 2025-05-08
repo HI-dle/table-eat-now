@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,11 +57,8 @@ class CouponSchedulerTest extends IntegrationTestSupport {
     ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
 
     // when
-    List<Future<?>> futures = List.of(
-        executorService.submit(() -> couponScheduler.setCouponIssuanceInfo()),
-        executorService.submit(() -> couponScheduler.setCouponIssuanceInfo()),
-        executorService.submit(() -> couponScheduler.setCouponIssuanceInfo())
-    );
+    List<? extends Future<?>> futures = IntStream.range(0, numberOfThreads)
+        .mapToObj(i -> executorService.submit(() -> couponScheduler.setCouponIssuanceInfo())).toList();
 
     List<Exception> results = futures.stream()
         .map(super::extractExceptionFromFuture)
