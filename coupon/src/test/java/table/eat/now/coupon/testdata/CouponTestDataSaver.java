@@ -3,7 +3,6 @@ package table.eat.now.coupon.testdata;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,9 +13,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.util.ResourceUtils;
 import table.eat.now.coupon.coupon.application.utils.TimeProvider;
 import table.eat.now.coupon.coupon.domain.command.CouponCachingAndIndexing;
 import table.eat.now.coupon.coupon.domain.entity.Coupon;
@@ -49,7 +48,7 @@ public class CouponTestDataSaver extends IntegrationDataCreationSupport {
       int size = 10;
       List<Coupon> coupons = IntStream.range(0, size)
           .mapToObj(i -> CouponFixture.createHotCoupon(
-              i, "FIXED_DISCOUNT", "HOT", 1000000000, false,
+              i, "FIXED_DISCOUNT", 1000000000, false,
               10000, null, null)
           )
           .toList();
@@ -94,11 +93,9 @@ public class CouponTestDataSaver extends IntegrationDataCreationSupport {
   void saveLua() throws IOException {
 
     String path = "redis/coupon/limited_nondup.lua";
+    ClassPathResource resource = new ClassPathResource(path);
+    String luaScript = Files.readString(resource.getFile().toPath(), StandardCharsets.UTF_8);
 
-    String luaScript = new String(
-        Files.readAllBytes(Paths.get(ResourceUtils.getFile("classpath:" + path).toURI())),
-        StandardCharsets.UTF_8
-    );
     String sha = redisTemplate.execute((RedisCallback<String>) connection ->
       connection.scriptingCommands().scriptLoad(luaScript.getBytes(StandardCharsets.UTF_8))
     );
