@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import table.eat.now.coupon.coupon.application.aop.annotation.DistributedLock;
 import table.eat.now.coupon.coupon.application.usecase.PrepareCouponIssuanceUsecase;
 import table.eat.now.coupon.coupon.application.usecase.PrepareDailyCouponCacheUsecase;
+import table.eat.now.coupon.coupon.application.usecase.SyncCouponCacheToDbUsecase;
 
 @Slf4j
 @Component
@@ -14,6 +15,7 @@ import table.eat.now.coupon.coupon.application.usecase.PrepareDailyCouponCacheUs
 public class CouponScheduler {
   private final PrepareCouponIssuanceUsecase prepareCouponIssuanceUsecase;
   private final PrepareDailyCouponCacheUsecase prepareDailyCouponCacheUsecase;
+  private final SyncCouponCacheToDbUsecase syncCouponCacheToDbUsecase;
 
   @DistributedLock(subPrefix = "schedule:hourlycaching", waitTime = 0L, leaseTime = 60)
   @Scheduled(cron="0 0 * * * *")
@@ -27,5 +29,11 @@ public class CouponScheduler {
   @Scheduled(cron="0 0 0/23 * * *")
   public void prepareDailyCouponCache() {
     prepareDailyCouponCacheUsecase.execute();
+  }
+
+  @DistributedLock(subPrefix = "schedule:sync:caching:db", waitTime = 0L, leaseTime = 60)
+  @Scheduled(cron="0 * * * * *")
+  public void syncCouponCacheToDb() {
+    syncCouponCacheToDbUsecase.execute();
   }
 }

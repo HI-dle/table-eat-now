@@ -37,12 +37,13 @@ public class CouponRedisConfig {
     //objectMapperForRedis.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     Jackson2JsonRedisSerializer<Object> serializer =
         new Jackson2JsonRedisSerializer<>(objectMapperForRedis, Object.class);
+    StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
     RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
     redisTemplate.setConnectionFactory(redisConnectionFactory);
-    redisTemplate.setKeySerializer(new StringRedisSerializer());
+    redisTemplate.setKeySerializer(stringSerializer);
     redisTemplate.setValueSerializer(serializer);
-    redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+    redisTemplate.setHashKeySerializer(stringSerializer);
     redisTemplate.setHashValueSerializer(serializer);
 
     return redisTemplate;

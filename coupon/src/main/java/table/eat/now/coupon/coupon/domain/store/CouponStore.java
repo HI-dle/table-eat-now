@@ -29,4 +29,8 @@ public interface CouponStore {
   boolean markAsIssued(String couponUuid, Long userId);
 
   Long increaseCouponCount(String couponUuid);
+
+  void updateIssuedCount(String couponUuid, Integer issuedCount, Long version);
+
+  void deleteDirtyCouponKeysByScore(long threshold);
 }

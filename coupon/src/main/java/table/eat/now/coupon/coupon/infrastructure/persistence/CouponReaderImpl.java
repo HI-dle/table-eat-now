@@ -75,4 +75,14 @@ public class CouponReaderImpl implements CouponReader {
   public boolean isAlreadyIssued(String couponUuid, Long userId) {
     return redisCouponCacheManager.isAlreadyIssued(couponUuid, userId);
   }
+
+  @Override
+  public Set<String> getDirtyCouponKeysForSync(long threshold) {
+    return redisCouponCacheManager.getDirtyCouponKeysForSync(threshold);
+  }
+
+  @Override
+  public List<Coupon> getValidCouponCachesBy(List<String> couponKeys) {
+    return redisCouponCacheManager.getValidCouponsCacheBy(couponKeys);
+  }
 }
