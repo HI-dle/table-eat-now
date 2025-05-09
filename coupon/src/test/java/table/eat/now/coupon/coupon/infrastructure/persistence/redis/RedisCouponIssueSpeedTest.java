@@ -76,7 +76,7 @@ public class RedisCouponIssueSpeedTest extends IntegrationTestSupport {
     couponStore.setCouponSetWithTtl(coupon.getCouponUuid(), duration);
     couponStore.insertCouponCache(coupon.getCouponUuid(), coupon, cacheDuration);
 
-    sha = this.saveLua();
+    sha = this.saveLuaAngGetSha();
     simpleCouponIssueRedisScript = loadScript("redis/coupon/limited_nondup_test.lua", Long.class);
   }
 
@@ -227,7 +227,7 @@ public class RedisCouponIssueSpeedTest extends IntegrationTestSupport {
     }
   }
 
-  private String saveLua() throws IOException {
+  private String saveLuaAngGetSha() throws IOException {
 
     String path = "redis/coupon/limited_nondup_test.lua";
 
@@ -241,7 +241,7 @@ public class RedisCouponIssueSpeedTest extends IntegrationTestSupport {
     );
   }
 
-  private static <T> RedisScript<T> loadScript(String path, Class<T> resultType) {
+  private <T> RedisScript<T> loadScript(String path, Class<T> resultType) {
     DefaultRedisScript<T> script = new DefaultRedisScript<>();
     script.setScriptSource(new ResourceScriptSource(new ClassPathResource(path)));
     script.setResultType(resultType);

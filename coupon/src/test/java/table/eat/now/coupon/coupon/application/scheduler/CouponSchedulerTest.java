@@ -19,6 +19,7 @@ import table.eat.now.common.exception.CustomException;
 import table.eat.now.coupon.coupon.application.exception.CouponErrorCode;
 import table.eat.now.coupon.coupon.application.usecase.PrepareCouponIssuanceUsecase;
 import table.eat.now.coupon.coupon.application.usecase.PrepareDailyCouponCacheUsecase;
+import table.eat.now.coupon.coupon.application.usecase.SyncCouponCacheToDbUsecase;
 import table.eat.now.coupon.helper.IntegrationTestSupport;
 
 class CouponSchedulerTest extends IntegrationTestSupport {
@@ -31,6 +32,9 @@ class CouponSchedulerTest extends IntegrationTestSupport {
 
   @MockitoBean
   private PrepareDailyCouponCacheUsecase prepareDailyCouponCacheUsecase;
+
+  @MockitoBean
+  private SyncCouponCacheToDbUsecase syncCouponCacheToDbUsecase;
 
   @BeforeEach
   void setUp() {
@@ -87,5 +91,18 @@ class CouponSchedulerTest extends IntegrationTestSupport {
 
     // then
     verify(prepareDailyCouponCacheUsecase, times(1)).execute();
+  }
+
+  @DisplayName("쿠폰 캐시 디비 싱크 스케쥴러 메소드 호출시 내부 로직이 잘 동작하는지 확인 - 성공")
+  @Test
+  void syncCouponCacheToDb() {
+    // given
+    doNothing().when(syncCouponCacheToDbUsecase).execute();
+
+    // when
+    couponScheduler.syncCouponCacheToDb();
+
+    // then
+    verify(syncCouponCacheToDbUsecase, times(1)).execute();
   }
 }

@@ -27,4 +27,8 @@ public interface CouponReader {
   List<Coupon> getIssuableCouponsCacheIn(CouponLabel label);
 
   boolean isAlreadyIssued(String couponUuid, Long userId);
+
+  Set<String> getDirtyCouponKeysForSync(long threshold);
+
+  List<Coupon> getValidCouponCachesBy(List<String> couponKeys);
 }

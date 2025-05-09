@@ -5,7 +5,7 @@ import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.const
 import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.COUPON_USER_SET;
 import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.DAILY_ISSUABLE_HOT_COUPON_INDEX;
 import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.DAILY_ISSUABLE_PROMO_COUPON_INDEX;
-import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.DIRTY_COUPON_SET;
+import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.DIRTY_COUPON_ZSET;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.nio.charset.StandardCharsets;
@@ -142,32 +142,13 @@ public class RedisCouponCacheManager {
   public List<Coupon> getCouponsCacheBy(String indexKey) {
 
     Set<Object> couponKeySet = couponRedisTemplate.opsForZSet().range(indexKey, 0, -1);
+
     if (couponKeySet == null || couponKeySet.isEmpty()) {
       return Collections.emptyList();
     }
-    List<Object> couponKeys = couponKeySet.stream().toList();
+    List<String> couponKeys = couponKeySet.stream().map(Object::toString).toList();
 
-    List<Object> results = couponRedisTemplate.executePipelined(new SessionCallback<> () {
-      @Override
-      public Object execute(RedisOperations operations) {
-        for (Object couponKey : couponKeys) {
-          operations.opsForHash().entries(couponKey);
-        }
-        return null;
-      }
-    });
-
-    List<Coupon> couponList = new ArrayList<>();
-    for (int i = 0; i < results.size(); i++) {
-      Map<Object, Object> couponData = (Map<Object, Object>) results.get(i);
-
-      if (couponData != null && !couponData.isEmpty()) {
-        couponList.add(MapperProvider.convertValue(couponData, Coupon.class));
-      } else {
-        log.warn("REDIS Pipeline: 개별 쿠폰 캐시 조회 실패: {}", couponKeys.get(i)); // todo. 캐시 조회 실패시, 디비 조회 필요
-      }
-    }
-    return couponList;
+    return getValidCouponsCacheBy(couponKeys);
   }
 
   public void requestIssueByLua(CouponIssuance command) {
@@ -185,7 +166,7 @@ public class RedisCouponCacheManager {
 
     Long currentTimestamp = TimeProvider.getEpochMillis(LocalDateTime.now());
 
-    List<String> keys = List.of(userSetKey, couponKey, idempotencyKey, DIRTY_COUPON_SET);
+    List<String> keys = List.of(userSetKey, couponKey, idempotencyKey, DIRTY_COUPON_ZSET);
     List<String> args = List.of(command.userId().toString(), currentTimestamp.toString());
 
     Long result;
@@ -218,7 +199,7 @@ public class RedisCouponCacheManager {
 
     Long currentTimestamp = TimeProvider.getEpochMillis(LocalDateTime.now());
 
-    List<String> keys = List.of(userSetKey, couponKey, idempotencyKey, DIRTY_COUPON_SET);
+    List<String> keys = List.of(userSetKey, couponKey, idempotencyKey, DIRTY_COUPON_ZSET);
     List<String> args = List.of(command.userId().toString(), currentTimestamp.toString());
 
     Long result;
@@ -230,34 +211,10 @@ public class RedisCouponCacheManager {
               userSetKey.getBytes(StandardCharsets.UTF_8),
               couponKey.getBytes(StandardCharsets.UTF_8),
               idempotencyKey.getBytes(StandardCharsets.UTF_8),
-              DIRTY_COUPON_SET.getBytes(StandardCharsets.UTF_8),
+              DIRTY_COUPON_ZSET.getBytes(StandardCharsets.UTF_8),
               args.get(0).getBytes(StandardCharsets.UTF_8),
               args.get(1).getBytes(StandardCharsets.UTF_8))
       );
-    } catch (Exception e) {
-      throw CustomException.from(CouponInfraErrorCode.FAILED_LUA_SCRIPT);
-    }
-
-    if (result != 1) {
-      throw CustomException.from(IssueResult.parseToErrorCode(result));
-    }
-  }
-
-  public void requestIssueByLuaForTest(CouponIssuance command) {
-
-    String userSetKey = COUPON_USER_SET + command.couponUuid();;
-    String couponCountKey = COUPON_COUNT + command.couponUuid();
-
-    List<String> keys = List.of(userSetKey, couponCountKey);
-    List<String> args = List.of(command.userId().toString());
-
-    Long result;
-    try {
-      result = executeLuaScript(
-          LuaScriptType.LIMITED_NONDUP,
-          keys,
-          args);
-
     } catch (Exception e) {
       throw CustomException.from(CouponInfraErrorCode.FAILED_LUA_SCRIPT);
     }
@@ -304,5 +261,38 @@ public class RedisCouponCacheManager {
 
   public Integer getCouponCount(String couponUuid) {
     return (Integer) couponRedisTemplate.opsForValue().get(COUPON_COUNT + couponUuid);
+  }
+
+  public Set<String> getDirtyCouponKeysForSync(long threshold) {
+    return stringRedisTemplate.opsForZSet().rangeByScore(DIRTY_COUPON_ZSET, 0, threshold);
+  }
+
+  public List<Coupon> getValidCouponsCacheBy(List<String> couponKeys) {
+
+    List<Object> results = couponRedisTemplate.executePipelined(new SessionCallback<> () {
+      @Override
+      public Object execute(RedisOperations operations) {
+        for (Object couponKey : couponKeys) {
+          operations.opsForHash().entries(couponKey);
+        }
+        return null;
+      }
+    });
+
+    List<Coupon> couponList = new ArrayList<>();
+    for (int i = 0; i < results.size(); i++) {
+      Map<Object, Object> couponData = (Map<Object, Object>) results.get(i);
+
+      if (couponData != null && !couponData.isEmpty()) {
+        couponList.add(MapperProvider.convertValue(couponData, Coupon.class));
+      } else {
+        log.warn("REDIS Pipeline: 개별 쿠폰 캐시 조회 실패: {}", couponKeys.get(i)); // todo. 캐시 조회 실패시, 디비 조회 필요
+      }
+    }
+    return couponList;
+  }
+
+  public void deleteZSetMembersByScore(String key, long threshold) {
+    Long removedCount = couponRedisTemplate.opsForZSet().removeRange(key, 0, threshold);
   }
 }

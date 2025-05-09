@@ -1,5 +1,7 @@
 package table.eat.now.coupon.coupon.infrastructure.persistence;
 
+import static table.eat.now.coupon.coupon.infrastructure.persistence.redis.constant.CouponCacheConstant.DIRTY_COUPON_ZSET;
+
 import java.time.Duration;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +52,16 @@ public class CouponStoreImpl implements CouponStore {
   @Override
   public Long increaseCouponCount(String couponUuid) {
     return redisCacheManager.increaseCouponCount(couponUuid);
+  }
+
+  @Override
+  public void updateIssuedCount(String couponUuid, Integer issuedCount, Long version) {
+    jpaRepository.updateIssuedCount(couponUuid, issuedCount, version);
+  }
+
+  @Override
+  public void deleteDirtyCouponKeysByScore(long threshold) {
+    redisCacheManager.deleteZSetMembersByScore(DIRTY_COUPON_ZSET, threshold);
   }
 
   @Override

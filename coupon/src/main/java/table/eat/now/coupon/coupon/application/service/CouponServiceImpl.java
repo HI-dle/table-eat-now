@@ -70,7 +70,7 @@ public class CouponServiceImpl implements CouponService {
     try {
       coupon = getValidCouponBy(couponUuid);
       coupon.modify(command.toDomainCommand());
-      couponStore.save(coupon);
+      coupon = couponStore.save(coupon);
 
     } catch (StaleObjectStateException e) {
       throw CustomException.from(CouponErrorCode.IS_OUTDATED_DATA);

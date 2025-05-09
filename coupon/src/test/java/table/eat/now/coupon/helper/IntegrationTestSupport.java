@@ -1,5 +1,6 @@
 package table.eat.now.coupon.helper;
 
+import jakarta.persistence.EntityManager;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
@@ -31,6 +33,12 @@ public abstract class IntegrationTestSupport {
 
   @Autowired
   protected RedisTemplate<String, Object> redisTemplate;
+
+  @Autowired
+  protected StringRedisTemplate stringRedisTemplate;
+
+  @Autowired
+  protected EntityManager entityManager;
 
   @MockitoBean
   protected UserCouponSpringEventListener userCouponSpringEventListener;
