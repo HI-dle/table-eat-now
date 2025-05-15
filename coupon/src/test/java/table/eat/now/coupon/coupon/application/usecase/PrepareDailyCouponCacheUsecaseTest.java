@@ -36,7 +36,7 @@ class PrepareDailyCouponCacheUsecaseTest extends IntegrationTestSupport {
   void setUp() {
     coupons = CouponFixture.createCoupons(20);
     coupons.forEach(coupon -> {
-      ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().minusDays(1));
+      ReflectionTestUtils.setField(coupon.getPeriod(), "issueStartAt", LocalDateTime.now().plusDays(1));
       ReflectionTestUtils.setField(coupon, "label", CouponLabel.HOT);
     });
     couponStore.saveAll(coupons);

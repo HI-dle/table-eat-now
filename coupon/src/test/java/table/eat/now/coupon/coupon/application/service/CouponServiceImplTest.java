@@ -131,10 +131,43 @@ class CouponServiceImplTest extends IntegrationTestSupport {
         .build();
 
     // when
-    couponService.updateCoupon(coupons.get(0).getCouponUuid(), command);
+    couponService.updateCoupon(coupon.getCouponUuid(), command);
 
     // then
-    Coupon updated = couponReader.findValidCouponByUuid(coupons.get(0).getCouponUuid())
+    Coupon updated = couponReader.findValidCouponByUuid(coupon.getCouponUuid())
+        .orElseThrow(() -> CustomException.from(CouponErrorCode.INVALID_COUPON_UUID));
+
+    assertThat(updated.getCount()).isEqualTo(command.count());
+    assertThat(updated.getVersion()).isEqualTo(1L);
+  }
+
+  @DisplayName("캐싱된 쿠폰 수정 검증 - 성공")
+  @Test
+  void updateCouponWithCache() {
+    // given
+    entityManager.clear();
+    redisCouponCacheManager.putCouponCache(coupon.getCouponUuid(), coupon);
+    UpdateCouponCommand command = UpdateCouponCommand.builder()
+        .name("test")
+        .type("FIXED_DISCOUNT")
+        .label("HOT")
+        .count(5)
+        .issueStartAt(LocalDateTime.now().plusHours(3))
+        .issueEndAt(LocalDateTime.now().plusHours(3).plusMinutes(59))
+        .validDays(7)
+        .allowDuplicate(true)
+        .minPurchaseAmount(30000)
+        .amount(1000)
+        .percent(null)
+        .maxDiscountAmount(null)
+        .version(4L)
+        .build();
+
+    // when
+    couponService.updateCoupon(coupon.getCouponUuid(), command);
+
+    // then
+    Coupon updated = couponReader.findValidCouponByUuid(coupon.getCouponUuid())
         .orElseThrow(() -> CustomException.from(CouponErrorCode.INVALID_COUPON_UUID));
 
     assertThat(updated.getCount()).isEqualTo(command.count());
@@ -320,7 +353,7 @@ class CouponServiceImplTest extends IntegrationTestSupport {
         .name()).isEqualTo(couponName);
   }
 
-  @DisplayName("일간 발급 가능 프로모션 쿠폰 조회: 캐싱 데이터 사용 확인 - 성공")
+  @DisplayName("일간 발급 가능 프로모션 쿠폰 내부 조회: 캐싱 데이터 사용 확인 - 성공")
   @Test
   void getDailyIssuablePromotionCouponsInternal() {
     // given
